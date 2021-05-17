@@ -1,0 +1,4 @@
+# exclude generated directories
+/app
+/tmp
+/Output/*
