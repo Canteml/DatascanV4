@@ -1,0 +1,6 @@
+[submodule "dev/ext/fw_common"]
+	path = dev/ext/fw_common
+	url = https://gitlab.com/roboplanet/fw_common.git
+[submodule "dev/ext/fw_ui"]
+	path = dev/ext/fw_ui
+	url = https://gitlab.com/roboplanet/fw_ui.git

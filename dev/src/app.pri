@@ -10,7 +10,7 @@
 #
 # ============================================================================
 
-QT       += core gui quick qml widgets
+QT       += core gui quick qml widgets serialport network
 
 CONFIG += c++11
 
@@ -26,7 +26,7 @@ FORMS += $$files($$PWD/ui/*.ui)
 
 INCLUDEPATH += $$PWD
 
-TRANSLATIONS += $$PWD/res/languages/App_en_GB.ts
+TRANSLATIONS += $$PWD/res/languages/Datascan_en_GB.ts
 
 RESOURCES += $$PWD/qml/qml.qrc
 
@@ -36,4 +36,12 @@ QML_IMPORT_PATH = $$PWD/qml
 # Additional import path used to resolve QML modules just for Qt Quick Designer
 QML_DESIGNER_IMPORT_PATH =
 
+# Modules of Frawework common :
+#USE_FW_COMMON_SCAN = yes
+USE_FW_COMMON_V2 = yes
 
+# QML Registering  :
+CONFIG += qmltypes
+QML_IMPORT_NAME = com.mycompany.messaging
+QML_IMPORT_MAJOR_VERSION = 1
+INCLUDEPATH += ext/fw_common/dev/src/v2/vector

@@ -15,6 +15,8 @@
 // Internal includes
 #include <coreUi/CoreUiQml.h>
 class StatisticApp;
+class VectorManager;
+class VectorStd;
 
 class CoreApp : public CoreUiQml
 {
@@ -43,6 +45,8 @@ private :
 
     // managers
     StatisticApp * m_pStatisticApp;
+    VectorManager * m_pVectorManager;
+    VectorStd * m_pVectorStd;
 
 };
 

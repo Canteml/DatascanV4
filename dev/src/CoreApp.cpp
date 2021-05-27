@@ -15,12 +15,19 @@
 
 // -- Internal includes
 #include "CoreApp.h"
-//#include "StatisticApp.h"
+#include <v2/vector/VectorManager.h>
+#include <v2/vector/VectorStd.h>
+#include <v2/com/IntComMsg.h>
+#include <v2/prot/ProtMsg.h>
+#include <v2/com/ComLinkManager.h>
+#include <v2/com/ComComponentManager.h>
 
 
 CoreApp::CoreApp() : CoreUiQml("CoreApp")
 {
     m_pStatisticApp = nullptr;
+    m_pVectorManager = nullptr;
+    m_pVectorStd = nullptr;
 }
 
 
@@ -31,7 +38,7 @@ CoreApp::~CoreApp()
 
 QString CoreApp::getApplicationName() const
 {
-    return "App";
+    return "DatascanV2";
 }
 
 QString CoreApp::getVersion() const
@@ -47,9 +54,11 @@ bool CoreApp::initApp()
 
     // -- make my managers
     // example : m_pStatisticApp = StatisticApp::makeInstance();
+    m_pVectorManager = VectorManager::makeInstance();
 
     // -- init my managers
     // example : m_pStatisticApp->initManager();
+    m_pVectorManager->init();
 
     // -- load settings of my managers
     // example : bRet &= m_pStatisticApp->loadSettings();
@@ -62,6 +71,10 @@ bool CoreApp::startApp()
     bool bRet = true;
 
     // -- start my managers
+    m_pVectorManager->makeVectorStd();
+    m_pVectorStd = m_pVectorManager->getVectorStd();
+    m_pVectorStd->setProdIdCompId(ProtMsg::PROD_PANDA_VOL3, ProtMsg::COMP_GROUND_CONTROL);
+    m_pVectorStd->getLinkManager()->openSerial(28,115200);
 
 
     // -- core start => open main.qml
@@ -79,6 +92,7 @@ void CoreApp::stopApp()
 //    StatisticApp::stopAppExecution();
 
     // -- stop my managers
+    m_pVectorManager->quit();
 
     // -- core stop
     CoreUiQml::stopApp();
