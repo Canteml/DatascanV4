@@ -4,6 +4,10 @@
 /debug
 /release
 
+*.json
+*.cpp
+*.qmltypes
+
 *~
 *.autosave
 *.a
