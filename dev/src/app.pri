@@ -42,6 +42,6 @@ USE_FW_COMMON_V2 = yes
 
 # QML Registering  :
 CONFIG += qmltypes
-QML_IMPORT_NAME = com.mycompany.messaging
+QML_IMPORT_NAME = roboplanet.v2
 QML_IMPORT_MAJOR_VERSION = 1
 INCLUDEPATH += ext/fw_common/dev/src/v2/vector

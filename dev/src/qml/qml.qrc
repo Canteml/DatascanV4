@@ -3,8 +3,20 @@
         <file>main.qml</file>
         <file>Mainwindow.qml</file>
         <file>MainwindowForm.ui.qml</file>
+        <file>CentralPage0.qml</file>
+        <file>CentralPage0Form.ui.qml</file>
+        <file>CentralPage1.qml</file>
+        <file>CentralPage1Form.ui.qml</file>
+        <file>CentralPage3.qml</file>
+        <file>CentralPage3Form.ui.qml</file>
+        <file>CentralPage2.qml</file>
+        <file>CentralPage2Form.ui.qml</file>
+        <file>CentralPage4.qml</file>
+        <file>CentralPage4Form.ui.qml</file>
     </qresource>
     <qresource prefix="/img">
         <file>logo.png</file>
+        <file>icons/btMainMenuClicked.png</file>
+        <file>icons/btMainMenuNormal.png</file>
     </qresource>
 </RCC>
