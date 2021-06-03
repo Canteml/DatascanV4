@@ -12,16 +12,20 @@ Window  {
     title: qsTr("Hello World")
 
     flags: Qt.Window
-	
-    Image {
-        id: image1
-        height: 270
-        anchors.top: parent.top
-        anchors.topMargin: 50
-        anchors.right: parent.right
-        anchors.rightMargin: 100
-        anchors.left: parent.left
-        anchors.leftMargin: 100
-        source: "logo.png"
+
+    Mainwindow {
+
     }
+	
+//    Image {
+//        id: image1
+//        height: 270
+//        anchors.top: parent.top
+//        anchors.topMargin: 50
+//        anchors.right: parent.right
+//        anchors.rightMargin: 100
+//        anchors.left: parent.left
+//        anchors.leftMargin: 100
+//        source: "logo.png"
+//    }
 }

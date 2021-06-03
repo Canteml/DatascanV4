@@ -38,7 +38,7 @@ CoreApp::~CoreApp()
 
 QString CoreApp::getApplicationName() const
 {
-    return "DatascanV2";
+    return "DataScanV2";
 }
 
 QString CoreApp::getVersion() const
@@ -73,8 +73,8 @@ bool CoreApp::startApp()
     // -- start my managers
     m_pVectorManager->makeVectorStd();
     m_pVectorStd = m_pVectorManager->getVectorStd();
-    m_pVectorStd->setProdIdCompId(ProtMsg::PROD_PANDA_VOL3, ProtMsg::COMP_GROUND_CONTROL);
-    m_pVectorStd->getLinkManager()->openSerial(28,115200);
+    m_pVectorStd->setProdIdCompId(ProtMsg::PROD_PANDA_VOL3, ProtMsg::COMP_GROUND_STATION);
+    m_pVectorStd->getLinkManager()->openSerial(28,921600);
 
 
     // -- core start => open main.qml
