@@ -13,10 +13,25 @@
         <file>CentralPage2Form.ui.qml</file>
         <file>CentralPage4.qml</file>
         <file>CentralPage4Form.ui.qml</file>
+        <file>BannerVectorInfo.qml</file>
+        <file>BannerVectorInfoForm.ui.qml</file>
+        <file>ComponentLinkConfig.qml</file>
+        <file>ComponentLinkConfigForm.ui.qml</file>
     </qresource>
     <qresource prefix="/img">
         <file>logo.png</file>
         <file>icons/btMainMenuClicked.png</file>
         <file>icons/btMainMenuNormal.png</file>
+        <file>icons/btEmergencyStop.png</file>
+        <file>icons/btPause.png</file>
+        <file>icons/btStart.png</file>
+        <file>icons/btStop.png</file>
+        <file>icons/iconConnected.png</file>
+        <file>icons/iconDisconnected.png</file>
+        <file>icons/iconJoystickConnected.png</file>
+        <file>icons/iconJoystickDisconnected.png</file>
+        <file>icons/iconPosition.png</file>
+        <file>icons/altiscan_up_down.png</file>
+        <file>icons/altiscan_up_up.png</file>
     </qresource>
 </RCC>

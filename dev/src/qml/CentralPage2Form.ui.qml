@@ -4,7 +4,7 @@ import QtQuick.Layouts 1.11
 
 Rectangle {
     Layout.fillWidth: true
-    Layout.fillHeight : true
+    Layout.fillHeight: true
 
-    color: "red"
+    color: "yellow"
 }

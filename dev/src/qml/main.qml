@@ -13,6 +13,12 @@ Window  {
 
     flags: Qt.Window
 
+    // Trick to get focus wherever the mouse click, and remove focus from last item
+    MouseArea {
+        anchors.fill: parent
+        onClicked: focus = true
+    }
+
     Mainwindow {
 
     }

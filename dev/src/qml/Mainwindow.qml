@@ -5,8 +5,14 @@ import QtQuick.Layouts 1.11
 MainwindowForm {
     id: mainwindowForm
 
+    readonly property int page0_project : 0;
+    readonly property int page1_prepare : 1;
+    readonly property int page2_supervise : 2;
+    readonly property int page3_scan: 3;
+    readonly property int page4_help: 4;
+
     property var displayMenu: false
-    property var centralPageSelected: 3
+    property var centralPageSelected: page3_scan
 
     btMainMenu.onHoveredChanged: checkMainMenuHovered();
     btCentralPage0.onHoveredChanged: checkMainMenuHovered();
@@ -16,11 +22,13 @@ MainwindowForm {
     btCentralPage4.onHoveredChanged: checkMainMenuHovered();
 
 
-    btCentralPage0.onClicked: {centralPageSelected = 0; displayMenu = false;}
-    btCentralPage1.onClicked: {centralPageSelected = 1; displayMenu = false;}
-    btCentralPage2.onClicked: {centralPageSelected = 2; displayMenu = false;}
-    btCentralPage3.onClicked: {centralPageSelected = 3; displayMenu = false;}
-    btCentralPage4.onClicked: {centralPageSelected = 4; displayMenu = false;}
+    btCentralPage0.onPressed: {centralPageSelected = page0_project; displayMenu = false;}
+    btCentralPage1.onPressed: {centralPageSelected = page1_prepare; displayMenu = false;}
+    btCentralPage2.onPressed: {centralPageSelected = page2_supervise; displayMenu = false;}
+    btCentralPage3.onPressed: {centralPageSelected = page3_scan; displayMenu = false;}
+    btCentralPage4.onPressed: {centralPageSelected = page4_help; displayMenu = false;}
+
+    btBannerTitle.onPressed: { centralPageSelected = centralPageSelected === 3 ? 2 : 3;}
 
     onDisplayMenuChanged: {
         if( displayMenu ) {
@@ -44,11 +52,11 @@ MainwindowForm {
     }
 
     function updateCentralPage() {
-        btCentralPage0.background.color = centralPageSelected === 0 ? "#9C9B9B" : "#003B5F"
-        btCentralPage1.background.color = centralPageSelected === 1 ? "#9C9B9B" : "#003B5F"
-        btCentralPage2.background.color = centralPageSelected === 2 ? "#9C9B9B" : "#003B5F"
-        btCentralPage3.background.color = centralPageSelected === 3 ? "#9C9B9B" : "#003B5F"
-        btCentralPage4.background.color = centralPageSelected === 4 ? "#9C9B9B" : "#003B5F"
+        btCentralPage0.background.color = centralPageSelected === page0_project ? "#9C9B9B" : "#003B5F"
+        btCentralPage1.background.color = centralPageSelected === page1_prepare ? "#9C9B9B" : "#003B5F"
+        btCentralPage2.background.color = centralPageSelected === page2_supervise ? "#9C9B9B" : "#003B5F"
+        btCentralPage3.background.color = centralPageSelected === page3_scan ? "#9C9B9B" : "#003B5F"
+        btCentralPage4.background.color = centralPageSelected === page4_help ? "#9C9B9B" : "#003B5F"
 
         slCentral.currentIndex = centralPageSelected;
     }
@@ -72,8 +80,4 @@ MainwindowForm {
 
 
 
-/*##^##
-Designer {
-    D{i:0;autoSize:true;height:480;width:640}
-}
-##^##*/
+

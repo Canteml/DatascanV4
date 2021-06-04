@@ -6,12 +6,13 @@ Item {
     id: itemMain
 
     anchors.fill: parent
+    property alias btBannerTitle: btBannerTitle
     property alias slCentral: slCentral
 
     property alias btMainMenu: btMainMenu
-    property alias colBannerInfo: colBannerInfo
-    property alias lbBannerScan: lbBannerScan
-    property alias lbBannerPiece: lbBannerPiece
+    //property alias colBannerInfo: colBannerInfo
+    //    property alias lbBannerScan: lbBannerScan
+    //    property alias lbBannerPiece: lbBannerPiece
     property alias rowVectorInfo: rowVectorInfo
     property alias rowBanner: rowBanner
     property alias colBtPage: colBtPage
@@ -30,10 +31,11 @@ Item {
 
         RowLayout {
             id: rowBanner
-            Layout.preferredHeight: 60
-            Layout.minimumHeight: 60
+            Layout.preferredHeight: 70
+            Layout.minimumHeight: 70
             Layout.fillHeight: false
             Layout.fillWidth: true
+            spacing: 0
 
             Button {
                 id: btMainMenu
@@ -42,52 +44,80 @@ Item {
                 highlighted: true
 
                 icon.source: "qrc:///img/icons/btMainMenuNormal.png"
-                icon.width: rowBanner.height + 10
-                icon.height: rowBanner.height + 10
+                icon.width: rowBanner.height
+                icon.height: rowBanner.height
                 icon.color: "transparent"
 
                 background: Rectangle {
                     color: "#C9C7C7"
+                    border.width: 1
+                    border.color: "black"
                 }
 
                 padding: 0
             }
 
-            ColumnLayout {
-                id: colBannerInfo
-                Layout.preferredWidth: 150
+            Button {
+                id: btBannerTitle
+                text: qsTr("BAC D006\nGénératrice 8")
+                font.pointSize: 12
+                Layout.preferredWidth: 160
                 Layout.fillWidth: false
-                spacing: 0
+                Layout.fillHeight: true
+                padding: 0
 
-                Label {
-                    id: lbBannerScan
-                    text: qsTr("PIECE")
+                contentItem: Text {
+                    text: btBannerTitle.text
+                    font: btBannerTitle.font
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
-                    font.pointSize: 10
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    background: Rectangle {
-                        color: "#C9C7C7"
-                    }
+                    lineHeight: 1.25 // line-spacing
                 }
-                Label {
-                    id: lbBannerPiece
-                    text: qsTr("GENERATRICE")
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    font.pointSize: 10
-                    Layout.fillHeight: true
-                    Layout.fillWidth: true
-                    background: Rectangle {
-                        color: "#C9C7C7"
-                    }
+
+                background: Rectangle {
+                    color: btBannerTitle.pressed ? "#C9C7C7" : btBannerTitle.hovered ? "#E5E5E5" : "#FFFFFF"
+                    //color: btBannerTitle.hovered ? "#9C9B9B" : "#FFFFFF"
+                    border.width: 1
+                    border.color: "black"
                 }
             }
 
+            //            ColumnLayout {
+            //                id: colBannerInfo
+            //                Layout.preferredWidth: 150
+            //                Layout.fillWidth: false
+            //                spacing: 0
+
+            //                Label {
+            //                    id: lbBannerScan
+            //                    text: qsTr("PIECE")
+            //                    horizontalAlignment: Text.AlignHCenter
+            //                    verticalAlignment: Text.AlignVCenter
+            //                    font.pointSize: 10
+            //                    Layout.fillHeight: true
+            //                    Layout.fillWidth: true
+            //                    background: Rectangle {
+            //                        color: "#C9C7C7"
+            //                    }
+            //                }
+            //                Label {
+            //                    id: lbBannerPiece
+            //                    text: qsTr("GENERATRICE")
+            //                    horizontalAlignment: Text.AlignHCenter
+            //                    verticalAlignment: Text.AlignVCenter
+            //                    font.pointSize: 10
+            //                    Layout.fillHeight: true
+            //                    Layout.fillWidth: true
+            //                    background: Rectangle {
+            //                        color: "#C9C7C7"
+            //                    }
+            //                }
+            //            }
             RowLayout {
                 id: rowVectorInfo
                 Layout.fillWidth: true
+
+                BannerVectorInfo {}
             }
         }
 
