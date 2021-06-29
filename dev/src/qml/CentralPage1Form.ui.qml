@@ -9,7 +9,7 @@ Rectangle {
     Layout.fillHeight: true
 
     color: "#ffffff"
-    property alias idColComponents: idColComponents
+    property alias idLinkList: idLinkList
 
     ColumnLayout {
         id: idP1MainLayout
@@ -54,36 +54,20 @@ Rectangle {
             }
         }
 
-        ColumnLayout {
-            id: idColComponents
+        ListView {
+            id: idLinkList
+            width: 200
+            height: 250
+            Layout.fillHeight: true
             Layout.fillWidth: true
-            Layout.leftMargin: 20
-
-            ComponentLinkConfig {
-                id: idComponentPosition
-                componentId: 0
-                componentName: "Position"
-            }
-
-            ComponentLinkConfig {
-                id: idComponentAScan0
-                componentId: 1
-                componentName: "ASCAN 1"
-            }
-
-            ComponentLinkConfig {
-                id: idComponentAScan1
-                componentId: 2
-                componentName: "ASCAN 2"
-            }
+            Layout.leftMargin: 40
         }
 
         // -- SPACER
-        Rectangle {
+        Item {
             // Spacer
             Layout.fillWidth: true
             Layout.fillHeight: true
-            color: "teal"
         }
     }
 }

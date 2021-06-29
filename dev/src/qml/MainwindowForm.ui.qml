@@ -1,6 +1,7 @@
 import QtQuick 2.4
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
+import Design 1.0
 
 Item {
     id: itemMain
@@ -49,7 +50,7 @@ Item {
                 icon.color: "transparent"
 
                 background: Rectangle {
-                    color: "#C9C7C7"
+                    color: Design.colButtonSelectedBackground
                     border.width: 1
                     border.color: "black"
                 }
@@ -75,10 +76,10 @@ Item {
                 }
 
                 background: Rectangle {
-                    color: btBannerTitle.pressed ? "#C9C7C7" : btBannerTitle.hovered ? "#E5E5E5" : "#FFFFFF"
+                    color: btBannerTitle.pressed ? Design.colButtonSelectedBackground : btBannerTitle.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
                     //color: btBannerTitle.hovered ? "#9C9B9B" : "#FFFFFF"
                     border.width: 1
-                    border.color: "black"
+                    border.color: Design.colFrameBorder
                 }
             }
 
@@ -159,14 +160,14 @@ Item {
                     text: qsTr("PROJET")
                     font.pointSize: 12
                     background: Rectangle {
-                        color: "#003B5F"
+                        color: Design.colButtonDarkBackground
                     }
                     contentItem: Text {
                         text: btCentralPage0.text
                         font: btCentralPage0.font
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
-                        color: btCentralPage0.hovered ? "#FFA850" : "#FFFFFF"
+                        color: btCentralPage0.hovered ? Design.colButtonDarkHoveredText : slCentral.currentIndex === 0 ? Design.colButtonDarkSelectedText : Design.colButtonDarkText
                     }
                 }
 
@@ -177,14 +178,14 @@ Item {
                     text: qsTr("PREPARER")
                     font.pointSize: 12
                     background: Rectangle {
-                        color: "#003B5F"
+                        color: Design.colButtonDarkBackground
                     }
                     contentItem: Text {
                         text: btCentralPage1.text
                         font: btCentralPage1.font
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
-                        color: btCentralPage1.hovered ? "#FFA850" : "#FFFFFF"
+                        color: btCentralPage1.hovered ? Design.colButtonDarkHoveredText : slCentral.currentIndex === 1 ? Design.colButtonDarkSelectedText : Design.colButtonDarkText
                     }
                 }
 
@@ -195,14 +196,14 @@ Item {
                     text: qsTr("SUPERVISER")
                     font.pointSize: 12
                     background: Rectangle {
-                        color: "#003B5F"
+                        color: Design.colButtonDarkBackground
                     }
                     contentItem: Text {
                         text: btCentralPage2.text
                         font: btCentralPage2.font
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
-                        color: btCentralPage2.hovered ? "#FFA850" : "#FFFFFF"
+                        color: btCentralPage2.hovered ? Design.colButtonDarkHoveredText : slCentral.currentIndex === 2 ? Design.colButtonDarkSelectedText : Design.colButtonDarkText
                     }
                 }
 
@@ -213,14 +214,14 @@ Item {
                     text: qsTr("SCANNER")
                     font.pointSize: 12
                     background: Rectangle {
-                        color: "#003B5F"
+                        color: Design.colButtonDarkBackground
                     }
                     contentItem: Text {
                         text: btCentralPage3.text
                         font: btCentralPage3.font
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
-                        color: btCentralPage3.hovered ? "#FFA850" : "#FFFFFF"
+                        color: btCentralPage3.hovered ? Design.colButtonDarkHoveredText : slCentral.currentIndex === 3 ? Design.colButtonDarkSelectedText : Design.colButtonDarkText
                     }
                 }
 
@@ -231,14 +232,14 @@ Item {
                     text: qsTr("AIDE")
                     font.pointSize: 12
                     background: Rectangle {
-                        color: "#003B5F"
+                        color: Design.colButtonDarkBackground
                     }
                     contentItem: Text {
                         text: btCentralPage4.text
                         font: btCentralPage4.font
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
-                        color: btCentralPage4.hovered ? "#FFA850" : "#FFFFFF"
+                        color: btCentralPage4.hovered ? Design.colButtonDarkHoveredText : slCentral.currentIndex === 4 ? Design.colButtonDarkSelectedText : Design.colButtonDarkText
                     }
                 }
             }
