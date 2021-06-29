@@ -10,9 +10,6 @@
 #
 # ==========================================================================*/
 
-// -- Qt Includes
-#include <QQmlApplicationEngine>
-
 // -- Internal includes
 #include "CoreApp.h"
 #include <v2/vector/VectorManager.h>
@@ -21,6 +18,11 @@
 #include <v2/prot/ProtMsg.h>
 #include <v2/com/ComLinkManager.h>
 #include <v2/com/ComComponentManager.h>
+#include <v2/com/ComComponent.h>
+
+// -- Qt Includes
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
 
 
 CoreApp::CoreApp() : CoreUiQml("CoreApp")
@@ -54,11 +56,13 @@ bool CoreApp::initApp()
 
     // -- make my managers
     // example : m_pStatisticApp = StatisticApp::makeInstance();
-    m_pVectorManager = VectorManager::makeInstance();
+    m_pVectorManager = VectorManager::makeInstance(this);
 
     // -- init my managers
     // example : m_pStatisticApp->initManager();
     m_pVectorManager->init();
+    m_pVectorManager->makeVectorStd();
+    m_pVectorStd = m_pVectorManager->getVectorStd();
 
     // -- load settings of my managers
     // example : bRet &= m_pStatisticApp->loadSettings();
@@ -71,10 +75,16 @@ bool CoreApp::startApp()
     bool bRet = true;
 
     // -- start my managers
-    m_pVectorManager->makeVectorStd();
-    m_pVectorStd = m_pVectorManager->getVectorStd();
+
     m_pVectorStd->setProdIdCompId(ProtMsg::PROD_PANDA_VOL3, ProtMsg::COMP_GROUND_STATION);
-    m_pVectorStd->getLinkManager()->openSerial(28,921600);
+    m_pVectorStd->getLinkManager()->addSerial(29,921600, "Position");
+    m_pVectorStd->getLinkManager()->addSerial(28,921600, "ASCAN 0");
+    m_pVectorStd->getLinkManager()->addSerial(30,921600, "ASCAN 1");
+    m_pVectorStd->getLinkManager()->addSerial(31,921600, "ASCAN 2");
+    m_pVectorStd->getLinkManager()->addSerial(32,921600, "ASCAN 3");
+//    ComComponent * pComp = m_pVectorStd->getComponentManager()->getComp(0);
+//    pComp->setLink()
+
 
 
     // -- core start => open main.qml
@@ -91,11 +101,12 @@ void CoreApp::stopApp()
 {
 //    StatisticApp::stopAppExecution();
 
+    // -- core stop
+    CoreUiQml::stopApp();
+
     // -- stop my managers
     m_pVectorManager->quit();
 
-    // -- core stop
-    CoreUiQml::stopApp();
 }
 
 void CoreApp::deleteApp()
@@ -112,6 +123,14 @@ bool CoreApp::initQmlType()
 {
     // -- register my types to be used in QML :
     // example : qRegisterMetaType<vector*>("vector*");
+    qRegisterMetaType<ComComponent*>("ComComponent*");
+    qRegisterMetaType<VectorCompAScan*>("VectorCompAScan*");
+    qRegisterMetaType<VectorManager*>("VectorManager*");
+    qRegisterMetaType<VectorStd*>("VectorStd*");
+    qRegisterMetaType<ComLinkManager*>("ComLinkManager*");
+    qRegisterMetaType<QAbstractListModel*>("QAbstractListModel*");
+    qRegisterMetaType<ComComponentManager*>("ComComponentManager*");
+
 
     // -- declare C++ components instanciated from QML
     // exemple : qmlRegisterType<AScan>("ascan", 1, 0, "AScanItem");
@@ -123,11 +142,17 @@ bool CoreApp::initQmlContext()
 {
     // -- register my managers for QML use :
     // example : m_pQmlApplicationEngine->rootContext()->setContextProperty("vectorManager", m_vectorManager);
+
+    m_pQmlApplicationEngine->rootContext()->setContextProperty("vectorManager", m_pVectorManager);
+    m_pQmlApplicationEngine->rootContext()->setContextProperty("currentVector", m_pVectorStd);
+
     return true;
 }
 
 bool CoreApp::initQmlPath()
 {
     m_pQmlApplicationEngine->addImportPath(getDirAppQml());
+    QString s = getDirAppQml()+"/imports";
+    m_pQmlApplicationEngine->addImportPath(s);
     return true;
 }

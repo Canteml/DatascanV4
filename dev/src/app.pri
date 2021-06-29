@@ -25,6 +25,9 @@ HEADERS +=  $$files($$PWD/*.h)
 FORMS += $$files($$PWD/ui/*.ui)
 
 INCLUDEPATH += $$PWD
+INCLUDEPATH += $$PWD/../ext/fw_common/dev/src/v2/com
+INCLUDEPATH += $$PWD/../ext/fw_common/dev/src/v2/vector
+
 
 TRANSLATIONS += $$PWD/res/languages/Datascan_en_GB.ts
 
@@ -32,6 +35,7 @@ RESOURCES += $$PWD/qml/qml.qrc
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
 QML_IMPORT_PATH = $$PWD/qml
+QML_IMPORT_PATH += $$PWD/qml/imports
 
 # Additional import path used to resolve QML modules just for Qt Quick Designer
 QML_DESIGNER_IMPORT_PATH =

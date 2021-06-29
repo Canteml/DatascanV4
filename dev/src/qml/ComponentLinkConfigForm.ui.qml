@@ -3,31 +3,38 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
 
 Item {
-
-    property var componentId: 0
-    property var componentName: ""
-    property alias idComponentName: idComponentName
+    property var linkName: ""
+    property int linkState: 0
+    property alias idLinkName: idLinkName
     property alias idRectConnectionState: idRectConnectionState
-    property alias idBtComponentLinkConnect: idBtComponentLinkConnect
-    property alias idComponentLinkIp: idComponentLinkIp
-    property alias idCbComponentLinkComPort: idCbComponentLinkComPort
-    property alias idCbComponentLinkType: idCbComponentLinkType
+    property alias idBtLinkConnect: idBtLinkConnect
+    property alias idLinkIp: idLinkIp
+    property alias idCbLinkComPort: idCbLinkComPort
+    property alias idCbLinkType: idCbLinkType
 
     Layout.fillWidth: true
     Layout.minimumHeight: 50
+    height: 50
+
+    onLinkStateChanged: linkState
+                        === 0 ? idRectConnectionState.stateColor = "#FFFFFF" : linkState
+                                === 1 ? idRectConnectionState.stateColor = "#FFFF00" : linkState
+                                        === 2 ? idRectConnectionState.stateColor
+                                                = "#00FF00" : idRectConnectionState.stateColor
+                                                = "#FF0000"
 
     RowLayout {
 
         anchors.fill: parent
 
         Text {
-            id: idComponentName
-            text: componentName
+            id: idLinkName
+            text: linkName
             font.pixelSize: 14
             Layout.minimumWidth: 60
         }
         Text {
-            id: idComponentNameSuffix
+            id: idLinkNameSuffix
             text: " : "
             font.pixelSize: 14
         }
@@ -46,32 +53,32 @@ Item {
         }
 
         ComboBox {
-            id: idCbComponentLinkType
+            id: idCbLinkType
             Layout.maximumWidth: 120
             model: [qsTr("Port Com"), qsTr("IP")]
         }
 
         ComboBox {
-            id: idCbComponentLinkComPort
+            id: idCbLinkComPort
             Layout.maximumWidth: 120
-            model: [qsTr("COM28"), qsTr("COM29")]
-            visible: idCbComponentLinkType.currentIndex === 0
+            //model: [qsTr("COM28"), qsTr("COM29")]
+            visible: idCbLinkType.currentIndex === 0
         }
 
         TextInput {
-            id: idComponentLinkIp
+            id: idLinkIp
             Layout.minimumWidth: 120
             text: qsTr("192.168.123.456")
             font.pixelSize: 14
             horizontalAlignment: Text.AlignRight
-            visible: idCbComponentLinkType.currentIndex === 1
+            visible: idCbLinkType.currentIndex === 1
             validator: RegExpValidator {
                 regExp: /((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}/
             }
         }
 
         Button {
-            id: idBtComponentLinkConnect
+            id: idBtLinkConnect
             text: qsTr("Connecter")
         }
 
@@ -81,3 +88,10 @@ Item {
         }
     }
 }
+
+/*##^##
+Designer {
+    D{i:0;autoSize:true;height:480;width:640}
+}
+##^##*/
+

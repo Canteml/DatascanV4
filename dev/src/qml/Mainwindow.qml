@@ -1,6 +1,7 @@
 import QtQuick 2.4
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
+import Design 1.0
 
 MainwindowForm {
     id: mainwindowForm
@@ -33,11 +34,11 @@ MainwindowForm {
     onDisplayMenuChanged: {
         if( displayMenu ) {
             btMainMenu.icon.source = "qrc:///img/icons/btMainMenuClicked.png"
-            btMainMenu.background.color = "#003B5F"
+            btMainMenu.background.color = Design.colButtonDarkBackground
 
         } else {
             btMainMenu.icon.source = "qrc:///img/icons/btMainMenuNormal.png"
-            btMainMenu.background.color = "#C9C7C7"
+            btMainMenu.background.color = Design.colButtonDarkHoveredBackground
         }
 
         btCentralPage0.visible = displayMenu;
@@ -52,12 +53,11 @@ MainwindowForm {
     }
 
     function updateCentralPage() {
-        btCentralPage0.background.color = centralPageSelected === page0_project ? "#9C9B9B" : "#003B5F"
-        btCentralPage1.background.color = centralPageSelected === page1_prepare ? "#9C9B9B" : "#003B5F"
-        btCentralPage2.background.color = centralPageSelected === page2_supervise ? "#9C9B9B" : "#003B5F"
-        btCentralPage3.background.color = centralPageSelected === page3_scan ? "#9C9B9B" : "#003B5F"
-        btCentralPage4.background.color = centralPageSelected === page4_help ? "#9C9B9B" : "#003B5F"
-
+        btCentralPage0.background.color = centralPageSelected === page0_project ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
+        btCentralPage1.background.color = centralPageSelected === page1_prepare ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
+        btCentralPage2.background.color = centralPageSelected === page2_supervise ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
+        btCentralPage3.background.color = centralPageSelected === page3_scan ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
+        btCentralPage4.background.color = centralPageSelected === page4_help ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
         slCentral.currentIndex = centralPageSelected;
     }
 

@@ -3,8 +3,8 @@ cls
 echo.
 
 rem variables to set function to user installation
-SET PATH_QT=C:\Qt\5.15.0
-SET APPLICATION_NAME=APP
+SET PATH_QT=C:\Qt\5.15.2
+SET APPLICATION_NAME=DatascanV2
 
 echo Variables :
 echo PATH_QT = %PATH_QT%
@@ -32,7 +32,7 @@ if not exist %~dp0\..\..\dev\build\release\%APPLICATION_NAME%.exe (
 )
 xcopy %~dp0\..\..\dev\build\release\%APPLICATION_NAME%.exe %~dp0\app\bin
 rem build depencendies
-call C:\Qt\5.15.0\mingw81_32\bin\windeployqt.exe --qmldir %~dp0\..\..\dev\src\qml  %~dp0\app\bin\%APPLICATION_NAME%.exe
+call %PATH_QT%\mingw81_32\bin\windeployqt.exe --qmldir %~dp0\..\..\dev\src\qml  %~dp0\app\bin\%APPLICATION_NAME%.exe
 rem copy app resources
 xcopy /E /H /C /R /Q /Y %~dp0\..\..\dev\src\res %~dp0\app\res\
 xcopy /E /H /C /R /Q /Y /S %~dp0\..\..\dev\src\qml %~dp0\app\res\qml\

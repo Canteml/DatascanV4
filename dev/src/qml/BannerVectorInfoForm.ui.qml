@@ -1,6 +1,7 @@
 import QtQuick 2.4
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
+import Design 1.0
 
 Rectangle {
     id: idBannerVectorInfo
@@ -28,9 +29,9 @@ Rectangle {
             icon.color: "transparent"
 
             background: Rectangle {
-                color: btScanStartStop.pressed ? "#C9C7C7" : btScanStartStop.hovered ? "#E5E5E5" : "#FFFFFF"
+                color: btScanStartStop.pressed ? Design.colButtonSelectedBackground : btScanStartStop.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
                 border.width: 1
-                border.color: "black"
+                border.color: Design.colButtonBorder
                 radius: 10
             }
         }
@@ -47,9 +48,9 @@ Rectangle {
             icon.color: "transparent"
 
             background: Rectangle {
-                color: btScanPause.pressed ? "#C9C7C7" : btScanPause.hovered ? "#E5E5E5" : "#FFFFFF"
+                color: btScanPause.pressed ? Design.colButtonSelectedBackground : btScanPause.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
                 border.width: 1
-                border.color: "black"
+                border.color: Design.colButtonBorder
                 radius: 10
             }
         }
@@ -147,7 +148,7 @@ Rectangle {
                         Layout.fillHeight: true
 
                         background: Rectangle {
-                            color: btPositionPlus.pressed ? "#C9C7C7" : btPositionPlus.hovered ? "#E5E5E5" : "#FFFFFF"
+                            color: btPositionPlus.pressed ? Design.colButtonSelectedBackground : btPositionPlus.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
                             border.width: 1
                             border.color: "black"
                         }
@@ -165,7 +166,7 @@ Rectangle {
                         Layout.fillHeight: true
 
                         background: Rectangle {
-                            color: btPositionMinus.pressed ? "#C9C7C7" : btPositionMinus.hovered ? "#E5E5E5" : "#FFFFFF"
+                            color: btPositionMinus.pressed ? Design.colButtonSelectedBackground : btPositionMinus.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
                             border.width: 1
                             border.color: "black"
                         }
@@ -186,7 +187,7 @@ Rectangle {
             // seaparator
             width: 5
             Layout.fillHeight: true
-            color: "#9C9B9B"
+            color: Design.colSeparator
             Layout.topMargin: 5
             Layout.bottomMargin: 5
         }
@@ -206,7 +207,7 @@ Rectangle {
             // seaparator
             width: 5
             Layout.fillHeight: true
-            color: "#9C9B9B"
+            color: Design.colSeparator
             Layout.topMargin: 5
             Layout.bottomMargin: 5
         }
