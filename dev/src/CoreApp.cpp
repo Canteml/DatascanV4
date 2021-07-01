@@ -61,11 +61,11 @@ bool CoreApp::initApp()
     // -- init my managers
     // example : m_pStatisticApp->initManager();
     m_pVectorManager->init();
-    m_pVectorManager->makeVectorStd();
     m_pVectorStd = m_pVectorManager->getVectorStd();
 
     // -- load settings of my managers
     // example : bRet &= m_pStatisticApp->loadSettings();
+    bRet &= m_pVectorManager->loadSettings();
 
     return bRet;
 }
@@ -76,16 +76,17 @@ bool CoreApp::startApp()
 
     // -- start my managers
 
-    m_pVectorStd->setProdIdCompId(ProtMsg::PROD_PANDA_VOL3, ProtMsg::COMP_GROUND_STATION);
-    m_pVectorStd->getLinkManager()->addSerial(29,921600, "Position");
-    m_pVectorStd->getLinkManager()->addSerial(28,921600, "ASCAN 0");
-    m_pVectorStd->getLinkManager()->addSerial(30,921600, "ASCAN 1");
-    m_pVectorStd->getLinkManager()->addSerial(31,921600, "ASCAN 2");
-    m_pVectorStd->getLinkManager()->addSerial(32,921600, "ASCAN 3");
+    if( ProtMsg::PROD_UNDEF == m_pVectorStd->getProdId() ) {
+        fLogInfo("Make default Product : PANDA VOL3");
+        m_pVectorStd->setProdIdCompId(ProtMsg::PROD_PANDA_VOL3, ProtMsg::COMP_GROUND_STATION);
+        m_pVectorStd->getLinkManager()->addSerial(29,921600, "Position");
+        m_pVectorStd->getLinkManager()->addSerial(28,921600, "ASCAN 0");
+        m_pVectorStd->getLinkManager()->addSerial(30,921600, "ASCAN 1");
+        m_pVectorStd->getLinkManager()->addSerial(31,921600, "ASCAN 2");
+        m_pVectorStd->getLinkManager()->addSerial(32,921600, "ASCAN 3");
+    }
 //    ComComponent * pComp = m_pVectorStd->getComponentManager()->getComp(0);
 //    pComp->setLink()
-
-
 
     // -- core start => open main.qml
     bRet &= CoreUiQml::startApp();
@@ -105,13 +106,14 @@ void CoreApp::stopApp()
     CoreUiQml::stopApp();
 
     // -- stop my managers
-    m_pVectorManager->quit();
+
 
 }
 
 void CoreApp::deleteApp()
 {
     // delete managers
+    m_pVectorManager->quit();
 
     // -- core delete
     CoreUiQml::deleteApp();
