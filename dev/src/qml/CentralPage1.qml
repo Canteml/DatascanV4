@@ -2,20 +2,20 @@ import QtQuick 2.15
 
 CentralPage1Form {
     // CONFIGURATION
-    property var comCompA : currentVector.compAScan0().comComponent
+//    property var comFuncA : currentVector.funcAScan0().comComponent
 
 
-    Component.onCompleted: {
-        // -- Link
-        updateLinks();
-    }
+//    Component.onCompleted: {
+//        // -- Link
+//        updateLinks();
+//    }
 
 
 
     property var linkList : currentVector.getLinkManager().getLinkModel()
     idLinkList.model: linkList
     idLinkList.height: 250
-    idLinkList.delegate: ComponentLinkConfig {
+    idLinkList.delegate: DeviceLinkConfig {
 
         idCbLinkType.currentIndex: link_type-1  // enum 0 = unknow
         idCbLinkType.visible: false // not available for now

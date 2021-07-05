@@ -17,8 +17,8 @@
 #include <v2/com/IntComMsg.h>
 #include <v2/prot/ProtMsg.h>
 #include <v2/com/ComLinkManager.h>
-#include <v2/com/ComComponentManager.h>
-#include <v2/com/ComComponent.h>
+#include <v2/com/ComDeviceManager.h>
+#include <v2/com/ComDevice.h>
 
 // -- Qt Includes
 #include <QQmlApplicationEngine>
@@ -78,14 +78,14 @@ bool CoreApp::startApp()
 
     if( ProtMsg::PROD_UNDEF == m_pVectorStd->getProdId() ) {
         fLogInfo("Make default Product : PANDA VOL3");
-        m_pVectorStd->setProdIdCompId(ProtMsg::PROD_PANDA_VOL3, ProtMsg::COMP_GROUND_STATION);
+        m_pVectorStd->setProdIdDeviceAd(ProtMsg::PROD_PANDA_VOL3, ProtMsg::DEVICE_AD_MPC);
         m_pVectorStd->getLinkManager()->addSerial(29,921600, "Position");
         m_pVectorStd->getLinkManager()->addSerial(28,921600, "ASCAN 0");
         m_pVectorStd->getLinkManager()->addSerial(30,921600, "ASCAN 1");
         m_pVectorStd->getLinkManager()->addSerial(31,921600, "ASCAN 2");
         m_pVectorStd->getLinkManager()->addSerial(32,921600, "ASCAN 3");
     }
-//    ComComponent * pComp = m_pVectorStd->getComponentManager()->getComp(0);
+//    ComDevice * pComp = m_pVectorStd->getComponentManager()->getComp(0);
 //    pComp->setLink()
 
     // -- core start => open main.qml
@@ -125,13 +125,13 @@ bool CoreApp::initQmlType()
 {
     // -- register my types to be used in QML :
     // example : qRegisterMetaType<vector*>("vector*");
-    qRegisterMetaType<ComComponent*>("ComComponent*");
-    qRegisterMetaType<VectorCompAScan*>("VectorCompAScan*");
+    qRegisterMetaType<ComDevice*>("ComDevice*");
+    qRegisterMetaType<VectorFuncAScan*>("VectorFuncAScan*");
     qRegisterMetaType<VectorManager*>("VectorManager*");
     qRegisterMetaType<VectorStd*>("VectorStd*");
     qRegisterMetaType<ComLinkManager*>("ComLinkManager*");
     qRegisterMetaType<QAbstractListModel*>("QAbstractListModel*");
-    qRegisterMetaType<ComComponentManager*>("ComComponentManager*");
+    qRegisterMetaType<ComDeviceManager*>("ComDeviceManager*");
 
 
     // -- declare C++ components instanciated from QML
