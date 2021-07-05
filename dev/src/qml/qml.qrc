@@ -15,8 +15,8 @@
         <file>CentralPage4Form.ui.qml</file>
         <file>BannerVectorInfo.qml</file>
         <file>BannerVectorInfoForm.ui.qml</file>
-        <file>ComponentLinkConfig.qml</file>
-        <file>ComponentLinkConfigForm.ui.qml</file>
+        <file>DeviceLinkConfig.qml</file>
+        <file>DeviceLinkConfigForm.ui.qml</file>
         <file>imports/Design/Design.qml</file>
         <file>imports/Design/qmldir</file>
     </qresource>
