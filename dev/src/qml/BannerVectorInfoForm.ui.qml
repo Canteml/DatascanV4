@@ -12,6 +12,10 @@ Rectangle {
     border.width: 1
     border.color: "black"
 
+    property alias idBtPositionPlus: btPositionPlus
+    property alias idBtPositionMinus: btPositionMinus
+    property alias idLePosition: lePosition
+
     RowLayout {
         id: rowBannerVectorInfo
         anchors.fill: parent
@@ -83,7 +87,6 @@ Rectangle {
 
         // -------------------
         // -- Position
-
         Image {
             id: icPosition
             Layout.fillHeight: true

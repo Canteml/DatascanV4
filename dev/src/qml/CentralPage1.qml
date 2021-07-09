@@ -34,6 +34,16 @@ CentralPage1Form {
                     currentVector.getLinkManager().setComPort(link_name, idCbLinkComPort.currentText);
                 }
             }
+
+        }
+
+        Connections {
+            target : idCbLinkComPort
+            function onActivated() {
+                if( idCbLinkComPort.currentText !== currentVector.getLinkManager().getComPort(link_name) ) {
+                    currentVector.getLinkManager().setComPort(link_name, idCbLinkComPort.currentText);
+                }
+            }
         }
 
         Component.onCompleted: {

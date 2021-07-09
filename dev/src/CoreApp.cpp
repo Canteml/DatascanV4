@@ -12,13 +12,14 @@
 
 // -- Internal includes
 #include "CoreApp.h"
-#include <v2/vector/VectorManager.h>
-#include <v2/vector/VectorStd.h>
-#include <v2/com/IntComMsg.h>
 #include <v2/prot/ProtMsg.h>
+#include <v2/com/IntComMsg.h>
 #include <v2/com/ComLinkManager.h>
 #include <v2/com/ComDeviceManager.h>
 #include <v2/com/ComDevice.h>
+#include <v2/vector/VectorManager.h>
+#include <v2/vector/VectorStd.h>
+#include <v2/vector/VectorFuncPosition.h>
 
 // -- Qt Includes
 #include <QQmlApplicationEngine>
@@ -127,6 +128,7 @@ bool CoreApp::initQmlType()
     // example : qRegisterMetaType<vector*>("vector*");
     qRegisterMetaType<ComDevice*>("ComDevice*");
     qRegisterMetaType<VectorFuncAScan*>("VectorFuncAScan*");
+    qRegisterMetaType<VectorFuncAScan*>("VectorFuncPosition*");
     qRegisterMetaType<VectorManager*>("VectorManager*");
     qRegisterMetaType<VectorStd*>("VectorStd*");
     qRegisterMetaType<ComLinkManager*>("ComLinkManager*");
