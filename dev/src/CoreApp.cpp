@@ -78,13 +78,8 @@ bool CoreApp::startApp()
     // -- start my managers
 
     if( ProtMsg::PROD_UNDEF == m_pVectorStd->getProdId() ) {
-        fLogInfo("Make default Product : PANDA VOL3");
-        m_pVectorStd->setProdIdDeviceAd(ProtMsg::PROD_PANDA_VOL3, ProtMsg::DEVICE_AD_MPC);
-        m_pVectorStd->getLinkManager()->addSerial(29,921600, "Position");
-        m_pVectorStd->getLinkManager()->addSerial(28,921600, "ASCAN 0");
-        m_pVectorStd->getLinkManager()->addSerial(30,921600, "ASCAN 1");
-        m_pVectorStd->getLinkManager()->addSerial(31,921600, "ASCAN 2");
-        m_pVectorStd->getLinkManager()->addSerial(32,921600, "ASCAN 3");
+        fLogInfo("Make default Product : ALTISCAN");
+        m_pVectorStd->setProdIdDeviceAd(ProtMsg::PROD_ALTISCAN, ProtMsg::DEVICE_AD_MPC);
     }
 //    ComDevice * pComp = m_pVectorStd->getComponentManager()->getComp(0);
 //    pComp->setLink()
@@ -134,6 +129,7 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<ComLinkManager*>("ComLinkManager*");
     qRegisterMetaType<QAbstractListModel*>("QAbstractListModel*");
     qRegisterMetaType<ComDeviceManager*>("ComDeviceManager*");
+    qRegisterMetaType<IntComMsg*>("IntComMsg*");
 
 
     // -- declare C++ components instanciated from QML

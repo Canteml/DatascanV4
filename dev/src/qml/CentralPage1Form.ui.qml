@@ -10,6 +10,7 @@ Rectangle {
 
     color: "#ffffff"
     property alias idLinkList: idLinkList
+    property alias idCbProduct: idCbProduct
 
     ColumnLayout {
         id: idP1MainLayout
@@ -50,7 +51,7 @@ Rectangle {
 
             ComboBox {
                 id: idCbProduct
-                model: ["Altiscan", "Perche", "Buggy", "Panda Vol3"]
+                model: ["Altiscan", "Perche", "Buggy", "Panda Vol1", "Panda Vol3"]
             }
         }
 
