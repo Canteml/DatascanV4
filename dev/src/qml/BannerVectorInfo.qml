@@ -5,8 +5,8 @@ BannerVectorInfoForm {
 //    idLePosition.text : currentVector.funcPosition().paramLBscanPosMmX
     Connections {
         target : currentVector.funcPosition()
-        function onParamLBscanPosMmXChanged(p_value) {
-            idLePosition.text = p_value;
+        function onParamLBscanPosMmXChanged() {
+            updateLePosition();
         }
     }
 
@@ -27,7 +27,11 @@ BannerVectorInfoForm {
     }
 
     Component.onCompleted: {
-        idLePosition.text = currentVector.funcPosition().paramLBscanPosMmX;
+        updateLePosition();
+    }
+
+    function updateLePosition() {
+        idLePosition.text = Math.round(currentVector.funcPosition().paramLBscanPosMmX/10)/100;
     }
 
 }
