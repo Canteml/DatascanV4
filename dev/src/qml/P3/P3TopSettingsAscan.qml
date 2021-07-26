@@ -26,34 +26,47 @@ Rectangle {
             SpinBox {
                 id: idSbGain
                 from: 0
-                to: 80*100
-                stepSize: 100
+                to: 80
+                stepSize: 1
                 editable: true
                 font.pointSize: 12
 
-                validator: DoubleValidator {
-                    bottom: Math.min(idSbGain.from, idSbGain.to)
-                    top:  Math.max(idSbGain.from, idSbGain.to)
-                }
-
-                textFromValue: function(value, locale) {
-                    return Number(value / 100).toLocaleString(locale, 'f', 2)
-                }
-
-                valueFromText: function(text, locale) {
-                    return Number.fromLocaleString(locale, text) * 100
-                }
+                value: currentVector.funcAScan0().paramDGain
 
                 onValueChanged: {
-                    currentVector.funcAScan0().paramDGain = value/100
+                    currentVector.funcAScan0().paramDGain = value
                 }
 
-                Connections {
-                    target: currentVector.funcAScan0()
-                    function onParamDGainChanged() {
-                        idSbGain.value = currentVector.funcAScan0().paramDGain*100
-                    }
-                }
+//                id: idSbGain
+//                from: 0
+//                to: 80*100
+//                stepSize: 100
+//                editable: true
+//                font.pointSize: 12
+
+//                validator: DoubleValidator {
+//                    bottom: Math.min(idSbGain.from, idSbGain.to)
+//                    top:  Math.max(idSbGain.from, idSbGain.to)
+//                }
+
+//                textFromValue: function(value, locale) {
+//                    return Number(value / 100).toLocaleString(locale, 'f', 2)
+//                }
+
+//                valueFromText: function(text, locale) {
+//                    return Number.fromLocaleString(locale, text) * 100
+//                }
+
+//                onValueChanged: {
+//                    currentVector.funcAScan0().paramDGain = value/100
+//                }
+
+//                Connections {
+//                    target: currentVector.funcAScan0()
+//                    function onParamDGainChanged() {
+//                        idSbGain.value = currentVector.funcAScan0().paramDGain*100
+//                    }
+//                }
 
             }
 
