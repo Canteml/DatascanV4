@@ -10,27 +10,32 @@
 #
 # ============================================================================
 
-QT       += core gui quick qml widgets serialport network
+QT       += core gui quick qml widgets serialport network printsupport
 
 CONFIG += c++11
 
 DEFINES += QT_DEPRECATED_WARNINGS
 DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
+# -- SOURCES
+# MAIN
 SOURCES += $$files($$PWD/*.cpp)
-
 HEADERS +=  $$files($$PWD/*.h)
 
+SOURCES += $$files($$PWD/scan/*.cpp)
+HEADERS += $$files($$PWD/scan/*.h)
 
-FORMS += $$files($$PWD/ui/*.ui)
+# JK PLOTTER COMPONENTS
+SOURCES += $$files($$PWD/jkPlot/*.cpp)
+HEADERS += $$files($$PWD/jkPlot/*.h)
 
+## -- PATHS
 INCLUDEPATH += $$PWD
 INCLUDEPATH += $$PWD/../ext/fw_common/dev/src/v2/com
 INCLUDEPATH += $$PWD/../ext/fw_common/dev/src/v2/vector
 
-
+## -- RESOURCES
 TRANSLATIONS += $$PWD/res/languages/Datascan_en_GB.ts
-
 RESOURCES += $$PWD/qml/qml.qrc
 
 # Additional import path used to resolve QML modules in Qt Creator's code model
@@ -49,3 +54,11 @@ CONFIG += qmltypes
 QML_IMPORT_NAME = roboplanet.v2
 QML_IMPORT_MAJOR_VERSION = 1
 INCLUDEPATH += ext/fw_common/dev/src/v2/vector
+
+## -- LIBRARIES
+
+## JKQTPLOTTER
+
+INCLUDEPATH += lib\jkqtplotter\include
+LIBS += -Llib/jkqtplotter/bin
+LIBS += -ljkqtplotterlib -ljkqtpcommonlib
