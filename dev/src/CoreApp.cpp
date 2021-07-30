@@ -20,6 +20,8 @@
 #include <v2/vector/VectorManager.h>
 #include <v2/vector/VectorStd.h>
 #include <v2/vector/VectorFuncPosition.h>
+#include <scan/ScanManager.h>
+#include <scan/AScanGraph.h>
 
 // -- Qt Includes
 #include <QQmlApplicationEngine>
@@ -58,11 +60,13 @@ bool CoreApp::initApp()
     // -- make my managers
     // example : m_pStatisticApp = StatisticApp::makeInstance();
     m_pVectorManager = VectorManager::makeInstance(this);
+    m_pScanManager = new ScanManager();
 
     // -- init my managers
     // example : m_pStatisticApp->initManager();
     m_pVectorManager->init();
     m_pVectorStd = m_pVectorManager->getVectorStd();
+    m_pScanManager->init();
 
     // -- load settings of my managers
     // example : bRet &= m_pStatisticApp->loadSettings();
@@ -131,9 +135,9 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<ComDeviceManager*>("ComDeviceManager*");
     qRegisterMetaType<IntComMsg*>("IntComMsg*");
 
-
     // -- declare C++ components instanciated from QML
     // exemple : qmlRegisterType<AScan>("ascan", 1, 0, "AScanItem");
+    qmlRegisterType<AScanGraph>("AScanGraph", 1, 0, "AScanGraph");
 
     return true;
 }
@@ -155,4 +159,10 @@ bool CoreApp::initQmlPath()
     QString s = getDirAppQml()+"/imports";
     m_pQmlApplicationEngine->addImportPath(s);
     return true;
+}
+
+void CoreApp::initCppFromQml()
+{
+    // -- map C++ object with QML item
+    m_pScanManager->initQmlObject(m_pQmlTopLevel);
 }

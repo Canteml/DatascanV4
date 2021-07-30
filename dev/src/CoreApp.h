@@ -17,6 +17,7 @@
 class StatisticApp;
 class VectorManager;
 class VectorStd;
+class ScanManager;
 
 class CoreApp : public CoreUiQml
 {
@@ -40,6 +41,7 @@ public:
     virtual bool initQmlType() override;
     virtual bool initQmlContext() override;
     virtual bool initQmlPath() override;
+    virtual void initCppFromQml() override;
 
 private :
 
@@ -47,6 +49,8 @@ private :
     StatisticApp * m_pStatisticApp;
     VectorManager * m_pVectorManager;
     VectorStd * m_pVectorStd;
+
+    ScanManager* m_pScanManager;
 
 };
 

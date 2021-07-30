@@ -911,6 +911,8 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
         /** \brief \copydoc actMouseLeftAsPanView */
         QAction *getActMouseLeftAsPanView() const;
 
+        QImage * getImage();
+
 
     public slots:
         /** \brief set the current plot magnification */
@@ -1225,6 +1227,9 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
          inline void setXY(double xminn, double xmaxx, double yminn, double ymaxx) { plotter->setXY(xminn, xmaxx, yminn, ymaxx); }
 
     signals:
+         // -- TLE
+         void evRequestResize();
+
         /** \brief emitted whenever the mouse moves
          *
          * \param x x-position of the mouse (in plot coordinates)
