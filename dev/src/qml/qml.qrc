@@ -22,7 +22,6 @@
         <file>P3/P3TopAscanCtrl.qml</file>
         <file>P3/P3TopAscanCtrlForm.ui.qml</file>
         <file>P3/P3TopAscan.qml</file>
-        <file>P3/P3TopAscanForm.ui.qml</file>
         <file>P3/P3TopCamSettings.qml</file>
         <file>P3/P3TopCamSettingsForm.ui.qml</file>
         <file>P3/P3TopCam.qml</file>
