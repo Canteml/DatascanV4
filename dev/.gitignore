@@ -5,8 +5,8 @@
 /release
 
 *.json
-*.cpp
 *.qmltypes
+*_qml*.cpp
 
 *~
 *.autosave
