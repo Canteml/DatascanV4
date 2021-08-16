@@ -45,6 +45,9 @@ public:
 
 private :
 
+
+    bool useOpenGlRender() const override;
+
     // managers
     StatisticApp * m_pStatisticApp;
     VectorManager * m_pVectorManager;

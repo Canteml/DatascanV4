@@ -85,7 +85,7 @@ bool CoreApp::startApp()
         fLogInfo("Make default Product : ALTISCAN");
         m_pVectorStd->setProdIdDeviceAd(ProtMsg::PROD_ALTISCAN, ProtMsg::DEVICE_AD_MPC);
     }
-//    ComDevice * pComp = m_pVectorStd->getComponentManager()->getComp(0);
+//    ComDevice * pComp = m_pVectorStd->getDeviceManager()->getComp(0);
 //    pComp->setLink()
 
     // -- core start => open main.qml
@@ -134,6 +134,7 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<QAbstractListModel*>("QAbstractListModel*");
     qRegisterMetaType<ComDeviceManager*>("ComDeviceManager*");
     qRegisterMetaType<IntComMsg*>("IntComMsg*");
+    qRegisterMetaType<ScanManager*>("ScanManager*");
 
     // -- declare C++ components instanciated from QML
     // exemple : qmlRegisterType<AScan>("ascan", 1, 0, "AScanItem");
@@ -149,6 +150,7 @@ bool CoreApp::initQmlContext()
 
     m_pQmlApplicationEngine->rootContext()->setContextProperty("vectorManager", m_pVectorManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("currentVector", m_pVectorStd);
+    m_pQmlApplicationEngine->rootContext()->setContextProperty("scanManager", m_pScanManager);
 
     return true;
 }
@@ -165,4 +167,9 @@ void CoreApp::initCppFromQml()
 {
     // -- map C++ object with QML item
     m_pScanManager->initQmlObject(m_pQmlTopLevel);
+}
+
+bool CoreApp::useOpenGlRender() const
+{
+    return true;
 }
