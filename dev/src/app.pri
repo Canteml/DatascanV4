@@ -10,7 +10,7 @@
 #
 # ============================================================================
 
-QT       += core gui quick qml widgets serialport network printsupport
+QT       += core gui quick qml widgets serialport network printsupport multimedia
 
 CONFIG += c++11
 

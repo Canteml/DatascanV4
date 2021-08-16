@@ -20,12 +20,9 @@
         <file>imports/Design/Design.qml</file>
         <file>imports/Design/qmldir</file>
         <file>P3/P3TopAscanCtrl.qml</file>
-        <file>P3/P3TopAscanCtrlForm.ui.qml</file>
         <file>P3/P3TopAscan.qml</file>
         <file>P3/P3TopCamSettings.qml</file>
-        <file>P3/P3TopCamSettingsForm.ui.qml</file>
         <file>P3/P3TopCam.qml</file>
-        <file>P3/P3TopCamForm.ui.qml</file>
         <file>P3/P3TopSettingsAscan.qml</file>
         <file>P3/P3Top.qml</file>
         <file>P3/P3TopForm.ui.qml</file>
@@ -39,6 +36,7 @@
         <file>P3/P3BottomVectorIOForm.ui.qml</file>
         <file>P3/P3TopSettingsBscan.qml</file>
         <file>P3/P3TopSettingsBscanForm.ui.qml</file>
+        <file>rp_components/RpSpinBox.qml</file>
     </qresource>
     <qresource prefix="/img">
         <file>logo.png</file>
@@ -55,5 +53,13 @@
         <file>icons/iconPosition.png</file>
         <file>icons/altiscan_up_down.png</file>
         <file>icons/altiscan_up_up.png</file>
+        <file>icons/iconThickness.png</file>
+        <file>icons/iconThicknessMm.png</file>
+        <file>icons/iconGateGreenHeight.png</file>
+        <file>icons/iconGateGreenStart.png</file>
+        <file>icons/iconGateGreenWidth.png</file>
+        <file>icons/iconGateRedHeight.png</file>
+        <file>icons/iconGateRedStart.png</file>
+        <file>icons/iconGateRedWidth.png</file>
     </qresource>
 </RCC>
