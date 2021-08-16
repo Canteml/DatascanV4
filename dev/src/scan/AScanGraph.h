@@ -38,16 +38,17 @@ public:
     void updateAScan(AScan *);
 
 signals :
-    void evPrivateNeedRefresh();
+    //void evPrivateNeedRefresh();
 
 private slots :
-    void onNeedRefresh();
     void onThreadFinished();
     void onUpdateWidgetSize();
     void onTimerRefresh();
     void onRedrawDone();
 
 private :
+    void onNeedRefresh(bool p_force);
+
     MyJkQtPlotter *m_pPlotAScan;
     JKQTPDatastore* m_dsAScan;
     JKQTPXYLineGraph* m_graphAScan;
@@ -55,6 +56,8 @@ private :
     size_t m_columnX;
     size_t m_columnY;
     qreal * m_pAScanYData;
+
+    bool m_updateInProgress;
 
     QThread * m_pWorker;
     QTimer * m_timeRefresh;
@@ -73,6 +76,9 @@ public :
     void requestRedraw();
     void notifyUpdate();
     bool waitingUpdate() const;
+    bool isProcessing() const;
+    bool isPendingUpdate() const;
+    bool isUsingPaintDevice() const;
 
 signals:
     void evRequestRedraw();
@@ -87,4 +93,5 @@ private :
     volatile bool m_processingRedraw;
     volatile bool m_pendingRedraw;
     volatile bool m_waitingUpdate;
+    volatile bool m_usingPaintDevice;
 };
