@@ -15,6 +15,7 @@ Rectangle {
     property alias idBtPositionPlus: btPositionPlus
     property alias idBtPositionMinus: btPositionMinus
     property alias idLePosition: lePosition
+    property alias btVectorConnection: btVectorConnection
 
     RowLayout {
         id: rowBannerVectorInfo
@@ -129,9 +130,10 @@ Rectangle {
                 Label {
                     id: lbPositionDim
                     anchors.fill: itPosition
-                    anchors.topMargin: 5
+                    anchors.bottomMargin: 10
                     text: "m"
-                    font.pixelSize: lePosition.font.pixelSize
+                    font.pixelSize: 36
+                    verticalAlignment: Text.AlignBottom
                 }
 
                 ColumnLayout {

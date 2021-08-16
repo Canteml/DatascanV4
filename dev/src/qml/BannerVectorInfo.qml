@@ -14,7 +14,6 @@ BannerVectorInfoForm {
         target : idBtPositionPlus
         function onPressed() {
             currentVector.funcPosition().bscanPosMmXAddMm(10);
-            console.log("Pressed");
         }
     }
 
@@ -22,7 +21,17 @@ BannerVectorInfoForm {
         target : idBtPositionMinus
         function onPressed() {
             currentVector.funcPosition().bscanPosMmXAddMm(-10);
-            console.log("Pressed");
+        }
+    }
+
+    Connections {
+        target : currentVector.getDeviceManager()
+        function onStateChanged() {
+            if( 3 === currentVector.getDeviceManager().state ) {
+                btVectorConnection.icon.source = "qrc:///img/icons/iconConnected.png"
+            } else {
+                btVectorConnection.icon.source = "qrc:///img/icons/iconDisconnected.png"
+            }
         }
     }
 
