@@ -55,6 +55,7 @@ private :
 
     size_t m_columnX;
     size_t m_columnY;
+    qreal * m_pAScanXData;
     qreal * m_pAScanYData;
 
     bool m_updateInProgress;

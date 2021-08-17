@@ -40,6 +40,7 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), Loggable
     m_columnX=m_dsAScan->addCopiedColumn(xAscan, "x");
     m_columnY=m_dsAScan->addCopiedColumn(yAscan, "y");
 
+    m_pAScanXData = m_dsAScan->getColumnPointer(m_columnX);
     m_pAScanYData = m_dsAScan->getColumnPointer(m_columnY);
 
     // -- draw
@@ -68,7 +69,8 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), Loggable
     // scale
     m_pPlotAScan->setAbsoluteY(0,100);
     //onDigitilizingDepthChanged();
-    m_pPlotAScan->setAbsoluteX(0,40); // X visible area
+    m_pPlotAScan->setAbsoluteX(0,1000); // X visible area
+    m_pPlotAScan->getXAxis()->setRange(0,20);
     m_pPlotAScan->zoom(0, 100, 0, 100);
     m_pPlotAScan->getPlotter()->setBackgroundColor(QColor(255,255,255));
     m_pPlotAScan->getPlotter()->setPlotBorder(-15,10,10,-5);
@@ -128,8 +130,14 @@ void AScanGraph::paint(QPainter *painter)
 void AScanGraph::updateAScan(AScan * p_pAScan)
 {
     if( nullptr != p_pAScan ) {
+        qreal d = p_pAScan->getSensorSettings()->getSampleStepMM();
         for(int i=0; i<AScanRawSample::ASCAN_SAMPLE_SIZE; i++) {
+            m_pAScanXData[i] = d*i-p_pAScan->getAScanMeasure()->m_paramLProbeDelayMm;
             m_pAScanYData[i] = (double) (p_pAScan->getAScanEnhancedSample()->m_enhancedSamples[i]) * 100 / std::numeric_limits<quint8>::max();
+        }
+        qreal zX = d*AScanRawSample::ASCAN_SAMPLE_SIZE - p_pAScan->getAScanMeasure()->m_paramLProbeDelayMm;
+        if( m_pPlotAScan->getXAxis()->getMax() != zX ) {
+            m_pPlotAScan->zoom(0, zX,0 ,100); // X visible area
         }
         onNeedRefresh(false);
     } else {
@@ -138,7 +146,6 @@ void AScanGraph::updateAScan(AScan * p_pAScan)
         }
         onNeedRefresh(true);
     }
-    //fLogDebug2("data");
 }
 
 void AScanGraph::onNeedRefresh(bool p_force)
