@@ -325,14 +325,13 @@ Rectangle {
                                 editable: true
                                 font.pointSize: 12
 
-        //                        value: currentVector.funcAScan0().paramLCelerity
-
-        //                        onValueChanged: {
-        //                            currentVector.funcAScan0().paramLCelerity = value
-        //                        }
-        //                        onValueModified: {
-        //                            focus = false;
-        //                        }
+                                value : scanManager.SelectedFuncAScan.paramLGate0Start
+                                onValueChanged: {
+                                    scanManager.SelectedFuncAScan.paramLGate0Start = value
+                                }
+                                onValueModified: {
+                                    focus = false;
+                                }
                             }
 
                             Image {
@@ -351,14 +350,13 @@ Rectangle {
                                 editable: true
                                 font.pointSize: 12
 
-        //                        value: currentVector.funcAScan0().paramLCelerity
-
-        //                        onValueChanged: {
-        //                            currentVector.funcAScan0().paramLCelerity = value
-        //                        }
-        //                        onValueModified: {
-        //                            focus = false;
-        //                        }
+                                value : scanManager.SelectedFuncAScan.paramLGate0Width
+                                onValueChanged: {
+                                    scanManager.SelectedFuncAScan.paramLGate0Width = value
+                                }
+                                onValueModified: {
+                                    focus = false;
+                                }
                             }
 
                             Image {
@@ -377,14 +375,13 @@ Rectangle {
                                 editable: true
                                 font.pointSize: 12
 
-        //                        value: currentVector.funcAScan0().paramLCelerity
-
-        //                        onValueChanged: {
-        //                            currentVector.funcAScan0().paramLCelerity = value
-        //                        }
-        //                        onValueModified: {
-        //                            focus = false;
-        //                        }
+                                value : scanManager.SelectedFuncAScan.paramLGate0Height
+                                onValueChanged: {
+                                    scanManager.SelectedFuncAScan.paramLGate0Height = value
+                                }
+                                onValueModified: {
+                                    focus = false;
+                                }
                             }
                         }
 
@@ -411,20 +408,19 @@ Rectangle {
                             RpSpinBox {
                                 id: idGate2Start
                                 from: 1
-                                to: 10000
+                                to: 1000
 
                                 stepSize: 1
                                 editable: true
                                 font.pointSize: 12
 
-        //                        value: currentVector.funcAScan0().paramLCelerity
-
-        //                        onValueChanged: {
-        //                            currentVector.funcAScan0().paramLCelerity = value
-        //                        }
-        //                        onValueModified: {
-        //                            focus = false;
-        //                        }
+                                value : scanManager.SelectedFuncAScan.paramLGate1Start
+                                onValueChanged: {
+                                    scanManager.SelectedFuncAScan.paramLGate1Start = value
+                                }
+                                onValueModified: {
+                                    focus = false;
+                                }
                             }
 
                             Image {
@@ -437,20 +433,20 @@ Rectangle {
                             RpSpinBox {
                                 id: idGate2Width
                                 from: 1
-                                to: 10000
+                                to: 1000
 
                                 stepSize: 1
                                 editable: true
                                 font.pointSize: 12
 
-        //                        value: currentVector.funcAScan0().paramLCelerity
+                                value : scanManager.SelectedFuncAScan.paramLGate1Width
+                                onValueChanged: {
+                                    scanManager.SelectedFuncAScan.paramLGate1Width = value
+                                }
+                                onValueModified: {
+                                    focus = false;
+                                }
 
-        //                        onValueChanged: {
-        //                            currentVector.funcAScan0().paramLCelerity = value
-        //                        }
-        //                        onValueModified: {
-        //                            focus = false;
-        //                        }
                             }
 
                             Image {
@@ -463,20 +459,19 @@ Rectangle {
                             RpSpinBox {
                                 id: idGate2Height
                                 from: 1
-                                to: 10000
+                                to: 100
 
                                 stepSize: 1
                                 editable: true
                                 font.pointSize: 12
 
-        //                        value: currentVector.funcAScan0().paramLCelerity
-
-        //                        onValueChanged: {
-        //                            currentVector.funcAScan0().paramLCelerity = value
-        //                        }
-        //                        onValueModified: {
-        //                            focus = false;
-        //                        }
+                                value : scanManager.SelectedFuncAScan.paramLGate1Height
+                                onValueChanged: {
+                                    scanManager.SelectedFuncAScan.paramLGate1Height = value
+                                }
+                                onValueModified: {
+                                    focus = false;
+                                }
                             }
                         }
 
@@ -492,10 +487,20 @@ Rectangle {
                     RpSpinBox {
                         id: idSbProbeDelay
                         from: 0
-                        to: 80
+                        to: 1000
+                        implicitWidth: 120
+
                         stepSize: 1
                         editable: true
                         font.pointSize: 12
+
+                        value : scanManager.SelectedFuncAScan.paramLProbeDelayMm
+                        onValueChanged: {
+                            scanManager.SelectedFuncAScan.paramLProbeDelayMm = value
+                        }
+                        onValueModified: {
+                            focus = false;
+                        }
 
 //                        value: currentVector.funcAScan0().paramDGain
 
