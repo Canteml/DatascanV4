@@ -9,6 +9,25 @@ SpinBox {
     leftPadding: down.indicator.width-4
 
     implicitHeight: 32
+    implicitWidth: 120
+
+    contentItem: TextInput {
+        text: sb.textFromValue(sb.value, sb.locale)
+        anchors.left: down.indicator.right
+        anchors.right: up.indicator.left
+
+        font: sb.font
+        color: "#000000"
+        selectionColor: "#21be2b"
+        selectedTextColor: "#ffffff"
+        height: sb.height
+        horizontalAlignment: Qt.AlignHCenter
+        verticalAlignment: Qt.AlignVCenter
+
+        readOnly: !sb.editable
+        validator: sb.validator
+        inputMethodHints: Qt.ImhFormattedNumbersOnly
+    }
 
     up.indicator: Rectangle {
         height: parent.height
@@ -22,6 +41,7 @@ SpinBox {
             text: '+'
             font.pointSize: 12
             anchors.centerIn: parent
+            color : parent.enabled ? Design.colButtonSelectedText : Design.colButtonSelectedBackground
         }
     }
     down.indicator: Rectangle {
@@ -37,6 +57,8 @@ SpinBox {
             text: '-'
             font.pointSize: 12
             anchors.centerIn: parent
+            color : parent.enabled ? Design.colButtonSelectedText : Design.colButtonSelectedBackground
         }
     }
+
 }
