@@ -38,18 +38,19 @@ MyJkQtPlotter::~MyJkQtPlotter()
 
 void MyJkQtPlotter::requestUpdate()
 {
-    qint64 curTime = QDateTime::currentMSecsSinceEpoch();
-    if( curTime-m_timeLastUpdateDone > minTimeBetweenUpdate() && !m_timerUpdateDelayed->isActive() ) {
-        onRequestUpdate();
-    } else {
-        if( !m_flagUpdatePending && !m_timerUpdateDelayed->isActive() ) {
-        m_flagUpdatePending = true;
-            if( !m_timerUpdateDelayed->isActive() ) {
-                // start a timer to request an update later
-                m_timerUpdateDelayed->start(minTimeBetweenUpdate()-(curTime-m_timeLastUpdateDone));
-            }
-        }
-    }
+//    qint64 curTime = QDateTime::currentMSecsSinceEpoch();
+//    if( curTime-m_timeLastUpdateDone > minTimeBetweenUpdate() && !m_timerUpdateDelayed->isActive() ) {
+//        onRequestUpdate();
+//    } else {
+//        if( !m_flagUpdatePending && !m_timerUpdateDelayed->isActive() ) {
+//        m_flagUpdatePending = true;
+//            if( !m_timerUpdateDelayed->isActive() ) {
+//                // start a timer to request an update later
+//                m_timerUpdateDelayed->start(minTimeBetweenUpdate()-(curTime-m_timeLastUpdateDone));
+//            }
+//        }
+//    }
+    emit evRequestUpdate();
 }
 
 // -- properties
@@ -65,17 +66,20 @@ void MyJkQtPlotter::setMouseEnabled(bool p_value)
 
 
 // -- inherited from QWidget
-void MyJkQtPlotter::mouseDoubleClickEvent(QMouseEvent *event)
+void MyJkQtPlotter::mouseDoubleClickEvent(QMouseEvent */*event*/)
 {
     if( m_mouseEnabled ) {
-        JKQTPlotter::mouseDoubleClickEvent(event);
+        // strange behaviour with double click
+        //JKQTPlotter::mouseDoubleClickEvent(event);
     }
 }
 
 void MyJkQtPlotter::mouseMoveEvent(QMouseEvent *event)
 {
     if( m_mouseEnabled ) {
+        fLogDebug1("move in");
         JKQTPlotter::mouseMoveEvent(event);
+        fLogDebug1("move out");
     }
 }
 
@@ -93,11 +97,20 @@ void MyJkQtPlotter::mouseReleaseEvent(QMouseEvent *event)
     }
 }
 
-void MyJkQtPlotter::moveEvent(QMoveEvent *event)
+void MyJkQtPlotter::wheelEvent(QWheelEvent *)
 {
-    if( m_mouseEnabled ) {
-        JKQTPlotter::moveEvent(event);
-    }
+
+}
+
+void MyJkQtPlotter::moveEvent(QMoveEvent */*event*/)
+{
+    // Never called with QML => hovered
+//    if( m_mouseEnabled ) {
+//        JKQTPlotter::moveEvent(event);
+//        fLogDebug1("move !");
+//        if( !event->isAccepted() ) {
+//        }
+//    }
 }
 
 qint32 MyJkQtPlotter::minTimeBetweenUpdate() const

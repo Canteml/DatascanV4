@@ -17,9 +17,13 @@
 
 AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), Loggable("AScanGraph")
 { 
+    setAcceptHoverEvents(true);
     setFlag( QQuickItem::ItemHasContents, true );
+    setFlag( QQuickItem::ItemAcceptsInputMethod, true);
     setAcceptedMouseButtons( Qt::AllButtons );
     m_updateInProgress = false;
+
+    m_eMouseMove = new QMouseEvent(QEvent::MouseMove, QPointF(), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
 
     connect( this, &QQuickPaintedItem::widthChanged, this, &AScanGraph::onUpdateWidgetSize, Qt::QueuedConnection );
     connect( this, &QQuickPaintedItem::heightChanged, this, &AScanGraph::onUpdateWidgetSize, Qt::QueuedConnection );
@@ -80,6 +84,8 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), Loggable
 //    m_pWorker = new QThread();
 //    this->moveToThread(m_pWorker);
 
+    connect(m_pPlotAScan, &MyJkQtPlotter::evRequestUpdate, this, &AScanGraph::onTimerRefresh);
+
     m_pAScanGraphWorker = new AScanGraphWorker(m_pPlotAScan);
     connect(m_pAScanGraphWorker, &AScanGraphWorker::evRedrawDone, this, &AScanGraph::onRedrawDone, Qt::QueuedConnection);
 
@@ -107,6 +113,8 @@ AScanGraph::~AScanGraph()
 //    m_pWorker = nullptr;
     m_pPlotAScan->deleteLater();
     m_pPlotAScan = nullptr;
+    delete m_eMouseMove;
+    m_eMouseMove = nullptr;
 }
 
 void AScanGraph::paint(QPainter *painter)
@@ -148,6 +156,20 @@ void AScanGraph::updateAScan(AScan * p_pAScan)
     }
 }
 
+MyJkQtPlotter *AScanGraph::getPlot() const
+{
+    return m_pPlotAScan;
+}
+
+void AScanGraph::routeMouseEvents(QMouseEvent *event)
+{
+    if( nullptr != m_pPlotAScan ) {
+        QMouseEvent* newEvent = new QMouseEvent( event->type(), event->localPos(), event->button(), event->buttons(), event->modifiers() );
+        //QCoreApplication::sendEvent( m_CustomPlot, newEvent );
+        QCoreApplication::postEvent( m_pPlotAScan, newEvent );
+    }
+}
+
 void AScanGraph::onNeedRefresh(bool p_force)
 {
     qint64 curEpoc = QDateTime::currentMSecsSinceEpoch();
@@ -155,16 +177,59 @@ void AScanGraph::onNeedRefresh(bool p_force)
     if( (!m_timeRefresh->isActive() && !m_updateInProgress) || p_force) {
         qint64 dTime = curEpoc - m_lastUpdateEpoc;
         fLogDebug1(QString("refresh dTime = %1").arg(dTime));
-        if( dTime >= 50 ) {
+        if( dTime >= 10 || p_force ) {
             m_updateInProgress = true;
             m_pAScanGraphWorker->requestRedraw();
         } else {
             // start timer with remaining time
-            m_timeRefresh->start(50 - (dTime));
+            m_timeRefresh->start(10 - (dTime));
         }
     }
     //update();
 }
+
+
+void AScanGraph::mousePressEvent( QMouseEvent* event )
+{
+    // // qDebug() << Q_FUNC_INFO;
+    routeMouseEvents( event );
+}
+
+void AScanGraph::mouseReleaseEvent( QMouseEvent* event )
+{
+    // qDebug() << Q_FUNC_INFO;
+    routeMouseEvents( event );
+}
+
+void AScanGraph::mouseMoveEvent( QMouseEvent* event )
+{
+    routeMouseEvents( event );
+}
+
+void AScanGraph::mouseDoubleClickEvent( QMouseEvent* event )
+{
+    // qDebug() << Q_FUNC_INFO;
+    routeMouseEvents( event );
+}
+
+void AScanGraph::wheelEvent(QWheelEvent *event)
+{
+    if( nullptr != m_pPlotAScan ) {
+        QWheelEvent* newEvent = new QWheelEvent(*event);
+        //QCoreApplication::sendEvent( m_CustomPlot, newEvent );
+        QCoreApplication::postEvent( m_pPlotAScan, newEvent );
+    }
+}
+
+void AScanGraph::hoverMoveEvent(QHoverEvent *event)
+{
+    if( nullptr != m_eMouseMove && event->posF() != m_eMouseMove->localPos() ) {
+        m_eMouseMove->setLocalPos(event->posF());
+        routeMouseEvents( m_eMouseMove );
+    }
+}
+
+
 
 void AScanGraph::onThreadFinished()
 {
@@ -184,8 +249,7 @@ void AScanGraph::onUpdateWidgetSize()
 
 void AScanGraph::onTimerRefresh()
 {
-    fLogDebug2("timer");
-    onNeedRefresh(false);
+    onNeedRefresh(true);
 }
 
 void AScanGraph::onRedrawDone()

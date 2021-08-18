@@ -298,10 +298,108 @@ Rectangle {
             ColumnLayout {
                 RowLayout {
                     spacing: 15
-                    // GATE 1
+                    // GATE 0
                     ColumnLayout {
                         Text {
                             text: qsTr("Porte 1er écho :")
+                            color: "#DD3030"
+                            font.pointSize: 12
+                        }
+
+                        GridLayout {
+                            columns: 2
+
+                            Image {
+                                Layout.maximumHeight: 40
+                                Layout.maximumWidth: 60
+                                source: "qrc:///img/icons/iconGateRedStart.png"
+                                fillMode: Image.PreserveAspectFit
+                            }
+
+                            RpSpinBox {
+                                id: idGate0Start
+                                from: 1
+                                to: 10000
+
+                                stepSize: 1
+                                editable: true
+                                font.pointSize: 12
+
+                                value : scanManager.SelectedFuncAScan.paramLGate0Start
+                                onValueChanged: {
+                                    if( value !== scanManager.SelectedFuncAScan.paramLGate0Start ) {
+                                        console.log("paramLGate0Start last value : " + scanManager.SelectedFuncAScan.paramLGate0Start + " / new : " + value )
+                                        scanManager.SelectedFuncAScan.paramLGate0Start = value;
+                                    }
+                                }
+                                onValueModified: {
+                                    focus = false;
+                                }
+                            }
+
+                            Image {
+                                Layout.maximumHeight: 40
+                                Layout.maximumWidth: 60
+                                source: "qrc:///img/icons/iconGateRedWidth.png"
+                                fillMode: Image.PreserveAspectFit
+                            }
+
+                            RpSpinBox {
+                                id: idGate0Width
+                                from: 1
+                                to: 10000
+
+                                stepSize: 1
+                                editable: true
+                                font.pointSize: 12
+
+                                value : scanManager.SelectedFuncAScan.paramLGate0Width
+                                onValueChanged: {
+                                    if( value !== scanManager.SelectedFuncAScan.paramLGate0Width ) {
+                                        console.log("paramLGate0Width last value : " + scanManager.SelectedFuncAScan.paramLGate0Width + " / new : " + value )
+                                        scanManager.SelectedFuncAScan.paramLGate0Width = value;
+                                    }
+                                }
+                                onValueModified: {
+                                    focus = false;
+                                }
+                            }
+
+                            Image {
+                                Layout.maximumHeight: 40
+                                Layout.maximumWidth: 60
+                                source: "qrc:///img/icons/iconGateRedHeight.png"
+                                fillMode: Image.PreserveAspectFit
+                            }
+
+                            RpSpinBox {
+                                id: idGate0Height
+                                from: 1
+                                to: 10000
+
+                                stepSize: 1
+                                editable: true
+                                font.pointSize: 12
+
+                                value : scanManager.SelectedFuncAScan.paramLGate0Height
+                                onValueChanged: {
+                                    if( value !== scanManager.SelectedFuncAScan.paramLGate0Height ) {
+                                        console.log("paramLGate0Height last value : " + scanManager.SelectedFuncAScan.paramLGate0Height + " / new : " + value )
+                                        scanManager.SelectedFuncAScan.paramLGate0Height = value;
+                                    }
+                                }
+                                onValueModified: {
+                                    focus = false;
+                                }
+                            }
+                        }
+
+                    }
+
+                    // GATE 2
+                    ColumnLayout {
+                        Text {
+                            text: qsTr("Porte 2nd écho :")
                             color: "#30BB30"
                             font.pointSize: 12
                         }
@@ -319,15 +417,18 @@ Rectangle {
                             RpSpinBox {
                                 id: idGate1Start
                                 from: 1
-                                to: 10000
+                                to: 1000
 
                                 stepSize: 1
                                 editable: true
                                 font.pointSize: 12
 
-                                value : scanManager.SelectedFuncAScan.paramLGate0Start
+                                value : scanManager.SelectedFuncAScan.paramLGate1Start
                                 onValueChanged: {
-                                    scanManager.SelectedFuncAScan.paramLGate0Start = value
+                                    if( value !== scanManager.SelectedFuncAScan.paramLGate1Start ) {
+                                        console.log("paramLGate1Startlast value : " + scanManager.SelectedFuncAScan.paramLGate1Start + " / new : " + value )
+                                        scanManager.SelectedFuncAScan.paramLGate1Start = value;
+                                    }
                                 }
                                 onValueModified: {
                                     focus = false;
@@ -344,19 +445,23 @@ Rectangle {
                             RpSpinBox {
                                 id: idGate1Width
                                 from: 1
-                                to: 10000
+                                to: 1000
 
                                 stepSize: 1
                                 editable: true
                                 font.pointSize: 12
 
-                                value : scanManager.SelectedFuncAScan.paramLGate0Width
+                                value : scanManager.SelectedFuncAScan.paramLGate1Width
                                 onValueChanged: {
-                                    scanManager.SelectedFuncAScan.paramLGate0Width = value
+                                    if( value !== scanManager.SelectedFuncAScan.paramLGate1Width ) {
+                                        console.log("paramLGate1Width last value : " + scanManager.SelectedFuncAScan.paramLGate1Width + " / new : " + value )
+                                        scanManager.SelectedFuncAScan.paramLGate1Width = value;
+                                    }
                                 }
                                 onValueModified: {
                                     focus = false;
                                 }
+
                             }
 
                             Image {
@@ -369,96 +474,6 @@ Rectangle {
                             RpSpinBox {
                                 id: idGate1Height
                                 from: 1
-                                to: 10000
-
-                                stepSize: 1
-                                editable: true
-                                font.pointSize: 12
-
-                                value : scanManager.SelectedFuncAScan.paramLGate0Height
-                                onValueChanged: {
-                                    scanManager.SelectedFuncAScan.paramLGate0Height = value
-                                }
-                                onValueModified: {
-                                    focus = false;
-                                }
-                            }
-                        }
-
-                    }
-
-                    // GATE 2
-                    ColumnLayout {
-                        Text {
-                            text: qsTr("Porte 2nd écho :")
-                            color: "#DD3030"
-                            font.pointSize: 12
-                        }
-
-                        GridLayout {
-                            columns: 2
-
-                            Image {
-                                Layout.maximumHeight: 40
-                                Layout.maximumWidth: 60
-                                source: "qrc:///img/icons/iconGateRedStart.png"
-                                fillMode: Image.PreserveAspectFit
-                            }
-
-                            RpSpinBox {
-                                id: idGate2Start
-                                from: 1
-                                to: 1000
-
-                                stepSize: 1
-                                editable: true
-                                font.pointSize: 12
-
-                                value : scanManager.SelectedFuncAScan.paramLGate1Start
-                                onValueChanged: {
-                                    scanManager.SelectedFuncAScan.paramLGate1Start = value
-                                }
-                                onValueModified: {
-                                    focus = false;
-                                }
-                            }
-
-                            Image {
-                                Layout.maximumHeight: 40
-                                Layout.maximumWidth: 60
-                                source: "qrc:///img/icons/iconGateRedWidth.png"
-                                fillMode: Image.PreserveAspectFit
-                            }
-
-                            RpSpinBox {
-                                id: idGate2Width
-                                from: 1
-                                to: 1000
-
-                                stepSize: 1
-                                editable: true
-                                font.pointSize: 12
-
-                                value : scanManager.SelectedFuncAScan.paramLGate1Width
-                                onValueChanged: {
-                                    scanManager.SelectedFuncAScan.paramLGate1Width = value
-                                }
-                                onValueModified: {
-                                    focus = false;
-                                }
-
-                            }
-
-                            Image {
-                                Layout.maximumHeight: 40
-                                Layout.maximumWidth: 60
-                                source: "qrc:///img/icons/iconGateRedHeight.png"
-                                fillMode: Image.PreserveAspectFit
-                            }
-
-                            RpSpinBox {
-                                id: idGate2Height
-                                from: 1
                                 to: 100
 
                                 stepSize: 1
@@ -467,7 +482,10 @@ Rectangle {
 
                                 value : scanManager.SelectedFuncAScan.paramLGate1Height
                                 onValueChanged: {
-                                    scanManager.SelectedFuncAScan.paramLGate1Height = value
+                                    if( value !== scanManager.SelectedFuncAScan.paramLGate1Height ) {
+                                        console.log("paramLGate1Height last value : " + scanManager.SelectedFuncAScan.paramLGate1Height + " / new : " + value )
+                                        scanManager.SelectedFuncAScan.paramLGate1Height = value;
+                                    }
                                 }
                                 onValueModified: {
                                     focus = false;

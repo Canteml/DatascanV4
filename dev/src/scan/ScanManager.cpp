@@ -16,6 +16,7 @@
 #include <v2/vector/VectorManager.h>
 #include <v2/vector/VectorFuncAScan.h>
 #include <scan/AScanGraph.h>
+#include "jkPlot/JkGate.h"
 
 // -- Qt Includes
 #include <QQmlApplicationEngine>
@@ -23,16 +24,26 @@
 ScanManager::ScanManager() : Loggable("ScanManger")
 {
     m_pAScanGraphMain = nullptr;
+    m_pGate0 = nullptr;
+    m_pGate1 = nullptr;
     m_pVector = nullptr;
     for(int i=0; i<VectorStd::NB_FUNC_ASCAN; i++) {
         m_pAScan[i] = nullptr;
     }
     m_selectedAScanIndex = 0;
+
 }
 
 ScanManager::~ScanManager()
 {
-
+    if( nullptr != m_pGate0) {
+        delete m_pGate0;
+        m_pGate0 = nullptr;
+    }
+    if( nullptr != m_pGate1) {
+        delete m_pGate1;
+        m_pGate1 = nullptr;
+    }
 }
 
 void ScanManager::init()
@@ -51,6 +62,10 @@ void ScanManager::initQmlObject(QObject * p_pQmlTopLevel)
     m_pAScanGraphMain = p_pQmlTopLevel->findChild<AScanGraph*>("AScanGraphMain");
     if( nullptr == m_pAScanGraphMain ) {
         fLogError("Fail to found m_pAScanGraphMain");
+    } else {
+        m_pGate0 = new JkGate(m_pAScanGraphMain->getPlot(), 0);
+        m_pGate1 = new JkGate(m_pAScanGraphMain->getPlot(), 1);
+        setPrivateSelectedAScanIndex(0);
     }
 
 }
@@ -63,10 +78,7 @@ quint32 ScanManager::getSelectedAScanIndex() const
 void ScanManager::setSelectedAScanIndex(quint32 p_index)
 {
     if( p_index != m_selectedAScanIndex ) {
-        m_selectedAScanIndex = p_index;
-        emit evSelectedAScanIndexChanged(m_selectedAScanIndex);
-        emit evSelectedFuncAScanChanged(getSelectedFuncAScan());
-        m_pAScanGraphMain->updateAScan(m_pAScan[p_index]);
+        setPrivateSelectedAScanIndex(p_index);
     }
 }
 
@@ -131,4 +143,14 @@ void ScanManager::onVectorNbAScanEnabledChanged(qint32)
         m_pAScan[i] = nullptr;
     }
     setSelectedAScanIndex(0);
+}
+
+void ScanManager::setPrivateSelectedAScanIndex(quint32 p_index)
+{
+    m_selectedAScanIndex = p_index;
+    emit evSelectedAScanIndexChanged(m_selectedAScanIndex);
+    emit evSelectedFuncAScanChanged(getSelectedFuncAScan());
+    m_pAScanGraphMain->updateAScan(m_pAScan[p_index]);
+    m_pGate0->setAScan(getSelectedFuncAScan());
+    m_pGate1->setAScan(getSelectedFuncAScan());
 }
