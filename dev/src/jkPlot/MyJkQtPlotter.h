@@ -34,6 +34,9 @@ public:
     bool getMouseEnabled() const;
     void setMouseEnabled(bool p_value);
 
+    bool getMouseUsedByItem() const;
+    void setMouseUsedByItem(bool p_used);///< should be called by items (like "Gates") to say that mouse event are catched
+
 
 protected :
     // -- inherited from QWidget
@@ -50,14 +53,8 @@ private :
 signals :
     void evRequestUpdate();
 
-
-private slots :
-    void onRequestUpdate();
-
 private :
     // -- Properties
     bool m_mouseEnabled;    ///< if false : any mouse action is ignored (mouse enabled by default)
-    volatile bool m_flagUpdatePending;   ///< a request must be done after the current running update
-    qint64 m_timeLastUpdateDone;    ///< epoc time (ms)
-    QTimer * m_timerUpdateDelayed;
+    bool m_mouseUsedByItem;       ///< if mouse is not used by any item, Graph can manage event (move in graph ..)
 };

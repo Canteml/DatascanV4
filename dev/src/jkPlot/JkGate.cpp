@@ -290,7 +290,7 @@ void JkGate::mouseMoveEvent(const QPointF &p_position)
 
 void JkGate::mouseClickEvent(const QPointF &p_position)
 {
-    if( !m_isGateClicked /*&&
+    if( !m_isGateClicked && !m_pPlot->getMouseUsedByItem() /*&&
             ( ProcessManager::MODE_CALIB == m_pProcessManager->getMode() ||
               ProcessManager::MODE_SETTING == m_pProcessManager->getMode()) */) {
         qreal dL = distLine(p_position);
@@ -302,18 +302,21 @@ void JkGate::mouseClickEvent(const QPointF &p_position)
         if( dP1 < dP2  && dP1 < m_margin ) {
             m_elementHovered = 2;
             m_isClicked = true;
+            m_pPlot->setMouseUsedByItem(true);
             m_isGateClicked = true;
             m_isHovered = true;
             onUpdatePlot();
         } else if( dP2 < m_margin ) {
             m_elementHovered = 3;
             m_isClicked = true;
+            m_pPlot->setMouseUsedByItem(true);
             m_isGateClicked = true;
             m_isHovered = true;
             onUpdatePlot();
         } else if( dL < m_margin ){
             m_elementHovered = 1;
             m_isClicked = true;
+            m_pPlot->setMouseUsedByItem(true);
             m_isGateClicked = true;
             m_isHovered = true;
             onUpdatePlot();
@@ -326,6 +329,7 @@ void JkGate::mouseReleaseEvent(const QPointF &p_position)
 {
     if( m_isClicked ) {
         m_isClicked = false;
+        m_pPlot->setMouseUsedByItem(false);
         m_isGateClicked = false;
         onUpdatePlot();
     }
@@ -420,7 +424,6 @@ void JkGate::onUpdateGateFromModel()
 
 void JkGate::onPlotMouseMove(double x, double y)
 {
-    fLogDebug2("use");
     mouseMoveEvent(QPointF(x, y));
 }
 

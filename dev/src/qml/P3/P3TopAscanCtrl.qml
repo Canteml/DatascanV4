@@ -11,10 +11,7 @@ Rectangle {
     ColumnLayout {
         id: idColAScanCtrl
 
-
-
         Text {
-
             Layout.alignment: Qt.AlignCenter
             text: "Gain :"
             font.pixelSize: 20
@@ -69,8 +66,8 @@ Rectangle {
                 anchors.bottom: parent.bottom
                 implicitHeight: 30
                 implicitWidth: 30 // Adjust width here
-                color: sbGain.up.pressed ? Design.colButtonSelectedBackground : Design.colButtonHoveredBackground
-                border.color: enabled ? Design.colButtonSelectedBackground : Design.colButtonHoveredBackground
+                color: sbGain.up.pressed ? Design.colButtonSelectedBackground : Design.colButtonBackground
+                border.color: enabled ? Design.colFrameBorder : Design.colButtonHoveredBackground
                 Text {
                     text: '+'
                     font.pointSize: 12
@@ -84,8 +81,8 @@ Rectangle {
                 anchors.bottom: parent.bottom
                 implicitHeight: 30
                 implicitWidth: 30 // Adjust width here
-                color: sbGain.down.pressed ? Design.colButtonSelectedBackground : Design.colButtonHoveredBackground
-                border.color: enabled ? Design.colButtonSelectedBackground : Design.colButtonHoveredBackground
+                color: sbGain.down.pressed ? Design.colButtonSelectedBackground : Design.colButtonBackground
+                border.color: enabled ? Design.colFrameBorder : Design.colButtonHoveredBackground
                 Text {
                     text: '-'
                     font.pointSize: 12
@@ -94,6 +91,54 @@ Rectangle {
                 }
             }
 
+        }
+
+        Text {
+            Layout.alignment: Qt.AlignCenter
+            Layout.topMargin: 5
+            text: "Zoom"
+            font.pixelSize: 20
+        }
+
+        RowLayout {
+            spacing: 0
+            Layout.leftMargin: 5
+
+            Button {
+                id: idBtAScanZoomOut
+                Layout.preferredHeight: 30
+                Layout.preferredWidth: 30
+                background: Rectangle {
+                    color: (idBtAScanZoomOut.pressed) ? Design.colButtonSelectedBackground : idBtAScanZoomOut.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                    border.width: 1
+                    border.color: Design.colFrameBorder
+                }
+
+                text: "-"
+                font.pointSize: 12
+
+                onPressed: {
+                    scanManager.ascanZoomOut()
+                }
+            }
+
+            Button {
+                id: idBtAScanZoomIn
+                Layout.preferredHeight: 30
+                Layout.preferredWidth: 30
+                background: Rectangle {
+                    color: (idBtAScanZoomIn.pressed) ? Design.colButtonSelectedBackground : idBtAScanZoomIn.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                    border.width: 1
+                    border.color: Design.colFrameBorder
+                }
+
+                text: "+"
+                font.pointSize: 12
+
+                onPressed: {
+                    scanManager.ascanZoomIn()
+                }
+            }
         }
 
         Item {

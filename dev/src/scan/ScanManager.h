@@ -13,7 +13,7 @@
 #pragma once
 
 // -- Internal includes
-#include <log/Loggable.h>
+#include <xml/XmlSettingsLoggable.h>
 #include <v2/vector/VectorManager.h>
 #include <v2/vector/VectorStd.h>
 class AScan;
@@ -32,7 +32,7 @@ class QQmlApplicationEngine;
  *      - BSCAN if user click on it
  *      - VectorFuncAScanX
  */
-class ScanManager : public QObject, public Loggable
+class ScanManager : public QObject, public XmlSettingsLoggable
 {
     Q_OBJECT
 
@@ -51,6 +51,9 @@ public :
 
     VectorFuncAScan* getSelectedFuncAScan() const;
 
+    Q_INVOKABLE void ascanZoomIn();
+    Q_INVOKABLE void ascanZoomOut();
+
 signals :
     void evSelectedAScanIndexChanged(quint32);
     void evSelectedFuncAScanChanged(VectorFuncAScan*);
@@ -61,6 +64,13 @@ private slots :
     void onNewAScan2Treated(AScan*);
     void onNewAScan3Treated(AScan*);
     void onVectorNbAScanEnabledChanged(qint32);
+
+protected :
+    // -- Settings
+    virtual bool customLoadSettings(QDomElement * p_pParent) override;
+    virtual bool customLoadDefaultSettings() override;
+    virtual bool customApplySettings() override;
+    virtual bool customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pParent) override;
 
 private :
     void onVectorProductChanged();    
