@@ -18,6 +18,7 @@
 #include <v2/vector/VectorStd.h>
 class AScan;
 class AScanGraph;
+class JkGate;
 
 
 // -- Qt Includes
@@ -62,10 +63,14 @@ private slots :
     void onVectorNbAScanEnabledChanged(qint32);
 
 private :
-    void onVectorProductChanged();
+    void onVectorProductChanged();    
+    void setPrivateSelectedAScanIndex(quint32 p_index); ///< value in 0..3
 
     // -- Behaviour
     quint32 m_selectedAScanIndex;   ///< value in 0..3
+
+    JkGate * m_pGate0;
+    JkGate * m_pGate1;
 
     // -- Manager
     AScan* m_pAScan[VectorStd::NB_FUNC_ASCAN];

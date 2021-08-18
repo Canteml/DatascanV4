@@ -37,8 +37,20 @@ public:
 
     void updateAScan(AScan *);
 
+    MyJkQtPlotter * getPlot() const;
+
 signals :
     //void evPrivateNeedRefresh();
+
+protected:
+    void routeMouseEvents( QMouseEvent* event);
+
+    virtual void mousePressEvent( QMouseEvent* event ) override;
+    virtual void mouseReleaseEvent( QMouseEvent* event ) override;
+    virtual void mouseMoveEvent( QMouseEvent* event ) override;
+    virtual void mouseDoubleClickEvent( QMouseEvent* event ) override;
+    virtual void wheelEvent(QWheelEvent *event) override;
+    virtual void hoverMoveEvent(QHoverEvent* event) override;
 
 private slots :
     void onThreadFinished();
@@ -64,6 +76,8 @@ private :
     QTimer * m_timeRefresh;
     qint64 m_lastUpdateEpoc;
     AScanGraphWorker * m_pAScanGraphWorker;
+
+    QMouseEvent * m_eMouseMove;
 };
 
 
