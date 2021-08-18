@@ -21,7 +21,7 @@
 // -- Qt Includes
 #include <QQmlApplicationEngine>
 
-ScanManager::ScanManager() : Loggable("ScanManger")
+ScanManager::ScanManager() : XmlSettingsLoggable("ScanManger")
 {
     m_pAScanGraphMain = nullptr;
     m_pGate0 = nullptr;
@@ -60,12 +60,14 @@ void ScanManager::init()
 void ScanManager::initQmlObject(QObject * p_pQmlTopLevel)
 {
     m_pAScanGraphMain = p_pQmlTopLevel->findChild<AScanGraph*>("AScanGraphMain");
+    m_pAScanGraphMain->setParent(this);
     if( nullptr == m_pAScanGraphMain ) {
         fLogError("Fail to found m_pAScanGraphMain");
     } else {
         m_pGate0 = new JkGate(m_pAScanGraphMain->getPlot(), 0);
         m_pGate1 = new JkGate(m_pAScanGraphMain->getPlot(), 1);
         setPrivateSelectedAScanIndex(0);
+        m_pAScanGraphMain->initAfterItemAdded();
     }
 
 }
@@ -85,6 +87,20 @@ void ScanManager::setSelectedAScanIndex(quint32 p_index)
 VectorFuncAScan* ScanManager::getSelectedFuncAScan() const
 {
     return m_pVector->getFuncAScan(m_selectedAScanIndex);
+}
+
+void ScanManager::ascanZoomIn()
+{
+    if( nullptr != m_pAScanGraphMain ) {
+        m_pAScanGraphMain->zoomIn();
+    }
+}
+
+void ScanManager::ascanZoomOut()
+{
+    if( nullptr != m_pAScanGraphMain ) {
+        m_pAScanGraphMain->zoomOut();
+    }
 }
 
 void ScanManager::onNewAScan0Treated(AScan * p_pAscan)
@@ -144,6 +160,36 @@ void ScanManager::onVectorNbAScanEnabledChanged(qint32)
     }
     setSelectedAScanIndex(0);
 }
+
+
+bool ScanManager::customLoadSettings(QDomElement * p_pParent)
+{
+    bool bRet = true;
+    bRet &= m_pAScanGraphMain->loadSettings(p_pParent);
+    return bRet;
+}
+
+bool ScanManager::customLoadDefaultSettings()
+{
+    bool bRet = true;
+
+    return bRet;
+}
+
+bool ScanManager::customApplySettings()
+{
+    bool bRet = true;
+
+    return bRet;
+}
+
+bool ScanManager::customSaveSettings(QDomDocument * /*p_pDoc*/, QDomElement * p_pParent)
+{
+    bool bRet = true;
+    bRet &= m_pAScanGraphMain->saveSettings(p_pParent);
+    return bRet;
+}
+
 
 void ScanManager::setPrivateSelectedAScanIndex(quint32 p_index)
 {

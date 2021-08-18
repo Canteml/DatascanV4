@@ -88,6 +88,8 @@ bool CoreApp::startApp()
 //    ComDevice * pComp = m_pVectorStd->getDeviceManager()->getComp(0);
 //    pComp->setLink()
 
+
+
     // -- core start => open main.qml
     bRet &= CoreUiQml::startApp();
 
@@ -167,6 +169,9 @@ void CoreApp::initCppFromQml()
 {
     // -- map C++ object with QML item
     m_pScanManager->initQmlObject(m_pQmlTopLevel);
+
+    // load graphical settings (wait QML instanciated)
+    m_pScanManager->loadSettings();
 }
 
 bool CoreApp::useOpenGlRender() const

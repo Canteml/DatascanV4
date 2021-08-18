@@ -13,7 +13,7 @@
 #pragma once
 
 // -- Internal includes
-#include <log/Loggable.h>
+#include <xml/XmlSettingsLoggable.h>
 #include <jkPlot/MyJkQtPlotter.h>
 class AScan;
 class AScanGraphWorker;
@@ -21,26 +21,32 @@ class AScanGraphWorker;
 // -- External includes
 #include <jkqtplotter/jkqtplotter.h>
 #include <jkqtplotter/graphs/jkqtpgeometric.h>
+class JKQTPGeoLine;
 
 // -- Qt includes
 #include <QtQuick>
 #include <QThread>
 
-class AScanGraph : public QQuickPaintedItem, public Loggable
+class AScanGraph : public QQuickPaintedItem, public XmlSettingsLoggable
 {
     Q_OBJECT
 public:
     AScanGraph(QQuickItem *parent = 0);
     ~AScanGraph();
 
-    void paint( QPainter* painter);
+    void paint( QPainter* painter) override;
 
     void updateAScan(AScan *);
 
     MyJkQtPlotter * getPlot() const;
 
+    void initAfterItemAdded();
+
+    void zoomIn();
+    void zoomOut();
+
 signals :
-    //void evPrivateNeedRefresh();
+    void evPrivateNeedRefresh();
 
 protected:
     void routeMouseEvents( QMouseEvent* event);
@@ -52,14 +58,23 @@ protected:
     virtual void wheelEvent(QWheelEvent *event) override;
     virtual void hoverMoveEvent(QHoverEvent* event) override;
 
+    // -- Settings
+    virtual bool customLoadSettings(QDomElement * p_pParent) override;
+    virtual bool customLoadDefaultSettings() override;
+    virtual bool customApplySettings() override;
+    virtual bool customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pParent) override;
+
 private slots :
+    void onPrivateNeedRefresh();
     void onThreadFinished();
     void onUpdateWidgetSize();
     void onTimerRefresh();
-    void onRedrawDone();
+
+    void onPlotMouseMove(double, double);
+    void onPlotMouseClicked(double, double, Qt::KeyboardModifiers, Qt::MouseButton);
 
 private :
-    void onNeedRefresh(bool p_force);
+    void needRefresh(bool p_force);
 
     MyJkQtPlotter *m_pPlotAScan;
     JKQTPDatastore* m_dsAScan;
@@ -70,43 +85,25 @@ private :
     qreal * m_pAScanXData;
     qreal * m_pAScanYData;
 
-    bool m_updateInProgress;
+    volatile bool m_updateInProgress;
 
-    QThread * m_pWorker;
+    //QThread * m_pWorker;
     QTimer * m_timeRefresh;
     qint64 m_lastUpdateEpoc;
     AScanGraphWorker * m_pAScanGraphWorker;
 
     QMouseEvent * m_eMouseMove;
-};
+
+    // -- Graph
+    JKQTPGeoLine * m_pZeroLine;
+    bool m_mouseClicked; ///< if true, graph use click
+    qreal m_mouseClickPressX;    ///<  Position where mouse click down
+    QPointF m_mouseLastPos;
+    qreal m_mouseClickPressAxeXMin;
+    qreal m_mouseClickPressAxeXMax;
 
 
-
-class AScanGraphWorker : public QObject, public Loggable
-{
-    Q_OBJECT
-public :
-    AScanGraphWorker(MyJkQtPlotter *p_pPlotAScan);
-    ~AScanGraphWorker();
-    void requestRedraw();
-    void notifyUpdate();
-    bool waitingUpdate() const;
-    bool isProcessing() const;
-    bool isPendingUpdate() const;
-    bool isUsingPaintDevice() const;
-
-signals:
-    void evRequestRedraw();
-    void evRedrawDone();
-
-private slots :
-    void onRequestRedraw();
-
-private :
-    MyJkQtPlotter *m_pPlotAScan;
-    QThread * m_pThread;
-    volatile bool m_processingRedraw;
-    volatile bool m_pendingRedraw;
-    volatile bool m_waitingUpdate;
-    volatile bool m_usingPaintDevice;
+    // -- Settings
+    qreal m_AxeXMin;
+    qreal m_AxeXMax;
 };
