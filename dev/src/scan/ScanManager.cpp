@@ -89,6 +89,11 @@ VectorFuncAScan* ScanManager::getSelectedFuncAScan() const
     return m_pVector->getFuncAScan(m_selectedAScanIndex);
 }
 
+AScan *ScanManager::getCurrentAScan() const
+{
+    return m_pAScan[m_selectedAScanIndex];
+}
+
 void ScanManager::ascanZoomIn()
 {
     if( nullptr != m_pAScanGraphMain ) {
@@ -103,6 +108,24 @@ void ScanManager::ascanZoomOut()
     }
 }
 
+qreal ScanManager::getAScanThicknessMmMultiEcho() const
+{
+    AScan * pAScan = getCurrentAScan();
+    if( nullptr != pAScan ) {
+        return pAScan->getAScanMeasure()->m_thicknessMmMultiEcho;
+    }
+    return 0;
+}
+
+qreal ScanManager::getAScanThicknessMm1Echo() const
+{
+    AScan * pAScan = getCurrentAScan();
+    if( nullptr != pAScan ) {
+        return pAScan->getAScanMeasure()->m_thicknessMm1Echo;
+    }
+    return 0;
+}
+
 void ScanManager::onNewAScan0Treated(AScan * p_pAscan)
 {
     if( nullptr != m_pAScan[0] ) {
@@ -112,6 +135,7 @@ void ScanManager::onNewAScan0Treated(AScan * p_pAscan)
     m_pAScan[0] = p_pAscan;
     if( 0 == m_selectedAScanIndex && nullptr != m_pAScanGraphMain ) {
         m_pAScanGraphMain->updateAScan(p_pAscan);
+        emit evUpdateAScan();
     }
 }
 
@@ -124,6 +148,7 @@ void ScanManager::onNewAScan1Treated(AScan * p_pAscan)
     m_pAScan[1] = p_pAscan;
     if( 1 == m_selectedAScanIndex && nullptr != m_pAScanGraphMain ) {
         m_pAScanGraphMain->updateAScan(p_pAscan);
+        emit evUpdateAScan();
     }
 }
 
@@ -136,6 +161,7 @@ void ScanManager::onNewAScan2Treated(AScan * p_pAscan)
     m_pAScan[2] = p_pAscan;
     if( 2 == m_selectedAScanIndex && nullptr != m_pAScanGraphMain ) {
         m_pAScanGraphMain->updateAScan(p_pAscan);
+        emit evUpdateAScan();
     }
 }
 
@@ -148,6 +174,7 @@ void ScanManager::onNewAScan3Treated(AScan * p_pAscan)
     m_pAScan[3] = p_pAscan;
     if( 3 == m_selectedAScanIndex && nullptr != m_pAScanGraphMain ) {
         m_pAScanGraphMain->updateAScan(p_pAscan);
+        emit evUpdateAScan();
     }
 }
 
@@ -203,4 +230,5 @@ void ScanManager::setPrivateSelectedAScanIndex(quint32 p_index)
     m_pAScanGraphMain->updateAScan(m_pAScan[p_index]);
     m_pGate0->setAScan(getSelectedFuncAScan());
     m_pGate1->setAScan(getSelectedFuncAScan());
+    emit evUpdateAScan();
 }

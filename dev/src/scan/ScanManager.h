@@ -37,7 +37,7 @@ class ScanManager : public QObject, public XmlSettingsLoggable
     Q_OBJECT
 
     Q_PROPERTY(quint32 SelectedAScanIndex READ getSelectedAScanIndex WRITE setSelectedAScanIndex NOTIFY evSelectedAScanIndexChanged)
-    Q_PROPERTY(VectorFuncAScan* SelectedFuncAScan READ getSelectedFuncAScan NOTIFY evSelectedFuncAScanChanged)
+    Q_PROPERTY(VectorFuncAScan* SelectedFuncAScan READ getSelectedFuncAScan NOTIFY evSelectedFuncAScanChanged)            
 
 public :
     ScanManager();
@@ -51,12 +51,18 @@ public :
 
     VectorFuncAScan* getSelectedFuncAScan() const;
 
+    AScan* getCurrentAScan() const;
+
     Q_INVOKABLE void ascanZoomIn();
     Q_INVOKABLE void ascanZoomOut();
+
+    Q_INVOKABLE qreal getAScanThicknessMmMultiEcho() const;
+    Q_INVOKABLE qreal getAScanThicknessMm1Echo () const;
 
 signals :
     void evSelectedAScanIndexChanged(quint32);
     void evSelectedFuncAScanChanged(VectorFuncAScan*);
+    void evUpdateAScan();   ///< new AScan to display (
 
 private slots :
     void onNewAScan0Treated(AScan*);
