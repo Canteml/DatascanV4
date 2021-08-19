@@ -49,7 +49,6 @@ CentralPage1Form {
         Connections {
             target : idCbProduct
             function onCurrentIndexChanged() {
-                console.log("prod = "+idCbProduct.currentIndex);
                 if( currentVector.prodId !== idCbProduct.currentIndex+1 ) {
                     currentVector.prodId = idCbProduct.currentIndex+1; // combo doesn't start to "undef"
                 }

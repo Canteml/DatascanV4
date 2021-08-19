@@ -13,7 +13,7 @@ Rectangle {
 
         Text {
             Layout.alignment: Qt.AlignCenter
-            text: "Gain :"
+            text: "Gain"
             font.pixelSize: 20
             Layout.topMargin: 5
         }
