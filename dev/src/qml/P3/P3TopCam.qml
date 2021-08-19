@@ -47,14 +47,38 @@ Rectangle {
         updateCamera();
     }
 
-    ColumnLayout {
-        anchors.fill: parent
-        spacing: 0
+//    ColumnLayout {
+//        anchors.fill: parent
+//        spacing: 0
+
+
+        Rectangle {
+            border.color: "black"
+            color: "transparent"
+            anchors.fill: parent
+        }
+
+        VideoOutput {
+            source: idCamera
+//            Layout.fillHeight: true;
+//            Layout.fillWidth: true;
+            anchors.margins: 1
+            anchors.fill: parent
+            focus : visible // to receive focus and capture key events when visible
+        }
 
         ComboBox {
             id: idCbCam
 
-            Layout.fillWidth: true;
+            anchors.margins: 1
+            //Layout.fillWidth: true;
+            anchors.right: parent.right
+            width: 250
+            background: Rectangle {
+                    color:"#FFFFFF"
+                    opacity: 0.5
+            }
+
             model: QtMultimedia.availableCameras
             //displayText: "toto"
             delegate : ItemDelegate {
@@ -86,12 +110,5 @@ Rectangle {
 
        }
 
-        VideoOutput {
-            source: idCamera
-            Layout.fillHeight: true;
-            Layout.fillWidth: true;
-            //anchors.fill: parent
-            focus : visible // to receive focus and capture key events when visible            
-        }
-    }
+//    }
 }

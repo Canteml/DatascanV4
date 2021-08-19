@@ -4,7 +4,6 @@ import Design 1.0
 
 SpinBox {
     id: sb
-    value: 20
 
     leftPadding: down.indicator.width-4
 

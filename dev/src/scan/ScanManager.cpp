@@ -59,11 +59,11 @@ void ScanManager::init()
 
 void ScanManager::initQmlObject(QObject * p_pQmlTopLevel)
 {
-    m_pAScanGraphMain = p_pQmlTopLevel->findChild<AScanGraph*>("AScanGraphMain");
-    m_pAScanGraphMain->setParent(this);
+    m_pAScanGraphMain = p_pQmlTopLevel->findChild<AScanGraph*>("AScanGraphMain");    
     if( nullptr == m_pAScanGraphMain ) {
         fLogError("Fail to found m_pAScanGraphMain");
     } else {
+        m_pAScanGraphMain->setParent(this);
         m_pGate0 = new JkGate(m_pAScanGraphMain->getPlot(), 0);
         m_pGate1 = new JkGate(m_pAScanGraphMain->getPlot(), 1);
         setPrivateSelectedAScanIndex(0);
@@ -110,7 +110,7 @@ void ScanManager::onNewAScan0Treated(AScan * p_pAscan)
         m_pAScan[0] = nullptr;
     }
     m_pAScan[0] = p_pAscan;
-    if( 0 == m_selectedAScanIndex ) {
+    if( 0 == m_selectedAScanIndex && nullptr != m_pAScanGraphMain ) {
         m_pAScanGraphMain->updateAScan(p_pAscan);
     }
 }
@@ -122,7 +122,7 @@ void ScanManager::onNewAScan1Treated(AScan * p_pAscan)
         m_pAScan[1] = nullptr;
     }
     m_pAScan[1] = p_pAscan;
-    if( 1 == m_selectedAScanIndex ) {
+    if( 1 == m_selectedAScanIndex && nullptr != m_pAScanGraphMain ) {
         m_pAScanGraphMain->updateAScan(p_pAscan);
     }
 }
@@ -134,7 +134,7 @@ void ScanManager::onNewAScan2Treated(AScan * p_pAscan)
         m_pAScan[2] = nullptr;
     }
     m_pAScan[2] = p_pAscan;
-    if( 2 == m_selectedAScanIndex ) {
+    if( 2 == m_selectedAScanIndex && nullptr != m_pAScanGraphMain ) {
         m_pAScanGraphMain->updateAScan(p_pAscan);
     }
 }
@@ -146,7 +146,7 @@ void ScanManager::onNewAScan3Treated(AScan * p_pAscan)
         m_pAScan[3] = nullptr;
     }
     m_pAScan[3] = p_pAscan;
-    if( 3 == m_selectedAScanIndex ) {        
+    if( 3 == m_selectedAScanIndex && nullptr != m_pAScanGraphMain ) {
         m_pAScanGraphMain->updateAScan(p_pAscan);
     }
 }
@@ -165,7 +165,9 @@ void ScanManager::onVectorNbAScanEnabledChanged(qint32)
 bool ScanManager::customLoadSettings(QDomElement * p_pParent)
 {
     bool bRet = true;
-    bRet &= m_pAScanGraphMain->loadSettings(p_pParent);
+    if( nullptr != m_pAScanGraphMain ) {
+        bRet &= m_pAScanGraphMain->loadSettings(p_pParent);
+    }
     return bRet;
 }
 
@@ -186,7 +188,9 @@ bool ScanManager::customApplySettings()
 bool ScanManager::customSaveSettings(QDomDocument * /*p_pDoc*/, QDomElement * p_pParent)
 {
     bool bRet = true;
-    bRet &= m_pAScanGraphMain->saveSettings(p_pParent);
+    if( nullptr != m_pAScanGraphMain ) {
+        bRet &= m_pAScanGraphMain->saveSettings(p_pParent);
+    }
     return bRet;
 }
 
