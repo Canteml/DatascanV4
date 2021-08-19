@@ -40,7 +40,7 @@ BannerVectorInfoForm {
     }
 
     function updateLePosition() {
-        idLePosition.text = Math.round(currentVector.funcPosition().paramLBscanPosMmX/10)/100;
+        idLePosition.text = (Math.round(currentVector.funcPosition().paramLBscanPosMmX/10)/100).toFixed(2);
     }
 
 }

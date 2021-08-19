@@ -292,6 +292,31 @@ Rectangle {
                         focus = false;
                     }
                 }
+
+                // --
+                Text {
+                    text: qsTr("Filtrage :")
+                    font.pointSize: 12
+                }
+
+                RpSpinBox {
+                    id: idSbFiltre
+                    from: 0
+                    to: 30
+
+                    stepSize: 1
+                    editable: true
+                    font.pointSize: 12
+
+                    value: scanManager.SelectedFuncAScan.paramLLowPassFilter
+
+                    onValueChanged: {
+                        scanManager.SelectedFuncAScan.paramLLowPassFilter = value
+                    }
+                    onValueModified: {
+                        focus = false;
+                    }
+                }
             }
 
             // -- SETTINGS GATES

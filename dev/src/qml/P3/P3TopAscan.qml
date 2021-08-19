@@ -69,7 +69,7 @@ Rectangle {
 
                     Text {
                         id: leAScanThickness
-                        //Layout.minimumWidth: 120
+                        Layout.minimumWidth: 120
                         //Layout.fillHeight: true
                         text: "12.34"
                         font.family: "Helvetica"
@@ -83,13 +83,21 @@ Rectangle {
                         id: leAScanThickness1E
                         //Layout.minimumWidth: 120
                         Layout.fillHeight: true
-                        Layout.bottomMargin: 15
+                        Layout.bottomMargin: 12
                         text: " / 12.34"
                         font.family: "Helvetica"
                         font.pixelSize: 24
                         verticalAlignment: Text.AlignBottom
                         color: "red"
                         smooth: true
+                    }
+
+                    Connections {
+                        target: scanManager
+                        function onEvUpdateAScan() {
+                            leAScanThickness.text = (Math.round(scanManager.getAScanThicknessMmMultiEcho()*10)/10).toFixed(1);
+                            leAScanThickness1E.text = " / " + (Math.round(scanManager.getAScanThicknessMm1Echo()*10)/10).toFixed(1);
+                        }
                     }
 
                     Item {
