@@ -56,7 +56,7 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
 
     // -- Graphic items
     m_pZeroLine = new JKQTPGeoLine(m_pPlotAScan, 0, 0, 0, 100);
-    m_pZeroLine->setStyle(QColor("#808080"), 1);
+    m_pZeroLine->setStyle(QColor("#808080"), 2);
     m_pPlotAScan->addGraph(m_pZeroLine);
 
     m_graphAScan=new JKQTPXYLineGraph(m_pPlotAScan);
@@ -64,7 +64,7 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_graphAScan->setYColumn(m_columnY);
     m_graphAScan->setSymbolType(JKQTPNoSymbol);
     m_graphAScan->setColor("#202020");
-    m_graphAScan->setLineWidth(1); //(1.2);
+    m_graphAScan->setLineWidth(1.2); //(1.2);
     m_pPlotAScan->addGraph(m_graphAScan);
 
     // -- comsetic
@@ -83,6 +83,11 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_pPlotAScan->getXAxis()->setDrawMode2(JKQTPCADrawMode::JKQTPCADMnone);
     m_pPlotAScan->getYAxis()->setDrawMode2(JKQTPCADrawMode::JKQTPCADMnone);
 
+    // improve performances : CPU : 11% => 5%
+    m_pPlotAScan->getPlotter()->setUseAntiAliasingForGraphs(false);
+    m_pPlotAScan->getPlotter()->setUseAntiAliasingForSystem(true);
+    m_pPlotAScan->getPlotter()->setUseAntiAliasingForText(true);
+
     // scale
     m_pPlotAScan->setAbsoluteY(0,100);
     //onDigitilizingDepthChanged();
@@ -96,13 +101,11 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     connect(this, &AScanGraph::evPrivateNeedRefresh, this, &AScanGraph::onPrivateNeedRefresh);
 
     // -- Timer
-    m_lastUpdateEpoc = 0;
+    m_lastUpdateEpoc = QDateTime::currentMSecsSinceEpoch();
     m_timeRefresh = new QTimer();
     m_timeRefresh->setSingleShot(true);
-    //m_timeRefresh->moveToThread(m_pWorker);
     connect(m_timeRefresh, &QTimer::timeout, this, &AScanGraph::onTimerRefresh, Qt::QueuedConnection);
 
-    //m_pWorker->start();
 }
 
 AScanGraph::~AScanGraph()
@@ -211,12 +214,12 @@ void AScanGraph::needRefresh(bool p_force)
     // timer active => already an update programmed
     if( (!m_timeRefresh->isActive() && !m_updateInProgress) || p_force) {
         qint64 dTime = curEpoc - m_lastUpdateEpoc;
-        if( dTime >= 50 || p_force ) {
+        if( dTime >= 40 || p_force ) {
             m_updateInProgress = true;
             update();
         } else if( !m_timeRefresh->isActive() ){
             // start timer with remaining time
-            m_timeRefresh->start(50 - (dTime));
+            m_timeRefresh->start(40 - (dTime));
         }
     }
 }
@@ -314,8 +317,8 @@ void AScanGraph::onThreadFinished()
 
 void AScanGraph::onUpdateWidgetSize()
 {   
-    fLogDebug1(QString("Size : %1 x %2").arg(width()).arg(height()));
-    //m_pPlotAScan->setGeometry(0, 0, width(), height());
+    // update replot time to get a delay
+    m_lastUpdateEpoc = QDateTime::currentMSecsSinceEpoch();
     needRefresh(false);
 }
 

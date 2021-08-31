@@ -87,7 +87,6 @@ private :
 
     volatile bool m_updateInProgress;
 
-    //QThread * m_pWorker;
     QTimer * m_timeRefresh;
     qint64 m_lastUpdateEpoc;
     AScanGraphWorker * m_pAScanGraphWorker;
