@@ -36,11 +36,11 @@ JkGate::JkGate(MyJkQtPlotter* p_pPlot, qint32 p_gateIndex) :
 
     if( 0 == m_gateIndex ) {
         // RED GATE
-        m_brushNotHovered.setColor(QColor("#AA2222"));
+        m_brushNotHovered.setColor(QColor("#DD2222"));
         m_brushHovered.setColor(QColor("#FF6060"));
     } else {
         // GREEN GATE
-        m_brushNotHovered.setColor(QColor("#22A022"));
+        m_brushNotHovered.setColor(QColor("#22B022"));
         m_brushHovered.setColor(QColor("#40D040"));
     }
 

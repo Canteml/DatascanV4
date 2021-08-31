@@ -16,6 +16,8 @@
 
 #include <jkqtplotter/graphs/jkqtpgeometric.h>
 
+#include <QtGlobal>
+
 AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSettingsLoggable("AScanGraph")
 { 
     setAcceptHoverEvents(true);
@@ -62,7 +64,7 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_graphAScan->setYColumn(m_columnY);
     m_graphAScan->setSymbolType(JKQTPNoSymbol);
     m_graphAScan->setColor("#202020");
-    m_graphAScan->setLineWidth(1.2);
+    m_graphAScan->setLineWidth(1); //(1.2);
     m_pPlotAScan->addGraph(m_graphAScan);
 
     // -- comsetic
@@ -70,10 +72,12 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_pPlotAScan->setToolbarEnabled(false);
     m_pPlotAScan->clearAllRegisteredMouseDragActions();
     m_pPlotAScan->setShowZeroAxes(false, false); // hide 0 axis for X and Y (white..)
-    m_pPlotAScan->getXAxis()->setShowZeroAxis(false);
+    //m_pPlotAScan->getXAxis()->setShowZeroAxis(false);
     m_pPlotAScan->setContextMenuMode(jkqtpcmmSpecialContextMenu);
     m_pPlotAScan->getXAxis()->setDrawGrid(false);
     m_pPlotAScan->getYAxis()->setDrawGrid(false);
+    m_pPlotAScan->getXAxis()->setLineWidth(1);
+    m_pPlotAScan->getYAxis()->setLineWidth(1);
 //    m_pPlotAScan->getXAxis()->setAxisLabel("Distance (mm)");
 //    m_pPlotAScan->getYAxis()->setAxisLabel("Amplitude (%)");
     m_pPlotAScan->getXAxis()->setDrawMode2(JKQTPCADrawMode::JKQTPCADMnone);
@@ -111,7 +115,13 @@ AScanGraph::~AScanGraph()
 
 void AScanGraph::paint(QPainter *painter)
 {
+    // need resize ?
+    if( m_pPlotAScan->width() != width() || m_pPlotAScan->height() != height() ) {
+        m_pPlotAScan->setGeometry(0, 0, width(), height());
+    }
+    // update replot time
     m_lastUpdateEpoc = QDateTime::currentMSecsSinceEpoch();
+    // process replot
     m_pPlotAScan->redrawPlot();
     m_pPlotAScan->render(painter);
     m_updateInProgress = false;
@@ -304,10 +314,9 @@ void AScanGraph::onThreadFinished()
 
 void AScanGraph::onUpdateWidgetSize()
 {   
-    m_pPlotAScan->setGeometry(0, 0, width(), height());
-    //needRefresh(false);
-
-    update();
+    fLogDebug1(QString("Size : %1 x %2").arg(width()).arg(height()));
+    //m_pPlotAScan->setGeometry(0, 0, width(), height());
+    needRefresh(false);
 }
 
 void AScanGraph::onTimerRefresh()
