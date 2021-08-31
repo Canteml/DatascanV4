@@ -45,7 +45,7 @@ JkGate::JkGate(MyJkQtPlotter* p_pPlot, qint32 p_gateIndex) :
     }
 
     m_pLine = new JKQTPGeoLine(p_pPlot, 30, 30, 40, 40);
-    m_pLine->setStyle(m_brushHovered.color(), 1.5);
+    m_pLine->setStyle(m_brushHovered.color(), 1.2);
     p_pPlot->addGraph(m_pLine);
 
     m_pMarkerBegin = new JKQTPGeoSymbol(p_pPlot, 0, 0, JKQTPFilledCircle, 6, m_brushNotHovered.color(), m_brushHovered.color());
