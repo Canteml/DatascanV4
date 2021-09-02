@@ -64,7 +64,7 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_graphAScan->setYColumn(m_columnY);
     m_graphAScan->setSymbolType(JKQTPNoSymbol);
     m_graphAScan->setColor("#202020");
-    m_graphAScan->setLineWidth(1.2); //(1.2);
+    m_graphAScan->setLineWidth(0.8); //(1.2);
     m_pPlotAScan->addGraph(m_graphAScan);
 
     // -- comsetic
@@ -85,14 +85,14 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
 
     // improve performances : CPU : 11% => 5%
     m_pPlotAScan->getPlotter()->setUseAntiAliasingForGraphs(false);
-    m_pPlotAScan->getPlotter()->setUseAntiAliasingForSystem(true);
+    m_pPlotAScan->getPlotter()->setUseAntiAliasingForSystem(false);
     m_pPlotAScan->getPlotter()->setUseAntiAliasingForText(true);
 
     // scale
-    m_pPlotAScan->setAbsoluteY(0,100);
+    //m_pPlotAScan->setAbsoluteY(0,100);
     //onDigitilizingDepthChanged();
-    m_pPlotAScan->setAbsoluteX(-1000,1000); // X visible area
-    m_pPlotAScan->getXAxis()->setRange(0,20);
+    //m_pPlotAScan->setAbsoluteX(-1000,1000); // X visible area
+    //m_pPlotAScan->getXAxis()->setRange(0,20);
     m_pPlotAScan->zoom(0, 100, 0, 100);
     m_pPlotAScan->getPlotter()->setBackgroundColor(QColor(255,255,255));
     m_pPlotAScan->getPlotter()->setPlotBorder(-15,10,10,-5);
@@ -327,16 +327,12 @@ void AScanGraph::onTimerRefresh()
     needRefresh(false);
 }
 
-//void AScanGraph::onRedrawDone()
-//{
-//    update();
-//}
-
 void AScanGraph::onPlotMouseMove(double x, double y)
 {
     m_mouseLastPos = QPointF(x,y);
 
     if( m_mouseClicked ) {
+        // drag on the graph
         qreal dX = m_mouseClickPressX - m_mouseLastPos.x();
         qreal newXMin = m_AxeXMin+dX;
         qreal newXMax = m_AxeXMax+dX;
@@ -361,6 +357,7 @@ void AScanGraph::onPlotMouseClicked(double x, double y, Qt::KeyboardModifiers, Q
     m_mouseLastPos = QPointF(x,y);
 
     if( !m_pPlotAScan->getMouseUsedByItem() && p_Bt == Qt::LeftButton ) {
+        // prepare drag : store where mouse has clicked
         m_pPlotAScan->setMouseUsedByItem(true);
         m_mouseClicked = true;
         m_mouseClickPressX = m_mouseLastPos.x();
