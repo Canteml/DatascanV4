@@ -302,7 +302,7 @@ Rectangle {
                 RpSpinBox {
                     id: idSbFiltre
                     from: 0
-                    to: 30
+                    to: 50
 
                     stepSize: 1
                     editable: true
@@ -530,22 +530,20 @@ Rectangle {
                     RpSpinBox {
                         id: idSbProbeDelay
                         from: 0
-                        to: 1000
+                        to: 1000*10
                         implicitWidth: 120
 
                         stepSize: 1
                         editable: true
                         font.pointSize: 12
 
-                        value : scanManager.SelectedFuncAScan.paramLProbeDelayMm
-                        onValueChanged: {
-                            scanManager.SelectedFuncAScan.paramLProbeDelayMm = value
-                        }
+//                        value : scanManager.SelectedFuncAScan.paramLProbeDelayMm
+//                        onValueChanged: {
+//                            scanManager.SelectedFuncAScan.paramLProbeDelayMm = value
+//                        }
                         onValueModified: {
                             focus = false;
                         }
-
-//                        value: currentVector.funcAScan0().paramDGain
 
 //                        onValueChanged: {
 //                            currentVector.funcAScan0().paramDGain = value
@@ -553,6 +551,39 @@ Rectangle {
 //                        onValueModified: {
 //                            focus = false;
 //                        }
+
+
+                        validator: DoubleValidator {
+                            bottom: Math.min(idSbProbeDelay.from, idSbProbeDelay.to)
+                            top:  Math.max(idSbProbeDelay.from, idSbProbeDelay.to)
+                        }
+
+                        textFromValue: function(value, locale) {
+                            return Number(value / 10).toLocaleString(locale, 'f', 1)
+                        }
+
+                        valueFromText: function(text, locale) {
+                            return Number.fromLocaleString(locale, text) * 10
+                        }
+
+                        onValueChanged: {
+                            scanManager.SelectedFuncAScan.paramLProbeDelayMm = value/10
+                        }
+
+                        Connections {
+                            target: scanManager.SelectedFuncAScan
+                            function onParamLProbeDelayMmChanged() {
+                                updateValueDisplayed();
+                            }
+                        }
+
+                        Component.onCompleted: {
+                            updateValueDisplayed();
+                        }
+
+                        function updateValueDisplayed() {
+                            idSbProbeDelay.value = scanManager.SelectedFuncAScan.paramLProbeDelayMm*10
+                        }
 
         //                id: idSbGain
         //                from: 0
