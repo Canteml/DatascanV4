@@ -13,7 +13,6 @@ MainwindowForm {
     readonly property int page4_help: 4;
 
     property var displayMenu: false
-    property var centralPageSelected: page3_scan
 
     btMainMenu.onHoveredChanged: checkMainMenuHovered();
     btCentralPage0.onHoveredChanged: checkMainMenuHovered();
@@ -23,13 +22,13 @@ MainwindowForm {
     btCentralPage4.onHoveredChanged: checkMainMenuHovered();
 
 
-    btCentralPage0.onPressed: {centralPageSelected = page0_project; displayMenu = false;}
-    btCentralPage1.onPressed: {centralPageSelected = page1_prepare; displayMenu = false;}
-    btCentralPage2.onPressed: {centralPageSelected = page2_supervise; displayMenu = false;}
-    btCentralPage3.onPressed: {centralPageSelected = page3_scan; displayMenu = false;}
-    btCentralPage4.onPressed: {centralPageSelected = page4_help; displayMenu = false;}
+    btCentralPage0.onPressed: {globalManager.guiPage = page0_project; displayMenu = false;}
+    btCentralPage1.onPressed: {globalManager.guiPage = page1_prepare; displayMenu = false;}
+    btCentralPage2.onPressed: {globalManager.guiPage = page2_supervise; displayMenu = false;}
+    btCentralPage3.onPressed: {globalManager.guiPage = page3_scan; displayMenu = false;}
+    btCentralPage4.onPressed: {globalManager.guiPage = page4_help; displayMenu = false;}
 
-    btBannerTitle.onPressed: { centralPageSelected = centralPageSelected === 3 ? 2 : 3;}
+    btBannerTitle.onPressed: { globalManager.guiPage = globalManager.guiPage === 3 ? 2 : 3;}
 
     onDisplayMenuChanged: {
         if( displayMenu ) {
@@ -48,17 +47,20 @@ MainwindowForm {
         btCentralPage4.visible = displayMenu;
     }
 
-    onCentralPageSelectedChanged: {
-        updateCentralPage();
+    Connections {
+        target : globalManager
+        function onGuiPageChanged() {
+            updateCentralPage();
+        }
     }
 
     function updateCentralPage() {
-        btCentralPage0.background.color = centralPageSelected === page0_project ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
-        btCentralPage1.background.color = centralPageSelected === page1_prepare ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
-        btCentralPage2.background.color = centralPageSelected === page2_supervise ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
-        btCentralPage3.background.color = centralPageSelected === page3_scan ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
-        btCentralPage4.background.color = centralPageSelected === page4_help ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
-        slCentral.currentIndex = centralPageSelected;
+        btCentralPage0.background.color = globalManager.guiPage === page0_project ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
+        btCentralPage1.background.color = globalManager.guiPage === page1_prepare ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
+        btCentralPage2.background.color = globalManager.guiPage === page2_supervise ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
+        btCentralPage3.background.color = globalManager.guiPage === page3_scan ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
+        btCentralPage4.background.color = globalManager.guiPage === page4_help ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
+        slCentral.currentIndex = globalManager.guiPage;
     }
 
     function checkMainMenuHovered() {

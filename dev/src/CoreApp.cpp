@@ -22,6 +22,8 @@
 #include <v2/vector/VectorFuncPosition.h>
 #include <scan/ScanManager.h>
 #include <scan/AScanGraph.h>
+#include "GlobalManager.h"
+#include "exam/ExamManager.h"
 
 // -- Qt Includes
 #include <QQmlApplicationEngine>
@@ -33,6 +35,9 @@ CoreApp::CoreApp() : CoreUiQml("CoreApp")
     m_pStatisticApp = nullptr;
     m_pVectorManager = nullptr;
     m_pVectorStd = nullptr;
+
+    m_pExamManager = nullptr;
+    m_pGlobalManager = nullptr;
 }
 
 
@@ -62,15 +67,21 @@ bool CoreApp::initApp()
     m_pVectorManager = VectorManager::makeInstance(this);
     m_pScanManager = new ScanManager();
 
+    m_pExamManager = ExamManager::makeInstance();
+    m_pGlobalManager = GlobalManager::makeInstance();
+
     // -- init my managers
     // example : m_pStatisticApp->initManager();
     m_pVectorManager->init();
     m_pVectorStd = m_pVectorManager->getVectorStd();
-    m_pScanManager->init();
+    m_pScanManager->init();    
+    m_pGlobalManager->initManager();
+    m_pExamManager->initManager();
 
     // -- load settings of my managers
     // example : bRet &= m_pStatisticApp->loadSettings();
     bRet &= m_pVectorManager->loadSettings();
+    bRet &= m_pExamManager->loadSettings();
 
     return bRet;
 }
@@ -137,6 +148,8 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<ComDeviceManager*>("ComDeviceManager*");
     qRegisterMetaType<IntComMsg*>("IntComMsg*");
     qRegisterMetaType<ScanManager*>("ScanManager*");
+    qRegisterMetaType<ExamManager*>("ExamManager*");
+    qRegisterMetaType<GlobalManager*>("GlobalManager*");
 
     // -- declare C++ components instanciated from QML
     // exemple : qmlRegisterType<AScan>("ascan", 1, 0, "AScanItem");
@@ -153,6 +166,8 @@ bool CoreApp::initQmlContext()
     m_pQmlApplicationEngine->rootContext()->setContextProperty("vectorManager", m_pVectorManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("currentVector", m_pVectorStd);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("scanManager", m_pScanManager);
+    m_pQmlApplicationEngine->rootContext()->setContextProperty("examManager", m_pExamManager);
+    m_pQmlApplicationEngine->rootContext()->setContextProperty("globalManager", m_pGlobalManager);
 
     return true;
 }

@@ -18,6 +18,8 @@ class StatisticApp;
 class VectorManager;
 class VectorStd;
 class ScanManager;
+class GlobalManager;
+class ExamManager;
 
 class CoreApp : public CoreUiQml
 {
@@ -54,6 +56,8 @@ private :
     VectorStd * m_pVectorStd;
 
     ScanManager* m_pScanManager;
+    ExamManager* m_pExamManager;
+    GlobalManager* m_pGlobalManager;
 
 };
 

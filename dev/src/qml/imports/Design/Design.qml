@@ -25,5 +25,9 @@ QtObject {
 
     readonly property color colFrameBorder: "black"
     readonly property color colSeparator: "#9C9B9B"
+
+    // Form Section
+
+    readonly property color colFromSection: "#FF8200"   // orange
 }
 
