@@ -41,7 +41,8 @@ Rectangle {
 
             ComboBox {
                 id: idCbProduct
-                model: ["Altiscan", "Perche", "Buggy", "Panda Vol1", "Panda Vol3"]
+                Layout.preferredHeight: 30
+                model: ["Altiscan", "Perche", "Rover", "Panda Vol1", "Panda Vol3"]
             }
         }
 
