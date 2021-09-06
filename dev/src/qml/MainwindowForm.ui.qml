@@ -60,7 +60,7 @@ Item {
 
             Button {
                 id: btBannerTitle
-                text: qsTr("BAC D006\nGénératrice 8")
+                text: examManager.currentExamName
                 font.pointSize: 12
                 Layout.preferredWidth: 160
                 Layout.fillWidth: false

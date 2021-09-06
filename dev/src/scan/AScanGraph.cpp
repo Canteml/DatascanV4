@@ -34,6 +34,8 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
 
     connect( this, &QQuickPaintedItem::widthChanged, this, &AScanGraph::onUpdateWidgetSize, Qt::QueuedConnection );
     connect( this, &QQuickPaintedItem::heightChanged, this, &AScanGraph::onUpdateWidgetSize, Qt::QueuedConnection );
+    connect( this, &AScanGraph::widthChanged, this, &AScanGraph::onUpdateWidgetSize, Qt::QueuedConnection );
+    connect( this, &AScanGraph::heightChanged, this, &AScanGraph::onUpdateWidgetSize, Qt::QueuedConnection );
 
     // -- Make CSCAN
     m_pPlotAScan = new MyJkQtPlotter();
@@ -120,7 +122,7 @@ void AScanGraph::paint(QPainter *painter)
 {
     // need resize ?
     if( m_pPlotAScan->width() != width() || m_pPlotAScan->height() != height() ) {
-        m_pPlotAScan->setGeometry(0, 0, width(), height());
+        m_pPlotAScan->resize(width(), height());
     }
     // update replot time
     m_lastUpdateEpoc = QDateTime::currentMSecsSinceEpoch();
@@ -316,7 +318,7 @@ void AScanGraph::onThreadFinished()
 }
 
 void AScanGraph::onUpdateWidgetSize()
-{   
+{
     // update replot time to get a delay
     m_lastUpdateEpoc = QDateTime::currentMSecsSinceEpoch();
     needRefresh(false);
