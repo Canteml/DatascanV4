@@ -47,6 +47,8 @@ protected :
     virtual void wheelEvent(QWheelEvent * event) override;
     virtual void moveEvent(QMoveEvent *event) override;
 
+    virtual void resizeEvent(QResizeEvent *event) override;
+
 private :
     qint32 minTimeBetweenUpdate() const;
 
