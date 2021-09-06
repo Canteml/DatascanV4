@@ -13,8 +13,8 @@ Item {
     property alias idCbLinkType: idCbLinkType
 
     Layout.fillWidth: true
-    Layout.minimumHeight: 50
-    height: 50
+    Layout.minimumHeight: 40
+    height: 40
 
     onLinkStateChanged: linkState
                         === 0 ? idRectConnectionState.stateColor = "#FFFFFF" : linkState
@@ -55,12 +55,14 @@ Item {
         ComboBox {
             id: idCbLinkType
             Layout.maximumWidth: 120
+            Layout.preferredHeight: 30
             model: [qsTr("Port Com"), qsTr("IP")]
         }
 
         ComboBox {
             id: idCbLinkComPort
             Layout.maximumWidth: 120
+            Layout.preferredHeight: 30
             //model: [qsTr("COM28"), qsTr("COM29")]
             visible: idCbLinkType.currentIndex === 0
         }
@@ -68,6 +70,7 @@ Item {
         TextInput {
             id: idLinkIp
             Layout.minimumWidth: 120
+            Layout.preferredHeight: 30
             text: qsTr("192.168.123.456")
             font.pixelSize: 14
             horizontalAlignment: Text.AlignRight
@@ -79,6 +82,7 @@ Item {
 
         Button {
             id: idBtLinkConnect
+            Layout.preferredHeight: 30
             text: qsTr("Connecter")
         }
 
