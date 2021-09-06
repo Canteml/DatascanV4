@@ -77,12 +77,24 @@ QString ExamManager::getPieceName(void) const
     return m_pieceName;
 }
 
+QStringList ExamManager::getCommonPieceNames() const
+{
+    return m_commonPieceNames;
+}
+
 void ExamManager::setPieceName(const QString& p_value)
 {
     if( m_pieceName != p_value ) {
         m_pieceName = p_value;
         updateCurrentExamName();
         emit evPieceNameChanged(m_pieceName);
+        // put the last used piece name at the top
+        m_commonPieceNames.removeAll(p_value);
+        m_commonPieceNames.push_front(p_value);
+        while(m_commonPieceNames.size() > 5) {
+            m_commonPieceNames.removeLast();
+        }
+        emit evCommonPieceNamesChanged(m_commonPieceNames);
     }
 }
 
@@ -307,6 +319,9 @@ bool ExamManager::customLoadSettings(QDomElement * p_pParent)
     bRet &= XML_READ_UNIQUE(qreal, m_mepDiameter);
     bRet &= XML_READ_UNIQUE(qreal, m_mepHeight);
     bRet &= XML_READ_UNIQUE(quint32, m_mepNbRow);
+    QString slCommonPieceNames;
+    bRet &= XML_READ_UNIQUE(QString, slCommonPieceNames);
+    m_commonPieceNames = slCommonPieceNames.split(",");
     return bRet;
 }
 
@@ -346,6 +361,7 @@ bool ExamManager::customApplySettings()
     emit evMepDiameterChanged(m_mepDiameter);
     emit evMepHeightChanged(m_mepHeight);
     emit evMepNbRowChanged(m_mepNbRow);
+    emit evCommonPieceNamesChanged(m_commonPieceNames);
 
     updateMepIntervalX();
     updateMepIntervalY();
@@ -370,6 +386,16 @@ bool ExamManager::customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pPar
     bRet &= XML_WRITE_UNIQUE(m_mepDiameter);
     bRet &= XML_WRITE_UNIQUE(m_mepHeight);
     bRet &= XML_WRITE_UNIQUE(m_mepNbRow);
+
+    QString slCommonPieceNames;
+    for(int i=0; i<m_commonPieceNames.size(); i++) {
+        slCommonPieceNames+=m_commonPieceNames.at(i);
+        if( i<m_commonPieceNames.size()-1 ) {
+            slCommonPieceNames.append(",");
+        }
+    }
+    bRet &= XML_WRITE_UNIQUE(slCommonPieceNames);
+
     return bRet;
 }
 

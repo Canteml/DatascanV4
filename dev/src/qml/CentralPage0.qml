@@ -40,12 +40,16 @@ Rectangle {
                 Layout.leftMargin: 10
             }
 
-            TextField {
-                text: examManager.pieceName
-                selectByMouse: true
-                Layout.fillWidth: true;
+            ComboBox {
+                id: idCbPiece
+                model: examManager.commonPieceNames
                 Layout.preferredHeight: 30
-                onTextChanged: {examManager.pieceName = text}
+                editable: true
+                onAccepted: { examManager.pieceName = editText }
+                onCurrentTextChanged: { examManager.pieceName = currentText }
+                Component.onCompleted: {
+                        contentItem.selectByMouse = true
+                }
             }
 
             Text {

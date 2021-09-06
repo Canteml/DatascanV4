@@ -31,6 +31,7 @@ class ExamManager : public QObject, public XmlSettingsLoggable
     // Settings
     Q_PROPERTY(QString structName READ getStructName WRITE setStructName NOTIFY evStructNameChanged)
     Q_PROPERTY(QString pieceName READ getPieceName WRITE setPieceName NOTIFY evPieceNameChanged)
+    Q_PROPERTY(QStringList commonPieceNames READ getCommonPieceNames NOTIFY evCommonPieceNamesChanged)
     Q_PROPERTY(QString exportFolder READ getExportFolder WRITE setExportFolder NOTIFY evExportFolderChanged)
     Q_PROPERTY(quint32 controlType READ getControlType WRITE setControlType NOTIFY evControlTypeChanged)
     Q_PROPERTY(quint32 bscanNbGeneratrice READ getBScanNbGeneratrice WRITE setBScanNbGeneratrice NOTIFY evBScanNbGeneratriceChanged)
@@ -74,6 +75,7 @@ public :
     QString getStructName(void) const;
     void setStructName(const QString& p_value);
     QString getPieceName(void) const;
+    QStringList getCommonPieceNames(void) const;
     void setPieceName(const QString& p_value);
     QString getExportFolder(void) const;
     void setExportFolder(const QString& p_value);
@@ -129,6 +131,7 @@ private :
 signals :
     void evStructNameChanged(QString);
     void evPieceNameChanged(QString);
+    void evCommonPieceNamesChanged(QStringList);
     void evExportFolderChanged(QString);
     void evControlTypeChanged(quint32);
     void evBScanNbGeneratriceChanged(quint32);
@@ -156,6 +159,7 @@ private :
     // -- Properties / settings
     QString m_structName;
     QString m_pieceName;
+    QStringList m_commonPieceNames;  ///< last 10 pieces used
     QString m_exportFolder;         ///< where files are exported after an exam
     quint32 m_controlType;          ///< value in
     quint32 m_bscanNbGeneratrice;
