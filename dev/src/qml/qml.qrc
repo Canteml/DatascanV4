@@ -4,15 +4,10 @@
         <file>Mainwindow.qml</file>
         <file>MainwindowForm.ui.qml</file>
         <file>CentralPage0.qml</file>
-        <file>CentralPage0Form.ui.qml</file>
         <file>CentralPage1.qml</file>
-        <file>CentralPage1Form.ui.qml</file>
         <file>CentralPage3.qml</file>
-        <file>CentralPage3Form.ui.qml</file>
         <file>CentralPage2.qml</file>
-        <file>CentralPage2Form.ui.qml</file>
         <file>CentralPage4.qml</file>
-        <file>CentralPage4Form.ui.qml</file>
         <file>BannerVectorInfo.qml</file>
         <file>DeviceLinkConfig.qml</file>
         <file>DeviceLinkConfigForm.ui.qml</file>
@@ -36,6 +31,8 @@
         <file>P3/P3TopSettingsBscan.qml</file>
         <file>P3/P3TopSettingsBscanForm.ui.qml</file>
         <file>rp_components/RpSpinBox.qml</file>
+        <file>BannerBottomNavigate.qml</file>
+        <file>rp_components/FormSection.qml</file>
     </qresource>
     <qresource prefix="/img">
         <file>logo.png</file>
@@ -60,5 +57,8 @@
         <file>icons/iconGateRedHeight.png</file>
         <file>icons/iconGateRedStart.png</file>
         <file>icons/iconGateRedWidth.png</file>
+        <file>icons/btArrow_hover.png</file>
+        <file>icons/btArrow_select.png</file>
+        <file>icons/btArrow_std.png</file>
     </qresource>
 </RCC>
