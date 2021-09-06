@@ -92,6 +92,12 @@ void MyJkQtPlotter::moveEvent(QMoveEvent */*event*/)
     // Never called with QML => hovered
 }
 
+void MyJkQtPlotter::resizeEvent(QResizeEvent *event)
+{
+    JKQTPlotter::resizeEvent(event);
+    emit evRequestUpdate(); // force update after change of size
+}
+
 qint32 MyJkQtPlotter::minTimeBetweenUpdate() const
 {
     return 1000/60;
