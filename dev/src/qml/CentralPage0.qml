@@ -149,8 +149,8 @@ Rectangle {
                         id: idSbNbGene
                         from: 1
                         to: 1000
-                        value: examManager.bscanNbGeneratrice
-                        onValueChanged: { examManager.bscanNbGeneratrice = idSbNbGene.value; }
+                        value: examManager.bscanNbGeneratrix
+                        onValueChanged: { examManager.bscanNbGeneratrix = idSbNbGene.value; }
                     }
 
                     Item {

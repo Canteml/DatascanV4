@@ -19,6 +19,7 @@
 class AScan;
 class AScanGraph;
 class JkGate;
+class ExamManager;
 
 
 // -- Qt Includes
@@ -29,8 +30,8 @@ class QQmlApplicationEngine;
  * @brief The ScanManager class
  *
  *  TODO : select source of ASCAN :
- *      - BSCAN if user click on it
- *      - VectorFuncAScanX
+ *      - A ASCAN stored in a BSCAN if user click on BSCAN
+ *      - the last ASCAN of the selected sensor
  */
 class ScanManager : public QObject, public XmlSettingsLoggable
 {
@@ -51,24 +52,21 @@ public :
 
     VectorFuncAScan* getSelectedFuncAScan() const;
 
-    AScan* getCurrentAScan() const;
+    AScan* getCurrentAScan();
 
     Q_INVOKABLE void ascanZoomIn();
     Q_INVOKABLE void ascanZoomOut();
 
-    Q_INVOKABLE qreal getAScanThicknessMmMultiEcho() const;
-    Q_INVOKABLE qreal getAScanThicknessMm1Echo () const;
+    Q_INVOKABLE qreal getAScanThicknessMmMultiEcho();
+    Q_INVOKABLE qreal getAScanThicknessMm1Echo();
 
 signals :
     void evSelectedAScanIndexChanged(quint32);
     void evSelectedFuncAScanChanged(VectorFuncAScan*);
-    void evUpdateAScan();   ///< new AScan to display (
+    void evUpdateAScan();   ///< new AScan to display
 
 private slots :
-    void onNewAScan0Treated(AScan*);
-    void onNewAScan1Treated(AScan*);
-    void onNewAScan2Treated(AScan*);
-    void onNewAScan3Treated(AScan*);
+    void onNewAScanTreated(AScan*);
     void onVectorNbAScanEnabledChanged(qint32);
 
 protected :
@@ -89,8 +87,9 @@ private :
     JkGate * m_pGate1;
 
     // -- Manager
-    AScan* m_pAScan[VectorStd::NB_FUNC_ASCAN];
+    AScan m_pAScan[VectorStd::NB_FUNC_ASCAN];
     AScanGraph* m_pAScanGraphMain;
     VectorStd * m_pVector;
+    ExamManager * m_pExamManager;
 };
 

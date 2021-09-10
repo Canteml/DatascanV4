@@ -14,6 +14,8 @@
 
 // -- Internal includes
 #include <xml/XmlSettingsLoggable.h>
+class Location1d;
+class AScan;
 
 // -- Qt Includes
 #include <QObject>
@@ -34,7 +36,7 @@ class ExamManager : public QObject, public XmlSettingsLoggable
     Q_PROPERTY(QStringList commonPieceNames READ getCommonPieceNames NOTIFY evCommonPieceNamesChanged)
     Q_PROPERTY(QString exportFolder READ getExportFolder WRITE setExportFolder NOTIFY evExportFolderChanged)
     Q_PROPERTY(quint32 controlType READ getControlType WRITE setControlType NOTIFY evControlTypeChanged)
-    Q_PROPERTY(quint32 bscanNbGeneratrice READ getBScanNbGeneratrice WRITE setBScanNbGeneratrice NOTIFY evBScanNbGeneratriceChanged)
+    Q_PROPERTY(quint32 bscanNbGeneratrix READ getBScanNbGeneratrix WRITE setBScanNbGeneratrix NOTIFY evBScanNbGeneratrixChanged)
     Q_PROPERTY(qreal bscanPerimeter READ getBScanPerimeter WRITE setBScanPerimeter NOTIFY evBScanPerimeterChanged)
     Q_PROPERTY(qreal bscanDiameter READ getBScanDiameter WRITE setBScanDiameter NOTIFY evBScanDiameterChanged)
     Q_PROPERTY(quint32 mepNbCol READ getMepNbCol WRITE setMepNbCol NOTIFY evMepNbColChanged)
@@ -49,7 +51,9 @@ class ExamManager : public QObject, public XmlSettingsLoggable
     Q_PROPERTY(qreal mepIntervalY READ getMepIntervalY WRITE setMepIntervalY NOTIFY evMepIntervalYChanged)
 
     Q_PROPERTY(QString currentExamName READ getCurrentExamName NOTIFY evCurrentExamNameChanged)
-    Q_PROPERTY(quint32 currentBScanGeneratrice READ getCurrentBScanGeneratrice NOTIFY evCurrentBScanGeneratriceChanged)
+
+    // Execution
+    Q_PROPERTY(quint32 SelectedBScanGeneratrix READ getSelectedBScanGeneratrix WRITE setSelectedBScanGeneratrix NOTIFY evSelectedBScanGeneratrixChanged)
 
 public :
 
@@ -59,7 +63,7 @@ public :
      * Type of Controls that can be done with Datascan
      */
     enum CONTOL_TYPE {
-        CONTROL_BSCAN_GENERATICE,
+        CONTROL_BSCAN_GENERATRIX,
         CONTROL_BSCAN_MEP,
         CONTROL_PIPE
     };
@@ -82,8 +86,8 @@ public :
 
     quint32 getControlType(void) const;
     void setControlType(quint32 p_value);
-    quint32 getBScanNbGeneratrice(void) const;
-    void setBScanNbGeneratrice(quint32 p_value);
+    quint32 getBScanNbGeneratrix(void) const;
+    void setBScanNbGeneratrix(quint32 p_value);
     qreal getBScanPerimeter(void) const;
     void setBScanPerimeter(qreal p_value);
     qreal getBScanDiameter(void) const;
@@ -101,7 +105,7 @@ public :
     quint32 getMepNbRow(void) const;
     void setMepNbRow(quint32 p_value);
 
-    // Behaviour
+    // -- Behaviour
 
     qreal getBScanInterval(void) const;
     void setBScanInterval(qreal p_value);
@@ -112,8 +116,12 @@ public :
 
     QString getCurrentExamName() const;
 
-    void setCurrentBScanGeneratrice(quint32 p_value);
-    quint32 getCurrentBScanGeneratrice(void) const;
+    // ASCAN
+    void pushAScan(AScan* m_pAscan);
+
+    // Execution
+    quint32 getSelectedBScanGeneratrix() const;
+    void setSelectedBScanGeneratrix(quint32 p_value);
 
 protected :
     // -- Settings
@@ -128,13 +136,15 @@ private :
     void updateMepIntervalY();
     void updateCurrentExamName();
 
+    void initControl();
+
 signals :
     void evStructNameChanged(QString);
     void evPieceNameChanged(QString);
     void evCommonPieceNamesChanged(QStringList);
     void evExportFolderChanged(QString);
     void evControlTypeChanged(quint32);
-    void evBScanNbGeneratriceChanged(quint32);
+    void evBScanNbGeneratrixChanged(quint32);
     void evBScanIntervalChanged(qreal);
     void evBScanPerimeterChanged(qreal);
     void evBScanDiameterChanged(qreal);
@@ -148,7 +158,7 @@ signals :
     void evMepIntervalYChanged(qreal);
 
     void evCurrentExamNameChanged(QString);
-    void evCurrentBScanGeneratriceChanged(quint32);
+    void evSelectedBScanGeneratrixChanged(quint32);
 
 private :
     ExamManager();
@@ -162,7 +172,7 @@ private :
     QStringList m_commonPieceNames;  ///< last 10 pieces used
     QString m_exportFolder;         ///< where files are exported after an exam
     quint32 m_controlType;          ///< value in
-    quint32 m_bscanNbGeneratrice;
+    quint32 m_bscanNbGeneratrix;
     qreal m_bscanPerimeter;
     qreal m_bscanDiameter;
     quint32 m_mepNbCol;
@@ -178,6 +188,10 @@ private :
     qreal m_mepIntervalY;
 
     QString m_currentExamName;
-    quint32 m_currentBScanGeneratice;
+
+    QList<Location1d*> m_lLocation1d;   ///< used for BSCANs
+    Location1d* m_pSelectedLocation1d;  ///< current Location in use if BASCAN is selected. Set to nullptr if no Location1d selected.
+    quint32 m_selectedBScanGeneratrix;      ///<  current Location in use if BASCAN is selected. Set to nullptr if no Location1d selected.
+
 };
 

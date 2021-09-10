@@ -12,6 +12,9 @@
 
 // -- Internal includes
 #include "ExamManager.h"
+#include <v2/scan/AScan.h>
+#include <v2/scan/Surface1d.h>
+#include <v2/scan/Location1d.h>
 
 // -- Qt Includes
 #include <QStandardPaths>
@@ -24,7 +27,9 @@ ExamManager::ExamManager() : XmlSettingsLoggable("ExamManager")
     m_bscanInterval = 0;
     m_mepIntervalX = 0;
     m_mepIntervalY = 0;
-    m_currentBScanGeneratice = 0;
+    m_bscanNbGeneratrix = 1;
+    m_selectedBScanGeneratrix = 0;
+    m_pSelectedLocation1d = nullptr;
 }
 
 ExamManager::~ExamManager()
@@ -122,19 +127,20 @@ void ExamManager::setControlType(quint32 p_value)
         m_controlType = p_value;       
         emit evControlTypeChanged(m_controlType);
         updateCurrentExamName();
+        initControl();
     }
 }
 
-quint32 ExamManager::getBScanNbGeneratrice(void) const
+quint32 ExamManager::getBScanNbGeneratrix(void) const
 {
-    return m_bscanNbGeneratrice;
+    return m_bscanNbGeneratrix;
 }
 
-void ExamManager::setBScanNbGeneratrice(quint32 p_value)
+void ExamManager::setBScanNbGeneratrix(quint32 p_value)
 {
-    if( m_bscanNbGeneratrice != p_value ) {
-        m_bscanNbGeneratrice = p_value;
-        emit evBScanNbGeneratriceChanged(m_bscanNbGeneratrice);
+    if( m_bscanNbGeneratrix != p_value && p_value > 0) {
+        m_bscanNbGeneratrix = p_value;
+        emit evBScanNbGeneratrixChanged(m_bscanNbGeneratrix);
         updateBScanInterval();
     }
 }
@@ -289,18 +295,42 @@ QString ExamManager::getCurrentExamName() const
     return m_currentExamName;
 }
 
-void ExamManager::setCurrentBScanGeneratrice(quint32 p_value)
+void ExamManager::pushAScan(AScan *m_pAscan)
 {
-    if( p_value != m_currentBScanGeneratice ) {
-        m_currentBScanGeneratice = p_value;
-        emit evCurrentBScanGeneratriceChanged(m_currentBScanGeneratice);
-        updateCurrentExamName();
+    // try to attribut this AScan to a location
+    if( nullptr != m_pSelectedLocation1d ) {
+        m_pSelectedLocation1d->pushAScan(m_pAscan);
+    } else {
+        // MEP ?
+
+        // delete ASCAN if no Location selected
+        delete m_pAscan;
     }
 }
 
-quint32 ExamManager::getCurrentBScanGeneratrice(void) const
+quint32 ExamManager::getSelectedBScanGeneratrix() const
 {
-    return m_currentBScanGeneratice;
+    return m_selectedBScanGeneratrix;
+}
+
+void ExamManager::setSelectedBScanGeneratrix(quint32 p_value)
+{
+    if( p_value != m_selectedBScanGeneratrix || nullptr == m_pSelectedLocation1d) {
+        if( p_value >= (quint32)m_lLocation1d.size() ) {
+            fLogError(QString("bad index : %1 >= %2").arg(p_value).arg(m_lLocation1d.size() ));
+        } else {
+            // unselect last location
+            if( nullptr != m_pSelectedLocation1d ) {
+                m_pSelectedLocation1d->setRecord(false);
+            }
+            m_selectedBScanGeneratrix = p_value;
+            m_pSelectedLocation1d = m_lLocation1d.at(p_value);
+            // TODO : if user is recording, set location record.
+            m_pSelectedLocation1d->setRecord(true);
+
+            emit evSelectedBScanGeneratrixChanged(m_selectedBScanGeneratrix);
+        }
+    }
 }
 
 // -- Settings
@@ -311,7 +341,7 @@ bool ExamManager::customLoadSettings(QDomElement * p_pParent)
     bRet &= XML_READ_UNIQUE(QString, m_pieceName);
     bRet &= XML_READ_UNIQUE(QString, m_exportFolder);
     bRet &= XML_READ_UNIQUE(quint32, m_controlType);
-    bRet &= XML_READ_UNIQUE(quint32, m_bscanNbGeneratrice);
+    bRet &= XML_READ_UNIQUE(quint32, m_bscanNbGeneratrix);
     bRet &= XML_READ_UNIQUE(qreal, m_bscanPerimeter);
     bRet &= XML_READ_UNIQUE(qreal, m_bscanDiameter);
     bRet &= XML_READ_UNIQUE(quint32, m_mepNbCol);
@@ -330,12 +360,12 @@ bool ExamManager::customLoadDefaultSettings()
     bool bRet = true;
     setStructName("");
     setPieceName("");
-    setControlType(CONTROL_BSCAN_GENERATICE);
+    setControlType(CONTROL_BSCAN_GENERATRIX);
     QStringList f = QStandardPaths::standardLocations(QStandardPaths::DocumentsLocation);
     setExportFolder(f.first());
     setBScanPerimeter(1);
     setBScanDiameter(1);
-    setBScanNbGeneratrice(16);
+    setBScanNbGeneratrix(16);
     setBScanDiameter(50);
     setMepNbCol(10);
     setMepPerimeter(1);
@@ -353,7 +383,7 @@ bool ExamManager::customApplySettings()
     emit evPieceNameChanged(m_pieceName);
     emit evExportFolderChanged(m_exportFolder);
     emit evControlTypeChanged(m_controlType);
-    emit evBScanNbGeneratriceChanged(m_bscanNbGeneratrice);
+    emit evBScanNbGeneratrixChanged(m_bscanNbGeneratrix);
     emit evBScanPerimeterChanged(m_bscanPerimeter);
     emit evBScanDiameterChanged(m_bscanDiameter);
     emit evMepNbColChanged(m_mepNbCol);
@@ -367,6 +397,8 @@ bool ExamManager::customApplySettings()
     updateMepIntervalY();
     updateBScanInterval();
     updateCurrentExamName();
+    initControl();
+
     return bRet;
 }
 
@@ -377,7 +409,7 @@ bool ExamManager::customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pPar
     bRet &= XML_WRITE_UNIQUE(m_pieceName);
     bRet &= XML_WRITE_UNIQUE(m_exportFolder);
     bRet &= XML_WRITE_UNIQUE(m_controlType);
-    bRet &= XML_WRITE_UNIQUE(m_bscanNbGeneratrice);
+    bRet &= XML_WRITE_UNIQUE(m_bscanNbGeneratrix);
     bRet &= XML_WRITE_UNIQUE(m_bscanInterval);
     bRet &= XML_WRITE_UNIQUE(m_bscanPerimeter);
     bRet &= XML_WRITE_UNIQUE(m_bscanDiameter);
@@ -402,7 +434,7 @@ bool ExamManager::customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pPar
 void ExamManager::updateBScanInterval()
 {
     // Compute new interval :
-    setBScanInterval(m_bscanPerimeter/m_bscanNbGeneratrice);
+    setBScanInterval(m_bscanPerimeter/m_bscanNbGeneratrix);
 }
 
 void ExamManager::updateMepIntervalX()
@@ -418,15 +450,39 @@ void ExamManager::updateMepIntervalY()
 void ExamManager::updateCurrentExamName()
 {
     QString newName = m_structName + "\n" + m_pieceName;
-    if( CONTROL_BSCAN_GENERATICE == m_controlType ) {
+    if( CONTROL_BSCAN_GENERATRIX == m_controlType ) {
         if( !m_pieceName.isEmpty() ) {
             newName += " "; // add a space
         }
-        newName += QString("#%1").arg(m_currentBScanGeneratice, 2, 10, QLatin1Char('0'));
+        newName += QString("#%1").arg(m_selectedBScanGeneratrix, 2, 10, QLatin1Char('0'));
     }
     if( m_currentExamName != newName ) {
         m_currentExamName = newName;
         emit evCurrentExamNameChanged(m_currentExamName);
+    }
+}
+
+void ExamManager::initControl()
+{
+    // unselect location
+    m_pSelectedLocation1d = nullptr;
+    m_selectedBScanGeneratrix = 0;
+
+    // delete all locations
+    if( !m_lLocation1d.isEmpty() ) {
+        for(auto i : m_lLocation1d) {
+            i->setRecord(false);
+            i->clearAScan();
+            delete i;
+        }
+        m_lLocation1d.clear();
+    }
+
+    if( CONTROL_BSCAN_GENERATRIX == m_controlType ) {
+        for(quint32  i=0; i<m_bscanNbGeneratrix; i++) {
+            m_lLocation1d.append(new Location1d(QString::number(i)));
+        }
+        setSelectedBScanGeneratrix(0);
     }
 }
 
