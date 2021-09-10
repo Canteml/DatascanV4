@@ -17,6 +17,7 @@
 #include <v2/vector/VectorFuncAScan.h>
 #include <scan/AScanGraph.h>
 #include "jkPlot/JkGate.h"
+#include "exam/ExamManager.h"
 
 // -- Qt Includes
 #include <QQmlApplicationEngine>
@@ -27,9 +28,6 @@ ScanManager::ScanManager() : XmlSettingsLoggable("ScanManger")
     m_pGate0 = nullptr;
     m_pGate1 = nullptr;
     m_pVector = nullptr;
-    for(int i=0; i<VectorStd::NB_FUNC_ASCAN; i++) {
-        m_pAScan[i] = nullptr;
-    }
     m_selectedAScanIndex = 0;
 
 }
@@ -49,11 +47,12 @@ ScanManager::~ScanManager()
 void ScanManager::init()
 {
     m_pVector = VectorManager::getInstance()->getVectorStd();
+    m_pExamManager = ExamManager::getInstance();
 
-    connect(m_pVector->funcAScan0(), &VectorFuncAScan::evNewAScanTreated, this, &ScanManager::onNewAScan0Treated);
-    connect(m_pVector->funcAScan1(), &VectorFuncAScan::evNewAScanTreated, this, &ScanManager::onNewAScan1Treated);
-    connect(m_pVector->funcAScan2(), &VectorFuncAScan::evNewAScanTreated, this, &ScanManager::onNewAScan2Treated);
-    connect(m_pVector->funcAScan3(), &VectorFuncAScan::evNewAScanTreated, this, &ScanManager::onNewAScan3Treated);
+    connect(m_pVector->funcAScan0(), &VectorFuncAScan::evNewAScanTreated, this, &ScanManager::onNewAScanTreated);
+    connect(m_pVector->funcAScan1(), &VectorFuncAScan::evNewAScanTreated, this, &ScanManager::onNewAScanTreated);
+    connect(m_pVector->funcAScan2(), &VectorFuncAScan::evNewAScanTreated, this, &ScanManager::onNewAScanTreated);
+    connect(m_pVector->funcAScan3(), &VectorFuncAScan::evNewAScanTreated, this, &ScanManager::onNewAScanTreated);
     connect(m_pVector, &VectorStd::evNbFuncAScanEnabledChanged, this, &ScanManager::onVectorNbAScanEnabledChanged);
 }
 
@@ -89,9 +88,9 @@ VectorFuncAScan* ScanManager::getSelectedFuncAScan() const
     return m_pVector->getFuncAScan(m_selectedAScanIndex);
 }
 
-AScan *ScanManager::getCurrentAScan() const
+AScan *ScanManager::getCurrentAScan()
 {
-    return m_pAScan[m_selectedAScanIndex];
+    return &(m_pAScan[m_selectedAScanIndex]);
 }
 
 void ScanManager::ascanZoomIn()
@@ -108,83 +107,34 @@ void ScanManager::ascanZoomOut()
     }
 }
 
-qreal ScanManager::getAScanThicknessMmMultiEcho() const
+qreal ScanManager::getAScanThicknessMmMultiEcho()
 {
-    AScan * pAScan = getCurrentAScan();
-    if( nullptr != pAScan ) {
-        return pAScan->getAScanMeasure()->m_thicknessMmMultiEcho;
-    }
-    return 0;
+    return getCurrentAScan()->getAScanMeasure()->m_thicknessMmMultiEcho;
 }
 
-qreal ScanManager::getAScanThicknessMm1Echo() const
+qreal ScanManager::getAScanThicknessMm1Echo()
 {
-    AScan * pAScan = getCurrentAScan();
-    if( nullptr != pAScan ) {
-        return pAScan->getAScanMeasure()->m_thicknessMm1Echo;
-    }
-    return 0;
+    return getCurrentAScan()->getAScanMeasure()->m_thicknessMm1Echo;
 }
 
-void ScanManager::onNewAScan0Treated(AScan * p_pAscan)
+void ScanManager::onNewAScanTreated(AScan * p_pAscan)
 {
-    if( nullptr != m_pAScan[0] ) {
-        delete m_pAScan[0];
-        m_pAScan[0] = nullptr;
-    }
-    m_pAScan[0] = p_pAscan;
-    if( 0 == m_selectedAScanIndex && nullptr != m_pAScanGraphMain ) {
+    m_pAScan[p_pAscan->m_source].copy(*p_pAscan);
+    if( p_pAscan->m_source == m_selectedAScanIndex && nullptr != m_pAScanGraphMain ) {
         m_pAScanGraphMain->updateAScan(p_pAscan);
         emit evUpdateAScan();
     }
-}
+    m_pExamManager->pushAScan(p_pAscan);
 
-void ScanManager::onNewAScan1Treated(AScan * p_pAscan)
-{
-    if( nullptr != m_pAScan[1] ) {
-        delete m_pAScan[1];
-        m_pAScan[1] = nullptr;
-    }
-    m_pAScan[1] = p_pAscan;
-    if( 1 == m_selectedAScanIndex && nullptr != m_pAScanGraphMain ) {
-        m_pAScanGraphMain->updateAScan(p_pAscan);
-        emit evUpdateAScan();
-    }
-}
-
-void ScanManager::onNewAScan2Treated(AScan * p_pAscan)
-{
-    if( nullptr != m_pAScan[2] ) {
-        delete m_pAScan[2];
-        m_pAScan[2] = nullptr;
-    }
-    m_pAScan[2] = p_pAscan;
-    if( 2 == m_selectedAScanIndex && nullptr != m_pAScanGraphMain ) {
-        m_pAScanGraphMain->updateAScan(p_pAscan);
-        emit evUpdateAScan();
-    }
-}
-
-void ScanManager::onNewAScan3Treated(AScan * p_pAscan)
-{
-    if( nullptr != m_pAScan[3] ) {
-        delete m_pAScan[3];
-        m_pAScan[3] = nullptr;
-    }
-    m_pAScan[3] = p_pAscan;
-    if( 3 == m_selectedAScanIndex && nullptr != m_pAScanGraphMain ) {
-        m_pAScanGraphMain->updateAScan(p_pAscan);
-        emit evUpdateAScan();
-    }
 }
 
 void ScanManager::onVectorNbAScanEnabledChanged(qint32)
 {
-    // clear ASCAN
-    for(int i=0; i<VectorStd::NB_FUNC_ASCAN; i++) {
-        delete m_pAScan[i];
-        m_pAScan[i] = nullptr;
-    }
+//    // clear ASCAN
+//    for(int i=0; i<VectorStd::NB_FUNC_ASCAN; i++) {
+//        delete m_pAScan[i];
+//        m_pAScan[i] = nullptr;
+//    }
     setSelectedAScanIndex(0);
 }
 
@@ -227,7 +177,7 @@ void ScanManager::setPrivateSelectedAScanIndex(quint32 p_index)
     m_selectedAScanIndex = p_index;
     emit evSelectedAScanIndexChanged(m_selectedAScanIndex);
     emit evSelectedFuncAScanChanged(getSelectedFuncAScan());
-    m_pAScanGraphMain->updateAScan(m_pAScan[p_index]);
+    m_pAScanGraphMain->updateAScan(&m_pAScan[p_index]);
     m_pGate0->setAScan(getSelectedFuncAScan());
     m_pGate1->setAScan(getSelectedFuncAScan());
     emit evUpdateAScan();
