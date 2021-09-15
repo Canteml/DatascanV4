@@ -21,15 +21,10 @@
         <file>P3/P3Top.qml</file>
         <file>P3/P3TopForm.ui.qml</file>
         <file>P3/P3Bottom.qml</file>
-        <file>P3/P3BottomForm.ui.qml</file>
         <file>P3/P3BottomBScanCtrl.qml</file>
-        <file>P3/P3BottomBScanCtrlForm.ui.qml</file>
         <file>P3/P3BottomBScanView.qml</file>
-        <file>P3/P3BottomBScanViewForm.ui.qml</file>
         <file>P3/P3BottomVectorIO.qml</file>
-        <file>P3/P3BottomVectorIOForm.ui.qml</file>
         <file>P3/P3TopSettingsBscan.qml</file>
-        <file>P3/P3TopSettingsBscanForm.ui.qml</file>
         <file>rp_components/RpSpinBox.qml</file>
         <file>BannerBottomNavigate.qml</file>
         <file>rp_components/FormSection.qml</file>

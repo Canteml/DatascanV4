@@ -49,6 +49,7 @@ signals :
     void evPrivateNeedRefresh();
 
 protected:
+    void computeTickSpacing();
     void routeMouseEvents( QMouseEvent* event);
 
     virtual void mousePressEvent( QMouseEvent* event ) override;

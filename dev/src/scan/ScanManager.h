@@ -18,6 +18,7 @@
 #include <v2/vector/VectorStd.h>
 class AScan;
 class AScanGraph;
+class BScanGraph;
 class JkGate;
 class ExamManager;
 
@@ -89,6 +90,7 @@ private :
     // -- Manager
     AScan m_pAScan[VectorStd::NB_FUNC_ASCAN];
     AScanGraph* m_pAScanGraphMain;
+    BScanGraph* m_pBScanGraphMain;
     VectorStd * m_pVector;
     ExamManager * m_pExamManager;
 };

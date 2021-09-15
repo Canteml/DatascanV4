@@ -295,16 +295,21 @@ QString ExamManager::getCurrentExamName() const
     return m_currentExamName;
 }
 
-void ExamManager::pushAScan(AScan *m_pAscan)
+void ExamManager::pushAScan(AScan *p_pAscan)
 {
     // try to attribut this AScan to a location
     if( nullptr != m_pSelectedLocation1d ) {
-        m_pSelectedLocation1d->pushAScan(m_pAscan);
+        // For now, we only manage 1 BScan (for source 0)
+        if( 0 == p_pAscan->m_source ) {
+            m_pSelectedLocation1d->pushAScan(p_pAscan);
+        } else {
+            delete p_pAscan;
+        }
     } else {
         // MEP ?
 
         // delete ASCAN if no Location selected
-        delete m_pAscan;
+        delete p_pAscan;
     }
 }
 
@@ -481,9 +486,15 @@ void ExamManager::initControl()
     if( CONTROL_BSCAN_GENERATRIX == m_controlType ) {
         for(quint32  i=0; i<m_bscanNbGeneratrix; i++) {
             m_lLocation1d.append(new Location1d(QString::number(i)));
+            connect(m_lLocation1d.last(), &Location1d::evRequestSurfaceUpdate, this, &ExamManager::onRequestSurfaceUpdate);
         }
         setSelectedBScanGeneratrix(0);
     }
+}
+
+void ExamManager::onRequestSurfaceUpdate(Surface1d *p_surface)
+{
+    emit evRequestSurfaceUpdate(p_surface);
 }
 
 

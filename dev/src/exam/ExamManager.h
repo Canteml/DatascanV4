@@ -16,6 +16,7 @@
 #include <xml/XmlSettingsLoggable.h>
 class Location1d;
 class AScan;
+class Surface1d;
 
 // -- Qt Includes
 #include <QObject>
@@ -117,7 +118,7 @@ public :
     QString getCurrentExamName() const;
 
     // ASCAN
-    void pushAScan(AScan* m_pAscan);
+    void pushAScan(AScan* p_pAscan);
 
     // Execution
     quint32 getSelectedBScanGeneratrix() const;
@@ -159,6 +160,11 @@ signals :
 
     void evCurrentExamNameChanged(QString);
     void evSelectedBScanGeneratrixChanged(quint32);
+
+    void evRequestSurfaceUpdate(Surface1d*);
+
+private slots :
+    void onRequestSurfaceUpdate(Surface1d*);
 
 private :
     ExamManager();
