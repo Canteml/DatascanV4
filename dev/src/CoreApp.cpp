@@ -22,6 +22,7 @@
 #include <v2/vector/VectorFuncPosition.h>
 #include <scan/ScanManager.h>
 #include <scan/AScanGraph.h>
+#include <scan/BScanGraph.h>
 #include "GlobalManager.h"
 #include "exam/ExamManager.h"
 
@@ -154,6 +155,7 @@ bool CoreApp::initQmlType()
     // -- declare C++ components instanciated from QML
     // exemple : qmlRegisterType<AScan>("ascan", 1, 0, "AScanItem");
     qmlRegisterType<AScanGraph>("AScanGraph", 1, 0, "AScanGraph");
+    qmlRegisterType<BScanGraph>("BScanGraph", 1, 0, "BScanGraph");
 
     return true;
 }

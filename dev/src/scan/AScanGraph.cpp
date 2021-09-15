@@ -77,7 +77,11 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     //m_pPlotAScan->getXAxis()->setShowZeroAxis(false);
     m_pPlotAScan->setContextMenuMode(jkqtpcmmSpecialContextMenu);
     m_pPlotAScan->getXAxis()->setDrawGrid(false);
-    m_pPlotAScan->getYAxis()->setDrawGrid(false);
+    m_pPlotAScan->getYAxis()->setDrawGrid(false);    
+    //m_pPlotAScan->getXAxis()->setMinTicks(10);
+    m_pPlotAScan->getXAxis()->setAutoAxisSpacing(false);
+    m_pPlotAScan->getXAxis()->setUserTickSpacing(10);
+
     m_pPlotAScan->getXAxis()->setLineWidth(1);
     m_pPlotAScan->getYAxis()->setLineWidth(1);
 //    m_pPlotAScan->getXAxis()->setAxisLabel("Distance (mm)");
@@ -87,7 +91,7 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
 
     // improve performances : CPU : 11% => 5%
     m_pPlotAScan->getPlotter()->setUseAntiAliasingForGraphs(false);
-    m_pPlotAScan->getPlotter()->setUseAntiAliasingForSystem(false);
+    m_pPlotAScan->getPlotter()->setUseAntiAliasingForSystem(true);
     m_pPlotAScan->getPlotter()->setUseAntiAliasingForText(true);
 
     // scale
@@ -175,10 +179,13 @@ void AScanGraph::zoomIn()
         m_AxeXMax -= 5;
     } else if( d < 100 ) {
         m_AxeXMax -= 10;
-    } else {
+    } else if( d < 200 ) {
         m_AxeXMax -= 20;
+    }  else {
+        m_AxeXMax -= 50;
     }
 
+    computeTickSpacing();
     m_pPlotAScan->zoom(m_AxeXMin, m_AxeXMax,0 ,100); // X visible area
     needRefresh(true);
 }
@@ -194,12 +201,30 @@ void AScanGraph::zoomOut()
         m_AxeXMax += 5;
     } else if( d < 100 ) {
         m_AxeXMax += 10;
-    } else {
+    } else if( d < 200 ) {
         m_AxeXMax += 20;
+    }else {
+        m_AxeXMax += 50;
     }
 
+    computeTickSpacing();
     m_pPlotAScan->zoom(m_AxeXMin, m_AxeXMax,0 ,100); // X visible area
     needRefresh(true);
+}
+
+
+void AScanGraph::computeTickSpacing()
+{
+    qreal d = m_AxeXMax - m_AxeXMin;
+    if( d<=50 ) {
+        m_pPlotAScan->getXAxis()->setUserTickSpacing(5);
+    } else if( d <= 150 ) {
+        m_pPlotAScan->getXAxis()->setUserTickSpacing(10);
+    } else if( d <= 250 ) {
+        m_pPlotAScan->getXAxis()->setUserTickSpacing(20);
+    }else {
+        m_pPlotAScan->getXAxis()->setUserTickSpacing(50);
+    }
 }
 
 void AScanGraph::routeMouseEvents(QMouseEvent *event)
@@ -289,6 +314,7 @@ bool AScanGraph::customLoadDefaultSettings()
 bool AScanGraph::customApplySettings()
 {
     bool bRet = true;
+    computeTickSpacing();
     if( nullptr != m_pPlotAScan ) {
         m_pPlotAScan->zoom(m_AxeXMin, m_AxeXMax,0 ,100); // X visible area
     }

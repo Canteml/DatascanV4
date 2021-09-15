@@ -16,6 +16,7 @@
 #include <v2/vector/VectorManager.h>
 #include <v2/vector/VectorFuncAScan.h>
 #include <scan/AScanGraph.h>
+#include <scan/BScanGraph.h>
 #include "jkPlot/JkGate.h"
 #include "exam/ExamManager.h"
 
@@ -69,6 +70,14 @@ void ScanManager::initQmlObject(QObject * p_pQmlTopLevel)
         m_pAScanGraphMain->initAfterItemAdded();
     }
 
+    m_pBScanGraphMain = p_pQmlTopLevel->findChild<BScanGraph*>("BScanGraphMain");
+    if( nullptr == m_pBScanGraphMain ) {
+        fLogError("Fail to found m_pBScanGraphMain");
+    } else {
+        m_pBScanGraphMain->setParent(this);
+        m_pBScanGraphMain->initAfterItemAdded();
+    }
+
 }
 
 quint32 ScanManager::getSelectedAScanIndex() const
@@ -119,13 +128,12 @@ qreal ScanManager::getAScanThicknessMm1Echo()
 
 void ScanManager::onNewAScanTreated(AScan * p_pAscan)
 {
-    m_pAScan[p_pAscan->m_source].copy(*p_pAscan);
     if( p_pAscan->m_source == m_selectedAScanIndex && nullptr != m_pAScanGraphMain ) {
-        m_pAScanGraphMain->updateAScan(p_pAscan);
+        m_pAScan[p_pAscan->m_source].copy(*p_pAscan);
+        m_pAScanGraphMain->updateAScan(&m_pAScan[p_pAscan->m_source]);
         emit evUpdateAScan();
     }
     m_pExamManager->pushAScan(p_pAscan);
-
 }
 
 void ScanManager::onVectorNbAScanEnabledChanged(qint32)
@@ -144,6 +152,9 @@ bool ScanManager::customLoadSettings(QDomElement * p_pParent)
     bool bRet = true;
     if( nullptr != m_pAScanGraphMain ) {
         bRet &= m_pAScanGraphMain->loadSettings(p_pParent);
+    }
+    if( nullptr != m_pBScanGraphMain ) {
+        bRet &= m_pBScanGraphMain->loadSettings(p_pParent);
     }
     return bRet;
 }
@@ -167,6 +178,9 @@ bool ScanManager::customSaveSettings(QDomDocument * /*p_pDoc*/, QDomElement * p_
     bool bRet = true;
     if( nullptr != m_pAScanGraphMain ) {
         bRet &= m_pAScanGraphMain->saveSettings(p_pParent);
+    }
+    if( nullptr != m_pBScanGraphMain ) {
+        bRet &= m_pBScanGraphMain->saveSettings(p_pParent);
     }
     return bRet;
 }
