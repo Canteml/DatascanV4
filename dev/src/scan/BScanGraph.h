@@ -27,6 +27,8 @@ class JKQTPGeoLine;
 #include <QtQuick>
 #include <QThread>
 
+class BScanWorker;
+
 class BScanGraph : public QQuickPaintedItem, public XmlSettingsLoggable
 {
     Q_OBJECT
@@ -66,6 +68,8 @@ public:
 
     void axeXScaleIn();
     void axeXScaleOut();
+
+    void updateAxes(qint32 pSource = UP_AXES_DEFAULT);
 
     enum VIEW_X_MODE {
         VIEW_X_AUTO,    ///< scale defined by user, bounds XMIN and XMAX computed, current position visible (default)
@@ -123,6 +127,8 @@ private slots :
     void onUpdateBScan(Surface1d* p_surface);
     void onPositionChanged(qreal);
 
+    void onBScanReplotted();
+
 private :
     enum UP_AXES_SRC {
         UP_AXES_DEFAULT,
@@ -130,7 +136,6 @@ private :
         UP_AXES_MOUSE
     };
 
-    void updateAxes(qint32 pSource = UP_AXES_DEFAULT);
     void needRefresh(bool p_force);
 
     MyJkQtPlotter* m_pPlotBScan;
@@ -150,6 +155,7 @@ private :
     QMouseEvent * m_eMouseMove;
 
     qreal m_lastPositionM;
+    BScanWorker * m_pBScanWorker;
 
     // -- Graph
     JKQTPGeoLine * m_pPositionLine;
@@ -176,4 +182,31 @@ private :
     qreal m_surfaceYMinMm;
     qreal m_surfaceYMaxMm;
 
+};
+
+
+class BScanWorker : public QObject, public Loggable
+{
+    Q_OBJECT
+public :
+    BScanWorker(BScanGraph * p_parent, MyJkQtPlotter* p_plotter);
+    ~BScanWorker();
+
+    void requestUpdate();
+    void signalDrawDone();
+
+signals :
+
+    void evRequestUpdate();
+    void evUpdateDone();
+
+private slots :
+    void onProcessUpdate();
+
+private :
+    BScanGraph * m_parent;
+    MyJkQtPlotter* m_pPlotter;
+    volatile bool m_requestUpdate;
+    volatile bool m_processing;
+    QThread * m_pThread;
 };

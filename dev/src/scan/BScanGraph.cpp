@@ -61,6 +61,10 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_pPlotBScan = new MyJkQtPlotter();
     m_dsBScan = m_pPlotBScan->getDatastore();
 
+
+    m_pBScanWorker = new BScanWorker(this, m_pPlotBScan);
+    connect(m_pBScanWorker, &BScanWorker::evUpdateDone, this, &BScanGraph::onBScanReplotted);
+
 //    // allocate / init
 //    QVector<double> xAscan, yAscan;
 //    for(int i=0; i<AScanRawSample::ASCAN_SAMPLE_SIZE; i++) {
@@ -140,6 +144,8 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
 
 BScanGraph::~BScanGraph()
 {
+    delete m_pBScanWorker;
+    m_pBScanWorker = nullptr;
     m_pPlotBScan->deleteLater();
     m_pPlotBScan = nullptr;
     delete m_eMouseMove;
@@ -148,17 +154,18 @@ BScanGraph::~BScanGraph()
 
 void BScanGraph::paint(QPainter *painter)
 {
-    // need resize ?
-    if( m_pPlotBScan->width() != width() || m_pPlotBScan->height() != height() ) {
-        m_pPlotBScan->resize(width(), height());
-        updateAxes();
-    }
+//    // need resize ?
+//    if( m_pPlotBScan->width() != width() || m_pPlotBScan->height() != height() ) {
+//        m_pPlotBScan->resize(width(), height());
+//        updateAxes();
+//    }
     // update replot time
     m_lastUpdateEpoc = QDateTime::currentMSecsSinceEpoch();
-    // process replot
-    m_pPlotBScan->redrawPlot();
+//    // process replot
+//    m_pPlotBScan->redrawPlot();
     m_pPlotBScan->render(painter);
     m_updateInProgress = false;
+    m_pBScanWorker->signalDrawDone();
 }
 
 void BScanGraph::onUpdateBScan(Surface1d* p_surface)
@@ -412,7 +419,8 @@ void BScanGraph::needRefresh(bool p_force)
         qint64 dTime = curEpoc - m_lastUpdateEpoc;
         if( dTime >= 50 || p_force ) {
             m_updateInProgress = true;
-            update();
+            m_pBScanWorker->requestUpdate();
+            //update();
         } else if( !m_timeRefresh->isActive() ){
             // start timer with remaining time
             m_timeRefresh->start(50 - (dTime));
@@ -480,6 +488,11 @@ void BScanGraph::onPositionChanged(qreal p_value)
 
 //    needRefresh(false);
     updateAxes(UP_AXES_POSITION);
+}
+
+void BScanGraph::onBScanReplotted()
+{
+    update();
 }
 
 void BScanGraph::updateAxes(qint32 pSource)
@@ -672,4 +685,63 @@ void BScanGraph::onPlotMouseClicked(double x, double y, Qt::KeyboardModifiers, Q
             m_mouseClickPressAxeXMax = m_pPlotBScan->getXMax();
         }
     }
+}
+
+// ----------------------------
+
+BScanWorker::BScanWorker(BScanGraph * p_parent, MyJkQtPlotter* p_plotter) : Loggable("BScanWorker")
+{
+    m_parent = p_parent;
+    m_pPlotter = p_plotter;
+    m_requestUpdate = true;
+    m_processing = false;
+
+    m_pThread = new QThread();
+    this->moveToThread(m_pThread);
+
+    connect(this, &BScanWorker::evRequestUpdate, this, &BScanWorker::onProcessUpdate);
+    m_pThread->start();
+
+}
+
+BScanWorker::~BScanWorker()
+{
+    m_pThread->quit();
+    m_pThread->wait(500);
+    delete m_pThread;
+    m_pThread = nullptr;
+}
+
+void BScanWorker::requestUpdate()
+{
+    if( m_processing ) {
+        m_requestUpdate = true;
+    } else {
+        m_processing = true;
+        m_requestUpdate = false;
+        emit evRequestUpdate();
+    }
+}
+
+void BScanWorker::signalDrawDone()
+{
+    if( m_requestUpdate ) {
+        emit evRequestUpdate();
+    } else {
+        m_processing = false;
+    }
+}
+
+void BScanWorker::onProcessUpdate()
+{
+    // need resize ?
+    if( m_pPlotter->width() != m_parent->width() || m_pPlotter->height() != m_parent->height() ) {
+        m_pPlotter->resize(m_parent->width(), m_parent->height());
+        m_parent->updateAxes();
+    }
+
+    // process replot
+    m_pPlotter->redrawPlot();
+
+    emit evUpdateDone();
 }
