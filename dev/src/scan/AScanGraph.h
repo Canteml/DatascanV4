@@ -15,7 +15,7 @@
 // -- Internal includes
 #include <xml/XmlSettingsLoggable.h>
 #include <jkPlot/MyJkQtPlotter.h>
-class AScan;
+#include <v2/scan/AScan.h>
 class AScanGraphWorker;
 
 // -- External includes
@@ -83,8 +83,8 @@ private :
 
     size_t m_columnX;
     size_t m_columnY;
-    qreal * m_pAScanXData;
-    qreal * m_pAScanYData;
+    qreal m_pAScanXData[AScanRawSample::ASCAN_SAMPLE_SIZE];
+    qreal m_pAScanYData[AScanRawSample::ASCAN_SAMPLE_SIZE];
 
     volatile bool m_updateInProgress;
 

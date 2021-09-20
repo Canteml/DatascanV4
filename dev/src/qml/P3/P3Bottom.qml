@@ -4,20 +4,52 @@ import QtQuick.Layouts 1.11
 
 Rectangle {
 
-    color: "#501050"
+    Layout.fillWidth: true
+    Layout.fillHeight : true
 
     RowLayout {
         spacing: 0
-
         anchors.fill: parent
 
-        P3BottomBScanCtrl {
-            Layout.fillHeight: true
-        }
-        P3BottomBScanView {
+        // Stack function to Exam control type
+        StackLayout {
+            id: idSlBottom
+            currentIndex: examManager.controlType
             Layout.fillWidth: true
-            Layout.fillHeight: true
+
+            RowLayout {
+                id: idBScan
+                spacing: 0
+                Layout.fillWidth: true
+
+                P3BottomBScanCtrl {
+                    Layout.preferredWidth: 70
+                    Layout.fillHeight: true
+                }
+
+                Rectangle {
+                    border.width: 1
+                    border.color: "#000000"
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    P3BottomBScanView {
+                        anchors.fill : parent
+                        anchors.margins: 1
+                    }
+                }
+            }
+
+            Rectangle {
+                id: idMep
+                color: "#900010"
+            }
+
+            Rectangle {
+                id: idPipe // panda vol 3
+                color: "#12AA85"
+            }
         }
+
         P3BottomVectorIO {
             Layout.fillHeight: true
         }

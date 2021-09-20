@@ -42,19 +42,25 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_dsAScan = m_pPlotAScan->getDatastore();
 
     // allocate / init
-    QVector<double> xAscan, yAscan;
+    //QVector<double> xAscan, yAscan;
     for(int i=0; i<AScanRawSample::ASCAN_SAMPLE_SIZE; i++) {
-        double vy = 0;
-        double vx = i * 0.01; // getAScanResolutionUs
-        xAscan<<vx;
-        yAscan<<vy;
+//        double vy = 0;
+//        double vx = i;
+//        xAscan<<vx;
+//        yAscan<<vy;
+        m_pAScanXData[i] = i;
+        m_pAScanYData[i] = 0;
+
     }
 
-    m_columnX=m_dsAScan->addCopiedColumn(xAscan, "x");
-    m_columnY=m_dsAScan->addCopiedColumn(yAscan, "y");
+//    m_columnX=m_dsAScan->addCopiedColumn(xAscan, "x");
+//    m_columnY=m_dsAScan->addCopiedColumn(yAscan, "y");
 
-    m_pAScanXData = m_dsAScan->getColumnPointer(m_columnX);
-    m_pAScanYData = m_dsAScan->getColumnPointer(m_columnY);
+    m_columnX=m_dsAScan->addColumn(m_pAScanXData, AScanRawSample::ASCAN_SAMPLE_SIZE, "x");
+    m_columnY=m_dsAScan->addColumn(m_pAScanYData, AScanRawSample::ASCAN_SAMPLE_SIZE, "y");
+
+//    m_pAScanXData = m_dsAScan->getColumnPointer(m_columnX);
+//    m_pAScanYData = m_dsAScan->getColumnPointer(m_columnY);
 
     // -- Graphic items
     m_pZeroLine = new JKQTPGeoLine(m_pPlotAScan, 0, 0, 0, 100);
@@ -68,6 +74,7 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_graphAScan->setColor("#202020");
     m_graphAScan->setLineWidth(0.8); //(1.2);
     m_pPlotAScan->addGraph(m_graphAScan);
+    m_pPlotAScan->getPlotter()->setEmittingPlotSignalsEnabled(false);
 
     // -- comsetic
     m_pPlotAScan->setMousePositionShown(false);
@@ -91,7 +98,7 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
 
     // improve performances : CPU : 11% => 5%
     m_pPlotAScan->getPlotter()->setUseAntiAliasingForGraphs(false);
-    m_pPlotAScan->getPlotter()->setUseAntiAliasingForSystem(true);
+    m_pPlotAScan->getPlotter()->setUseAntiAliasingForSystem(false);
     m_pPlotAScan->getPlotter()->setUseAntiAliasingForText(true);
 
     // scale

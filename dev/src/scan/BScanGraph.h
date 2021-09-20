@@ -40,23 +40,59 @@ public:
 
     void initAfterItemAdded();
 
-    void scaleXIn();
-    void scaleXOut();
-    void thicknessYIn();
-    void thicknessYOut();
+//    void scaleXIn();
+//    void scaleXOut();
+//    void thicknessYIn();
+//    void thicknessYOut();
 
-    void setZoomXMode(qint32 p_value);
-    qint32 getZoomXMode(void) const;
+    // -- Properties
 
-    enum ZOOM_X_MODE {
-        ZOOM_X_AUTO,    ///< scale defined by user, bounds XMIN and XMAX computed, current position visible
-        ZOOM_X_USER,    ///< scale defined by user, position set bu user with mouse, current position not visible
-        ZOOM_X_FULL     ///< scale auto, bounds auto, current position visible
+    qint32 getViewXMode(void) const;
+    void setViewXMode(qint32 p_value);
+
+    qint32 getViewYMode(void) const;
+    void setViewYMode(qint32 p_value);
+
+    qreal getAxeXScaleMm(void) const;
+    void setAxeXScaleMm(qreal p_value);
+
+    qreal getAxeYMinMm(void) const;
+    void setAxeYMinMm(qreal p_value);
+
+    qreal getAxeYMaxMm(void) const;
+    void setAxeYMaxMm(qreal p_value);
+
+    // -- Actions
+
+    void axeXScaleIn();
+    void axeXScaleOut();
+
+    enum VIEW_X_MODE {
+        VIEW_X_AUTO,    ///< scale defined by user, bounds XMIN and XMAX computed, current position visible (default)
+        VIEW_X_USER,    ///< scale defined by user, position set bu user with mouse, current position not visible
+        VIEW_X_FULL     ///< scale auto, bounds auto, current position visible
     };
+
+    enum VIEW_Y_MODE {
+        VIEW_Y_AUTO,    ///< Y scale shows the range from measure min to measures max (not 0)
+        VIEW_Y_USER,    ///< scale defined by user, from 0 to max value defined by user
+        VIEW_Y_FULL     ///< scale from 0 to measure max
+    };
+
+    static const qreal SCALE_X_M_MIN;
+    static const qreal SCALE_X_M_MAX;
+    static const qreal SCALE_Y_MM_MAX;
 
 signals :
     void evPrivateNeedRefresh();
-    void evZoomXModeChanged(qint32);
+    void evViewXModeChanged(qint32);
+    void evViewYModeChanged(qint32);
+    void evAxeXScaleMmChanged(qreal);
+    void evAxeYMinMmChanged(qreal);
+    void evAxeYMaxMmChanged(qreal);
+
+
+
 
 protected:
     void routeMouseEvents( QMouseEvent* event);
@@ -88,7 +124,13 @@ private slots :
     void onPositionChanged(qreal);
 
 private :
-    void updateAxes(void);
+    enum UP_AXES_SRC {
+        UP_AXES_DEFAULT,
+        UP_AXES_POSITION,
+        UP_AXES_MOUSE
+    };
+
+    void updateAxes(qint32 pSource = UP_AXES_DEFAULT);
     void needRefresh(bool p_force);
 
     MyJkQtPlotter* m_pPlotBScan;
@@ -118,7 +160,20 @@ private :
     qreal m_mouseClickPressAxeXMax;
 
     // -- Settings
-    qreal m_AxeXScaleM;  ///< size on X Axis
-    qreal m_AxeYMaxMm;
-    qint32 m_zoomXMode;
+    // Data saved
+    qreal m_axeXScaleM;
+    qreal m_axeYMinMm;
+    qreal m_axeYMaxMm;
+
+    // -- Data
+    qint32 m_viewXMode; ///< value in VIEW_X_MODE
+    qint32 m_viewYMode; ///< value in VIEW_Y_MODE
+    qreal m_axeXUserMinMm;
+    qreal m_axeXUserMaxMm;
+
+    qreal m_surfaceXMinMm;
+    qreal m_surfaceXMaxMm;
+    qreal m_surfaceYMinMm;
+    qreal m_surfaceYMaxMm;
+
 };
