@@ -10,11 +10,12 @@ Rectangle {
 
     ColumnLayout {
         id: idColAScanCtrl
+        anchors.fill: parent
 
         Text {
             Layout.alignment: Qt.AlignCenter
-            text: "Gain"
-            font.pixelSize: 20
+            text: qsTr("Gain")
+            font.pixelSize: 16
             Layout.topMargin: 5
         }
 
@@ -36,8 +37,6 @@ Rectangle {
             }
 
             Layout.alignment: Qt.AlignCenter
-            Layout.leftMargin: 5
-
             implicitHeight: 64
             implicitWidth: 60
 
@@ -48,7 +47,7 @@ Rectangle {
                 anchors.bottomMargin: 30
 
 
-                font.pointSize: 12
+                font.pixelSize: 16
                 color: "#000000"
 
                 horizontalAlignment: Qt.AlignHCenter
@@ -93,11 +92,22 @@ Rectangle {
 
         }
 
+
+        Rectangle {
+            // Separator
+            Layout.leftMargin: 5
+            Layout.rightMargin: 5
+            Layout.topMargin: 5
+            //Layout.bottomMargin: 5
+            Layout.fillWidth: true
+            Layout.preferredHeight: 2
+            color : Design.colSeparator
+        }
+
         Text {
             Layout.alignment: Qt.AlignCenter
-            Layout.topMargin: 5
             text: "Zoom"
-            font.pixelSize: 20
+            font.pixelSize: 16
         }
 
         RowLayout {

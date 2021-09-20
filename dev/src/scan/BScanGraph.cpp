@@ -23,6 +23,10 @@
 #include <v2/vector/VectorFuncPosition.h>
 #include "exam/ExamManager.h"
 
+const qreal BScanGraph::SCALE_X_M_MIN = 2;
+const qreal BScanGraph::SCALE_X_M_MAX = 200;
+const qreal BScanGraph::SCALE_Y_MM_MAX = 200;
+
 BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSettingsLoggable("BScanGraph")
 { 
     setAcceptHoverEvents(true);
@@ -32,9 +36,17 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_updateInProgress = false;
     m_mouseClicked = false;
     m_mouseClickPressX = 0;
-    m_AxeXScaleM = 2;
-    m_AxeYMaxMm = 20;
-    m_zoomXMode = ZOOM_X_AUTO;
+    m_axeXScaleM = 2;
+    m_axeYMinMm = 0;
+    m_axeYMaxMm = 10;
+    m_viewXMode = VIEW_X_AUTO;
+    m_viewYMode = VIEW_Y_AUTO;
+
+
+    m_surfaceXMinMm = 0;
+    m_surfaceXMaxMm = 0;
+    m_surfaceYMinMm = 0;
+    m_surfaceYMaxMm = 0;
 
     m_eMouseMove = new QMouseEvent(QEvent::MouseMove, QPointF(), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
 
@@ -70,11 +82,13 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_graphBScan->setXColumn(m_columnX);
     m_graphBScan->setYColumn(m_columnY);
     m_graphBScan->setSymbolType(JKQTPNoSymbol);
-    m_graphBScan->setColor("#80202020");
+    m_graphBScan->setColor("#80202020"); // opacity @ 50%
+    //m_graphBScan->setColor("#202020");
     m_graphBScan->setLineWidth(5);
     m_pPlotBScan->addGraph(m_graphBScan);
+    m_pPlotBScan->getPlotter()->setEmittingPlotSignalsEnabled(false);
 
-    m_pPositionLine = new JKQTPGeoLine(m_pPlotBScan, 0, 0, 0, 100);
+    m_pPositionLine = new JKQTPGeoLine(m_pPlotBScan, 0, 0, 0, SCALE_Y_MM_MAX);
     m_pPositionLine->setStyle(QColor("#40DD40"), 3);
     m_pPlotBScan->addGraph(m_pPositionLine);
 
@@ -102,16 +116,16 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     // improve performances
     m_pPlotBScan->getPlotter()->setUseAntiAliasingForGraphs(true);
     m_pPlotBScan->getPlotter()->setUseAntiAliasingForSystem(true);
-    m_pPlotBScan->getPlotter()->setUseAntiAliasingForText(true);
+    m_pPlotBScan->getPlotter()->setUseAntiAliasingForText(false);
 
     // scale
     //m_pPlotAScan->setAbsoluteY(0,100);
     //onDigitilizingDepthChanged();
     //m_pPlotAScan->setAbsoluteX(-1000,1000); // X visible area
     //m_pPlotAScan->getXAxis()->setRange(0,20);
-    m_pPlotBScan->zoom(0, 2, 0, 20);
+    m_pPlotBScan->setXY(0, 20, 0, 20);
     m_pPlotBScan->getPlotter()->setBackgroundColor(QColor(255,255,255));
-    m_pPlotBScan->getPlotter()->setPlotBorder(-15,5,-5,5);
+    m_pPlotBScan->getPlotter()->setPlotBorder(-10,0,-5,5);
 
     connect(m_pPlotBScan, &MyJkQtPlotter::evRequestUpdate, this, &BScanGraph::onPrivateNeedRefresh, Qt::QueuedConnection);
     connect(this, &BScanGraph::evPrivateNeedRefresh, this, &BScanGraph::onPrivateNeedRefresh);
@@ -137,6 +151,7 @@ void BScanGraph::paint(QPainter *painter)
     // need resize ?
     if( m_pPlotBScan->width() != width() || m_pPlotBScan->height() != height() ) {
         m_pPlotBScan->resize(width(), height());
+        updateAxes();
     }
     // update replot time
     m_lastUpdateEpoc = QDateTime::currentMSecsSinceEpoch();
@@ -159,8 +174,35 @@ void BScanGraph::onUpdateBScan(Surface1d* p_surface)
                 m_columnY=m_dsBScan->addColumn(p_surface->getArrayMeasure()->data(), nbCell, "y");
                 m_graphBScan->setXColumn(m_columnX);
                 m_graphBScan->setYColumn(m_columnY);
-                needRefresh(false);
-            }
+
+                bool reqUpdateAxes = false;
+                if( m_surfaceXMinMm != p_surface->getPositionMin() ) {
+                    m_surfaceXMinMm = p_surface->getPositionMin();
+                    reqUpdateAxes = true;
+                }
+
+                if( m_surfaceXMaxMm != p_surface->getPositionMax() ) {
+                    m_surfaceXMaxMm = p_surface->getPositionMax();
+                    reqUpdateAxes = true;
+                }
+
+                if( m_surfaceYMinMm != p_surface->getMeasureMin() ) {
+                    m_surfaceYMinMm = p_surface->getMeasureMin();
+                    reqUpdateAxes = true;
+                }
+
+                if( m_surfaceYMaxMm != p_surface->getMeasureMax() ) {
+                    m_surfaceYMaxMm = p_surface->getMeasureMax();
+                    reqUpdateAxes = true;
+                }
+
+                //if( reqUpdateAxes ) {
+                    updateAxes();
+                //} else {
+//
+ //                   needRefresh(false);
+                }
+      //      }
         } else {
             m_pPlotBScan->clearGraphs(false);
             needRefresh(false);
@@ -181,87 +223,177 @@ void BScanGraph::initAfterItemAdded()
 
     m_lastPositionM = VectorManager::getInstance()->getVectorStd()->funcPosition()->getParamLBscanPosMmX();
     connect(ExamManager::getInstance(), &ExamManager::evRequestSurfaceUpdate, this, &BScanGraph::onUpdateBScan);
+
+    customApplySettings();
 }
 
-void BScanGraph::scaleXIn()
+//void BScanGraph::scaleXIn()
+//{
+//    qreal old = m_AxeXScaleM;
+//    if( m_AxeXScaleM <= 4 && m_AxeXScaleM>1 ) {
+//        m_AxeXScaleM -= 1;
+//    } else if( m_AxeXScaleM <= 10 ) {
+//        m_AxeXScaleM -= 2;
+//    } else if( m_AxeXScaleM <= 30 ) {
+//        m_AxeXScaleM -= 5;
+//    } else if( m_AxeXScaleM <= 100 ) {
+//        m_AxeXScaleM -= 10;
+//    }
+//    if( old != m_AxeXScaleM ) {
+//        updateAxes();
+//    }
+//}
+
+//void BScanGraph::scaleXOut()
+//{
+//    qreal old = m_AxeXScaleM;
+//    if( m_AxeXScaleM < 4 && m_AxeXScaleM>1 ) {
+//        m_AxeXScaleM += 1;
+//    } else if( m_AxeXScaleM < 10 ) {
+//        m_AxeXScaleM += 2;
+//    } else if( m_AxeXScaleM < 30 ) {
+//        m_AxeXScaleM += 5;
+//    } else if( m_AxeXScaleM < 100 ) {
+//        m_AxeXScaleM += 10;
+//    }
+//    if( old != m_AxeXScaleM ) {
+//        updateAxes();
+//    }
+//}
+
+//void BScanGraph::thicknessYIn()
+//{
+//    qreal old = m_axeYMaxMm;
+//    if( m_axeYMaxMm <= 10 && m_axeYMaxMm>3 ) {
+//        m_axeYMaxMm -= 1;
+//    } else if( m_axeYMaxMm <= 20 ) {
+//        m_axeYMaxMm -= 2;
+//    } else if( m_axeYMaxMm <= 30 ) {
+//        m_axeYMaxMm -= 5;
+//    } else if( m_axeYMaxMm <= 100 ) {
+//        m_axeYMaxMm -= 10;
+//    }
+//    if( old != m_axeYMaxMm ) {
+//        updateAxes();
+//    }
+//}
+
+//void BScanGraph::thicknessYOut()
+//{
+//    qreal old = m_axeYMaxMm;
+//    if( m_axeYMaxMm < 10 && m_axeYMaxMm>3 ) {
+//        m_axeYMaxMm += 1;
+//    } else if( m_axeYMaxMm < 20 ) {
+//        m_axeYMaxMm += 2;
+//    } else if( m_axeYMaxMm < 30 ) {
+//        m_axeYMaxMm += 5;
+//    } else if( m_axeYMaxMm < 100 ) {
+//        m_axeYMaxMm += 10;
+//    }
+//    if( old != m_axeYMaxMm ) {
+//        updateAxes();
+//    }
+//}
+
+//void BScanGraph::setViewXMode(qint32 p_value)
+//{
+//    if( m_viewXMode != p_value ) {
+//        m_viewXMode = p_value;
+//        emit evViewXModeChanged(m_viewXMode);
+//    }
+//}
+
+//qint32 BScanGraph::getViewXMode() const
+//{
+//    return m_viewXMode;
+//}
+
+// -- Properties
+
+qint32 BScanGraph::getViewXMode(void) const
 {
-    qreal old = m_AxeXScaleM;
-    if( m_AxeXScaleM <= 4 && m_AxeXScaleM>1 ) {
-        m_AxeXScaleM -= 1;
-    } else if( m_AxeXScaleM <= 10 ) {
-        m_AxeXScaleM -= 2;
-    } else if( m_AxeXScaleM <= 30 ) {
-        m_AxeXScaleM -= 5;
-    } else if( m_AxeXScaleM <= 100 ) {
-        m_AxeXScaleM -= 10;
-    }
-    if( old != m_AxeXScaleM ) {
+    return m_viewXMode;
+}
+
+void BScanGraph::setViewXMode(qint32 p_value)
+{
+    if( m_viewXMode != p_value ) {
+        m_viewXMode = p_value;
+        emit evViewXModeChanged(m_viewXMode);
         updateAxes();
     }
 }
 
-void BScanGraph::scaleXOut()
+qint32 BScanGraph::getViewYMode(void) const
 {
-    qreal old = m_AxeXScaleM;
-    if( m_AxeXScaleM < 4 && m_AxeXScaleM>1 ) {
-        m_AxeXScaleM += 1;
-    } else if( m_AxeXScaleM < 10 ) {
-        m_AxeXScaleM += 2;
-    } else if( m_AxeXScaleM < 30 ) {
-        m_AxeXScaleM += 5;
-    } else if( m_AxeXScaleM < 100 ) {
-        m_AxeXScaleM += 10;
-    }
-    if( old != m_AxeXScaleM ) {
+    return m_viewYMode;
+}
+
+void BScanGraph::setViewYMode(qint32 p_value)
+{
+    if( m_viewYMode != p_value ) {
+        m_viewYMode = p_value;
+        emit evViewYModeChanged(m_viewYMode);
         updateAxes();
     }
 }
 
-void BScanGraph::thicknessYIn()
+qreal BScanGraph::getAxeXScaleMm(void) const
 {
-    qreal old = m_AxeYMaxMm;
-    if( m_AxeYMaxMm <= 10 && m_AxeYMaxMm>3 ) {
-        m_AxeYMaxMm -= 1;
-    } else if( m_AxeYMaxMm <= 20 ) {
-        m_AxeYMaxMm -= 2;
-    } else if( m_AxeYMaxMm <= 30 ) {
-        m_AxeYMaxMm -= 5;
-    } else if( m_AxeYMaxMm <= 100 ) {
-        m_AxeYMaxMm -= 10;
-    }
-    if( old != m_AxeYMaxMm ) {
+    return m_axeXScaleM;
+}
+
+void BScanGraph::setAxeXScaleMm(qreal p_value)
+{
+    if( m_axeXScaleM != p_value ) {
+        m_axeXScaleM = p_value;
+        emit evAxeXScaleMmChanged(m_axeXScaleM);
         updateAxes();
     }
 }
 
-void BScanGraph::thicknessYOut()
+qreal BScanGraph::getAxeYMinMm(void) const
 {
-    qreal old = m_AxeYMaxMm;
-    if( m_AxeYMaxMm < 10 && m_AxeYMaxMm>3 ) {
-        m_AxeYMaxMm += 1;
-    } else if( m_AxeYMaxMm < 20 ) {
-        m_AxeYMaxMm += 2;
-    } else if( m_AxeYMaxMm < 30 ) {
-        m_AxeYMaxMm += 5;
-    } else if( m_AxeYMaxMm < 100 ) {
-        m_AxeYMaxMm += 10;
-    }
-    if( old != m_AxeYMaxMm ) {
+    return m_axeYMinMm;
+}
+
+void BScanGraph::setAxeYMinMm(qreal p_value)
+{
+    if( m_axeYMinMm != p_value ) {
+        m_axeYMinMm = p_value;
+        emit evAxeYMinMmChanged(m_axeYMinMm);
         updateAxes();
     }
 }
 
-void BScanGraph::setZoomXMode(qint32 p_value)
+qreal BScanGraph::getAxeYMaxMm(void) const
 {
-    if( m_zoomXMode != p_value ) {
-        m_zoomXMode = p_value;
-        emit evZoomXModeChanged(m_zoomXMode);
+    return m_axeYMaxMm;
+}
+
+void BScanGraph::setAxeYMaxMm(qreal p_value)
+{
+    if( m_axeYMaxMm != p_value ) {
+        m_axeYMaxMm = p_value;
+        emit evAxeYMaxMmChanged(m_axeYMinMm);
+        updateAxes();
     }
 }
 
-qint32 BScanGraph::getZoomXMode() const
+// -- Actions
+
+void BScanGraph::axeXScaleIn()
 {
-    return m_zoomXMode;
+    if( SCALE_X_M_MIN < m_axeXScaleM ) {
+        setAxeXScaleMm(m_axeXScaleM-1);
+    }
+}
+
+void BScanGraph::axeXScaleOut()
+{
+    if( SCALE_X_M_MAX > m_axeXScaleM ) {
+        setAxeXScaleMm(m_axeXScaleM+1);
+    }
 }
 
 void BScanGraph::routeMouseEvents(QMouseEvent *event)
@@ -278,12 +410,12 @@ void BScanGraph::needRefresh(bool p_force)
     // timer active => already an update programmed
     if( (!m_timeRefresh->isActive() && !m_updateInProgress) || p_force) {
         qint64 dTime = curEpoc - m_lastUpdateEpoc;
-        if( dTime >= 40 || p_force ) {
+        if( dTime >= 50 || p_force ) {
             m_updateInProgress = true;
             update();
         } else if( !m_timeRefresh->isActive() ){
             // start timer with remaining time
-            m_timeRefresh->start(40 - (dTime));
+            m_timeRefresh->start(50 - (dTime));
         }
     }
 }
@@ -334,58 +466,111 @@ void BScanGraph::onPositionChanged(qreal p_value)
 {
     m_lastPositionM = p_value/1000;
 
-    qreal xMin = m_pPlotBScan->getXMin();
-    qreal xMax = m_pPlotBScan->getXMax();
-    qreal d = abs(xMax - xMin);
-    qreal v = d*0.2;
-    if( m_lastPositionM < (xMin+v) || m_lastPositionM < (xMax-v) ) {
-        updateAxes();
-    }
+//    qreal xMin = m_pPlotBScan->getXMin();
+//    qreal xMax = m_pPlotBScan->getXMax();
+//    qreal d = abs(xMax - xMin);
+//    qreal v = d*0.2;
+//    if( m_lastPositionM < (xMin+v) || m_lastPositionM < (xMax-v) ) {
+//        updateAxes();
+//    }
 
-    // update graph
+//    // update graph
     m_pPositionLine->setX1(m_lastPositionM);
     m_pPositionLine->setX2(m_lastPositionM);
 
-    needRefresh(false);
+//    needRefresh(false);
+    updateAxes(UP_AXES_POSITION);
 }
 
-void BScanGraph::updateAxes()
+void BScanGraph::updateAxes(qint32 pSource)
 {
-    if( ZOOM_X_AUTO == m_zoomXMode ) {
-        // first compute x bounds
-        qreal xMin = m_pPlotBScan->getXMin();
-        qreal xMax = m_pPlotBScan->getXMax();
-        qreal xMiddle = (xMin+xMax / 2);
-        xMax = xMiddle + m_AxeXScaleM/2;
-        xMin = xMiddle - m_AxeXScaleM/2;
+    qreal xMin = 0, xMax = 0, yMin = 0, yMax = 0;
 
-        qreal delta = abs(xMax - xMin);
+    if( VIEW_X_AUTO == m_viewXMode ) {
+        if( UP_AXES_POSITION == pSource ) {
+            // first compute x bounds
+            xMin = m_pPlotBScan->getXMin();
+            xMax = m_pPlotBScan->getXMax();
+            qreal xMiddle = (xMin+xMax) / 2;
+            xMax = xMiddle + m_axeXScaleM/2;
+            xMin = xMiddle - m_axeXScaleM/2;
 
-        qreal margin = delta*0.2;
-        if( m_lastPositionM < (xMin+margin) ) {
-            xMin = m_lastPositionM - margin;
-            xMax = xMin + m_AxeXScaleM;
+            qreal delta = abs(xMax - xMin);
+
+            qreal margin = delta*0.1;
+            if( m_lastPositionM < (xMin+margin) ) {
+                xMin = m_lastPositionM - margin;
+                xMax = xMin + m_axeXScaleM;
+            }
+
+            if( m_lastPositionM > (xMax-margin) ) {
+                xMax = m_lastPositionM + margin;
+                xMin = xMax - m_axeXScaleM;
+            }
+        } else {
+            xMin = m_pPlotBScan->getXMin();
+            xMax = m_pPlotBScan->getXMax();
         }
 
-        if( m_lastPositionM > (xMax-margin) ) {
-            xMax = m_lastPositionM + margin;
-            xMin = xMax - m_AxeXScaleM;
+    } else if( VIEW_X_USER == m_viewXMode ) {
+        if( UP_AXES_MOUSE == pSource ) {
+            xMin = m_axeXUserMinMm;
+            xMax = m_axeXUserMaxMm;
+        } else {
+            xMin = m_pPlotBScan->getXMin();
+            xMax = m_pPlotBScan->getXMax();
         }
-
-        m_pPlotBScan->zoom(xMin, xMax,0 ,m_AxeYMaxMm); // X visible area
-        needRefresh(true);
-    } else if( ZOOM_X_FULL == m_zoomXMode ) {
-        m_pPlotBScan->zoom(m_pPlotBScan->getAbsoluteXMin(), m_pPlotBScan->getAbsoluteXMax(),0 ,m_AxeYMaxMm); // X visible area
-        needRefresh(true);
+    } else if( VIEW_X_FULL == m_viewXMode ) {
+        xMin = m_surfaceXMinMm/1000-0.1; // convert into M, add margins
+        xMax = m_surfaceXMaxMm/1000+0.1; // convert into M
     }
+
+//    // check limits
+//    if( abs(xMax-xMin) < SCALE_X_M_MIN ) {
+//        xMin = m_lastPositionM - SCALE_X_M_MIN / 2;
+//        xMax = xMin + SCALE_X_M_MIN;
+//    } else if( abs(xMax-xMin) > SCALE_X_M_MAX ) {
+//        xMin = m_lastPositionM - SCALE_X_M_MAX / 2;
+//        xMax = xMin + SCALE_X_M_MAX;
+//    }
+
+    if( VIEW_Y_AUTO == m_viewYMode ) {
+        // first get y bounds
+        yMin = m_surfaceYMinMm;
+        yMax = m_surfaceYMaxMm;
+        if( yMax == 0 ) {
+            yMax = 10;
+        }
+        if( yMin >= yMax ) {
+            yMin = 0;
+        }
+    } else if( VIEW_Y_USER == m_viewYMode ) {
+        yMin = m_axeYMinMm;
+        yMax = m_axeYMaxMm;
+    } else if( VIEW_Y_FULL == m_viewYMode ) {
+        yMin = 0;
+        yMax = m_surfaceYMaxMm;
+    }
+
+    // check limits
+    if( yMin < 0) {
+        yMin = 0;
+    }
+    if( yMax > SCALE_Y_MM_MAX ) {
+        yMax = SCALE_Y_MM_MAX;
+    }
+
+    //m_pPlotBScan->zoom(xMin, xMax, yMin ,yMax);
+    m_pPlotBScan->setXY(xMin, xMax, yMin, yMax);
+    needRefresh(false);
 }
 
 bool BScanGraph::customLoadSettings(QDomElement * p_pParent)
 {
     bool bRet = true;
-    bRet &= XML_READ_UNIQUE_DEFAULT(qreal, m_AxeXScaleM, 2);
-    bRet &= XML_READ_UNIQUE_DEFAULT(qreal, m_AxeYMaxMm, 8);
-    bRet &= XML_READ_UNIQUE_DEFAULT(qint32, m_zoomXMode, ZOOM_X_AUTO);
+    bRet &= XML_READ_UNIQUE_DEFAULT(qreal, m_axeXScaleM, 4);
+    bRet &= XML_READ_UNIQUE_DEFAULT(qreal, m_axeYMinMm, 0);
+    bRet &= XML_READ_UNIQUE_DEFAULT(qreal, m_axeYMaxMm, 10);
 
     return bRet;
 }
@@ -393,10 +578,11 @@ bool BScanGraph::customLoadSettings(QDomElement * p_pParent)
 bool BScanGraph::customLoadDefaultSettings()
 {
     bool bRet = true;
-    m_AxeXScaleM = 2;
-    m_AxeYMaxMm = 8;
-    m_zoomXMode = ZOOM_X_AUTO;
-    emit evZoomXModeChanged(m_zoomXMode);
+    m_axeXScaleM = 2;
+    m_axeYMinMm = 0;
+    m_axeYMaxMm = 10;
+    m_viewXMode = VIEW_X_AUTO;
+    m_viewYMode = VIEW_Y_AUTO;
     return bRet;
 }
 
@@ -404,15 +590,20 @@ bool BScanGraph::customApplySettings()
 {
     bool bRet = true;
     updateAxes();
+    emit evAxeXScaleMmChanged(m_axeXScaleM);
+    emit evAxeYMinMmChanged(m_axeYMinMm);
+    emit evAxeYMaxMmChanged(m_axeYMaxMm);
+    emit evViewXModeChanged(m_viewXMode);
+    emit evViewYModeChanged(m_viewYMode);
     return bRet;
 }
 
 bool BScanGraph::customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pParent)
 {
     bool bRet = true;
-    bRet &= XML_WRITE_UNIQUE(m_AxeXScaleM);
-    bRet &= XML_WRITE_UNIQUE(m_AxeYMaxMm);
-    bRet &= XML_WRITE_UNIQUE(m_zoomXMode);
+    bRet &= XML_WRITE_UNIQUE(m_axeXScaleM);
+    bRet &= XML_WRITE_UNIQUE(m_axeYMinMm);
+    bRet &= XML_WRITE_UNIQUE(m_axeYMaxMm);
     return bRet;
 }
 
@@ -449,19 +640,17 @@ void BScanGraph::onPlotMouseMove(double x, double y)
     if( m_mouseClicked ) {
         // drag on the graph
         qreal dX = m_mouseClickPressX - m_mouseLastPos.x();
-        qreal newXMin = m_pPlotBScan->getXMin()+dX;
-        qreal newXMax = m_pPlotBScan->getXMax()+dX;
-        if( newXMax > m_pPlotBScan->getAbsoluteXMax() ) {
-            newXMax = m_pPlotBScan->getAbsoluteXMax();
-            newXMin = newXMax - (m_mouseClickPressAxeXMax - m_mouseClickPressAxeXMin);
+        m_axeXUserMinMm = m_pPlotBScan->getXMin()+dX;
+        m_axeXUserMaxMm = m_pPlotBScan->getXMax()+dX;
+        if( m_axeXUserMaxMm > m_surfaceXMaxMm ) {
+            m_axeXUserMaxMm = m_surfaceXMaxMm;
+            m_axeXUserMinMm = m_axeXUserMaxMm - (m_mouseClickPressAxeXMax - m_mouseClickPressAxeXMin);
         }
-        if( newXMin < m_pPlotBScan->getAbsoluteXMin() ) {
-            newXMin = m_pPlotBScan->getAbsoluteXMin();
-            newXMax = newXMin + (m_mouseClickPressAxeXMax - m_mouseClickPressAxeXMin);
+        if( m_axeXUserMinMm < m_surfaceXMinMm ) {
+            m_axeXUserMinMm = m_surfaceXMinMm;
+            m_axeXUserMaxMm = m_axeXUserMinMm + (m_mouseClickPressAxeXMax - m_mouseClickPressAxeXMin);
         }
-
-        m_pPlotBScan->zoom(newXMin, newXMax,0 ,m_AxeYMaxMm); // X visible area
-        needRefresh(true);
+        updateAxes(UP_AXES_MOUSE);
     }        
 }
 
@@ -469,18 +658,18 @@ void BScanGraph::onPlotMouseClicked(double x, double y, Qt::KeyboardModifiers, Q
 {
     m_mouseLastPos = QPointF(x,y);
 
-    if( ZOOM_X_AUTO == m_zoomXMode ) {
-        setZoomXMode(ZOOM_X_USER) ;
+    if( VIEW_X_AUTO == m_viewXMode ) {
+        setViewXMode(VIEW_X_USER) ;
     }
 
-    if(ZOOM_X_USER == m_zoomXMode) {
+    if(VIEW_X_USER == m_viewXMode) {
         if( !m_pPlotBScan->getMouseUsedByItem() && p_Bt == Qt::LeftButton ) {
             // prepare drag : store where mouse has clicked
             m_pPlotBScan->setMouseUsedByItem(true);
             m_mouseClicked = true;
             m_mouseClickPressX = m_mouseLastPos.x();
-            m_mouseClickPressAxeXMin = m_pPlotBScan->getAbsoluteXMin();
-            m_mouseClickPressAxeXMax = m_pPlotBScan->getAbsoluteXMax();
+            m_mouseClickPressAxeXMin = m_pPlotBScan->getXMin();
+            m_mouseClickPressAxeXMax = m_pPlotBScan->getXMax();
         }
     }
 }

@@ -26,10 +26,15 @@
 ScanManager::ScanManager() : XmlSettingsLoggable("ScanManger")
 {
     m_pAScanGraphMain = nullptr;
+    m_pBScanGraphMain = nullptr;
     m_pGate0 = nullptr;
     m_pGate1 = nullptr;
     m_pVector = nullptr;
     m_selectedAScanIndex = 0;
+
+    for(int i=0; i<VectorStd::NB_FUNC_ASCAN; i++) {
+        m_pAScan[i].init();
+    }
 
 }
 
@@ -74,6 +79,13 @@ void ScanManager::initQmlObject(QObject * p_pQmlTopLevel)
     if( nullptr == m_pBScanGraphMain ) {
         fLogError("Fail to found m_pBScanGraphMain");
     } else {
+        // Proxy connections
+        connect(m_pBScanGraphMain, &BScanGraph::evViewXModeChanged, this, &ScanManager::onPrivateBScanViewXModeChanged);
+        connect(m_pBScanGraphMain, &BScanGraph::evViewYModeChanged, this, &ScanManager::onPrivateBScanViewYModeChanged);
+        connect(m_pBScanGraphMain, &BScanGraph::evAxeXScaleMmChanged, this, &ScanManager::onPrivateBScanAxeXScaleMmChanged);
+        connect(m_pBScanGraphMain, &BScanGraph::evAxeYMinMmChanged, this, &ScanManager::onPrivateBScanAxeYMinMmChanged);
+        connect(m_pBScanGraphMain, &BScanGraph::evAxeYMaxMmChanged, this, &ScanManager::onPrivateBScanAxeYMaxMmChanged);
+
         m_pBScanGraphMain->setParent(this);
         m_pBScanGraphMain->initAfterItemAdded();
     }
@@ -126,6 +138,97 @@ qreal ScanManager::getAScanThicknessMm1Echo()
     return getCurrentAScan()->getAScanMeasure()->m_thicknessMm1Echo;
 }
 
+// -- BSCAN
+
+qint32 ScanManager::getBScanViewXMode(void) const
+{
+    if( nullptr != m_pBScanGraphMain ) {
+        return m_pBScanGraphMain->getViewXMode();
+    }
+    return BScanGraph::VIEW_X_AUTO;
+}
+
+void ScanManager::setBScanViewXMode(quint32 p_value)
+{
+    if( nullptr != m_pBScanGraphMain ) {
+        m_pBScanGraphMain->setViewXMode(p_value);
+    }
+}
+
+qint32 ScanManager::getBScanViewYMode(void) const
+{
+    if( nullptr != m_pBScanGraphMain ) {
+        return m_pBScanGraphMain->getViewYMode();
+    }
+    return BScanGraph::VIEW_Y_AUTO;
+}
+
+void ScanManager::setBScanViewYMode(quint32 p_value)
+{
+    if( nullptr != m_pBScanGraphMain ) {
+        m_pBScanGraphMain->setViewYMode(p_value);
+    }
+}
+
+qreal ScanManager::getBScanAxeXScaleMm(void) const
+{
+    if( nullptr != m_pBScanGraphMain ) {
+        return m_pBScanGraphMain->getAxeXScaleMm();
+    }
+    return BScanGraph::SCALE_X_M_MIN;
+}
+
+void ScanManager::setBScanAxeXScaleMm(qreal p_value)
+{
+    if( nullptr != m_pBScanGraphMain ) {
+        return m_pBScanGraphMain->setAxeXScaleMm(p_value);
+    }
+}
+
+qreal ScanManager::getBScanAxeYMinMm(void) const
+{
+    if( nullptr != m_pBScanGraphMain ) {
+        return m_pBScanGraphMain->getAxeYMinMm();
+    }
+    return 0;
+}
+
+void ScanManager::setBScanAxeYMinMm(qreal p_value)
+{
+    if( nullptr != m_pBScanGraphMain ) {
+        return m_pBScanGraphMain->setAxeYMinMm(p_value);
+    }
+}
+
+qreal ScanManager::getBScanAxeYMaxMm(void) const
+{
+    if( nullptr != m_pBScanGraphMain ) {
+        return m_pBScanGraphMain->getAxeYMaxMm();
+    }
+    return 0;
+}
+
+void ScanManager::setBScanAxeYMaxMm(qreal p_value)
+{
+    if( nullptr != m_pBScanGraphMain ) {
+        return m_pBScanGraphMain->setAxeYMaxMm(p_value);
+    }
+}
+
+void ScanManager::bscanAxeXScaleIn()
+{
+    if( nullptr != m_pBScanGraphMain ) {
+        m_pBScanGraphMain->axeXScaleIn();
+    }
+}
+
+void ScanManager::bscanAxeXScaleOut()
+{
+    if( nullptr != m_pBScanGraphMain ) {
+        m_pBScanGraphMain->axeXScaleOut();
+    }
+}
+
 void ScanManager::onNewAScanTreated(AScan * p_pAscan)
 {
     if( p_pAscan->m_source == m_selectedAScanIndex && nullptr != m_pAScanGraphMain ) {
@@ -146,6 +249,30 @@ void ScanManager::onVectorNbAScanEnabledChanged(qint32)
     setSelectedAScanIndex(0);
 }
 
+void ScanManager::onPrivateBScanViewXModeChanged(qint32 p_value)
+{
+    emit evBScanViewXModeChanged(p_value);
+}
+
+void ScanManager::onPrivateBScanViewYModeChanged(qint32 p_value)
+{
+    emit evBScanViewYModeChanged(p_value);
+}
+
+void ScanManager::onPrivateBScanAxeXScaleMmChanged(qreal p_value)
+{
+    emit evBScanAxeXScaleMmChanged(p_value);
+}
+
+void ScanManager::onPrivateBScanAxeYMinMmChanged(qreal p_value)
+{
+    emit evBScanAxeYMinMmChanged(p_value);
+}
+
+void ScanManager::onPrivateBScanAxeYMaxMmChanged(qreal p_value)
+{
+    emit evBScanAxeYMaxMmChanged(p_value);
+}
 
 bool ScanManager::customLoadSettings(QDomElement * p_pParent)
 {
