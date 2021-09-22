@@ -136,7 +136,7 @@ void AScanGraph::paint(QPainter *painter)
         m_pPlotAScan->resize(width(), height());
     }
     // update replot time
-    m_lastUpdateEpoc = QDateTime::currentMSecsSinceEpoch();
+    //m_lastUpdateEpoc = QDateTime::currentMSecsSinceEpoch();
     // process replot
     m_pPlotAScan->redrawPlot();
     m_pPlotAScan->render(painter);
@@ -248,12 +248,13 @@ void AScanGraph::needRefresh(bool p_force)
     // timer active => already an update programmed
     if( (!m_timeRefresh->isActive() && !m_updateInProgress) || p_force) {
         qint64 dTime = curEpoc - m_lastUpdateEpoc;
-        if( dTime >= 40 || p_force ) {
+        if( dTime >= 60 || p_force ) {
             m_updateInProgress = true;
+            m_lastUpdateEpoc = curEpoc;
             update();
         } else if( !m_timeRefresh->isActive() ){
             // start timer with remaining time
-            m_timeRefresh->start(40 - (dTime));
+            m_timeRefresh->start(60 - (dTime));
         }
     }
 }
@@ -353,7 +354,7 @@ void AScanGraph::onThreadFinished()
 void AScanGraph::onUpdateWidgetSize()
 {
     // update replot time to get a delay
-    m_lastUpdateEpoc = QDateTime::currentMSecsSinceEpoch();
+    //m_lastUpdateEpoc = QDateTime::currentMSecsSinceEpoch();
     needRefresh(false);
 }
 

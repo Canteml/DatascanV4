@@ -35,6 +35,21 @@ ExamManager::ExamManager() : XmlSettingsLoggable("ExamManager")
 ExamManager::~ExamManager()
 {
     m_pMyInstance = nullptr;
+
+    // unselect location
+    m_pSelectedLocation1d = nullptr;
+    m_selectedBScanGeneratrix = 0;
+    emit evRequestSurfaceUpdate(nullptr);
+
+    // delete all locations
+    if( !m_lLocation1d.isEmpty() ) {
+        for(auto i : m_lLocation1d) {
+            i->setRecord(false);
+            i->clearAScan();
+            delete i;
+        }
+        m_lLocation1d.clear();
+    }
 }
 
 ExamManager* ExamManager::makeInstance()
@@ -472,6 +487,7 @@ void ExamManager::initControl()
     // unselect location
     m_pSelectedLocation1d = nullptr;
     m_selectedBScanGeneratrix = 0;
+    emit evRequestSurfaceUpdate(nullptr);
 
     // delete all locations
     if( !m_lLocation1d.isEmpty() ) {
