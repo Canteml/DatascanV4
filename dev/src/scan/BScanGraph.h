@@ -31,6 +31,7 @@ class BScanWorker;
 
 class BScanGraph : public QQuickPaintedItem, public XmlSettingsLoggable
 {
+    friend BScanWorker;
     Q_OBJECT
 public:
     BScanGraph(QQuickItem *parent = 0);
@@ -41,6 +42,8 @@ public:
     MyJkQtPlotter * getPlot() const;
 
     void initAfterItemAdded();
+    void processLastSurface();
+    void processZoom();
 
 //    void scaleXIn();
 //    void scaleXOut();
@@ -69,7 +72,7 @@ public:
     void axeXScaleIn();
     void axeXScaleOut();
 
-    void updateAxes(qint32 pSource = UP_AXES_DEFAULT);
+    void updateAxes();
 
     enum VIEW_X_MODE {
         VIEW_X_AUTO,    ///< scale defined by user, bounds XMIN and XMAX computed, current position visible (default)
@@ -94,9 +97,6 @@ signals :
     void evAxeXScaleMmChanged(qreal);
     void evAxeYMinMmChanged(qreal);
     void evAxeYMaxMmChanged(qreal);
-
-
-
 
 protected:
     void routeMouseEvents( QMouseEvent* event);
@@ -123,42 +123,35 @@ private slots :
     void onPlotMouseMove(double, double);
     void onPlotMouseClicked(double, double, Qt::KeyboardModifiers, Qt::MouseButton);
 
-
     void onUpdateBScan(Surface1d* p_surface);
     void onPositionChanged(qreal);
 
     void onBScanReplotted();
 
 private :
-    enum UP_AXES_SRC {
-        UP_AXES_DEFAULT,
-        UP_AXES_POSITION,
-        UP_AXES_MOUSE
-    };
 
     void needRefresh(bool p_force);
+    void draw();
+    void resetFlags();
 
+    volatile bool m_updateRequested;
+    volatile bool m_updateInProgress;
+
+    QTimer * m_timeRefresh;
+    qint64 m_lastRequestEpoc;
+
+    QMouseEvent * m_eMouseMove;
+
+    // -- Graph
+    JKQTPGeoLine * m_pPositionLine;
     MyJkQtPlotter* m_pPlotBScan;
     JKQTPDatastore* m_dsBScan;
     JKQTPImpulsesVerticalGraph* m_graphBScan;
 
     size_t m_columnX;
     size_t m_columnY;
-//    qreal * m_pAScanXData;
-//    qreal * m_pAScanYData;
 
-    volatile bool m_updateInProgress;
-
-    QTimer * m_timeRefresh;
-    qint64 m_lastUpdateEpoc;
-
-    QMouseEvent * m_eMouseMove;
-
-    qreal m_lastPositionM;
-    BScanWorker * m_pBScanWorker;
-
-    // -- Graph
-    JKQTPGeoLine * m_pPositionLine;
+    // -- Mouse
     bool m_mouseClicked; ///< if true, graph use click
     qreal m_mouseClickPressX;    ///<  Position where mouse click down
     QPointF m_mouseLastPos;
@@ -172,15 +165,36 @@ private :
     qreal m_axeYMaxMm;
 
     // -- Data
+    qreal m_lastPositionM;
+    BScanWorker * m_pBScanWorker;
+    Surface1d* m_pLastSurface1d;
+
     qint32 m_viewXMode; ///< value in VIEW_X_MODE
     qint32 m_viewYMode; ///< value in VIEW_Y_MODE
-    qreal m_axeXUserMinMm;
-    qreal m_axeXUserMaxMm;
 
+    qreal m_axeXUserMinM;   ///< used if VIEW_X_MODE = VIEW_X_USER, completed by m_axeXScaleM
+    qreal m_axeYUserMinM;   ///< used if VIEW_Y_MODE = VIEW_Y_USER
+    qreal m_axeYUserMaxM;
+
+    // Range of data
     qreal m_surfaceXMinMm;
     qreal m_surfaceXMaxMm;
     qreal m_surfaceYMinMm;
     qreal m_surfaceYMaxMm;
+
+//    // Visible area of BScan
+//    qreal m_viewXMinM;
+//    qreal m_viewXMaxM;
+//    qreal m_viewYMinM;
+//    qreal m_viewYMaxM;
+
+    // draw flags
+    volatile bool m_drawFlagPosition;           ///< position changed since last draw
+    volatile bool m_drawFlagViewXMode;        ///< view X mode changed since last draw
+    volatile bool m_drawFlagViewYMode;        ///< view X mode changed since last draw
+    volatile bool m_drawFlagSurfaceRange;       ///< one of the surface range dimension have changed (m_surfaceX/Y/Min/Max)
+    volatile bool m_drawFlagUserAxeX;          ///< Mouse has moved Axe X
+    volatile bool m_drawFlagUserAxeY;          ///< Mouse has moved Axe X
 
 };
 
@@ -189,11 +203,11 @@ class BScanWorker : public QObject, public Loggable
 {
     Q_OBJECT
 public :
-    BScanWorker(BScanGraph * p_parent, MyJkQtPlotter* p_plotter);
+    BScanWorker(BScanGraph * p_parent);
     ~BScanWorker();
 
     void requestUpdate();
-    void signalDrawDone();
+    void signalPaintDone();
 
 signals :
 
@@ -204,8 +218,7 @@ private slots :
     void onProcessUpdate();
 
 private :
-    BScanGraph * m_parent;
-    MyJkQtPlotter* m_pPlotter;
+    BScanGraph * m_pParent;
     volatile bool m_requestUpdate;
     volatile bool m_processing;
     QThread * m_pThread;
