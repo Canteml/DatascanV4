@@ -27,6 +27,8 @@ const qreal BScanGraph::SCALE_X_M_MIN = 2;
 const qreal BScanGraph::SCALE_X_M_MAX = 200;
 const qreal BScanGraph::SCALE_Y_MM_MAX = 200;
 
+// RENDER MULTI THREAD
+
 BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSettingsLoggable("BScanGraph")
 {
     setAcceptHoverEvents(true);
@@ -49,6 +51,13 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_surfaceXMaxMm = 0;
     m_surfaceYMinMm = 0;
     m_surfaceYMaxMm = 0;
+
+    // Worker
+
+//    m_pBScanWorker = new BScanWorker(this);
+//    connect(m_pBScanWorker, &BScanWorker::evUpdateDone, this, &BScanGraph::onBScanReplotted, Qt::QueuedConnection);
+
+    // -- Scan connect
 
     m_eMouseMove = new QMouseEvent(QEvent::MouseMove, QPointF(), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
 
@@ -76,8 +85,8 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_graphBScan->setXColumn(m_columnX);
     m_graphBScan->setYColumn(m_columnY);
     m_graphBScan->setSymbolType(JKQTPNoSymbol);
-    //m_graphBScan->setColor("#80202020"); // opacity @ 50% => Hight CPU usage
-    m_graphBScan->setColor("#202020");
+    m_graphBScan->setColor("#80202020"); // opacity @ 50% => Hight CPU usage
+    //m_graphBScan->setColor("#202020");
     m_graphBScan->setLineWidth(5);
     m_pPlotBScan->addGraph(m_graphBScan);
     m_pPlotBScan->getPlotter()->setEmittingPlotSignalsEnabled(false);   ///< we manage redraw
@@ -101,14 +110,11 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
 //    m_pPlotAScan->getYAxis()->setAxisLabel("Amplitude (%)");
     m_pPlotBScan->getXAxis()->setDrawMode1(JKQTPCADrawMode::JKQTPCADMLineTicks);
     m_pPlotBScan->getXAxis()->setDrawMode2(JKQTPCADrawMode::JKQTPCADMLineTicksTickLabels);
-
-    //m_pPlotBScan->getYAxis()->setDrawMode1(JKQTPCADrawMode::JKQTPCADMnone);
     m_pPlotBScan->getYAxis()->setDrawMode2(JKQTPCADrawMode::JKQTPCADMLineTicksTickLabels );
-
     m_pPlotBScan->getYAxis()->setInverted(true);
 
     // improve performances
-    m_pPlotBScan->getPlotter()->setUseAntiAliasingForGraphs(false);
+    m_pPlotBScan->getPlotter()->setUseAntiAliasingForGraphs(true);
     m_pPlotBScan->getPlotter()->setUseAntiAliasingForSystem(true);
     m_pPlotBScan->getPlotter()->setUseAntiAliasingForText(false);
 
@@ -128,10 +134,7 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     connect(m_timeRefresh, &QTimer::timeout, this, &BScanGraph::onTimerRefresh, Qt::QueuedConnection);
 
 
-    // Worker
 
-//    m_pBScanWorker = new BScanWorker(this);
-//    connect(m_pBScanWorker, &BScanWorker::evUpdateDone, this, &BScanGraph::onBScanReplotted);
 
 }
 
@@ -145,12 +148,26 @@ BScanGraph::~BScanGraph()
     m_eMouseMove = nullptr;
 }
 
+void BScanGraph::stop()
+{
+//    m_pBScanWorker->stop();
+    disconnect(ExamManager::getInstance(), &ExamManager::evRequestSurfaceUpdate, this, &BScanGraph::onUpdateBScan);
+    m_pLastSurface1d = nullptr;
+    QVector<qreal> v;
+    v.append(0);
+    m_dsBScan->setColumnData(m_columnX, v);
+    m_dsBScan->setColumnData(m_columnY, v);
+}
+
 void BScanGraph::paint(QPainter *painter)
 {
-    m_pPlotBScan->render(painter);
+    //m_pPlotBScan->render(painter);
+    painter->drawImage(QRect(0,0, width(), height()),m_buffer);
     fLogDebug1("done");
     m_updateInProgress = false;
-    //m_pBScanWorker->signalPaintDone();
+//    if( nullptr != m_pBScanWorker ) {
+//        m_pBScanWorker->signalPaintDone();
+//    }
 }
 
 void BScanGraph::onUpdateBScan(Surface1d* p_surface)
@@ -169,10 +186,14 @@ void BScanGraph::processLastSurface()
             }
             qint32 nbCell =  m_pLastSurface1d->getNbCell();
             if( 0 != nbCell ) {
+                m_pLastSurface1d->lockData();
+                // less efficient than addColumn, but should be \_('_')_/
 //                m_dsBScan->setColumnData(m_columnX, *m_pLastSurface1d->getArrayPosition());
 //                m_dsBScan->setColumnData(m_columnY, *m_pLastSurface1d->getArrayMeasure());
                 m_columnX=m_dsBScan->addColumn(m_pLastSurface1d->getArrayPosition()->data(), nbCell, "x");
                 m_columnY=m_dsBScan->addColumn(m_pLastSurface1d->getArrayMeasure()->data(), nbCell, "y");
+                m_pLastSurface1d->unlockData();
+
                 m_graphBScan->setXColumn(m_columnX);
                 m_graphBScan->setYColumn(m_columnY);
 
@@ -197,6 +218,7 @@ void BScanGraph::processLastSurface()
                 }
             }
         } else {
+            // clear scan
             QVector<qreal> v;
             v.append(0);
             m_dsBScan->setColumnData(m_columnX, v);
@@ -220,6 +242,8 @@ void BScanGraph::initAfterItemAdded()
     connect(ExamManager::getInstance(), &ExamManager::evRequestSurfaceUpdate, this, &BScanGraph::onUpdateBScan);
 
     customApplySettings();
+
+    //m_pBScanWorker->start();
 }
 
 // -- Properties
@@ -234,6 +258,7 @@ void BScanGraph::setViewXMode(qint32 p_value)
     if( m_viewXMode != p_value ) {
         m_viewXMode = p_value;
 
+        // manage BScan render function to view to optimize CPU
 //        if( VIEW_X_FULL == m_viewXMode ) {
 //            // reduce CPU usage
 //            m_graphBScan->setColor("#202020"); // opacity @ 50% => Hight CPU usage
@@ -335,38 +360,50 @@ void BScanGraph::needRefresh(bool p_force)
     // timer active => already an update programmed
     if( (!m_timeRefresh->isActive() && !m_updateInProgress) || p_force) {
         qint64 dTime = curEpoc - m_lastRequestEpoc;
-        if( dTime >= 60 || p_force ) {
+        if( dTime >= 20 || p_force ) {
             m_lastRequestEpoc = curEpoc;
             m_updateInProgress = true;
             draw();
             update();
         } else if( !m_timeRefresh->isActive() ){
             // start timer with remaining time
-            m_timeRefresh->start(60 - (dTime));
+            m_timeRefresh->start(20 - (dTime));
         }
     }
 
-    // multithread
-    //m_pBScanWorker->requestUpdate();
+//    if(  nullptr != m_pBScanWorker ) {
+//        m_pBScanWorker->requestUpdate();
+//    }
 }
 
 void BScanGraph::draw()
 {
     // need resize ?
-    if( m_pPlotBScan->width() != width() || m_pPlotBScan->height() != height() ) {
-        m_pPlotBScan->resize(width(), height());
-    } else {
+    if( nullptr != m_pPlotBScan ) {
+        if( m_pPlotBScan->width() != width() || m_pPlotBScan->height() != height() ) {
+            m_pPlotBScan->resize(width(), height());
+        } else {
 
-        //processLastSurface();
-        updateAxes();
+            //processLastSurface(); // multithread
+            updateAxes();
 
-        if( m_drawFlagPosition ) {
-            m_pPositionLine->setX1(m_lastPositionM);
-            m_pPositionLine->setX2(m_lastPositionM);
+            if( m_drawFlagPosition ) {
+                m_pPositionLine->setX1(m_lastPositionM);
+                m_pPositionLine->setX2(m_lastPositionM);
+            }
+            resetFlags();
+
+//            //m_pPlotBScan->redrawPlot();
+
+            if( m_buffer.width() != width() || m_buffer.height() !=  height() ) {
+                m_buffer = QImage(width(), height(), QImage::Format_ARGB32);
+            }
+            qreal magnification = m_pPlotBScan->getMagnification();
+            m_pPlotBScan->getPlotter()->setWidgetSize(jkqtp_roundTo<int>(width()/magnification), jkqtp_roundTo<int>(height()/magnification));
+            JKQTPEnhancedPainter t(&m_buffer);
+            t.scale(magnification, magnification);
+            m_pPlotBScan->getPlotter()->draw(t, QRect(0,0,width(), height()));
         }
-        resetFlags();
-
-        m_pPlotBScan->redrawPlot();
     }
 }
 
@@ -426,21 +463,7 @@ void BScanGraph::onPositionChanged(qreal p_value)
 {
     m_lastPositionM = p_value/1000;
     m_drawFlagPosition = true;
-
-//    qreal xMin = m_pPlotBScan->getXMin();
-//    qreal xMax = m_pPlotBScan->getXMax();
-//    qreal d = abs(xMax - xMin);
-//    qreal v = d*0.2;
-//    if( m_lastPositionM < (xMin+v) || m_lastPositionM < (xMax-v) ) {
-//        updateAxes();
-//    }
-
-//    // update graph
-
-
     needRefresh(false);
-    //updateAxes(UP_AXES_POSITION);
-    //needRefresh(false);
 }
 
 void BScanGraph::onBScanReplotted()
@@ -511,7 +534,6 @@ void BScanGraph::updateAxes()
             if( yMin >= yMax ) {
                 yMin = 0;
             }
-            fLogDebug2(QString("ymin = %1 / ymax = %2").arg(yMin).arg(yMax));
             updateView = true;
         }
     } else if( VIEW_Y_USER == m_viewYMode ) {
@@ -539,9 +561,6 @@ void BScanGraph::updateAxes()
     if( updateView ) {
         m_pPlotBScan->setXY(xMin, xMax, yMin, yMax);
     }
-
-    // reset flags
-
 }
 
 bool BScanGraph::customLoadSettings(QDomElement * p_pParent)
@@ -647,58 +666,63 @@ void BScanGraph::onPlotMouseClicked(double x, double y, Qt::KeyboardModifiers, Q
 
 // ----------------------------
 
-BScanWorker::BScanWorker(BScanGraph * p_parent) : Loggable("BScanWorker")
-{
-    m_pParent = p_parent;
-    m_requestUpdate = false;
-    m_processing = false;
+//BScanWorker::BScanWorker(BScanGraph * p_parent) : Loggable("BScanWorker")
+//{
+//    m_pParent = p_parent;
+//    m_requestUpdate = false;
+//    m_processing = false;
 
-    m_pThread = new QThread();
-    this->moveToThread(m_pThread);
+//    m_pThread = new QThread();
+//    this->moveToThread(m_pThread);
 
-    connect(this, &BScanWorker::evRequestUpdate, this, &BScanWorker::onProcessUpdate);
-    m_pThread->start();
+//    connect(this, &BScanWorker::evRequestUpdate, this, &BScanWorker::onProcessUpdate, Qt::QueuedConnection);
+//}
 
-}
+//BScanWorker::~BScanWorker()
+//{
+//    if(m_pThread->isRunning()) {
+//        m_pThread->quit();
+//        m_pThread->wait(500);
+//    }
+//    delete m_pThread;
+//    m_pThread = nullptr;
+//}
 
-BScanWorker::~BScanWorker()
-{
-    m_pThread->quit();
-    m_pThread->wait(500);
-    delete m_pThread;
-    m_pThread = nullptr;
-}
+//void BScanWorker::requestUpdate()
+//{
+//    if( m_processing ) {
+//        m_requestUpdate = true;
+//    } else {
+//        m_processing = true;
+//        m_requestUpdate = false;
+//        emit evRequestUpdate();
+//    }
+//}
 
-void BScanWorker::requestUpdate()
-{
-    if( m_processing ) {
-        m_requestUpdate = true;
-    } else {
-        m_processing = true;
-        m_requestUpdate = false;
-        emit evRequestUpdate();
-    }
-}
+//void BScanWorker::signalPaintDone()
+//{
+//    if( m_requestUpdate ) {
+//        emit evRequestUpdate();
+//    } else {
+//        m_processing = false;
+//        //fLogDebug2("processing off");
+//    }
+//}
 
-void BScanWorker::signalPaintDone()
-{
-    if( m_requestUpdate ) {
-        emit evRequestUpdate();
-    } else {
-        m_processing = false;
-        fLogDebug2("processing off");
-    }
-}
+//void BScanWorker::start()
+//{
+//    m_pThread->start();
+//}
 
-void BScanWorker::onProcessUpdate()
-{
+//void BScanWorker::stop()
+//{
+//    disconnect(this, &BScanWorker::evRequestUpdate, this, &BScanWorker::onProcessUpdate);
+//    m_pThread->quit();
+//    m_pThread->wait(500);
+//}
 
-    m_pParent->draw();
-    // process replot
-    //m_mutPlotter.lock();
-//    m_parent->processLastSurface();
-//    m_parent->processZoom();
-//    m_pPlotter->redrawPlot();
-    //m_mutPlotter.unlock();
-    emit evUpdateDone();
-}
+//void BScanWorker::onProcessUpdate()
+//{
+//    m_pParent->draw();
+//    emit evUpdateDone();
+//}

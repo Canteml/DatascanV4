@@ -51,10 +51,11 @@ class ScanManager : public QObject, public XmlSettingsLoggable
 
 public :
     ScanManager();
-    ~ScanManager();
+    ~ScanManager();    
 
     void init();
     void initQmlObject(QObject *p_pQmlTopLevel);
+    void stop();
 
     quint32 getSelectedAScanIndex() const;
     void setSelectedAScanIndex(quint32 p_index); ///< value in 0..3

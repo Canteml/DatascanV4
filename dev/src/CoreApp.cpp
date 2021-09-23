@@ -36,7 +36,7 @@ CoreApp::CoreApp() : CoreUiQml("CoreApp")
     m_pStatisticApp = nullptr;
     m_pVectorManager = nullptr;
     m_pVectorStd = nullptr;
-
+    m_pScanManager = nullptr;
     m_pExamManager = nullptr;
     m_pGlobalManager = nullptr;
 }
@@ -127,7 +127,16 @@ void CoreApp::stopApp()
 void CoreApp::deleteApp()
 {
     // delete managers
+    delete m_pScanManager;
+    m_pScanManager = nullptr;
+    delete m_pExamManager;
+    m_pExamManager = nullptr;
+    delete m_pGlobalManager;
+    m_pGlobalManager = nullptr;
+
     m_pVectorManager->quit();
+    delete m_pVectorManager;
+    m_pVectorManager = nullptr;
 
     // -- core delete
     CoreUiQml::deleteApp();

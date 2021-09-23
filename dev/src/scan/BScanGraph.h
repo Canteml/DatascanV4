@@ -29,6 +29,10 @@ class JKQTPGeoLine;
 
 class BScanWorker;
 
+/**
+ * @brief The BScanGraph class
+ *
+ */
 class BScanGraph : public QQuickPaintedItem, public XmlSettingsLoggable
 {
     friend BScanWorker;
@@ -37,6 +41,8 @@ public:
     BScanGraph(QQuickItem *parent = 0);
     ~BScanGraph();
 
+    void stop();
+
     void paint( QPainter* painter) override;
 
     MyJkQtPlotter * getPlot() const;
@@ -44,11 +50,6 @@ public:
     void initAfterItemAdded();
     void processLastSurface();
     void processZoom();
-
-//    void scaleXIn();
-//    void scaleXOut();
-//    void thicknessYIn();
-//    void thicknessYOut();
 
     // -- Properties
 
@@ -166,7 +167,6 @@ private :
 
     // -- Data
     qreal m_lastPositionM;
-    BScanWorker * m_pBScanWorker;
     Surface1d* m_pLastSurface1d;
 
     qint32 m_viewXMode; ///< value in VIEW_X_MODE
@@ -182,12 +182,6 @@ private :
     qreal m_surfaceYMinMm;
     qreal m_surfaceYMaxMm;
 
-//    // Visible area of BScan
-//    qreal m_viewXMinM;
-//    qreal m_viewXMaxM;
-//    qreal m_viewYMinM;
-//    qreal m_viewYMaxM;
-
     // draw flags
     volatile bool m_drawFlagPosition;           ///< position changed since last draw
     volatile bool m_drawFlagViewXMode;        ///< view X mode changed since last draw
@@ -196,30 +190,45 @@ private :
     volatile bool m_drawFlagUserAxeX;          ///< Mouse has moved Axe X
     volatile bool m_drawFlagUserAxeY;          ///< Mouse has moved Axe X
 
+    // -- Render
+//    BScanWorker * m_pBScanWorker;
+    QImage m_buffer;
 };
 
 
-class BScanWorker : public QObject, public Loggable
-{
-    Q_OBJECT
-public :
-    BScanWorker(BScanGraph * p_parent);
-    ~BScanWorker();
+/**
+ * @brief The BScanWorker class
+ *
+ * This class just draw the plot in a separated thread.
+ * There is an QPaintDevice conflict that sometimes does the application crash.
+ * The class JKQTPlotter inherits of QWidget. This is a bad idea to paint QWidget device in a separated thread.
+ * The solution is to use a QImage as buffer to render the draw without use of QWidget.
+ * Everything works fine, but the application crash (Interrupt signal : 11) only when GDB not activated ...
+ */
 
-    void requestUpdate();
-    void signalPaintDone();
+//class BScanWorker : public QObject, public Loggable
+//{
+//    Q_OBJECT
+//public :
+//    BScanWorker(BScanGraph * p_parent);
+//    ~BScanWorker();
 
-signals :
+//    void requestUpdate();
+//    void signalPaintDone();
+//    void start();
+//    void stop();
 
-    void evRequestUpdate();
-    void evUpdateDone();
+//signals :
 
-private slots :
-    void onProcessUpdate();
+//    void evRequestUpdate();
+//    void evUpdateDone();
 
-private :
-    BScanGraph * m_pParent;
-    volatile bool m_requestUpdate;
-    volatile bool m_processing;
-    QThread * m_pThread;
-};
+//private slots :
+//    void onProcessUpdate();
+
+//private :
+//    BScanGraph * m_pParent;
+//    volatile bool m_requestUpdate;
+//    volatile bool m_processing;
+//    QThread * m_pThread;
+//};
