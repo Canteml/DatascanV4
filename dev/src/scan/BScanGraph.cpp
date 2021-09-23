@@ -23,8 +23,8 @@
 #include <v2/vector/VectorFuncPosition.h>
 #include "exam/ExamManager.h"
 
-const qreal BScanGraph::SCALE_X_M_MIN = 2;
-const qreal BScanGraph::SCALE_X_M_MAX = 200;
+const qreal BScanGraph::SCALE_X_M_MIN = 1;
+const qreal BScanGraph::SCALE_X_M_MAX = 10;
 const qreal BScanGraph::SCALE_Y_MM_MAX = 200;
 
 // RENDER MULTI THREAD
@@ -163,7 +163,6 @@ void BScanGraph::paint(QPainter *painter)
 {
     //m_pPlotBScan->render(painter);
     painter->drawImage(QRect(0,0, width(), height()),m_buffer);
-    fLogDebug1("done");
     m_updateInProgress = false;
 //    if( nullptr != m_pBScanWorker ) {
 //        m_pBScanWorker->signalPaintDone();
@@ -243,6 +242,8 @@ void BScanGraph::initAfterItemAdded()
 
     customApplySettings();
 
+    needRefresh(true);
+
     //m_pBScanWorker->start();
 }
 
@@ -270,6 +271,7 @@ void BScanGraph::setViewXMode(qint32 p_value)
 //            m_pPlotBScan->getPlotter()->setUseAntiAliasingForSystem(true);
 //        }
         m_drawFlagViewXMode = true;
+        needRefresh();
         emit evViewXModeChanged(m_viewXMode);
     }
 }
@@ -284,6 +286,7 @@ void BScanGraph::setViewYMode(qint32 p_value)
     if( m_viewYMode != p_value ) {
         m_viewYMode = p_value;
         m_drawFlagViewYMode = true;
+        needRefresh();
         emit evViewYModeChanged(m_viewYMode);
     }
 }
@@ -295,10 +298,17 @@ qreal BScanGraph::getAxeXScaleMm(void) const
 
 void BScanGraph::setAxeXScaleMm(qreal p_value)
 {
+    if( p_value > SCALE_X_M_MAX ) {
+        p_value = SCALE_X_M_MAX;
+    }
+    if( p_value < SCALE_X_M_MIN ) {
+        p_value = SCALE_X_M_MIN;
+    }
     if( m_axeXScaleM != p_value ) {
         m_axeXScaleM = p_value;
+        m_drawFlagScaleX = true;
+        needRefresh();
         emit evAxeXScaleMmChanged(m_axeXScaleM);
-        updateAxes();
     }
 }
 
@@ -309,10 +319,18 @@ qreal BScanGraph::getAxeYMinMm(void) const
 
 void BScanGraph::setAxeYMinMm(qreal p_value)
 {
+    if( p_value < 0 ) {
+        p_value = 0;
+    }
+    if( p_value > m_axeYMaxMm ) {
+        p_value = m_axeYMinMm;
+    }
+
     if( m_axeYMinMm != p_value ) {
         m_axeYMinMm = p_value;
         emit evAxeYMinMmChanged(m_axeYMinMm);
-        updateAxes();
+        m_drawFlagScaleY = true;
+        needRefresh();
     }
 }
 
@@ -323,28 +341,39 @@ qreal BScanGraph::getAxeYMaxMm(void) const
 
 void BScanGraph::setAxeYMaxMm(qreal p_value)
 {
+    if( p_value < m_axeYMinMm ) {
+        p_value = m_axeYMinMm;
+    }
+    if( p_value > SCALE_Y_MM_MAX ) {
+        p_value = SCALE_Y_MM_MAX;
+    }
     if( m_axeYMaxMm != p_value ) {
         m_axeYMaxMm = p_value;
-        emit evAxeYMaxMmChanged(m_axeYMinMm);
-        updateAxes();
+        emit evAxeYMaxMmChanged(m_axeYMinMm);        
+        m_drawFlagScaleY = true;
+        needRefresh();
     }
 }
 
 // -- Actions
 
-void BScanGraph::axeXScaleIn()
-{
-    if( SCALE_X_M_MIN < m_axeXScaleM ) {
-        setAxeXScaleMm(m_axeXScaleM-1);
-    }
-}
+//void BScanGraph::axeXScaleIn()
+//{
+//    if( SCALE_X_M_MIN < m_axeXScaleM ) {
+//        setAxeXScaleMm(m_axeXScaleM-1);
+//        m_drawFlagScaleX = true;
+//        needRefresh();
+//    }
+//}
 
-void BScanGraph::axeXScaleOut()
-{
-    if( SCALE_X_M_MAX > m_axeXScaleM ) {
-        setAxeXScaleMm(m_axeXScaleM+1);
-    }
-}
+//void BScanGraph::axeXScaleOut()
+//{
+//    if( SCALE_X_M_MAX > m_axeXScaleM ) {
+//        setAxeXScaleMm(m_axeXScaleM+1);
+//        m_drawFlagScaleX = true;
+//        needRefresh();
+//    }
+//}
 
 void BScanGraph::routeMouseEvents(QMouseEvent *event)
 {
@@ -358,7 +387,7 @@ void BScanGraph::needRefresh(bool p_force)
 {
     qint64 curEpoc = QDateTime::currentMSecsSinceEpoch();
     // timer active => already an update programmed
-    if( (!m_timeRefresh->isActive() && !m_updateInProgress) || p_force) {
+    if( !m_timeRefresh->isActive() || p_force) {
         qint64 dTime = curEpoc - m_lastRequestEpoc;
         if( dTime >= 20 || p_force ) {
             m_lastRequestEpoc = curEpoc;
@@ -382,6 +411,7 @@ void BScanGraph::draw()
     if( nullptr != m_pPlotBScan ) {
         if( m_pPlotBScan->width() != width() || m_pPlotBScan->height() != height() ) {
             m_pPlotBScan->resize(width(), height());
+            emit evPrivateNeedRefresh();
         } else {
 
             //processLastSurface(); // multithread
@@ -415,6 +445,8 @@ void BScanGraph::resetFlags()
     m_drawFlagSurfaceRange = false;
     m_drawFlagUserAxeX = false;
     m_drawFlagUserAxeY = false;
+    m_drawFlagScaleX = false;
+    m_drawFlagScaleY = false;
 }
 
 
@@ -477,7 +509,7 @@ void BScanGraph::updateAxes()
     bool updateView = false;
 
     if( VIEW_X_AUTO == m_viewXMode || m_drawFlagViewXMode ) {
-        if( m_drawFlagPosition ) {
+        if( m_drawFlagPosition || m_drawFlagScaleX  ) {
             // first compute x bounds
             xMin = m_pPlotBScan->getXMin();
             xMax = m_pPlotBScan->getXMax();
@@ -499,7 +531,7 @@ void BScanGraph::updateAxes()
             }
             updateView = true;
         } else {
-            if( m_drawFlagViewXMode || m_drawFlagViewXMode ) {
+            if( m_drawFlagViewXMode || m_drawFlagViewXMode || m_drawFlagScaleX ) {
                 xMin = m_lastPositionM - m_axeXScaleM/2;
                 xMax = m_lastPositionM + m_axeXScaleM/2;
                 updateView = true;
@@ -507,15 +539,25 @@ void BScanGraph::updateAxes()
         }
 
     } else if( VIEW_X_USER == m_viewXMode ) {
-        if( m_drawFlagUserAxeX ) {
+        if( m_drawFlagUserAxeX || m_drawFlagScaleX ) {
+            if( m_drawFlagScaleX ) {
+                m_axeXUserMinM = m_pPlotBScan->getXMin();// init
+            }
             xMin = m_axeXUserMinM;
             xMax = xMin+m_axeXScaleM;
             updateView = true;
         }
     } else if( VIEW_X_FULL == m_viewXMode ) {
-        if( m_drawFlagSurfaceRange || m_drawFlagViewXMode ) {
+        if( m_drawFlagSurfaceRange || m_drawFlagViewXMode || m_drawFlagScaleX ) {
             xMin = qMin(m_lastPositionM, m_surfaceXMinMm/1000); // convert into M
             xMax = qMax(m_lastPositionM, m_surfaceXMaxMm/1000); // convert into M
+
+            // too small => update
+            qreal delta = xMax - xMin;
+            if( delta<m_axeXScaleM ) {
+                xMin = xMin + delta/2 - m_axeXScaleM/2;
+                xMax = xMin + m_axeXScaleM;
+            }
             qreal margin = (xMax - xMin)/100;
             xMin -= margin;
             xMax += margin;
@@ -537,7 +579,7 @@ void BScanGraph::updateAxes()
             updateView = true;
         }
     } else if( VIEW_Y_USER == m_viewYMode ) {
-        if( m_drawFlagUserAxeY || m_drawFlagViewYMode ) {
+        if( m_drawFlagUserAxeY || m_drawFlagViewYMode || m_drawFlagScaleY) {
             yMin = m_axeYMinMm;
             yMax = m_axeYMaxMm;
             updateView = true;

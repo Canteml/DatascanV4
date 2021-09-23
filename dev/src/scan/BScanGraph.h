@@ -70,8 +70,8 @@ public:
 
     // -- Actions
 
-    void axeXScaleIn();
-    void axeXScaleOut();
+//    void axeXScaleIn();
+//    void axeXScaleOut();
 
     void updateAxes();
 
@@ -131,7 +131,7 @@ private slots :
 
 private :
 
-    void needRefresh(bool p_force);
+    void needRefresh(bool p_force = false);
     void draw();
     void resetFlags();
 
@@ -188,7 +188,10 @@ private :
     volatile bool m_drawFlagViewYMode;        ///< view X mode changed since last draw
     volatile bool m_drawFlagSurfaceRange;       ///< one of the surface range dimension have changed (m_surfaceX/Y/Min/Max)
     volatile bool m_drawFlagUserAxeX;          ///< Mouse has moved Axe X
-    volatile bool m_drawFlagUserAxeY;          ///< Mouse has moved Axe X
+    volatile bool m_drawFlagUserAxeY;          ///< Mouse has moved Axe Y
+    volatile bool m_drawFlagScaleX;          ///< m_axeXScaleM has been changed
+    volatile bool m_drawFlagScaleY;          ///< m_axeYMinMm or m_axeYMaxMm have been changed
+
 
     // -- Render
 //    BScanWorker * m_pBScanWorker;
