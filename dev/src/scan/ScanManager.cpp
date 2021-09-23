@@ -40,6 +40,8 @@ ScanManager::ScanManager() : XmlSettingsLoggable("ScanManger")
 
 ScanManager::~ScanManager()
 {
+    stop();
+
     if( nullptr != m_pGate0) {
         delete m_pGate0;
         m_pGate0 = nullptr;
@@ -90,6 +92,13 @@ void ScanManager::initQmlObject(QObject * p_pQmlTopLevel)
         m_pBScanGraphMain->initAfterItemAdded();
     }
 
+}
+
+void ScanManager::stop()
+{
+    if( nullptr != m_pBScanGraphMain ) {
+        m_pBScanGraphMain->stop();
+    }
 }
 
 quint32 ScanManager::getSelectedAScanIndex() const
