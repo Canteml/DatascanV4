@@ -45,7 +45,7 @@ class ScanManager : public QObject, public XmlSettingsLoggable
     // -- BSCAN
     Q_PROPERTY(quint32 BScanViewXMode READ getBScanViewXMode WRITE setBScanViewXMode NOTIFY evBScanViewXModeChanged)
     Q_PROPERTY(quint32 BScanViewYMode READ getBScanViewYMode WRITE setBScanViewYMode NOTIFY evBScanViewYModeChanged)
-    Q_PROPERTY(qreal BScanAxeXScaleMm READ getBScanAxeXScaleMm WRITE setBScanAxeXScaleMm NOTIFY evBScanAxeXScaleMmChanged)
+    Q_PROPERTY(qreal BScanAxeXScaleM READ getBScanAxeXScaleM WRITE setBScanAxeXScaleM NOTIFY evBScanAxeXScaleMChanged)
     Q_PROPERTY(qreal BScanAxeYMinMm READ getBScanAxeYMinMm WRITE setBScanAxeYMinMm NOTIFY evBScanAxeYMinMmChanged)
     Q_PROPERTY(qreal BScanAxeYMaxMm READ getBScanAxeYMaxMm WRITE setBScanAxeYMaxMm NOTIFY evBScanAxeYMaxMmChanged)
 
@@ -80,8 +80,8 @@ public :
     qint32 getBScanViewYMode(void) const;
     void setBScanViewYMode(quint32 p_value);
 
-    qreal getBScanAxeXScaleMm(void) const;
-    void setBScanAxeXScaleMm(qreal p_value);
+    qreal getBScanAxeXScaleM(void) const;
+    void setBScanAxeXScaleM(qreal p_value);
 
     qreal getBScanAxeYMinMm(void) const;
     void setBScanAxeYMinMm(qreal p_value);
@@ -89,8 +89,8 @@ public :
     qreal getBScanAxeYMaxMm(void) const;
     void setBScanAxeYMaxMm(qreal p_value);
 
-    Q_INVOKABLE void bscanAxeXScaleIn();
-    Q_INVOKABLE void bscanAxeXScaleOut();
+//    Q_INVOKABLE void bscanAxeXScaleIn();
+//    Q_INVOKABLE void bscanAxeXScaleOut();
 
 //    Q_INVOKABLE void bscanZoneAdd();
 //    Q_INVOKABLE void bscanZoneRemove();
@@ -102,7 +102,7 @@ signals :
 
     void evBScanViewXModeChanged(qint32);
     void evBScanViewYModeChanged(qint32);
-    void evBScanAxeXScaleMmChanged(qreal);
+    void evBScanAxeXScaleMChanged(qreal);
     void evBScanAxeYMinMmChanged(qreal);
     void evBScanAxeYMaxMmChanged(qreal);
 
@@ -112,7 +112,7 @@ private slots :
 
     void onPrivateBScanViewXModeChanged(qint32);
     void onPrivateBScanViewYModeChanged(qint32);
-    void onPrivateBScanAxeXScaleMmChanged(qreal);
+    void onPrivateBScanAxeXScaleMChanged(qreal);
     void onPrivateBScanAxeYMinMmChanged(qreal);
     void onPrivateBScanAxeYMaxMmChanged(qreal);
 

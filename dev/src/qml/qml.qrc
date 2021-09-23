@@ -55,5 +55,7 @@
         <file>icons/btArrow_hover.png</file>
         <file>icons/btArrow_select.png</file>
         <file>icons/btArrow_std.png</file>
+        <file>icons/iconPlus.png</file>
+        <file>icons/iconTrash.png</file>
     </qresource>
 </RCC>

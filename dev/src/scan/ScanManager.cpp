@@ -84,7 +84,7 @@ void ScanManager::initQmlObject(QObject * p_pQmlTopLevel)
         // Proxy connections
         connect(m_pBScanGraphMain, &BScanGraph::evViewXModeChanged, this, &ScanManager::onPrivateBScanViewXModeChanged);
         connect(m_pBScanGraphMain, &BScanGraph::evViewYModeChanged, this, &ScanManager::onPrivateBScanViewYModeChanged);
-        connect(m_pBScanGraphMain, &BScanGraph::evAxeXScaleMmChanged, this, &ScanManager::onPrivateBScanAxeXScaleMmChanged);
+        connect(m_pBScanGraphMain, &BScanGraph::evAxeXScaleMmChanged, this, &ScanManager::onPrivateBScanAxeXScaleMChanged);
         connect(m_pBScanGraphMain, &BScanGraph::evAxeYMinMmChanged, this, &ScanManager::onPrivateBScanAxeYMinMmChanged);
         connect(m_pBScanGraphMain, &BScanGraph::evAxeYMaxMmChanged, this, &ScanManager::onPrivateBScanAxeYMaxMmChanged);
 
@@ -179,7 +179,7 @@ void ScanManager::setBScanViewYMode(quint32 p_value)
     }
 }
 
-qreal ScanManager::getBScanAxeXScaleMm(void) const
+qreal ScanManager::getBScanAxeXScaleM(void) const
 {
     if( nullptr != m_pBScanGraphMain ) {
         return m_pBScanGraphMain->getAxeXScaleMm();
@@ -187,7 +187,7 @@ qreal ScanManager::getBScanAxeXScaleMm(void) const
     return BScanGraph::SCALE_X_M_MIN;
 }
 
-void ScanManager::setBScanAxeXScaleMm(qreal p_value)
+void ScanManager::setBScanAxeXScaleM(qreal p_value)
 {
     if( nullptr != m_pBScanGraphMain ) {
         return m_pBScanGraphMain->setAxeXScaleMm(p_value);
@@ -224,19 +224,19 @@ void ScanManager::setBScanAxeYMaxMm(qreal p_value)
     }
 }
 
-void ScanManager::bscanAxeXScaleIn()
-{
-    if( nullptr != m_pBScanGraphMain ) {
-        m_pBScanGraphMain->axeXScaleIn();
-    }
-}
+//void ScanManager::bscanAxeXScaleIn()
+//{
+//    if( nullptr != m_pBScanGraphMain ) {
+//        m_pBScanGraphMain->axeXScaleIn();
+//    }
+//}
 
-void ScanManager::bscanAxeXScaleOut()
-{
-    if( nullptr != m_pBScanGraphMain ) {
-        m_pBScanGraphMain->axeXScaleOut();
-    }
-}
+//void ScanManager::bscanAxeXScaleOut()
+//{
+//    if( nullptr != m_pBScanGraphMain ) {
+//        m_pBScanGraphMain->axeXScaleOut();
+//    }
+//}
 
 void ScanManager::onNewAScanTreated(AScan * p_pAscan)
 {
@@ -268,9 +268,9 @@ void ScanManager::onPrivateBScanViewYModeChanged(qint32 p_value)
     emit evBScanViewYModeChanged(p_value);
 }
 
-void ScanManager::onPrivateBScanAxeXScaleMmChanged(qreal p_value)
+void ScanManager::onPrivateBScanAxeXScaleMChanged(qreal p_value)
 {
-    emit evBScanAxeXScaleMmChanged(p_value);
+    emit evBScanAxeXScaleMChanged(p_value);
 }
 
 void ScanManager::onPrivateBScanAxeYMinMmChanged(qreal p_value)
