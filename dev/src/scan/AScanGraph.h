@@ -16,8 +16,6 @@
 #include <xml/XmlSettingsLoggable.h>
 #include <jkPlot/MyJkQtPlotter.h>
 #include <v2/scan/AScan.h>
-class AScanGraphWorker;
-
 // -- External includes
 #include <jkqtplotter/jkqtplotter.h>
 #include <jkqtplotter/graphs/jkqtpgeometric.h>
@@ -27,8 +25,11 @@ class JKQTPGeoLine;
 #include <QtQuick>
 #include <QThread>
 
+class AScanGraphWorker;
+
 class AScanGraph : public QQuickPaintedItem, public XmlSettingsLoggable
 {
+    friend AScanGraphWorker;
     Q_OBJECT
 public:
     AScanGraph(QQuickItem *parent = 0);
@@ -71,11 +72,14 @@ private slots :
     void onUpdateWidgetSize();
     void onTimerRefresh();
 
+    void onAScanReplotted();
+
     void onPlotMouseMove(double, double);
     void onPlotMouseClicked(double, double, Qt::KeyboardModifiers, Qt::MouseButton);
 
 private :
     void needRefresh(bool p_force);
+    void draw();
 
     MyJkQtPlotter *m_pPlotAScan;
     JKQTPDatastore* m_dsAScan;
@@ -90,8 +94,6 @@ private :
 
     QTimer * m_timeRefresh;
     qint64 m_lastUpdateEpoc;
-    AScanGraphWorker * m_pAScanGraphWorker;
-
     QMouseEvent * m_eMouseMove;
 
     // -- Graph
@@ -106,4 +108,38 @@ private :
     // -- Settings
     qreal m_AxeXMin;
     qreal m_AxeXMax;
+
+    // -- Render
+    AScanGraphWorker * m_pAScanGraphWorker;
+    QImage m_buffer;
 };
+
+// ---------------------------
+
+class AScanGraphWorker : public QObject, public Loggable
+{
+    Q_OBJECT
+public :
+    AScanGraphWorker(AScanGraph * p_parent);
+    ~AScanGraphWorker();
+
+    void requestUpdate();
+    void signalPaintDone();
+    void start();
+    void stop();
+
+signals :
+
+    void evRequestUpdate();
+    void evUpdateDone();
+
+private slots :
+    void onProcessUpdate();
+
+private :
+    AScanGraph * m_pParent;
+    volatile bool m_requestUpdate;
+    volatile bool m_processing;
+    QThread * m_pThread;
+};
+
