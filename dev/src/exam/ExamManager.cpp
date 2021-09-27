@@ -43,7 +43,7 @@ ExamManager::~ExamManager()
 
     // delete all locations
     if( !m_lLocation1d.isEmpty() ) {
-        for(auto i : m_lLocation1d) {
+        for(auto i : qAsConst(m_lLocation1d)) {
             i->setRecord(false);
             i->clearAScan();
             delete i;
@@ -491,7 +491,7 @@ void ExamManager::initControl()
 
     // delete all locations
     if( !m_lLocation1d.isEmpty() ) {
-        for(auto i : m_lLocation1d) {
+        for(auto i : qAsConst(m_lLocation1d)) {
             i->setRecord(false);
             i->clearAScan();
             delete i;

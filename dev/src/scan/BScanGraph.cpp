@@ -172,7 +172,6 @@ void BScanGraph::paint(QPainter *painter)
 
 void BScanGraph::onUpdateBScan(Surface1d* p_surface)
 {
-    fLogDebug1("new BSCAN");
     m_pLastSurface1d = p_surface;
     processLastSurface();
     needRefresh(false);

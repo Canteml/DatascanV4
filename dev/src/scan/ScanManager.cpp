@@ -96,6 +96,9 @@ void ScanManager::initQmlObject(QObject * p_pQmlTopLevel)
 
 void ScanManager::stop()
 {
+    if( nullptr != m_pAScanGraphMain ) {
+        m_pAScanGraphMain->stop();
+    }
     if( nullptr != m_pBScanGraphMain ) {
         m_pBScanGraphMain->stop();
     }
