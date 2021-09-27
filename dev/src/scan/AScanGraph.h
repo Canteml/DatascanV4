@@ -36,6 +36,7 @@ public:
     ~AScanGraph();
 
     void paint( QPainter* painter) override;
+    void stop();
 
     void updateAScan(AScan *);
 

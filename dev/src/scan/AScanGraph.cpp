@@ -156,6 +156,12 @@ void AScanGraph::paint(QPainter *painter)
     }
 }
 
+void AScanGraph::stop()
+{
+    m_pAScanGraphWorker->stop();
+
+}
+
 void AScanGraph::updateAScan(AScan * p_pAScan)
 {
     if( !m_mouseClicked ) {
@@ -188,6 +194,8 @@ void AScanGraph::initAfterItemAdded()
     connect(m_pPlotAScan, SIGNAL(plotMouseClicked(double, double, Qt::KeyboardModifiers , Qt::MouseButton)), this, SLOT(onPlotMouseClicked(double, double, Qt::KeyboardModifiers, Qt::MouseButton)));
 
     m_pAScanGraphWorker->start();
+
+    needRefresh(false);
 }
 
 void AScanGraph::zoomIn()
@@ -261,7 +269,7 @@ void AScanGraph::needRefresh(bool p_force)
 {
     qint64 curEpoc = QDateTime::currentMSecsSinceEpoch();
     // timer active => already an update programmed
-    if( (!m_timeRefresh->isActive() && !m_updateInProgress) || p_force) {
+    if( !m_timeRefresh->isActive() || p_force) {
         qint64 dTime = curEpoc - m_lastUpdateEpoc;
         if( dTime >= 60 || p_force ) {
             m_updateInProgress = true;
@@ -280,9 +288,9 @@ void AScanGraph::needRefresh(bool p_force)
 void AScanGraph::draw()
 {
     // need resize ?
-    if( m_pPlotAScan->width() != width() || m_pPlotAScan->height() != height() ) {
-        m_pPlotAScan->resize(width(), height());
-    }
+//    if( m_pPlotAScan->width() != width() || m_pPlotAScan->height() != height() ) {
+//        m_pPlotAScan->resize(width(), height());
+//    }
     // update replot time
     //m_lastUpdateEpoc = QDateTime::currentMSecsSinceEpoch();
     // process replot
