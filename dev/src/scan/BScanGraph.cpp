@@ -35,6 +35,7 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     setFlag( QQuickItem::ItemHasContents, true );
     setFlag( QQuickItem::ItemAcceptsInputMethod, true);
     setAcceptedMouseButtons( Qt::AllButtons );
+    setRenderTarget(QQuickPaintedItem::FramebufferObject);
     m_updateInProgress = false;
     m_mouseClicked = false;
     m_mouseClickPressX = 0;
@@ -161,8 +162,8 @@ void BScanGraph::stop()
 
 void BScanGraph::paint(QPainter *painter)
 {
-    //m_pPlotBScan->render(painter);
-    painter->drawImage(QRect(0,0, width(), height()),m_buffer);
+    m_pPlotBScan->render(painter);
+    //painter->drawImage(QRect(0,0, width(), height()),m_buffer);
     m_updateInProgress = false;
 //    if( nullptr != m_pBScanWorker ) {
 //        m_pBScanWorker->signalPaintDone();
@@ -171,6 +172,7 @@ void BScanGraph::paint(QPainter *painter)
 
 void BScanGraph::onUpdateBScan(Surface1d* p_surface)
 {
+    fLogDebug1("new BSCAN");
     m_pLastSurface1d = p_surface;
     processLastSurface();
     needRefresh(false);
@@ -389,14 +391,14 @@ void BScanGraph::needRefresh(bool p_force)
     // timer active => already an update programmed
     if( !m_timeRefresh->isActive() || p_force) {
         qint64 dTime = curEpoc - m_lastRequestEpoc;
-        if( dTime >= 20 || p_force ) {
+        if( dTime >= 50 || p_force ) {
             m_lastRequestEpoc = curEpoc;
             m_updateInProgress = true;
             draw();
             update();
         } else if( !m_timeRefresh->isActive() ){
             // start timer with remaining time
-            m_timeRefresh->start(20 - (dTime));
+            m_timeRefresh->start(50 - (dTime));
         }
     }
 
@@ -423,16 +425,16 @@ void BScanGraph::draw()
             }
             resetFlags();
 
-//            //m_pPlotBScan->redrawPlot();
+            m_pPlotBScan->redrawPlot();
 
-            if( m_buffer.width() != width() || m_buffer.height() !=  height() ) {
-                m_buffer = QImage(width(), height(), QImage::Format_ARGB32);
-            }
-            qreal magnification = m_pPlotBScan->getMagnification();
-            m_pPlotBScan->getPlotter()->setWidgetSize(jkqtp_roundTo<int>(width()/magnification), jkqtp_roundTo<int>(height()/magnification));
-            JKQTPEnhancedPainter t(&m_buffer);
-            t.scale(magnification, magnification);
-            m_pPlotBScan->getPlotter()->draw(t, QRect(0,0,width(), height()));
+//            if( m_buffer.width() != width() || m_buffer.height() !=  height() ) {
+//                m_buffer = QImage(width(), height(), QImage::Format_ARGB32);
+//            }
+//            qreal magnification = m_pPlotBScan->getMagnification();
+//            m_pPlotBScan->getPlotter()->setWidgetSize(jkqtp_roundTo<int>(width()/magnification), jkqtp_roundTo<int>(height()/magnification));
+//            JKQTPEnhancedPainter t(&m_buffer);
+//            t.scale(magnification, magnification);
+//            m_pPlotBScan->getPlotter()->draw(t, QRect(0,0,width(), height()));
         }
     }
 }
@@ -664,7 +666,7 @@ void BScanGraph::onThreadFinished()
 void BScanGraph::onUpdateWidgetSize()
 {
     // update replot time to get a delay
-    m_lastRequestEpoc = QDateTime::currentMSecsSinceEpoch();
+    //m_lastRequestEpoc = QDateTime::currentMSecsSinceEpoch();
     needRefresh(false);
 }
 

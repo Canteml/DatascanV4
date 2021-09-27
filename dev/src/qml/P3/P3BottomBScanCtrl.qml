@@ -130,8 +130,8 @@ Rectangle {
                 }
 
                 icon.source: "qrc:///img/icons/iconTrash.png"
-                icon.width: idBtBScanZoneRemove.width
-                icon.height: idBtBScanZoneRemove.width
+                //icon.width: idBtBScanZoneRemove.width
+                //icon.height: idBtBScanZoneRemove.width
                 icon.color: "transparent"
                 padding: -1
 
@@ -158,8 +158,8 @@ Rectangle {
                 }
 
                 icon.source: "qrc:///img/icons/iconPlus.png"
-                icon.width: idBtBScanZoneAdd.width
-                icon.height: idBtBScanZoneAdd.width
+                //icon.width: idBtBScanZoneAdd.width
+                //icon.height: idBtBScanZoneAdd.width
                 icon.color: "transparent"
                 padding: 1
 

@@ -24,11 +24,17 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     setFlag( QQuickItem::ItemHasContents, true );
     setFlag( QQuickItem::ItemAcceptsInputMethod, true);
     setAcceptedMouseButtons( Qt::AllButtons );
+    setRenderTarget(QQuickPaintedItem::FramebufferObject);
     m_updateInProgress = false;
     m_mouseClicked = false;
     m_mouseClickPressX = 0;
     m_AxeXMin = 0;
     m_AxeXMax = 100;
+
+    // Worker
+
+    m_pAScanGraphWorker = new AScanGraphWorker(this);
+    connect(m_pAScanGraphWorker, &AScanGraphWorker::evUpdateDone, this, &AScanGraph::onAScanReplotted, Qt::QueuedConnection);
 
     m_eMouseMove = new QMouseEvent(QEvent::MouseMove, QPointF(), Qt::NoButton, Qt::NoButton, Qt::NoModifier);
 
@@ -123,6 +129,8 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
 
 AScanGraph::~AScanGraph()
 {
+    delete m_pAScanGraphWorker;
+    m_pAScanGraphWorker = nullptr;
     m_pPlotAScan->deleteLater();
     m_pPlotAScan = nullptr;
     delete m_eMouseMove;
@@ -131,16 +139,21 @@ AScanGraph::~AScanGraph()
 
 void AScanGraph::paint(QPainter *painter)
 {
-    // need resize ?
-    if( m_pPlotAScan->width() != width() || m_pPlotAScan->height() != height() ) {
-        m_pPlotAScan->resize(width(), height());
-    }
-    // update replot time
-    //m_lastUpdateEpoc = QDateTime::currentMSecsSinceEpoch();
-    // process replot
-    m_pPlotAScan->redrawPlot();
-    m_pPlotAScan->render(painter);
+//    // need resize ?
+//    if( m_pPlotAScan->width() != width() || m_pPlotAScan->height() != height() ) {
+//        m_pPlotAScan->resize(width(), height());
+//    }
+//    // update replot time
+//    //m_lastUpdateEpoc = QDateTime::currentMSecsSinceEpoch();
+//    // process replot
+//    m_pPlotAScan->redrawPlot();
+
+    //m_pPlotAScan->render(painter);
+    painter->drawImage(QRect(0,0, width(), height()),m_buffer);
     m_updateInProgress = false;
+    if( nullptr != m_pAScanGraphWorker ) {
+        m_pAScanGraphWorker->signalPaintDone();
+    }
 }
 
 void AScanGraph::updateAScan(AScan * p_pAScan)
@@ -173,6 +186,8 @@ void AScanGraph::initAfterItemAdded()
     // -- mouse
     connect(m_pPlotAScan, SIGNAL(plotMouseMove(double, double)), this, SLOT(onPlotMouseMove(double, double)));
     connect(m_pPlotAScan, SIGNAL(plotMouseClicked(double, double, Qt::KeyboardModifiers , Qt::MouseButton)), this, SLOT(onPlotMouseClicked(double, double, Qt::KeyboardModifiers, Qt::MouseButton)));
+
+    m_pAScanGraphWorker->start();
 }
 
 void AScanGraph::zoomIn()
@@ -251,12 +266,35 @@ void AScanGraph::needRefresh(bool p_force)
         if( dTime >= 60 || p_force ) {
             m_updateInProgress = true;
             m_lastUpdateEpoc = curEpoc;
-            update();
+            //update();
+            if(  nullptr != m_pAScanGraphWorker ) {
+                m_pAScanGraphWorker->requestUpdate();
+            }
         } else if( !m_timeRefresh->isActive() ){
             // start timer with remaining time
             m_timeRefresh->start(60 - (dTime));
         }
     }
+}
+
+void AScanGraph::draw()
+{
+    // need resize ?
+    if( m_pPlotAScan->width() != width() || m_pPlotAScan->height() != height() ) {
+        m_pPlotAScan->resize(width(), height());
+    }
+    // update replot time
+    //m_lastUpdateEpoc = QDateTime::currentMSecsSinceEpoch();
+    // process replot
+    //m_pPlotAScan->redrawPlot();
+    if( m_buffer.width() != width() || m_buffer.height() !=  height() ) {
+        m_buffer = QImage(width(), height(), QImage::Format_RGB32);
+    }
+    qreal magnification = m_pPlotAScan->getMagnification();
+    m_pPlotAScan->getPlotter()->setWidgetSize(jkqtp_roundTo<int>(width()/magnification), jkqtp_roundTo<int>(height()/magnification));
+    JKQTPEnhancedPainter t(&m_buffer);
+    t.scale(magnification, magnification);
+    m_pPlotAScan->getPlotter()->draw(t, QRect(0,0,width(), height()));
 }
 
 
@@ -363,6 +401,11 @@ void AScanGraph::onTimerRefresh()
     needRefresh(false);
 }
 
+void AScanGraph::onAScanReplotted()
+{
+    update();
+}
+
 void AScanGraph::onPlotMouseMove(double x, double y)
 {
     m_mouseLastPos = QPointF(x,y);
@@ -401,3 +444,68 @@ void AScanGraph::onPlotMouseClicked(double x, double y, Qt::KeyboardModifiers, Q
         m_mouseClickPressAxeXMax = m_AxeXMax;
     }
 }
+
+
+// ----------------------------
+
+AScanGraphWorker::AScanGraphWorker(AScanGraph * p_parent) : Loggable("AScanGraphWorker")
+{
+    m_pParent = p_parent;
+    m_requestUpdate = false;
+    m_processing = false;
+
+    m_pThread = new QThread();
+    this->moveToThread(m_pThread);
+
+    connect(this, &AScanGraphWorker::evRequestUpdate, this, &AScanGraphWorker::onProcessUpdate, Qt::QueuedConnection);
+}
+
+AScanGraphWorker::~AScanGraphWorker()
+{
+    if(m_pThread->isRunning()) {
+        m_pThread->quit();
+        m_pThread->wait(500);
+    }
+    delete m_pThread;
+    m_pThread = nullptr;
+}
+
+void AScanGraphWorker::requestUpdate()
+{
+    if( m_processing ) {
+        m_requestUpdate = true;
+    } else {
+        m_processing = true;
+        m_requestUpdate = false;
+        emit evRequestUpdate();
+    }
+}
+
+void AScanGraphWorker::signalPaintDone()
+{
+    if( m_requestUpdate ) {
+        emit evRequestUpdate();
+    } else {
+        m_processing = false;
+        //fLogDebug2("processing off");
+    }
+}
+
+void AScanGraphWorker::start()
+{
+    m_pThread->start();
+}
+
+void AScanGraphWorker::stop()
+{
+    disconnect(this, &AScanGraphWorker::evRequestUpdate, this, &AScanGraphWorker::onProcessUpdate);
+    m_pThread->quit();
+    m_pThread->wait(500);
+}
+
+void AScanGraphWorker::onProcessUpdate()
+{
+    m_pParent->draw();
+    emit evUpdateDone();
+}
+
