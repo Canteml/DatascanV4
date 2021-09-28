@@ -89,11 +89,6 @@ public :
     qreal getBScanAxeYMaxMm(void) const;
     void setBScanAxeYMaxMm(qreal p_value);
 
-//    Q_INVOKABLE void bscanAxeXScaleIn();
-//    Q_INVOKABLE void bscanAxeXScaleOut();
-
-//    Q_INVOKABLE void bscanZoneAdd();
-//    Q_INVOKABLE void bscanZoneRemove();
 
 signals :
     void evSelectedAScanIndexChanged(quint32);

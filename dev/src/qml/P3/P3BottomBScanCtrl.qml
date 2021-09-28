@@ -136,7 +136,7 @@ Rectangle {
                 padding: -1
 
                 onPressed: {
-                    //scanManager.ascanZoomOut()
+                    examManager.zoneRemoveLast();
                 }
             }
 
@@ -164,7 +164,7 @@ Rectangle {
                 padding: 1
 
                 onPressed: {
-                    //scanManager.ascanZoomIn()
+                    examManager.zoneAddToCurrentPosition();
                 }
             }   
         }
@@ -179,18 +179,14 @@ Rectangle {
             Layout.rightMargin: 5
 
             background: Rectangle {
-                color: (idBtZoneAuto.pressed || scanManager.BScanViewYMode === 0) ? Design.colBlueSelected : idBtZoneAuto.hovered ? Design.colBlueHovered : Design.colButtonBackground
+                color: (idBtZoneAuto.pressed || examManager.zoneAuto === true) ? Design.colBlueSelected : idBtZoneAuto.hovered ? Design.colBlueHovered : Design.colButtonBackground
                 border.width: 1
                 border.color: Design.colFrameBorder
             }
 
-//                onPressed: {
-//                    if( scanManager.BScanViewYMode !== 0 ) {
-//                        scanManager.BScanViewYMode = 0; // AUTO
-//                    } else {
-//                        scanManager.BScanViewYMode = 1; // USER
-//                    }
-//                }
+            onPressed: {
+                examManager.zoneAuto = 1 -examManager.zoneAuto;
+            }
         }
 
         Item {

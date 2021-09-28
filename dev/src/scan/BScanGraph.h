@@ -16,6 +16,7 @@
 #include <xml/XmlSettingsLoggable.h>
 #include <jkPlot/MyJkQtPlotter.h>
 class Surface1d;
+class Location1d;
 
 // -- External includes
 #include <jkqtplotter/jkqtplotter.h>
@@ -126,6 +127,7 @@ private slots :
 
     void onUpdateBScan(Surface1d* p_surface);
     void onPositionChanged(qreal);
+    void onUpdateLocationZone(Location1d* p_location);
 
     void onBScanReplotted();
 
@@ -134,6 +136,7 @@ private :
     void needRefresh(bool p_force = false);
     void draw();
     void resetFlags();
+    void deleteZones();
 
     volatile bool m_updateRequested;
     volatile bool m_updateInProgress;
@@ -147,7 +150,8 @@ private :
     JKQTPGeoLine * m_pPositionLine;
     MyJkQtPlotter* m_pPlotBScan;
     JKQTPDatastore* m_dsBScan;
-    JKQTPImpulsesVerticalGraph* m_graphBScan;
+    JKQTPImpulsesVerticalGraph* m_graphBScan;    
+    QList<JKQTPGeoLine *> m_lZoneLine;
 
     size_t m_columnX;
     size_t m_columnY;

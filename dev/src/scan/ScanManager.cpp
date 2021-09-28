@@ -15,10 +15,11 @@
 #include <v2/vector/VectorStd.h>
 #include <v2/vector/VectorManager.h>
 #include <v2/vector/VectorFuncAScan.h>
+#include <v2/scan/Location1d.h>
 #include <scan/AScanGraph.h>
 #include <scan/BScanGraph.h>
 #include "jkPlot/JkGate.h"
-#include "exam/ExamManager.h"
+#include <v2/exam/ExamManager.h>
 
 // -- Qt Includes
 #include <QQmlApplicationEngine>
