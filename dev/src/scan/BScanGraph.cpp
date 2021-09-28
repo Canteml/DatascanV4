@@ -426,10 +426,9 @@ void BScanGraph::draw()
                 // on cherche une largeur donnant des barres jointives sans recouvrement pour avoir
                 // un rendu uniforme sans utiliser l'anti-aliasing :
                 qreal r = wp/((m_axeXScaleM*1000)/m_pLastSurface1d->getResolution());
-                fLogDebug1(QString("Width = %1, axeX = %2, res = %3, r = %4").arg(wp).arg(m_axeXScaleM).arg(m_pLastSurface1d->getResolution()).arg(r));
+                // take care of DPI because line width is set in Point (not in pixel as we want)
                 qreal dpi = QGuiApplication::primaryScreen()->logicalDotsPerInch();
                 r= r*72/dpi;
-                fLogDebug1(QString("new r = %1").arg(r));
                 if( r != m_graphBScan->getLineWidth() ) {
                     m_graphBScan->setLineWidth(r);
                 }
