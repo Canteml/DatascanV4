@@ -13,6 +13,8 @@
 // -- Internal includes
 #include "BScanGraph.h"
 #include <v2/scan/Surface1d.h>
+#include <v2/scan/Location1d.h>
+#include <v2/scan/Zone1d.h>
 
 #include <jkqtplotter/graphs/jkqtpgeometric.h>
 
@@ -21,7 +23,7 @@
 #include <v2/vector/VectorManager.h>
 #include <v2/vector/VectorStd.h>
 #include <v2/vector/VectorFuncPosition.h>
-#include "exam/ExamManager.h"
+#include <v2/exam/ExamManager.h>
 
 const qreal BScanGraph::SCALE_X_M_MIN = 1;
 const qreal BScanGraph::SCALE_X_M_MAX = 10;
@@ -88,7 +90,7 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_graphBScan->setSymbolType(JKQTPNoSymbol);
     m_graphBScan->setColor("#80202020"); // opacity @ 50% => Hight CPU usage
     //m_graphBScan->setColor("#202020");
-    m_graphBScan->setLineWidth(5);
+    m_graphBScan->setLineWidth(1);
     m_pPlotBScan->addGraph(m_graphBScan);
     m_pPlotBScan->getPlotter()->setEmittingPlotSignalsEnabled(false);   ///< we manage redraw
 
@@ -153,6 +155,7 @@ void BScanGraph::stop()
 {
 //    m_pBScanWorker->stop();
     disconnect(ExamManager::getInstance(), &ExamManager::evRequestSurfaceUpdate, this, &BScanGraph::onUpdateBScan);
+    disconnect(ExamManager::getInstance(), &ExamManager::evRequestLocationZoneUpdate, this, &BScanGraph::onUpdateLocationZone);
     m_pLastSurface1d = nullptr;
     QVector<qreal> v;
     v.append(0);
@@ -181,9 +184,6 @@ void BScanGraph::processLastSurface()
 {
     if( !m_mouseClicked ) {
         if( nullptr != m_pLastSurface1d ) {
-            if( m_pLastSurface1d->getResolution() != m_graphBScan->getLineWidth()/2 ) {
-                m_graphBScan->setLineWidth(m_pLastSurface1d->getResolution()/2);
-            }
             qint32 nbCell =  m_pLastSurface1d->getNbCell();
             if( 0 != nbCell ) {
                 m_pLastSurface1d->lockData();
@@ -240,6 +240,7 @@ void BScanGraph::initAfterItemAdded()
 
     m_lastPositionM = VectorManager::getInstance()->getVectorStd()->funcPosition()->getParamLBscanPosMmX();
     connect(ExamManager::getInstance(), &ExamManager::evRequestSurfaceUpdate, this, &BScanGraph::onUpdateBScan);
+    connect(ExamManager::getInstance(), &ExamManager::evRequestLocationZoneUpdate, this, &BScanGraph::onUpdateLocationZone);
 
     customApplySettings();
 
@@ -418,6 +419,22 @@ void BScanGraph::draw()
             //processLastSurface(); // multithread
             updateAxes();
 
+            // update line width function to window size, x scale and resolution :
+            if( nullptr != m_pLastSurface1d ) {
+                qreal wp = m_pPlotBScan->getPlotter()->getPlotWidth();
+
+                // on cherche une largeur donnant des barres jointives sans recouvrement pour avoir
+                // un rendu uniforme sans utiliser l'anti-aliasing :
+                qreal r = wp/((m_axeXScaleM*1000)/m_pLastSurface1d->getResolution());
+                fLogDebug1(QString("Width = %1, axeX = %2, res = %3, r = %4").arg(wp).arg(m_axeXScaleM).arg(m_pLastSurface1d->getResolution()).arg(r));
+                qreal dpi = QGuiApplication::primaryScreen()->logicalDotsPerInch();
+                r= r*72/dpi;
+                fLogDebug1(QString("new r = %1").arg(r));
+                if( r != m_graphBScan->getLineWidth() ) {
+                    m_graphBScan->setLineWidth(r);
+                }
+            }
+
             if( m_drawFlagPosition ) {
                 m_pPositionLine->setX1(m_lastPositionM);
                 m_pPositionLine->setX2(m_lastPositionM);
@@ -448,6 +465,14 @@ void BScanGraph::resetFlags()
     m_drawFlagUserAxeY = false;
     m_drawFlagScaleX = false;
     m_drawFlagScaleY = false;
+}
+
+void BScanGraph::deleteZones()
+{
+    for(auto i : m_lZoneLine) {
+        m_pPlotBScan->deleteGraph(i);
+    }
+    m_lZoneLine.clear();
 }
 
 
@@ -496,6 +521,31 @@ void BScanGraph::onPositionChanged(qreal p_value)
 {
     m_lastPositionM = p_value/1000;
     m_drawFlagPosition = true;
+    needRefresh(false);
+}
+
+void BScanGraph::onUpdateLocationZone(Location1d *p_location)
+{
+    deleteZones();
+
+    const QList<Zone1d*> * pLZ = p_location->getZones();
+    if( !pLZ->isEmpty() ) {
+        for(auto i : *pLZ) {
+            qreal pos = i->getOriginXMm()/1000;
+            JKQTPGeoLine * pLine = new JKQTPGeoLine(m_pPlotBScan, pos, 0, pos, SCALE_Y_MM_MAX);
+            pLine->setStyle(QColor("#DD00DD"), 2); // Orange : FF8200
+            m_pPlotBScan->addGraph(pLine);
+            m_lZoneLine.append(pLine);
+        }
+
+        if( pLZ->last()->isSizeDefined() ) {
+            qreal pos = pLZ->last()->getOriginXMm() + pLZ->last()->getSizeXMm()/1000;
+            JKQTPGeoLine * pLine = new JKQTPGeoLine(m_pPlotBScan, pos, 0, pos, SCALE_Y_MM_MAX);
+            pLine->setStyle(QColor("#DD00DD"), 2);
+            m_pPlotBScan->addGraph(pLine);
+            m_lZoneLine.append(pLine);
+        }
+    }
     needRefresh(false);
 }
 

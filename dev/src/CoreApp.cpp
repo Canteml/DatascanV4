@@ -24,7 +24,7 @@
 #include <scan/AScanGraph.h>
 #include <scan/BScanGraph.h>
 #include "GlobalManager.h"
-#include "exam/ExamManager.h"
+#include <v2/exam/ExamManager.h>
 
 // -- Qt Includes
 #include <QQmlApplicationEngine>

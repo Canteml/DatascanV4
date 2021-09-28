@@ -11,7 +11,7 @@
 # ==========================================================================*/
 
 #include "GlobalManager.h"
-#include "exam/ExamManager.h"
+#include <v2/exam/ExamManager.h>
 
 GlobalManager* GlobalManager::m_pMyInstance = nullptr;
 
