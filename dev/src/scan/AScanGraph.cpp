@@ -30,6 +30,7 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_mouseClickPressX = 0;
     m_AxeXMin = 0;
     m_AxeXMax = 100;
+    m_curBuffer = 0;
 
     // Worker
 
@@ -139,17 +140,10 @@ AScanGraph::~AScanGraph()
 
 void AScanGraph::paint(QPainter *painter)
 {
-//    // need resize ?
-//    if( m_pPlotAScan->width() != width() || m_pPlotAScan->height() != height() ) {
-//        m_pPlotAScan->resize(width(), height());
-//    }
-//    // update replot time
-//    //m_lastUpdateEpoc = QDateTime::currentMSecsSinceEpoch();
-//    // process replot
-//    m_pPlotAScan->redrawPlot();
-
-    //m_pPlotAScan->render(painter);
-    painter->drawImage(QRect(0,0, width(), height()),m_buffer);
+    m_mutBuffer.lock();
+    QImage * buffer = &m_buffer[m_curBuffer];
+    painter->drawImage(QRect(0,0, width(), height()),*buffer);
+    m_mutBuffer.unlock();
     m_updateInProgress = false;
     if( nullptr != m_pAScanGraphWorker ) {
         m_pAScanGraphWorker->signalPaintDone();
@@ -287,20 +281,13 @@ void AScanGraph::needRefresh(bool p_force)
 
 void AScanGraph::draw()
 {
-    // need resize ?
-//    if( m_pPlotAScan->width() != width() || m_pPlotAScan->height() != height() ) {
-//        m_pPlotAScan->resize(width(), height());
-//    }
-    // update replot time
-    //m_lastUpdateEpoc = QDateTime::currentMSecsSinceEpoch();
-    // process replot
-    //m_pPlotAScan->redrawPlot();
-    if( m_buffer.width() != width() || m_buffer.height() !=  height() ) {
-        m_buffer = QImage(width(), height(), QImage::Format_RGB32);
+    QImage * buffer = &(m_buffer[1-m_curBuffer]);
+    if( (buffer->width() != width() || buffer->height() !=  height() ) && (width() !=0 && height() != 0) ) {
+        (*buffer) = QImage(width(), height(), QImage::Format_RGB32);
     }
     qreal magnification = m_pPlotAScan->getMagnification();
     m_pPlotAScan->getPlotter()->setWidgetSize(jkqtp_roundTo<int>(width()/magnification), jkqtp_roundTo<int>(height()/magnification));
-    JKQTPEnhancedPainter t(&m_buffer);
+    JKQTPEnhancedPainter t(buffer);
     t.scale(magnification, magnification);
     m_pPlotAScan->getPlotter()->draw(t, QRect(0,0,width(), height()));
 }
@@ -492,10 +479,10 @@ void AScanGraphWorker::requestUpdate()
 void AScanGraphWorker::signalPaintDone()
 {
     if( m_requestUpdate ) {
+        m_requestUpdate = false;
         emit evRequestUpdate();
     } else {
         m_processing = false;
-        //fLogDebug2("processing off");
     }
 }
 
@@ -514,6 +501,9 @@ void AScanGraphWorker::stop()
 void AScanGraphWorker::onProcessUpdate()
 {
     m_pParent->draw();
+    m_pParent->m_mutBuffer.lock();
+    m_pParent->m_curBuffer = 1-m_pParent->m_curBuffer;
+    m_pParent->m_mutBuffer.unlock();
     emit evUpdateDone();
 }
 

@@ -112,7 +112,9 @@ private :
 
     // -- Render
     AScanGraphWorker * m_pAScanGraphWorker;
-    QImage m_buffer;
+    QImage m_buffer[2]; ///< double buffering
+    qint32 m_curBuffer; ///< index of the buffer to display (render is done in index (1-m_curBuffer))
+    QMutex m_mutBuffer; ///< protect buffer swapping
 };
 
 // ---------------------------
@@ -128,6 +130,8 @@ public :
     void signalPaintDone();
     void start();
     void stop();
+    bool isBufferReady() const;
+    QImage * getOldBuffer();
 
 signals :
 
