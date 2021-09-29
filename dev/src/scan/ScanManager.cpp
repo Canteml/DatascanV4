@@ -228,20 +228,6 @@ void ScanManager::setBScanAxeYMaxMm(qreal p_value)
     }
 }
 
-//void ScanManager::bscanAxeXScaleIn()
-//{
-//    if( nullptr != m_pBScanGraphMain ) {
-//        m_pBScanGraphMain->axeXScaleIn();
-//    }
-//}
-
-//void ScanManager::bscanAxeXScaleOut()
-//{
-//    if( nullptr != m_pBScanGraphMain ) {
-//        m_pBScanGraphMain->axeXScaleOut();
-//    }
-//}
-
 void ScanManager::onNewAScanTreated(AScan * p_pAscan)
 {
     if( p_pAscan->m_source == m_selectedAScanIndex && nullptr != m_pAScanGraphMain ) {

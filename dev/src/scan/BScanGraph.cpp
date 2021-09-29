@@ -55,6 +55,9 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_surfaceYMinMm = 0;
     m_surfaceYMaxMm = 0;
 
+    m_pExamManager = ExamManager::getInstance();
+    connect(m_pExamManager, &ExamManager::evMeasureDisplayChanged, this, &BScanGraph::onMeasureDisplayChanged);
+
     // Worker
 
 //    m_pBScanWorker = new BScanWorker(this);
@@ -154,8 +157,8 @@ BScanGraph::~BScanGraph()
 void BScanGraph::stop()
 {
 //    m_pBScanWorker->stop();
-    disconnect(ExamManager::getInstance(), &ExamManager::evRequestSurfaceUpdate, this, &BScanGraph::onUpdateBScan);
-    disconnect(ExamManager::getInstance(), &ExamManager::evRequestLocationZoneUpdate, this, &BScanGraph::onUpdateLocationZone);
+    disconnect(m_pExamManager, &ExamManager::evRequestSurfaceUpdate, this, &BScanGraph::onUpdateBScan);
+    disconnect(m_pExamManager, &ExamManager::evRequestLocationZoneUpdate, this, &BScanGraph::onUpdateLocationZone);
     m_pLastSurface1d = nullptr;
     QVector<qreal> v;
     v.append(0);
@@ -191,7 +194,13 @@ void BScanGraph::processLastSurface()
 //                m_dsBScan->setColumnData(m_columnX, *m_pLastSurface1d->getArrayPosition());
 //                m_dsBScan->setColumnData(m_columnY, *m_pLastSurface1d->getArrayMeasure());
                 m_columnX=m_dsBScan->addColumn(m_pLastSurface1d->getArrayPosition()->data(), nbCell, "x");
-                m_columnY=m_dsBScan->addColumn(m_pLastSurface1d->getArrayMeasure()->data(), nbCell, "y");
+
+                if( m_pExamManager->getMeasureDisplay() == ExamManager::MEASURE_1E ) {
+                    m_columnY=m_dsBScan->addColumn(m_pLastSurface1d->getArrayMeasure1e()->data(), nbCell, "y");
+                } else {
+                    m_columnY=m_dsBScan->addColumn(m_pLastSurface1d->getArrayMeasureMe()->data(), nbCell, "y");
+                }
+
                 m_pLastSurface1d->unlockData();
 
                 m_graphBScan->setXColumn(m_columnX);
@@ -239,8 +248,8 @@ void BScanGraph::initAfterItemAdded()
     connect(m_pPlotBScan, SIGNAL(plotMouseClicked(double, double, Qt::KeyboardModifiers , Qt::MouseButton)), this, SLOT(onPlotMouseClicked(double, double, Qt::KeyboardModifiers, Qt::MouseButton)));
 
     m_lastPositionM = VectorManager::getInstance()->getVectorStd()->funcPosition()->getParamLBscanPosMmX();
-    connect(ExamManager::getInstance(), &ExamManager::evRequestSurfaceUpdate, this, &BScanGraph::onUpdateBScan);
-    connect(ExamManager::getInstance(), &ExamManager::evRequestLocationZoneUpdate, this, &BScanGraph::onUpdateLocationZone);
+    connect(m_pExamManager, &ExamManager::evRequestSurfaceUpdate, this, &BScanGraph::onUpdateBScan);
+    connect(m_pExamManager, &ExamManager::evRequestLocationZoneUpdate, this, &BScanGraph::onUpdateLocationZone);
 
     customApplySettings();
 
@@ -434,6 +443,12 @@ void BScanGraph::draw()
                 }
             }
 
+            if( m_pExamManager->getMeasureDisplay() == ExamManager::MEASURE_1E ) {
+                m_graphBScan->setColor("#80801010");
+            } else {
+                m_graphBScan->setColor("#80202020"); // opacity @ 50% => Hight CPU usage
+            }
+
             if( m_drawFlagPosition ) {
                 m_pPositionLine->setX1(m_lastPositionM);
                 m_pPositionLine->setX2(m_lastPositionM);
@@ -551,6 +566,11 @@ void BScanGraph::onUpdateLocationZone(Location1d *p_location)
 void BScanGraph::onBScanReplotted()
 {
     update();
+}
+
+void BScanGraph::onMeasureDisplayChanged(quint32)
+{
+     processLastSurface();
 }
 
 void BScanGraph::updateAxes()
