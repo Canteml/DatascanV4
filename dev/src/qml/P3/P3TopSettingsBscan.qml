@@ -49,7 +49,7 @@ Rectangle {
 
         RpSpinBox {
             id: idScaleYMin
-            from: 1
+            from: 0
             to: idScaleYMax.value-1
             stepSize: 1
             editable: true
@@ -91,6 +91,30 @@ Rectangle {
             }
         }
 
+        //--
+        Text {
+            text: qsTr("Zone auto détection (mm) :")
+            font.pointSize: 12
+        }
+
+        RpSpinBox {
+            id: idAutoZoneHole
+            from: 10
+            to: 100
+            stepSize: 5
+            editable: true
+            font.pointSize: 12
+
+            value: examManager.zoneAutoHoleSizeMm
+
+            onValueChanged: {
+                examManager.zoneAutoHoleSizeMm = idAutoZoneHole.value
+            }
+
+            onValueModified: {
+                focus = false;
+            }
+        }
         // spacer
         Item {
             Layout.fillHeight: true

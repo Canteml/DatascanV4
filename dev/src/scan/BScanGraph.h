@@ -17,6 +17,7 @@
 #include <jkPlot/MyJkQtPlotter.h>
 class Surface1d;
 class Location1d;
+class ExamManager;
 
 // -- External includes
 #include <jkqtplotter/jkqtplotter.h>
@@ -131,6 +132,8 @@ private slots :
 
     void onBScanReplotted();
 
+    void onMeasureDisplayChanged(quint32);///< emited by ExamManager : 1 Echo / Multi Echo
+
 private :
 
     void needRefresh(bool p_force = false);
@@ -143,6 +146,7 @@ private :
 
     QTimer * m_timeRefresh;
     qint64 m_lastRequestEpoc;
+    ExamManager* m_pExamManager;
 
     QMouseEvent * m_eMouseMove;
 

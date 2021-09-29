@@ -13,6 +13,31 @@ Rectangle {
 
 //        Layout.maximumWidth: 100
 
+        Button {
+            id: idBtMes1E
+            text : qsTr("1 ECHO")
+            Layout.preferredHeight: 30
+            Layout.fillWidth: true
+            font.pointSize: 8
+            Layout.leftMargin: 5
+            Layout.rightMargin: 5
+            Layout.topMargin: 5
+
+            background: Rectangle {
+                color: (idBtMes1E.pressed || examManager.MeasureDisplay === 0 /*MEASURE_1E*/ ) ? "#E56767" : idBtMes1E.hovered ? "#F4ADAD" : Design.colButtonBackground
+                border.width: 1
+                border.color: Design.colFrameBorder
+            }
+
+            onPressed: {
+                if( examManager.MeasureDisplay === 0 /*MEASURE_1E*/ ) {
+                    examManager.MeasureDisplay = 1; /* MEASURE_ME */
+                } else {
+                    examManager.MeasureDisplay = 0;
+                }
+            }
+        }
+
         Text {
             Layout.alignment: Qt.AlignCenter
             text: qsTr("Echelle")
@@ -20,31 +45,9 @@ Rectangle {
             Layout.topMargin: 5
         }
 
-//        Button {
-//            id: idBtBScanAuto
-//            text : "100 %"
-//            Layout.preferredHeight: 30
-//            Layout.fillWidth: true
-//            font.pointSize: 8
-//            Layout.leftMargin: 5
-//            Layout.rightMargin: 5
-
-//            background: Rectangle {
-//                color: (idBtBScanAuto.pressed || (scanManager.BScanViewXMode === 2 && scanManager.BScanViewYMode === 2)) ?
-//                           Design.colBlueSelected : idBtBScanAuto.hovered ? Design.colBlueHovered : Design.colButtonBackground
-//                border.width: 1
-//                border.color: Design.colFrameBorder
-//            }
-
-//            onPressed: {
-//                scanManager.BScanViewXMode = 2; // 100%
-//                scanManager.BScanViewYMode = 2; // 100%
-//            }
-//        }
-
         Button {
             id: idBtBScanXAuto
-            text : "X Auto"
+            text : qsTr("X Auto")
             Layout.preferredHeight: 30
             Layout.fillWidth: true
             font.pointSize: 8
@@ -69,7 +72,7 @@ Rectangle {
 
         Button {
             id: idBtBScanYAuto
-            text : "Y Auto"
+            text : qsTr("Y Auto")
             Layout.preferredHeight: 30
             Layout.fillWidth: true
             font.pointSize: 8
