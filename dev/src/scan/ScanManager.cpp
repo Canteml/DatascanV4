@@ -41,8 +41,6 @@ ScanManager::ScanManager() : XmlSettingsLoggable("ScanManger")
 
 ScanManager::~ScanManager()
 {
-    stop();
-
     if( nullptr != m_pGate0) {
         delete m_pGate0;
         m_pGate0 = nullptr;
@@ -51,6 +49,16 @@ ScanManager::~ScanManager()
         delete m_pGate1;
         m_pGate1 = nullptr;
     }
+
+//    if( nullptr != m_pAScanGraphMain ) {
+//        delete m_pAScanGraphMain;
+//        m_pAScanGraphMain = nullptr;
+//    }
+//    if( nullptr != m_pBScanGraphMain ) {
+//        delete m_pAScanGraphMain;   //<= crash at close... remove the parent link instead. Dirty solution
+//        //m_pBScanGraphMain->setParent(nullptr);
+//        m_pBScanGraphMain = nullptr;
+//    }
 }
 
 void ScanManager::init()
@@ -63,6 +71,8 @@ void ScanManager::init()
     connect(m_pVector->funcAScan2(), &VectorFuncAScan::evNewAScanTreated, this, &ScanManager::onNewAScanTreated);
     connect(m_pVector->funcAScan3(), &VectorFuncAScan::evNewAScanTreated, this, &ScanManager::onNewAScanTreated);
     connect(m_pVector, &VectorStd::evNbFuncAScanEnabledChanged, this, &ScanManager::onVectorNbAScanEnabledChanged);
+
+    connect(m_pExamManager, &ExamManager::evExamStepChanged, this, &ScanManager::onExamManagerStepChanged);
 }
 
 void ScanManager::initQmlObject(QObject * p_pQmlTopLevel)
@@ -92,16 +102,20 @@ void ScanManager::initQmlObject(QObject * p_pQmlTopLevel)
         m_pBScanGraphMain->setParent(this);
         m_pBScanGraphMain->initAfterItemAdded();
     }
-
 }
 
 void ScanManager::stop()
-{
+{    
     if( nullptr != m_pAScanGraphMain ) {
         m_pAScanGraphMain->stop();
     }
     if( nullptr != m_pBScanGraphMain ) {
         m_pBScanGraphMain->stop();
+        disconnect(m_pBScanGraphMain, &BScanGraph::evViewXModeChanged, this, &ScanManager::onPrivateBScanViewXModeChanged);
+        disconnect(m_pBScanGraphMain, &BScanGraph::evViewYModeChanged, this, &ScanManager::onPrivateBScanViewYModeChanged);
+        disconnect(m_pBScanGraphMain, &BScanGraph::evAxeXScaleMmChanged, this, &ScanManager::onPrivateBScanAxeXScaleMChanged);
+        disconnect(m_pBScanGraphMain, &BScanGraph::evAxeYMinMmChanged, this, &ScanManager::onPrivateBScanAxeYMinMmChanged);
+        disconnect(m_pBScanGraphMain, &BScanGraph::evAxeYMaxMmChanged, this, &ScanManager::onPrivateBScanAxeYMaxMmChanged);
     }
 }
 
@@ -271,6 +285,27 @@ void ScanManager::onPrivateBScanAxeYMinMmChanged(qreal p_value)
 void ScanManager::onPrivateBScanAxeYMaxMmChanged(qreal p_value)
 {
     emit evBScanAxeYMaxMmChanged(p_value);
+}
+
+void ScanManager::onExamManagerStepChanged(qint32 p_value)
+{
+    if( p_value == ExamManager::EXAM_EXPORTING ) {
+        // Go to view FULL
+        if( m_pBScanGraphMain->getViewXMode() != BScanGraph::VIEW_X_FULL ) {
+            m_pBScanGraphMain->setViewXMode(BScanGraph::VIEW_X_FULL);
+        }
+        if(  m_pBScanGraphMain->getViewYMode() != BScanGraph::VIEW_Y_FULL ) {
+            m_pBScanGraphMain->setViewYMode(BScanGraph::VIEW_Y_FULL);
+        }
+    } else if( p_value == ExamManager::EXAM_RECORDING || p_value == ExamManager::EXAM_STOPPED) {
+        // Go to Auto if full
+        if( m_pBScanGraphMain->getViewXMode() != BScanGraph::VIEW_X_AUTO ) {
+             m_pBScanGraphMain->setViewXMode(BScanGraph::VIEW_X_AUTO);
+        }
+        if( m_pBScanGraphMain->getViewYMode() != BScanGraph::VIEW_Y_AUTO ) {
+            m_pBScanGraphMain->setViewYMode(BScanGraph::VIEW_Y_AUTO);
+        }
+    }
 }
 
 bool ScanManager::customLoadSettings(QDomElement * p_pParent)

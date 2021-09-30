@@ -2,7 +2,6 @@
     <qresource prefix="/">
         <file>main.qml</file>
         <file>Mainwindow.qml</file>
-        <file>MainwindowForm.ui.qml</file>
         <file>CentralPage0.qml</file>
         <file>CentralPage1.qml</file>
         <file>CentralPage3.qml</file>
@@ -19,7 +18,6 @@
         <file>P3/P3TopCam.qml</file>
         <file>P3/P3TopSettingsAscan.qml</file>
         <file>P3/P3Top.qml</file>
-        <file>P3/P3TopForm.ui.qml</file>
         <file>P3/P3Bottom.qml</file>
         <file>P3/P3BottomBScanCtrl.qml</file>
         <file>P3/P3BottomBScanView.qml</file>
@@ -28,6 +26,7 @@
         <file>rp_components/RpSpinBox.qml</file>
         <file>BannerBottomNavigate.qml</file>
         <file>rp_components/FormSection.qml</file>
+        <file>P3/P3TopExportBscan.qml</file>
     </qresource>
     <qresource prefix="/img">
         <file>logo.png</file>
@@ -57,5 +56,10 @@
         <file>icons/btArrow_std.png</file>
         <file>icons/iconPlus.png</file>
         <file>icons/iconTrash.png</file>
+        <file>icons/btPauseDisabled.png</file>
+        <file>icons/btStartDisabled.png</file>
+        <file>icons/btStopDisabled.png</file>
+        <file>icons/iconCancel.png</file>
+        <file>icons/iconOk.png</file>
     </qresource>
 </RCC>

@@ -126,6 +126,7 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
 
     // scale   
     m_drawFlagViewXMode = true; // force update
+    m_drawFlagViewYMode = true;
     m_pPlotBScan->setXY(0, 20, -m_axeXScaleM/2, m_axeXScaleM/2);
     m_pPlotBScan->getPlotter()->setBackgroundColor(QColor(255,255,255));
     m_pPlotBScan->getPlotter()->setPlotBorder(-10,0,-5,5);
@@ -148,8 +149,19 @@ BScanGraph::~BScanGraph()
 {
 //    delete m_pBScanWorker;
 //    m_pBScanWorker = nullptr;
+    if( m_timeRefresh->isActive() ) {
+        m_timeRefresh->stop();
+    }
+    delete m_timeRefresh;
+    m_timeRefresh = nullptr;
+
+    deleteZones();
+    m_pPlotBScan->deleteGraph(m_pPositionLine);
+
     m_pPlotBScan->deleteLater();
     m_pPlotBScan = nullptr;
+    m_dsBScan = nullptr;
+
     delete m_eMouseMove;
     m_eMouseMove = nullptr;
 }
@@ -190,16 +202,26 @@ void BScanGraph::processLastSurface()
             qint32 nbCell =  m_pLastSurface1d->getNbCell();
             if( 0 != nbCell ) {
                 m_pLastSurface1d->lockData();
-                // less efficient than addColumn, but should be \_('_')_/
-//                m_dsBScan->setColumnData(m_columnX, *m_pLastSurface1d->getArrayPosition());
-//                m_dsBScan->setColumnData(m_columnY, *m_pLastSurface1d->getArrayMeasure());
-                m_columnX=m_dsBScan->addColumn(m_pLastSurface1d->getArrayPosition()->data(), nbCell, "x");
+                // -- WAY #1
+                // Way#1 less efficient than addColumn (way #2), but should be \_('_')_/
+                m_dsBScan->setColumnData(m_columnX, *m_pLastSurface1d->getArrayPositionM());
 
                 if( m_pExamManager->getMeasureDisplay() == ExamManager::MEASURE_1E ) {
-                    m_columnY=m_dsBScan->addColumn(m_pLastSurface1d->getArrayMeasure1e()->data(), nbCell, "y");
+                    m_dsBScan->setColumnData(m_columnY, *m_pLastSurface1d->getArrayMeasure1e());
                 } else {
-                    m_columnY=m_dsBScan->addColumn(m_pLastSurface1d->getArrayMeasureMe()->data(), nbCell, "y");
+                    m_dsBScan->setColumnData(m_columnY, *m_pLastSurface1d->getArrayMeasureMe());
                 }
+
+                // -- WAY #2
+                // no more used because in the view mode VIEW_X_USER, the data can be read wherease the buffer has been resized (QVector).
+                // A solution can be to "reserve" a amount of space in the QVector at initializing the QVector.
+//                m_columnX=m_dsBScan->addColumn(m_pLastSurface1d->getArrayPositionM()->data(), nbCell, "x");
+
+//                if( m_pExamManager->getMeasureDisplay() == ExamManager::MEASURE_1E ) {
+//                    m_columnY=m_dsBScan->addColumn(m_pLastSurface1d->getArrayMeasure1e()->data(), nbCell, "y");
+//                } else {
+//                    m_columnY=m_dsBScan->addColumn(m_pLastSurface1d->getArrayMeasureMe()->data(), nbCell, "y");
+//                }
 
                 m_pLastSurface1d->unlockData();
 
@@ -432,9 +454,11 @@ void BScanGraph::draw()
             if( nullptr != m_pLastSurface1d ) {
                 qreal wp = m_pPlotBScan->getPlotter()->getPlotWidth();
 
+                qreal wM = m_pPlotBScan->getPlotter()->getXMax() - m_pPlotBScan->getPlotter()->getXMin();
+
                 // on cherche une largeur donnant des barres jointives sans recouvrement pour avoir
                 // un rendu uniforme sans utiliser l'anti-aliasing :
-                qreal r = wp/((m_axeXScaleM*1000)/m_pLastSurface1d->getResolution());
+                qreal r = wp/((wM*1000)/m_pLastSurface1d->getResolution());
                 // take care of DPI because line width is set in Point (not in pixel as we want)
                 qreal dpi = QGuiApplication::primaryScreen()->logicalDotsPerInch();
                 r= r*72/dpi;
@@ -544,21 +568,38 @@ void BScanGraph::onUpdateLocationZone(Location1d *p_location)
 
     const QList<Zone1d*> * pLZ = p_location->getZones();
     if( !pLZ->isEmpty() ) {
+
         for(auto i : *pLZ) {
             qreal pos = i->getOriginXMm()/1000;
             JKQTPGeoLine * pLine = new JKQTPGeoLine(m_pPlotBScan, pos, 0, pos, SCALE_Y_MM_MAX);
             pLine->setStyle(QColor("#DD00DD"), 2); // Orange : FF8200
             m_pPlotBScan->addGraph(pLine);
             m_lZoneLine.append(pLine);
+
+            if( i->isSizeDefined() ) {
+                qreal pos = (i->getOriginXMm() + i->getSizeXMm())/1000;
+                JKQTPGeoLine * pLine = new JKQTPGeoLine(m_pPlotBScan, pos, 0, pos, SCALE_Y_MM_MAX);
+                pLine->setStyle(QColor("#DD00DD"), 2);
+                m_pPlotBScan->addGraph(pLine);
+                m_lZoneLine.append(pLine);
+            }
         }
 
-        if( pLZ->last()->isSizeDefined() ) {
-            qreal pos = pLZ->last()->getOriginXMm() + pLZ->last()->getSizeXMm()/1000;
-            JKQTPGeoLine * pLine = new JKQTPGeoLine(m_pPlotBScan, pos, 0, pos, SCALE_Y_MM_MAX);
-            pLine->setStyle(QColor("#DD00DD"), 2);
-            m_pPlotBScan->addGraph(pLine);
-            m_lZoneLine.append(pLine);
-        }
+//        for(auto i : *pLZ) {
+//            qreal pos = i->getOriginXMm()/1000;
+//            JKQTPGeoLine * pLine = new JKQTPGeoLine(m_pPlotBScan, pos, 0, pos, SCALE_Y_MM_MAX);
+//            pLine->setStyle(QColor("#DD00DD"), 2); // Orange : FF8200
+//            m_pPlotBScan->addGraph(pLine);
+//            m_lZoneLine.append(pLine);
+//        }
+
+//        if( pLZ->last()->isSizeDefined() ) {
+//            qreal pos = (pLZ->last()->getOriginXMm() + pLZ->last()->getSizeXMm())/1000;
+//            JKQTPGeoLine * pLine = new JKQTPGeoLine(m_pPlotBScan, pos, 0, pos, SCALE_Y_MM_MAX);
+//            pLine->setStyle(QColor("#DD00DD"), 2);
+//            m_pPlotBScan->addGraph(pLine);
+//            m_lZoneLine.append(pLine);
+//        }
     }
     needRefresh(false);
 }
@@ -578,8 +619,8 @@ void BScanGraph::updateAxes()
     qreal xMin = m_pPlotBScan->getXMin(), xMax = m_pPlotBScan->getXMax(), yMin = m_pPlotBScan->getYMin(), yMax = m_pPlotBScan->getYMax();
     bool updateView = false;
 
-    if( VIEW_X_AUTO == m_viewXMode || m_drawFlagViewXMode ) {
-        if( m_drawFlagPosition || m_drawFlagScaleX  ) {
+    if( VIEW_X_AUTO == m_viewXMode ) {
+        if( m_drawFlagPosition || m_drawFlagScaleX || m_drawFlagViewXMode ) {
             // first compute x bounds
             xMin = m_pPlotBScan->getXMin();
             xMax = m_pPlotBScan->getXMax();
@@ -601,16 +642,16 @@ void BScanGraph::updateAxes()
             }
             updateView = true;
         } else {
-            if( m_drawFlagViewXMode || m_drawFlagViewXMode || m_drawFlagScaleX ) {
+            if( m_drawFlagViewXMode || m_drawFlagScaleX ) {
+                // init
                 xMin = m_lastPositionM - m_axeXScaleM/2;
                 xMax = m_lastPositionM + m_axeXScaleM/2;
                 updateView = true;
             }
         }
-
     } else if( VIEW_X_USER == m_viewXMode ) {
-        if( m_drawFlagUserAxeX || m_drawFlagScaleX ) {
-            if( m_drawFlagScaleX ) {
+        if( m_drawFlagUserAxeX || m_drawFlagScaleX || m_drawFlagViewXMode) {
+            if( m_drawFlagViewXMode ) {
                 m_axeXUserMinM = m_pPlotBScan->getXMin();// init
             }
             xMin = m_axeXUserMinM;
@@ -618,15 +659,15 @@ void BScanGraph::updateAxes()
             updateView = true;
         }
     } else if( VIEW_X_FULL == m_viewXMode ) {
-        if( m_drawFlagSurfaceRange || m_drawFlagViewXMode || m_drawFlagScaleX ) {
+        if( m_drawFlagSurfaceRange || m_drawFlagScaleX || m_drawFlagViewXMode) {
             xMin = qMin(m_lastPositionM, m_surfaceXMinMm/1000); // convert into M
             xMax = qMax(m_lastPositionM, m_surfaceXMaxMm/1000); // convert into M
 
             // too small => update
             qreal delta = xMax - xMin;
-            if( delta<m_axeXScaleM ) {
-                xMin = xMin + delta/2 - m_axeXScaleM/2;
-                xMax = xMin + m_axeXScaleM;
+            if( delta<SCALE_X_M_MIN ) {
+                xMin = xMin + delta/2 - SCALE_X_M_MIN/2;
+                xMax = xMin + SCALE_X_M_MIN;
             }
             qreal margin = (xMax - xMin)/100;
             xMin -= margin;
@@ -638,8 +679,8 @@ void BScanGraph::updateAxes()
     if( VIEW_Y_AUTO == m_viewYMode ) {
         if( m_drawFlagSurfaceRange || m_drawFlagViewYMode ) {
             // first get y bounds
-            yMin = m_surfaceYMinMm;
-            yMax = m_surfaceYMaxMm;
+            yMin = qMax(0,(qint32)(m_surfaceYMinMm-1));
+            yMax = (qint32)(m_surfaceYMaxMm+1.5); // round to upper millimeter
             if( yMax == 0 ) {
                 yMax = 10;
             }
@@ -657,7 +698,7 @@ void BScanGraph::updateAxes()
     } else if( VIEW_Y_FULL == m_viewYMode ) {
         if( m_drawFlagSurfaceRange || m_drawFlagViewYMode ) {
             yMin = 0;
-            yMax = m_surfaceYMaxMm;
+            yMax = (qint32)(m_surfaceYMaxMm+1.5); // round to upper millimeter
             updateView = true;
         }
     }
@@ -760,18 +801,20 @@ void BScanGraph::onPlotMouseClicked(double x, double y, Qt::KeyboardModifiers, Q
 {
     m_mouseLastPos = QPointF(x,y);
 
-    if( VIEW_X_AUTO == m_viewXMode ) {
-        setViewXMode(VIEW_X_USER) ;
-    }
-
-    if(VIEW_X_USER == m_viewXMode) {
+    if(VIEW_X_FULL != m_viewXMode) {
         if( !m_pPlotBScan->getMouseUsedByItem() && p_Bt == Qt::LeftButton ) {
+            //m_axeXUserMinM = m_pPlotBScan->getXMin();
             // prepare drag : store where mouse has clicked
             m_pPlotBScan->setMouseUsedByItem(true);
-            m_mouseClicked = true;
             m_mouseClickPressX = m_mouseLastPos.x();
             m_mouseClickPressAxeXMin = m_pPlotBScan->getXMin();
             m_mouseClickPressAxeXMax = m_pPlotBScan->getXMax();
+            m_mouseClicked = true;
+            m_drawFlagUserAxeX = true;
+        }
+
+        if( VIEW_X_AUTO == m_viewXMode ) {
+            setViewXMode(VIEW_X_USER) ;
         }
     }
 }

@@ -203,7 +203,7 @@ private :
 
     // -- Render
 //    BScanWorker * m_pBScanWorker;
-    QImage m_buffer;
+//    QImage m_buffer;
 };
 
 

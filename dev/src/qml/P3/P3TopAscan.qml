@@ -12,18 +12,6 @@ Rectangle {
         anchors.fill: parent
         spacing: 0
 
-
-        // -------------------
-        // -- Left controls
-
-        P3TopAscanCtrl {
-            Layout.preferredWidth: 70
-            Layout.fillHeight: true
-        }
-
-        // -------------------
-        // -- Center :
-
         Rectangle {
             border.color: "#000000"
 
