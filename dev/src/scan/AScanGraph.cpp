@@ -130,6 +130,11 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
 
 AScanGraph::~AScanGraph()
 {
+    if( m_timeRefresh->isActive() ) {
+        m_timeRefresh->stop();
+    }
+    delete m_timeRefresh;
+    m_timeRefresh = nullptr;
     delete m_pAScanGraphWorker;
     m_pAScanGraphWorker = nullptr;
     m_pPlotAScan->deleteLater();

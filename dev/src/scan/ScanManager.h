@@ -111,6 +111,8 @@ private slots :
     void onPrivateBScanAxeYMinMmChanged(qreal);
     void onPrivateBScanAxeYMaxMmChanged(qreal);
 
+    void onExamManagerStepChanged(qint32);
+
 protected :
     // -- Settings
     virtual bool customLoadSettings(QDomElement * p_pParent) override;

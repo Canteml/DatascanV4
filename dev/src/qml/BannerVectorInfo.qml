@@ -25,38 +25,83 @@ Rectangle {
         Button {
             id: btScanStartStop
 
+            enabled: examManager.examStep !== 3 // writing file
+
             Layout.preferredWidth: idBannerVectorInfo.height - 10
             Layout.preferredHeight: idBannerVectorInfo.height - 10
 
-            icon.source: "qrc:///img/icons/btStart.png"
+            icon.source: examManager.examStep === 0 ? enabled ? "qrc:///img/icons/btStart.png" : "qrc:///img/icons/btStartDisabled.png" : enabled ? "qrc:///img/icons/btStop.png" : "qrc:///img/icons/btStopDisabled.png"
             icon.width: idBannerVectorInfo.height - 10
             icon.height: idBannerVectorInfo.height - 10
             icon.color: "transparent"
 
+            antialiasing: true
+
             background: Rectangle {
+                id: idBtStartBG
                 color: btScanStartStop.pressed ? Design.colButtonSelectedBackground : btScanStartStop.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
                 border.width: 1
                 border.color: Design.colButtonBorder
                 radius: 10
+
+//                ColorAnimation on color{
+//                    from:"#FFFFFFFF"
+//                    to:"#F0FF0000"
+//                    duration: 500
+//                    running:  examManager.examStep === 1 // recording measure
+//                    loops : Animation.Infinite
+//                    onRunningChanged: if(!running){idBtStartBG.color = "#FFFFFFFF"} // reset
+//                }
+
+            }
+
+            onPressed: {
+                if( examManager.examStep === 0 ) {
+                    examManager.examStep = 1    // record measure
+                } else {
+                    examManager.examStep = 3 // export measure
+                }
             }
         }
 
         Button {
             id: btScanPause
 
+            enabled: examManager.examStep === 1 || examManager.examStep === 2
+
             Layout.preferredWidth: idBannerVectorInfo.height - 10
             Layout.preferredHeight: idBannerVectorInfo.height - 10
 
-            icon.source: "qrc:///img/icons/btPause.png"
+            icon.source: enabled ? "qrc:///img/icons/btPause.png" : "qrc:///img/icons/btPauseDisabled.png"
             icon.width: idBannerVectorInfo.height - 10
             icon.height: idBannerVectorInfo.height - 10
             icon.color: "transparent"
 
+            antialiasing: true
+
             background: Rectangle {
-                color: btScanPause.pressed ? Design.colButtonSelectedBackground : btScanPause.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                id: btScanPauseBG
+                color: btScanPause.pressed || examManager.examStep === 2 ? Design.colButtonSelectedBackground : btScanPause.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
                 border.width: 1
                 border.color: Design.colButtonBorder
                 radius: 10
+
+                ColorAnimation on color{
+                    from:"#FFFFFFFF"
+                    to:"#F0FF0000"
+                    duration: 500
+                    running:  examManager.examStep === 2 // recording measure
+                    loops : Animation.Infinite
+                    onRunningChanged: if(!running){btScanPauseBG.color = "#FFFFFFFF"} // reset
+                }
+            }
+
+            onPressed: {
+                if( examManager.examStep === 1 ) {
+                    examManager.examStep = 2    // pause
+                } else {
+                    examManager.examStep = 1    // record
+                }
             }
         }
 
