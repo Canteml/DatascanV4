@@ -47,6 +47,7 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_viewXMode = VIEW_X_AUTO;
     m_viewYMode = VIEW_Y_AUTO;
     m_pLastSurface1d = nullptr;
+    m_mouseDoubleClicked = false;
 
     resetFlags();
 
@@ -124,7 +125,7 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_pPlotBScan->getPlotter()->setUseAntiAliasingForSystem(true);
     m_pPlotBScan->getPlotter()->setUseAntiAliasingForText(false);
 
-    // scale   
+    // scale
     m_drawFlagViewXMode = true; // force update
     m_drawFlagViewYMode = true;
     m_pPlotBScan->setXY(0, 20, -m_axeXScaleM/2, m_axeXScaleM/2);
@@ -382,7 +383,7 @@ void BScanGraph::setAxeYMaxMm(qreal p_value)
     }
     if( m_axeYMaxMm != p_value ) {
         m_axeYMaxMm = p_value;
-        emit evAxeYMaxMmChanged(m_axeYMinMm);        
+        emit evAxeYMaxMmChanged(m_axeYMinMm);
         m_drawFlagScaleY = true;
         needRefresh();
     }
@@ -516,6 +517,7 @@ void BScanGraph::deleteZones()
 
 void BScanGraph::mousePressEvent( QMouseEvent* event )
 {
+    m_mouseDoubleClicked = false;
     routeMouseEvents( event );
 }
 
@@ -535,7 +537,13 @@ void BScanGraph::mouseMoveEvent( QMouseEvent* event )
 
 void BScanGraph::mouseDoubleClickEvent( QMouseEvent* event )
 {
+    m_mouseDoubleClicked = true;
     routeMouseEvents( event );
+    if( m_pExamManager->getExamStep() != ExamManager::EXAM_EXPORTING ) {
+        if( VIEW_X_AUTO != m_viewXMode ) {
+            setViewXMode(VIEW_X_AUTO) ;
+        }
+    }
 }
 
 void BScanGraph::wheelEvent(QWheelEvent *event)
@@ -811,20 +819,22 @@ void BScanGraph::onPlotMouseClicked(double x, double y, Qt::KeyboardModifiers, Q
 {
     m_mouseLastPos = QPointF(x,y);
 
-    if(VIEW_X_FULL != m_viewXMode) {
-        if( !m_pPlotBScan->getMouseUsedByItem() && p_Bt == Qt::LeftButton ) {
-            //m_axeXUserMinM = m_pPlotBScan->getXMin();
-            // prepare drag : store where mouse has clicked
-            m_pPlotBScan->setMouseUsedByItem(true);
-            m_mouseClickPressX = m_mouseLastPos.x();
-            m_mouseClickPressAxeXMin = m_pPlotBScan->getXMin();
-            m_mouseClickPressAxeXMax = m_pPlotBScan->getXMax();
-            m_mouseClicked = true;
-            m_drawFlagUserAxeX = true;
-        }
+    if( ! m_mouseDoubleClicked ) {
+        if(VIEW_X_FULL != m_viewXMode) {
+            if( !m_pPlotBScan->getMouseUsedByItem() && p_Bt == Qt::LeftButton ) {
+                //m_axeXUserMinM = m_pPlotBScan->getXMin();
+                // prepare drag : store where mouse has clicked
+                m_pPlotBScan->setMouseUsedByItem(true);
+                m_mouseClickPressX = m_mouseLastPos.x();
+                m_mouseClickPressAxeXMin = m_pPlotBScan->getXMin();
+                m_mouseClickPressAxeXMax = m_pPlotBScan->getXMax();
+                m_mouseClicked = true;
+                m_drawFlagUserAxeX = true;
+            }
 
-        if( VIEW_X_AUTO == m_viewXMode ) {
-            setViewXMode(VIEW_X_USER) ;
+            if( VIEW_X_AUTO == m_viewXMode ) {
+                setViewXMode(VIEW_X_USER) ;
+            }
         }
     }
 }

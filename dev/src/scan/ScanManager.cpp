@@ -50,15 +50,14 @@ ScanManager::~ScanManager()
         m_pGate1 = nullptr;
     }
 
-//    if( nullptr != m_pAScanGraphMain ) {
-//        delete m_pAScanGraphMain;
-//        m_pAScanGraphMain = nullptr;
-//    }
-//    if( nullptr != m_pBScanGraphMain ) {
-//        delete m_pAScanGraphMain;   //<= crash at close... remove the parent link instead. Dirty solution
-//        //m_pBScanGraphMain->setParent(nullptr);
-//        m_pBScanGraphMain = nullptr;
-//    }
+    if( nullptr != m_pAScanGraphMain ) {
+        delete m_pAScanGraphMain;
+        m_pAScanGraphMain = nullptr;
+    }
+    if( nullptr != m_pBScanGraphMain ) {
+        delete m_pBScanGraphMain;
+        m_pBScanGraphMain = nullptr;
+    }
 }
 
 void ScanManager::init()

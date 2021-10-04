@@ -335,7 +335,7 @@ Rectangle {
     }
 
     function updateLePosition() {
-        idLePosition.text = (Math.round(currentVector.funcPosition().paramLBscanPosMmX/10)/100).toFixed(2);
+        idLePosition.text = currentVector.funcPosition().getBScanPosMeterWith2Decimals(); //(Math.round(currentVector.funcPosition().paramLBscanPosMmX/10)/100);
     }
 
 }
