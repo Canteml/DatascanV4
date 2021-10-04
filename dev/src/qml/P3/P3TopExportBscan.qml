@@ -18,6 +18,7 @@ ColumnLayout {
             target: examManager
             function onEvExportTerminatedChanged(p_success) {
                 if( p_success ) {
+                    idSLExport.updateGeneratrixNumber();
                     idSLExport.currentIndex = 2;
                 }
             }
@@ -374,6 +375,29 @@ ColumnLayout {
         }
 
         // -- STEP 2 : WRITE DONE
+
+        function updateGeneratrixNumber() {
+            var s = "";
+            if( examManager.getGeneratrixNumberPrevious()+1 < 10 ) {
+                s = "0"
+            } else {
+                s = ""
+            }
+            idTxtPreviousVirole.text =  qsTr("GAUCHE")+" (#"+s+(examManager.getGeneratrixNumberPrevious()+1)+")";
+            if( examManager.getGeneratrixNumberNext()+1 < 10 ) {
+                s = "0"
+            } else {
+                s = ""
+            }
+            idTxtNextVirole.text =  qsTr("DROITE")+" (#"+s+(examManager.getGeneratrixNumberNext()+1)+")";
+            if( examManager.selectedBScanGeneratrix+1 < 10 ) {
+                s = "0"
+            } else {
+                s = ""
+            }
+            idTxtCurrentVirole.text =  qsTr("ACTUELLE")+" (#"+s+(examManager.selectedBScanGeneratrix+1)+")";
+        }
+
         ColumnLayout {
             Layout.fillWidth: true
             Layout.fillHeight: true

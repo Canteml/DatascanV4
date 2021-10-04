@@ -163,6 +163,7 @@ private :
     // -- Mouse
     bool m_mouseClicked; ///< if true, graph use click
     qreal m_mouseClickPressX;    ///<  Position where mouse click down
+    bool m_mouseDoubleClicked;
     QPointF m_mouseLastPos;
     qreal m_mouseClickPressAxeXMin;
     qreal m_mouseClickPressAxeXMax;
