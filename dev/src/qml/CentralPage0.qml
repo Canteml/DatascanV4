@@ -61,6 +61,7 @@ Rectangle {
             TextField {
                 text: examManager.exportFolder
                 selectByMouse: true
+                readOnly: true
                 Layout.fillWidth: true;
                 Layout.preferredHeight: 30
             }

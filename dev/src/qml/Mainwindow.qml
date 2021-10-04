@@ -87,7 +87,7 @@ Item {
 
                 background: Rectangle {
                     id: ibBtBannerTitleBG
-                    color: examManager.examStep === 1 /*recording*/ || examManager.examStep === 2 /*paused*/ ?
+                    color: examManager.examStep !== 0 /*stopped*/ ?
                                Design.colOrangeSelected : Design.colButtonBackground //btBannerTitle.pressed ? Design.colButtonSelectedBackground : btBannerTitle.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
                     //color: btBannerTitle.hovered ? "#9C9B9B" : "#FFFFFF"
                     border.width: 1
@@ -283,24 +283,6 @@ Item {
             }
         }
     }
-
-
-
-    //btMainMenu.onHoveredChanged: checkMainMenuHovered();
-    //btCentralPage0.onHoveredChanged: checkMainMenuHovered();
-//    btCentralPage1.onHoveredChanged: checkMainMenuHovered();
-//    btCentralPage2.onHoveredChanged: checkMainMenuHovered();
-//    btCentralPage3.onHoveredChanged: checkMainMenuHovered();
-//    btCentralPage4.onHoveredChanged: checkMainMenuHovered();
-
-
-//    btCentralPage0.onPressed: {globalManager.guiPage = page0_project; displayMenu = false;}
-//    btCentralPage1.onPressed: {globalManager.guiPage = page1_prepare; displayMenu = false;}
-//    btCentralPage2.onPressed: {globalManager.guiPage = page2_supervise; displayMenu = false;}
-//    btCentralPage3.onPressed: {globalManager.guiPage = page3_scan; displayMenu = false;}
-//    btCentralPage4.onPressed: {globalManager.guiPage = page4_help; displayMenu = false;}
-
-    //btBannerTitle.onPressed: { globalManager.guiPage = globalManager.guiPage === 3 ? 2 : 3;}
 
     onDisplayMenuChanged: {
         if( displayMenu ) {

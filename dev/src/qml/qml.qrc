@@ -61,5 +61,13 @@
         <file>icons/btStopDisabled.png</file>
         <file>icons/iconCancel.png</file>
         <file>icons/iconOk.png</file>
+        <file>icons/iconOkDisabled.png</file>
+        <file>icons/iconUndo.png</file>
+        <file>icons/iconReport.png</file>
+        <file>icons/iconUndoDisabled.png</file>
+        <file>icons/iconReportDisabled.png</file>
+        <file>icons/iconAgain.png</file>
+        <file>icons/iconNext.png</file>
+        <file>icons/iconPrevious.png</file>
     </qresource>
 </RCC>
