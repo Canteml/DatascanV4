@@ -422,14 +422,14 @@ void BScanGraph::needRefresh(bool p_force)
     // timer active => already an update programmed
     if( !m_timeRefresh->isActive() || p_force) {
         qint64 dTime = curEpoc - m_lastRequestEpoc;
-        if( dTime >= 50 || p_force ) {
+        if( (dTime >= 50 || p_force) && !m_updateInProgress ) {
             m_lastRequestEpoc = curEpoc;
             m_updateInProgress = true;
             draw();
             update();
         } else if( !m_timeRefresh->isActive() ){
             // start timer with remaining time
-            m_timeRefresh->start(50 - (dTime));
+            m_timeRefresh->start(qMax<qint32>(10, 50 - (dTime)));
         }
     }
 
@@ -566,40 +566,43 @@ void BScanGraph::onUpdateLocationZone(Location1d *p_location)
 {
     deleteZones();
 
-    const QList<Zone1d*> * pLZ = p_location->getZones();
-    if( !pLZ->isEmpty() ) {
+    if( nullptr != p_location ) {
 
-        for(auto i : *pLZ) {
-            qreal pos = i->getOriginXMm()/1000;
-            JKQTPGeoLine * pLine = new JKQTPGeoLine(m_pPlotBScan, pos, 0, pos, SCALE_Y_MM_MAX);
-            pLine->setStyle(QColor("#DD00DD"), 2); // Orange : FF8200
-            m_pPlotBScan->addGraph(pLine);
-            m_lZoneLine.append(pLine);
+        const QList<Zone1d*> * pLZ = p_location->getZones();
+        if( !pLZ->isEmpty() ) {
 
-            if( i->isSizeDefined() ) {
-                qreal pos = (i->getOriginXMm() + i->getSizeXMm())/1000;
+            for(auto i : *pLZ) {
+                qreal pos = i->getOriginXMm()/1000;
                 JKQTPGeoLine * pLine = new JKQTPGeoLine(m_pPlotBScan, pos, 0, pos, SCALE_Y_MM_MAX);
-                pLine->setStyle(QColor("#DD00DD"), 2);
+                pLine->setStyle(QColor("#DD00DD"), 2); // Orange : FF8200
                 m_pPlotBScan->addGraph(pLine);
                 m_lZoneLine.append(pLine);
+
+                if( i->isSizeDefined() ) {
+                    qreal pos = (i->getOriginXMm() + i->getSizeXMm())/1000;
+                    JKQTPGeoLine * pLine = new JKQTPGeoLine(m_pPlotBScan, pos, 0, pos, SCALE_Y_MM_MAX);
+                    pLine->setStyle(QColor("#DD00DD"), 2);
+                    m_pPlotBScan->addGraph(pLine);
+                    m_lZoneLine.append(pLine);
+                }
             }
+
+    //        for(auto i : *pLZ) {
+    //            qreal pos = i->getOriginXMm()/1000;
+    //            JKQTPGeoLine * pLine = new JKQTPGeoLine(m_pPlotBScan, pos, 0, pos, SCALE_Y_MM_MAX);
+    //            pLine->setStyle(QColor("#DD00DD"), 2); // Orange : FF8200
+    //            m_pPlotBScan->addGraph(pLine);
+    //            m_lZoneLine.append(pLine);
+    //        }
+
+    //        if( pLZ->last()->isSizeDefined() ) {
+    //            qreal pos = (pLZ->last()->getOriginXMm() + pLZ->last()->getSizeXMm())/1000;
+    //            JKQTPGeoLine * pLine = new JKQTPGeoLine(m_pPlotBScan, pos, 0, pos, SCALE_Y_MM_MAX);
+    //            pLine->setStyle(QColor("#DD00DD"), 2);
+    //            m_pPlotBScan->addGraph(pLine);
+    //            m_lZoneLine.append(pLine);
+    //        }
         }
-
-//        for(auto i : *pLZ) {
-//            qreal pos = i->getOriginXMm()/1000;
-//            JKQTPGeoLine * pLine = new JKQTPGeoLine(m_pPlotBScan, pos, 0, pos, SCALE_Y_MM_MAX);
-//            pLine->setStyle(QColor("#DD00DD"), 2); // Orange : FF8200
-//            m_pPlotBScan->addGraph(pLine);
-//            m_lZoneLine.append(pLine);
-//        }
-
-//        if( pLZ->last()->isSizeDefined() ) {
-//            qreal pos = (pLZ->last()->getOriginXMm() + pLZ->last()->getSizeXMm())/1000;
-//            JKQTPGeoLine * pLine = new JKQTPGeoLine(m_pPlotBScan, pos, 0, pos, SCALE_Y_MM_MAX);
-//            pLine->setStyle(QColor("#DD00DD"), 2);
-//            m_pPlotBScan->addGraph(pLine);
-//            m_lZoneLine.append(pLine);
-//        }
     }
     needRefresh(false);
 }
@@ -660,8 +663,15 @@ void BScanGraph::updateAxes()
         }
     } else if( VIEW_X_FULL == m_viewXMode ) {
         if( m_drawFlagSurfaceRange || m_drawFlagScaleX || m_drawFlagViewXMode) {
-            xMin = qMin(m_lastPositionM, m_surfaceXMinMm/1000); // convert into M
-            xMax = qMax(m_lastPositionM, m_surfaceXMaxMm/1000); // convert into M
+
+            if(m_pExamManager->getExamStep() == ExamManager::EXAM_EXPORTING ) {
+                // do not take care of the position of the vector, only view BSCAN
+                xMin = m_surfaceXMinMm/1000; // convert to M
+                xMax = m_surfaceXMaxMm/1000; // convert to M
+            } else {
+                xMin = qMin(m_lastPositionM, m_surfaceXMinMm/1000); // convert to M
+                xMax = qMax(m_lastPositionM, m_surfaceXMaxMm/1000); // convert to M
+            }
 
             // too small => update
             qreal delta = xMax - xMin;

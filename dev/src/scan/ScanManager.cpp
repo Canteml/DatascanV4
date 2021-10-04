@@ -297,7 +297,7 @@ void ScanManager::onExamManagerStepChanged(qint32 p_value)
         if(  m_pBScanGraphMain->getViewYMode() != BScanGraph::VIEW_Y_FULL ) {
             m_pBScanGraphMain->setViewYMode(BScanGraph::VIEW_Y_FULL);
         }
-    } else if( p_value == ExamManager::EXAM_RECORDING || p_value == ExamManager::EXAM_STOPPED) {
+    } else if( p_value == ExamManager::EXAM_RECORDING || p_value == ExamManager::EXAM_STOPPED  || p_value == ExamManager::EXAM_PAUSED) {
         // Go to Auto if full
         if( m_pBScanGraphMain->getViewXMode() != BScanGraph::VIEW_X_AUTO ) {
              m_pBScanGraphMain->setViewXMode(BScanGraph::VIEW_X_AUTO);

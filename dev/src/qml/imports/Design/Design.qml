@@ -30,6 +30,8 @@ QtObject {
 
     readonly property color colBlueSelected: "#66CBFF"
     readonly property color colBlueHovered: "#C1E2F2"
+    readonly property color colBlue: "#0083FF"
+
 
     // Orange theme
 
