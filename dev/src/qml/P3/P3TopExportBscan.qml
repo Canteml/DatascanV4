@@ -205,7 +205,7 @@ ColumnLayout {
                         } else {
                             idTxtFileNameErrorMsg.text = ""
                         }
-                        btOk.enabled = ( 1 !== err );
+                        //btOk.enabled = ( 1 !== err );
                     }
 
                 }
@@ -324,6 +324,13 @@ ColumnLayout {
                     font.pointSize: 14
 
                     visible: examManager.examWriteProgress >= 0
+
+                    background: Rectangle {
+                        color: idBtCancelExport.pressed ? Design.colButtonSelectedBackground : idBtCancelExport.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                        border.width: 2
+                        border.color: Design.colButtonBorder
+                        radius: 5
+                    }
 
                     onClicked: {
                         examManager.cancelExamWrite()
