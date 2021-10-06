@@ -312,7 +312,7 @@ ColumnLayout {
                             width: idPbExport.visualPosition * parent.width
                             height: parent.height
                             radius: 2
-                            color: Design.colOrangeSelected
+                            color: Design.colBlueSelected
                         }
                     }
                 }

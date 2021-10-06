@@ -49,6 +49,7 @@ void GlobalManager::initManager()
 {
     // get pointer of Managers
     m_pExamManager = ExamManager::getInstance();
+    connect(m_pExamManager, &ExamManager::evExamStepChanged, this, &GlobalManager::onExamManagerStepChanged);
 }
 
 quint32 GlobalManager::getGuiPage() const
@@ -61,6 +62,14 @@ void GlobalManager::setGuiPage(quint32 p_value)
     if( m_guiPage != p_value ) {
         m_guiPage = p_value;
         emit evGuiPageChanged(m_guiPage);
+    }
+}
+
+void GlobalManager::onExamManagerStepChanged(qint32)
+{
+    // each time user change step of BSCAN acquisition, go to scan page
+    if( PAGE_SCAN != m_guiPage) {
+        setGuiPage(PAGE_SCAN);
     }
 }
 

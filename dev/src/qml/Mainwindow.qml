@@ -89,7 +89,7 @@ Item {
                 background: Rectangle {
                     id: ibBtBannerTitleBG
                     color: examManager.examStep !== 0 /*stopped*/ ?
-                               Design.colOrangeSelected : Design.colButtonBackground //btBannerTitle.pressed ? Design.colButtonSelectedBackground : btBannerTitle.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                               Design.colGreen : Design.colButtonBackground //btBannerTitle.pressed ? Design.colButtonSelectedBackground : btBannerTitle.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
                     //color: btBannerTitle.hovered ? "#9C9B9B" : "#FFFFFF"
                     border.width: 1
                     border.color: Design.colFrameBorder

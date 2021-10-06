@@ -19,8 +19,6 @@ Rectangle {
         Rectangle {
             id: idSettingsAScanBar
 
-            color: "#0099BB"
-
             height: 35
             Layout.fillWidth: true
 
@@ -327,7 +325,7 @@ Rectangle {
                     ColumnLayout {
                         Text {
                             text: qsTr("Porte 1er écho :")
-                            color: "#DD3030"
+                            color: Design.colRed
                             font.pointSize: 12
                         }
 
@@ -425,7 +423,7 @@ Rectangle {
                     ColumnLayout {
                         Text {
                             text: qsTr("Porte 2nd écho :")
-                            color: "#30BB30"
+                            color: Design.colGreen
                             font.pointSize: 12
                         }
 

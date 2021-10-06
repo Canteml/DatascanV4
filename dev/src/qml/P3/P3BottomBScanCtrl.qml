@@ -56,6 +56,7 @@ Rectangle {
                 Layout.preferredHeight: 30
                 Layout.fillWidth: true
                 font.pointSize: 8
+
                 Layout.leftMargin: 5
                 Layout.rightMargin: 5
 

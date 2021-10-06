@@ -69,5 +69,6 @@
         <file>icons/iconAgain.png</file>
         <file>icons/iconNext.png</file>
         <file>icons/iconPrevious.png</file>
+        <file>icons/iconOkDisabledBright.png</file>
     </qresource>
 </RCC>
