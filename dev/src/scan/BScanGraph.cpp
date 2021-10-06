@@ -57,7 +57,7 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_surfaceYMaxMm = 0;
 
     m_pExamManager = ExamManager::getInstance();
-    connect(m_pExamManager, &ExamManager::evMeasureDisplayChanged, this, &BScanGraph::onMeasureDisplayChanged);
+
 
     // Worker
 
@@ -82,11 +82,8 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     // -- Graphic items
 
     // make fake graph to init columns
-    QVector<qreal> vX, vY;
-    vX.append(0);
-    vY.append(0);
-    m_columnX=m_dsBScan->addColumn(vX.data(), 1, "x");
-    m_columnY=m_dsBScan->addColumn(vY.data(), 1, "y");
+    m_columnX=m_dsBScan->addColumn("x");
+    m_columnY=m_dsBScan->addColumn("y");
 
     m_graphBScan=new JKQTPImpulsesVerticalGraph(m_pPlotBScan);
     m_graphBScan->setXColumn(m_columnX);
@@ -141,6 +138,9 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_timeRefresh->setSingleShot(true);
     connect(m_timeRefresh, &QTimer::timeout, this, &BScanGraph::onTimerRefresh, Qt::QueuedConnection);
 
+    connect(m_pExamManager, &ExamManager::evMeasureDisplayChanged, this, &BScanGraph::onMeasureDisplayChanged);
+    connect(m_pExamManager, &ExamManager::evExamStepChanged, this, &BScanGraph::onExamStepChanged);
+    onExamStepChanged(m_pExamManager->getExamStep());
 
 
 
@@ -389,6 +389,11 @@ void BScanGraph::setAxeYMaxMm(qreal p_value)
     }
 }
 
+void BScanGraph::clearBScan()
+{
+    onUpdateBScan(nullptr);
+}
+
 // -- Actions
 
 //void BScanGraph::axeXScaleIn()
@@ -469,9 +474,9 @@ void BScanGraph::draw()
             }
 
             if( m_pExamManager->getMeasureDisplay() == ExamManager::MEASURE_1E ) {
-                m_graphBScan->setColor("#80801010");
+                m_graphBScan->setColor("#A0801010");
             } else {
-                m_graphBScan->setColor("#80202020"); // opacity @ 50% => Hight CPU usage
+                m_graphBScan->setColor("#A0202020"); // opacity @ 50% => Hight CPU usage
             }
 
             if( m_drawFlagPosition ) {
@@ -622,7 +627,16 @@ void BScanGraph::onBScanReplotted()
 
 void BScanGraph::onMeasureDisplayChanged(quint32)
 {
-     processLastSurface();
+    processLastSurface();
+}
+
+void BScanGraph::onExamStepChanged(quint32 p_value)
+{
+    if( ExamManager::EXAM_STOPPED == p_value ) {
+        m_pPositionLine->setStyle(QColor("#FF2020"), 3);
+    } else {
+        m_pPositionLine->setStyle(QColor("#40DD40"), 3);
+    }
 }
 
 void BScanGraph::updateAxes()

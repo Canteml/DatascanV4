@@ -248,6 +248,7 @@ void ScanManager::onNewAScanTreated(AScan * p_pAscan)
         m_pAScanGraphMain->updateAScan(&m_pAScan[p_pAscan->m_source]);
         emit evUpdateAScan();
     }
+    //fLogDebug1(QString("ASCAN X = %1").arg(p_pAscan->getAScanRawSample()->m_position.x()));
     m_pExamManager->pushAScan(p_pAscan);
 }
 
@@ -303,6 +304,11 @@ void ScanManager::onExamManagerStepChanged(qint32 p_value)
         }
         if( m_pBScanGraphMain->getViewYMode() != BScanGraph::VIEW_Y_AUTO ) {
             m_pBScanGraphMain->setViewYMode(BScanGraph::VIEW_Y_AUTO);
+        }
+
+        // When go to STOPPED (at the end of one acquisition), clear BSCAN (even if the vector is disconnected)
+        if( p_value == ExamManager::EXAM_STOPPED ) {
+            m_pBScanGraphMain->clearBScan();
         }
     }
 }

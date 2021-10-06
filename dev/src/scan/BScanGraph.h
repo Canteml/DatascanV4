@@ -75,6 +75,8 @@ public:
 //    void axeXScaleIn();
 //    void axeXScaleOut();
 
+    void clearBScan();
+
     void updateAxes();
 
     enum VIEW_X_MODE {
@@ -133,6 +135,7 @@ private slots :
     void onBScanReplotted();
 
     void onMeasureDisplayChanged(quint32);///< emited by ExamManager : 1 Echo / Multi Echo
+    void onExamStepChanged(quint32);
 
 private :
 

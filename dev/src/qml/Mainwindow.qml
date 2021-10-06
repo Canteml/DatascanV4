@@ -7,6 +7,7 @@ Item {
     id: itemMain
 
     anchors.fill: parent
+    focus: enabled
 //    property alias btBannerTitle: btBannerTitle
 //    property alias slCentral: slCentral
 

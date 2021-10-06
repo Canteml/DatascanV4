@@ -50,7 +50,7 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
 
     // allocate / init
     //QVector<double> xAscan, yAscan;
-    for(int i=0; i<AScanRawSample::ASCAN_SAMPLE_SIZE; i++) {
+    for(int i=0; i<AScanRawSample::ASCAN_SAMPLE_SIZE/4; i++) {
 //        double vy = 0;
 //        double vx = i;
 //        xAscan<<vx;
@@ -63,8 +63,8 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
 //    m_columnX=m_dsAScan->addCopiedColumn(xAscan, "x");
 //    m_columnY=m_dsAScan->addCopiedColumn(yAscan, "y");
 
-    m_columnX=m_dsAScan->addColumn(m_pAScanXData, AScanRawSample::ASCAN_SAMPLE_SIZE, "x");
-    m_columnY=m_dsAScan->addColumn(m_pAScanYData, AScanRawSample::ASCAN_SAMPLE_SIZE, "y");
+    m_columnX=m_dsAScan->addColumn(m_pAScanXData, AScanRawSample::ASCAN_SAMPLE_SIZE/4, "x");
+    m_columnY=m_dsAScan->addColumn(m_pAScanYData, AScanRawSample::ASCAN_SAMPLE_SIZE/4, "y");
 
 //    m_pAScanXData = m_dsAScan->getColumnPointer(m_columnX);
 //    m_pAScanYData = m_dsAScan->getColumnPointer(m_columnY);
@@ -105,7 +105,7 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
 
     // improve performances : CPU : 11% => 5%
     m_pPlotAScan->getPlotter()->setUseAntiAliasingForGraphs(false);
-    m_pPlotAScan->getPlotter()->setUseAntiAliasingForSystem(false);
+    m_pPlotAScan->getPlotter()->setUseAntiAliasingForSystem(true);
     m_pPlotAScan->getPlotter()->setUseAntiAliasingForText(true);
 
     // scale
@@ -130,6 +130,7 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
 
 AScanGraph::~AScanGraph()
 {
+    m_mutBuffer.lock();
     if( m_timeRefresh->isActive() ) {
         m_timeRefresh->stop();
     }
@@ -137,6 +138,7 @@ AScanGraph::~AScanGraph()
     m_timeRefresh = nullptr;
     delete m_pAScanGraphWorker;
     m_pAScanGraphWorker = nullptr;
+    m_mutBuffer.unlock();
     m_pPlotAScan->deleteLater();
     m_pPlotAScan = nullptr;
     delete m_eMouseMove;
@@ -163,21 +165,27 @@ void AScanGraph::stop()
 
 void AScanGraph::updateAScan(AScan * p_pAScan)
 {
-    if( !m_mouseClicked ) {
+    if( !m_mouseClicked ) { // Do not update the ASCAN while user drag the graph with the mouse
         if( nullptr != p_pAScan ) {
             qreal d = p_pAScan->getSensorSettings()->getSampleStepMM();
-            for(int i=0; i<AScanRawSample::ASCAN_SAMPLE_SIZE; i++) {
-                qreal x = d*i-p_pAScan->getAScanMeasure()->m_paramLProbeDelayMm;
+            // Draw a ASCAN with 4000 points use lot of CPU.
+            // Reduce to 1000 points (/4)
+            for(int i=0; i<AScanRawSample::ASCAN_SAMPLE_SIZE/4; i++) {
+                int is = i*4;
+                qreal x = d*is-p_pAScan->getAScanMeasure()->m_paramLProbeDelayMm;
                 m_pAScanXData[i] = x;
-                m_pAScanYData[i] = (double) (p_pAScan->getAScanEnhancedSample()->m_enhancedSamples[i]) * 100 / std::numeric_limits<quint8>::max();
-            }
-            needRefresh(false);
+                qreal ymoy = 0;
+                for(int j=is; j<is+4; j++) {
+                    ymoy +=  p_pAScan->getAScanEnhancedSample()->m_enhancedSamples[is];
+                }
+                m_pAScanYData[i] = (ymoy/4) * 100 / std::numeric_limits<quint8>::max();
+            }            
         } else {
-            for(int i=0; i<AScanRawSample::ASCAN_SAMPLE_SIZE; i++) {
+            for(int i=0; i<AScanRawSample::ASCAN_SAMPLE_SIZE/4; i++) {
                 m_pAScanYData[i] = 0;
             }
-            needRefresh(false);
         }
+        needRefresh(false);
     }
 }
 
@@ -270,7 +278,7 @@ void AScanGraph::needRefresh(bool p_force)
     // timer active => already an update programmed
     if( !m_timeRefresh->isActive() || p_force) {
         qint64 dTime = curEpoc - m_lastUpdateEpoc;
-        if( dTime >= 60 || p_force ) {
+        if( (dTime >= 60 || p_force) && !m_updateInProgress ) {
             m_updateInProgress = true;
             m_lastUpdateEpoc = curEpoc;
             //update();
@@ -279,7 +287,7 @@ void AScanGraph::needRefresh(bool p_force)
             }
         } else if( !m_timeRefresh->isActive() ){
             // start timer with remaining time
-            m_timeRefresh->start(60 - (dTime));
+            m_timeRefresh->start(qMax<qint64>(5, 60 - (dTime)));
         }
     }
 }
