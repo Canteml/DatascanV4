@@ -55,6 +55,9 @@ public:
 signals :
     void evGuiPageChanged(quint32);
 
+private slots :
+    void onExamManagerStepChanged(qint32);
+
 private :
     GlobalManager();
 

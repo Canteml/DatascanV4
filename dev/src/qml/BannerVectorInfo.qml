@@ -78,7 +78,7 @@ Rectangle {
             Layout.preferredWidth: idBannerVectorInfo.height - 10
             Layout.preferredHeight: idBannerVectorInfo.height - 10
 
-            icon.source: enabled ? "qrc:///img/icons/iconReport.png" : "qrc:///img/icons/iconReportDisabled.png"
+            icon.source: enabled ? "qrc:///img/icons/iconOk.png" : "qrc:///img/icons/iconOkDisabledBright.png"
             icon.width: idBannerVectorInfo.height - 10
             icon.height: idBannerVectorInfo.height - 10
             icon.color: "transparent"
@@ -131,15 +131,15 @@ Rectangle {
 
         // -------------------
         // -- Position
-        Image {
-            id: icPosition
-            Layout.fillHeight: true
-            Layout.topMargin: 5
-            Layout.bottomMargin: 5
-            Layout.preferredWidth: 40
-            source: "qrc:///img/icons/iconPosition.png"
-            fillMode: Image.PreserveAspectFit
-        }
+//        Image {
+//            id: icPosition
+//            Layout.fillHeight: true
+//            Layout.topMargin: 5
+//            Layout.bottomMargin: 5
+//            Layout.preferredWidth: 40
+//            source: "qrc:///img/icons/iconPosition.png"
+//            fillMode: Image.PreserveAspectFit
+//        }
 
         RowLayout {
 

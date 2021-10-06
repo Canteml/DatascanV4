@@ -26,18 +26,22 @@ QtObject {
     readonly property color colFrameBorder: "black"
     readonly property color colSeparator: "#9C9B9B"
 
+
+    readonly property color colGreen: "#00B223"
+    readonly property color colRed: "#D10A0A"
+
+
+
     // Blue theme
 
-    readonly property color colBlueSelected: "#66CBFF"
+    readonly property color colBlueSelected: "#00A1FF"
     readonly property color colBlueHovered: "#C1E2F2"
-    readonly property color colBlue: "#0083FF"
 
 
     // Orange theme
 
     readonly property color colOrangeSelected: "#FF9932"
     readonly property color colOrangeHovered: "#FFE5CC"
-
 
 
     // Form Section
