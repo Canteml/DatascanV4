@@ -62,7 +62,7 @@ Rectangle {
 
                 background: Rectangle {
                     color: (idBtBScanXAuto.pressed || scanManager.BScanViewXMode === 0) ?
-                               Design.colBlueSelected : idBtBScanXAuto.hovered ? Design.colBlueHovered : Design.colButtonBackground
+                               Design.colOrange : idBtBScanXAuto.hovered ? Design.colOrangeHovered : Design.colButtonBackground
                     border.width: 1
                     border.color: Design.colFrameBorder
                 }
@@ -86,7 +86,7 @@ Rectangle {
                 Layout.rightMargin: 5
 
                 background: Rectangle {
-                    color: (idBtBScanYAuto.pressed || scanManager.BScanViewYMode === 0) ? Design.colBlueSelected : idBtBScanYAuto.hovered ? Design.colBlueHovered : Design.colButtonBackground
+                    color: (idBtBScanYAuto.pressed || scanManager.BScanViewYMode === 0) ? Design.colOrange: idBtBScanYAuto.hovered ? Design.colOrangeHovered : Design.colButtonBackground
                     border.width: 1
                     border.color: Design.colFrameBorder
                 }
@@ -190,7 +190,7 @@ Rectangle {
                 Layout.rightMargin: 5
 
                 background: Rectangle {
-                    color: (idBtZoneAuto.pressed || examManager.zoneAuto === true) ? Design.colBlueSelected : idBtZoneAuto.hovered ? Design.colBlueHovered : Design.colButtonBackground
+                    color: (idBtZoneAuto.pressed || examManager.zoneAuto === true) ? Design.colOrange : idBtZoneAuto.hovered ? Design.colOrangeHovered : Design.colButtonBackground
                     border.width: 1
                     border.color: Design.colFrameBorder
                 }
