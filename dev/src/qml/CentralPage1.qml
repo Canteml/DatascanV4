@@ -10,7 +10,7 @@ Rectangle {
     Layout.fillHeight: true
 
     color: "#ffffff"
-    property alias idLinkList: idLinkList
+    //property alias idLinkList: idLinkList
     property alias idCbProduct: idCbProduct
 
     ColumnLayout {
@@ -42,68 +42,79 @@ Rectangle {
             ComboBox {
                 id: idCbProduct
                 Layout.preferredHeight: 30
-                model: ["Altiscan", "Perche", "Rover", "Panda Vol1", "Panda Vol3"]
-            }
-        }
+                model: [qsTr("UT POLE 68"), qsTr("ALTISCAN"), qsTr("ROVER"), qsTr("ROVER SCANNER"), qsTr("ROVER CLEANER"),
+                    qsTr("PANDA Vol.1"), qsTr("PANDA Vol.3")]
 
-        ListView {
-            id: idLinkList
-            width: 200
-            height: 250
-            Layout.fillHeight: true
-            Layout.fillWidth: true
-            Layout.leftMargin: 40
-
-
-            property var linkList : currentVector.getLinkManager().getLinkModel()
-            model: linkList
-            delegate: DeviceLinkConfig {
-
-                idCbLinkType.currentIndex: link_type-1  // enum 0 = unknow
-                idCbLinkType.visible: false // not available for now
-                idCbLinkComPort.model: serial_port_list
-                idCbLinkComPort.enabled: link_state === 0 /* disconnected */ || link_state === 3 /* disconnecting */ || link_state === 4 /* disconnected */
-                idBtLinkConnect.text : link_state === 1 /*Connecting*/|| link_state === 2 /*Connected*/? qsTr("Déconnecter") : qsTr("Connecter")
-                linkName : link_name
-                linkState: link_state
-
-                Connections {
-                    target : idBtLinkConnect
-                    function onPressed() {
-                        if( link_state === 1 /*Connecting*/|| link_state === 2 /*Connected*/ ) {
-                            currentVector.getLinkManager().disconnectLink(link_name);
-                        } else {
-                            currentVector.getLinkManager().setComPort(link_name, idCbLinkComPort.currentText);
-                        }
-                    }
-
-                }
-
-                Connections {
-                    target : idCbLinkComPort
-                    function onActivated() {
-                        if( idCbLinkComPort.currentText !== currentVector.getLinkManager().getComPort(link_name) ) {
-                            currentVector.getLinkManager().setComPort(link_name, idCbLinkComPort.currentText);
-                        }
+                onCurrentIndexChanged: {
+                    if( currentVector.prodId !== (currentIndex+1) ) {
+                        currentVector.setProdIdDeviceAd(currentIndex+1, 0 /*MPC*/); /// value in PROD_ID, start at 1 (0 = invalid)
                     }
                 }
-
-                Connections {
-                    target : idCbProduct
-                    function onCurrentIndexChanged() {
-                        if( currentVector.prodId !== idCbProduct.currentIndex+1 ) {
-                            currentVector.prodId = idCbProduct.currentIndex+1; // combo doesn't start to "undef"
-                        }
-                    }
-                }
-
                 Component.onCompleted: {
-                    idCbLinkComPort.currentIndex = idCbLinkComPort.find(serial_port);
-                    idCbProduct.currentIndex = currentVector.prodId-1
+                    currentVector.setProdIdDeviceAd(currentIndex+1, 0 /*MPC*/); /// value in PROD_ID, start at 1 (0 = invalid)
                 }
-
             }
         }
+
+
+//        ListView {
+//            id: idLinkList
+//            width: 200
+//            height: 250
+//            Layout.fillHeight: true
+//            Layout.fillWidth: true
+//            Layout.leftMargin: 40
+
+
+//            property var linkList : currentVector.getLinkManager().getLinkModel()
+//            model: linkList
+//            delegate: DeviceLinkConfig {
+
+//                idCbLinkType.currentIndex: link_type-1  // enum 0 = unknow
+//                idCbLinkType.visible: false // not available for now
+//                idCbLinkComPort.model: serial_port_list
+//                idCbLinkComPort.enabled: link_state === 0 /* disconnected */ || link_state === 3 /* disconnecting */ || link_state === 4 /* disconnected */
+//                idBtLinkConnect.text : link_state === 1 /*Connecting*/|| link_state === 2 /*Connected*/? qsTr("Déconnecter") : qsTr("Connecter")
+//                linkName : link_name
+//                linkState: link_state
+
+//                Connections {
+//                    target : idBtLinkConnect
+//                    function onPressed() {
+//                        if( link_state === 1 /*Connecting*/|| link_state === 2 /*Connected*/ ) {
+//                            currentVector.getLinkManager().disconnectLink(link_name);
+//                        } else {
+//                            currentVector.getLinkManager().setComPort(link_name, idCbLinkComPort.currentText);
+//                        }
+//                    }
+
+//                }
+
+//                Connections {
+//                    target : idCbLinkComPort
+//                    function onActivated() {
+//                        if( idCbLinkComPort.currentText !== currentVector.getLinkManager().getComPort(link_name) ) {
+//                            currentVector.getLinkManager().setComPort(link_name, idCbLinkComPort.currentText);
+//                        }
+//                    }
+//                }
+
+//                Connections {
+//                    target : idCbProduct
+//                    function onCurrentIndexChanged() {
+//                        if( currentVector.prodId !== idCbProduct.currentIndex+1 ) {
+//                            currentVector.prodId = idCbProduct.currentIndex+1; // combo doesn't start to "undef"
+//                        }
+//                    }
+//                }
+
+//                Component.onCompleted: {
+//                    idCbLinkComPort.currentIndex = idCbLinkComPort.find(serial_port);
+//                    idCbProduct.currentIndex = currentVector.prodId-1
+//                }
+
+//            }
+//        }
 
         // -- SPACER
         Item {

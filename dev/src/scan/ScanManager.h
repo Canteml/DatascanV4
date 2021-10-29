@@ -16,6 +16,7 @@
 #include <xml/XmlSettingsLoggable.h>
 #include <v2/vector/VectorManager.h>
 #include <v2/vector/VectorStd.h>
+#include <v2/scan/AScan.h>
 class AScan;
 class AScanGraph;
 class BScanGraph;
@@ -34,6 +35,7 @@ class QQmlApplicationEngine;
  *      - A ASCAN stored in a BSCAN if user click on BSCAN
  *      - the last ASCAN of the selected sensor
  */
+
 class ScanManager : public QObject, public XmlSettingsLoggable
 {
     Q_OBJECT
