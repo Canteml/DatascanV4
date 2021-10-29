@@ -320,9 +320,9 @@ Rectangle {
     }
 
     Connections {
-        target : currentVector.getDeviceManager()
-        function onStateChanged() {
-            if( 3 === currentVector.getDeviceManager().state ) {
+        target : currentVector
+        function onEvFuncStateConnectionChanged() {
+            if( 2 === currentVector.FuncStateConnection ) {
                 btVectorConnection.icon.source = "qrc:///img/icons/iconConnected.png"
             } else {
                 btVectorConnection.icon.source = "qrc:///img/icons/iconDisconnected.png"

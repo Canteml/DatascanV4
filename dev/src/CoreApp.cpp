@@ -19,6 +19,7 @@
 #include <v2/com/ComDevice.h>
 #include <v2/vector/VectorManager.h>
 #include <v2/vector/VectorStd.h>
+#include <v2/vector/VectorFuncAScan.h>
 #include <v2/vector/VectorFuncPosition.h>
 #include <scan/ScanManager.h>
 #include <scan/AScanGraph.h>
@@ -30,6 +31,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
+Q_DECLARE_METATYPE(VectorFuncAScan*)
 
 CoreApp::CoreApp() : CoreUiQml("CoreApp")
 {
@@ -150,7 +152,7 @@ bool CoreApp::initQmlType()
     // example : qRegisterMetaType<vector*>("vector*");
     qRegisterMetaType<ComDevice*>("ComDevice*");
     qRegisterMetaType<VectorFuncAScan*>("VectorFuncAScan*");
-    qRegisterMetaType<VectorFuncAScan*>("VectorFuncPosition*");
+    qRegisterMetaType<VectorFuncPosition*>("VectorFuncPosition*");
     qRegisterMetaType<VectorManager*>("VectorManager*");
     qRegisterMetaType<VectorStd*>("VectorStd*");
     qRegisterMetaType<ComLinkManager*>("ComLinkManager*");
