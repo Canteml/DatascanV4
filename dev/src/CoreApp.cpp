@@ -21,6 +21,7 @@
 #include <v2/vector/VectorStd.h>
 #include <v2/vector/VectorFuncAScan.h>
 #include <v2/vector/VectorFuncPosition.h>
+#include <v2/vector/VectorFuncPump.h>
 #include <scan/ScanManager.h>
 #include <scan/AScanGraph.h>
 #include <scan/BScanGraph.h>
@@ -153,6 +154,7 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<ComDevice*>("ComDevice*");
     qRegisterMetaType<VectorFuncAScan*>("VectorFuncAScan*");
     qRegisterMetaType<VectorFuncPosition*>("VectorFuncPosition*");
+    qRegisterMetaType<VectorFuncPump*>("VectorFuncPump*");
     qRegisterMetaType<VectorManager*>("VectorManager*");
     qRegisterMetaType<VectorStd*>("VectorStd*");
     qRegisterMetaType<ComLinkManager*>("ComLinkManager*");
