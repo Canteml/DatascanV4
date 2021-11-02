@@ -292,7 +292,12 @@ Rectangle {
             padding: 1
 
             background: Rectangle {
-                color: "transparent"
+                color: btVectorEmergencyStop.pressed ? "#FF0000" : btVectorEmergencyStop.hovered ? "#FFAE4C" : "transparent"
+                border.color: "transparent"
+            }
+
+            onPressed: {
+                currentVector.emergencyStop();
             }
         }
     }
