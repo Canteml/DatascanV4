@@ -250,16 +250,16 @@ Rectangle {
                 RpSpinBox {
                     id: idSbPulseWidth
                     from: 18
-                    to: 18+255*6.25
+                    to: 1600
 
                     stepSize: 1
                     editable: true
                     font.pointSize: 12
 
-                    value: 18+scanManager.SelectedFuncAScan.paramDPulseWidth*6.25
+                    value: scanManager.SelectedFuncAScan.paramDPulseWidth
 
                     onValueChanged: {
-                        scanManager.SelectedFuncAScan.paramDPulseWidth = (value-18)/6.25
+                        scanManager.SelectedFuncAScan.paramDPulseWidth = value
                     }
                     onValueModified: {
                         focus = false;

@@ -42,7 +42,7 @@ Rectangle {
             ComboBox {
                 id: idCbProduct
                 Layout.preferredHeight: 30
-                model: [qsTr("UT POLE 68"), qsTr("ALTISCAN"), qsTr("ROVER"), qsTr("ROVER SCANNER"), qsTr("ROVER CLEANER"),
+                model: [qsTr("UT POLE IP68"), qsTr("ALTISCAN"), qsTr("ROVER"), qsTr("ROVER SCANNER"), qsTr("ROVER CLEANER"),
                     qsTr("PANDA Vol.1"), qsTr("PANDA Vol.3")]
 
                 onCurrentIndexChanged: {
