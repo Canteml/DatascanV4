@@ -289,11 +289,15 @@ Rectangle {
             icon.width: idBannerVectorInfo.height
             icon.height: idBannerVectorInfo.height
             icon.color: "transparent"
-            padding: 1
+            padding: 2
 
             background: Rectangle {
                 color: btVectorEmergencyStop.pressed ? "#FF0000" : btVectorEmergencyStop.hovered ? "#FFAE4C" : "transparent"
-                border.color: "transparent"
+                // keep 1 pixel clean arround the button to not override the layout frame
+                width: btVectorEmergencyStop.width-2
+                x : 1
+                height: btVectorEmergencyStop.height-2
+                y : 1
             }
 
             onPressed: {
