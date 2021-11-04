@@ -32,29 +32,60 @@ Rectangle {
             id: idRowProduct
             Layout.fillWidth: true
             Layout.leftMargin: 20
+            ColumnLayout {
 
-            Text {
-                id: lbProduct
-                text: qsTr("Appareil :")
-                font.pixelSize: 14
+                Text {
+                    id: lbProduct
+                    text: qsTr("Appareil :")
+                    font.pixelSize: 14
+                }
+                // -- SPACER
+                Item {
+                    // Spacer
+                    Layout.fillHeight: true
+                }
+
             }
 
-            ComboBox {
-                id: idCbProduct
-                Layout.preferredHeight: 30
-                model: [qsTr("UT POLE IP68"), qsTr("ALTISCAN"), qsTr("ROVER"), qsTr("ROVER SCANNER"), qsTr("ROVER CLEANER"),
-                    qsTr("PANDA Vol.1"), qsTr("PANDA Vol.3")]
+            ColumnLayout {
 
-                onCurrentIndexChanged: {
-                    if( currentVector.prodId !== (currentIndex+1) ) {
+                Layout.fillWidth: true
+                Layout.leftMargin: 20
+
+                ComboBox {
+                    id: idCbProduct
+                    Layout.preferredHeight: 30
+                    model: [qsTr("UT POLE IP68"), qsTr("ALTISCAN"), qsTr("ROVER"), qsTr("ROVER SCANNER"), qsTr("ROVER CLEANER"),
+                        qsTr("PANDA Vol.1"), qsTr("PANDA Vol.3")]
+
+                    onCurrentIndexChanged: {
+                        if( currentVector.prodId !== (currentIndex+1) ) {
+                            currentVector.setProdIdDeviceAd(currentIndex+1, 0 /*MPC*/); /// value in PROD_ID, start at 1 (0 = invalid)
+                        }
+                    }
+                    Component.onCompleted: {
                         currentVector.setProdIdDeviceAd(currentIndex+1, 0 /*MPC*/); /// value in PROD_ID, start at 1 (0 = invalid)
                     }
                 }
-                Component.onCompleted: {
-                    currentVector.setProdIdDeviceAd(currentIndex+1, 0 /*MPC*/); /// value in PROD_ID, start at 1 (0 = invalid)
+
+
+                ListView {
+                    id: idlvListDevices
+                     Layout.fillWidth: true
+                     Layout.fillHeight: true
+                     model: modelDeviceList
+                     delegate: Rectangle {
+                         height: 40
+                         Text {
+                             text: modelData
+                             font.pixelSize: 14
+                         }
+                     }
                 }
             }
         }
+
+
 
 
 //        ListView {
