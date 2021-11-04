@@ -12,6 +12,14 @@
 
 #include "GlobalManager.h"
 #include <v2/exam/ExamManager.h>
+#include <v2/com/ComDeviceManager.h>
+#include <v2/vector/VectorManager.h>
+#include <v2/vector/VectorStd.h>
+#include "CoreApp.h"
+
+// -- Qt includes
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
 
 GlobalManager* GlobalManager::m_pMyInstance = nullptr;
 
@@ -50,6 +58,11 @@ void GlobalManager::initManager()
     // get pointer of Managers
     m_pExamManager = ExamManager::getInstance();
     connect(m_pExamManager, &ExamManager::evExamStepChanged, this, &GlobalManager::onExamManagerStepChanged);
+
+    m_pComDeviceManager = VectorManager::getInstance()->getVectorStd()->getDeviceManager();
+    connect(m_pComDeviceManager, &ComDeviceManager::evDeviceListChanged, this, &GlobalManager::onDeviceListChanged);
+
+
 }
 
 quint32 GlobalManager::getGuiPage() const
@@ -71,6 +84,12 @@ void GlobalManager::onExamManagerStepChanged(qint32)
     if( PAGE_SCAN != m_guiPage) {
         setGuiPage(PAGE_SCAN);
     }
+}
+
+void GlobalManager::onDeviceListChanged()
+{
+    QStringList slListDevices = m_pComDeviceManager->getDeviceListInfo();
+    CoreApp::getInstanceCoreUiQml()->getApplicationEngine()->rootContext()->setContextProperty("modelDeviceList", QVariant::fromValue(slListDevices));
 }
 
 

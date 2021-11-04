@@ -14,6 +14,7 @@
 
 #include <log/Loggable.h>
 class ExamManager;
+class ComDeviceManager;
 
 /**
  * @brief The GlobalManager class
@@ -57,6 +58,7 @@ signals :
 
 private slots :
     void onExamManagerStepChanged(qint32);
+    void onDeviceListChanged();
 
 private :
     GlobalManager();
@@ -67,5 +69,7 @@ private :
     // -- Behaviour
     static GlobalManager* m_pMyInstance;
     ExamManager* m_pExamManager;
+
+    ComDeviceManager* m_pComDeviceManager;
 };
 
