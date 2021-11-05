@@ -53,5 +53,9 @@ COPIES += CopyRes
 CopyRes.files = $$PWD/src/res
 CopyRes.path = build
 
+# Copy lib SDL2
+CopySDL2.files = $$PWD/lib/SDL2/bin/SDL2.dll
+CopySDL2.path = $$DESTDIR
+
 ## -- ICON
 RC_ICONS = $$PWD/src/res/img/application.ico

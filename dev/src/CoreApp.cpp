@@ -29,6 +29,7 @@
 #include <v2/exam/ExamManager.h>
 #include <v2/vector/VectorFuncLight.h>
 #include <v2/vector/VectorFuncBattery.h>
+#include "control/JoystickManager.h"
 
 // -- Qt Includes
 #include <QQmlApplicationEngine>
@@ -44,6 +45,7 @@ CoreApp::CoreApp() : CoreUiQml("CoreApp")
     m_pScanManager = nullptr;
     m_pExamManager = nullptr;
     m_pGlobalManager = nullptr;
+    m_pJoystickManager = nullptr;
 }
 
 
@@ -70,11 +72,12 @@ bool CoreApp::initApp()
 
     // -- make my managers
     // example : m_pStatisticApp = StatisticApp::makeInstance();
+    m_pJoystickManager = JoystickManager::makeInstance();
     m_pVectorManager = VectorManager::makeInstance(this);
     m_pScanManager = new ScanManager();
 
     m_pExamManager = ExamManager::makeInstance();
-    m_pGlobalManager = GlobalManager::makeInstance();
+    m_pGlobalManager = GlobalManager::makeInstance();    
 
     // -- init my managers
     // example : m_pStatisticApp->initManager();
@@ -83,6 +86,7 @@ bool CoreApp::initApp()
     m_pScanManager->init();    
     m_pGlobalManager->initManager();
     m_pExamManager->initManager();
+    m_pJoystickManager->start();
 
     // -- load settings of my managers
     // example : bRet &= m_pStatisticApp->loadSettings();
@@ -120,6 +124,7 @@ bool CoreApp::startApp()
 void CoreApp::stopApp()
 {
 //    StatisticApp::stopAppExecution();
+    m_pJoystickManager->stop();
 
     // -- core stop
     CoreUiQml::stopApp();
@@ -142,6 +147,8 @@ void CoreApp::deleteApp()
     m_pVectorManager->quit();
     delete m_pVectorManager;
     m_pVectorManager = nullptr;
+    delete m_pJoystickManager;
+    m_pJoystickManager = nullptr;
 
     // -- core delete
     CoreUiQml::deleteApp();
@@ -168,6 +175,7 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<GlobalManager*>("GlobalManager*");
     qRegisterMetaType<VectorFuncLight*>("VectorFuncLight*");
     qRegisterMetaType<VectorFuncBattery*>("VectorFuncBattery*");
+    qRegisterMetaType<JoystickManager*>("JoystickManager*");
 
     // -- declare C++ components instanciated from QML
     // exemple : qmlRegisterType<AScan>("ascan", 1, 0, "AScanItem");
@@ -187,6 +195,7 @@ bool CoreApp::initQmlContext()
     m_pQmlApplicationEngine->rootContext()->setContextProperty("scanManager", m_pScanManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("examManager", m_pExamManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("globalManager", m_pGlobalManager);
+    m_pQmlApplicationEngine->rootContext()->setContextProperty("joystickManager", m_pJoystickManager);
 
     return true;
 }

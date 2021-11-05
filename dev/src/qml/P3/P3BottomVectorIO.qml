@@ -20,6 +20,11 @@ Rectangle {
                 id: btPumpMinus
                 Layout.preferredWidth: 30
                 Layout.preferredHeight: 30
+                background: Rectangle {
+                    color: (btPumpMinus.pressed) ? Design.colButtonSelectedBackground : btPumpMinus.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                    border.width: 1
+                    border.color: Design.colFrameBorder
+                }
                 text: qsTr("-")
                 font.pointSize: 12
                 onPressed:
@@ -40,6 +45,13 @@ Rectangle {
                 checked: currentVector.funcPump().paramLPumpEnable
                 checkable: true
 
+                background: Rectangle {
+                    color: (btPumpEnable.pressed) ? Design.colButtonSelectedBackground : (btPumpEnable.checked) ?  "#2020A0" : btPumpEnable.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                    border.width: 1
+                    border.color: Design.colFrameBorder
+                }
+                font.pointSize: 9
+
                 onReleased:
                 {
                     currentVector.funcPump().paramLPumpEnable = 1-currentVector.funcPump().paramLPumpEnable
@@ -50,6 +62,11 @@ Rectangle {
                 id: btPumpPlus
                 Layout.preferredWidth: 30
                 Layout.preferredHeight: 30
+                background: Rectangle {
+                    color: (btPumpPlus.pressed) ? Design.colButtonSelectedBackground : btPumpPlus.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                    border.width: 1
+                    border.color: Design.colFrameBorder
+                }
                 text: qsTr("+")
                 font.pointSize: 12
                 onPressed:
@@ -92,13 +109,14 @@ Rectangle {
                 Layout.preferredHeight: 30
                 text: qsTr("LED ") + currentVector.funcLight().paramLLightLevel + " %"
                 background: Rectangle {
-                    color: (btLightEnable.pressed || btLightEnable.checked) ? Design.colButtonSelectedBackground : btLightEnable.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                    color: (btLightEnable.pressed) ? Design.colButtonSelectedBackground : (btLightEnable.checked) ?  "#909000" : btLightEnable.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
                     border.width: 1
                     border.color: Design.colFrameBorder
                 }
 
                 checked: currentVector.funcLight().paramLLightEnable
                 checkable: true
+                font.pointSize: 9
 
                 onReleased:
                 {
