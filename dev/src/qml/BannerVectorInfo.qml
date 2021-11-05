@@ -162,7 +162,11 @@ Rectangle {
 
                 onAccepted: focus = false
 
-                //readOnly: isReadOnly
+                onFocusChanged: {
+                    if(!focus) {
+                        currentVector.funcPosition().setParamLBscanPosMmXFromString(text);
+                    }
+                }
             }
 
             Item {
@@ -251,6 +255,50 @@ Rectangle {
             fillMode: Image.PreserveAspectFit
         }
 
+        ColumnLayout {
+            id: idLyBattery
+            visible: currentVector.funcBattery().paramDBatteryLvlP !== 255
+            Layout.fillHeight: true
+            spacing : 0
+            Layout.topMargin: 5
+            Layout.bottomMargin: 5
+
+            RowLayout {
+                Layout.fillHeight: true
+                Item {
+                    Layout.fillHeight: true
+                    // Spacer
+                }
+                Image {
+                    //Layout.topMargin: 5
+                    //Layout.bottomMargin: 5
+                    Layout.preferredWidth: 20
+                    Layout.fillHeight: true
+                    source: currentVector.funcBattery().paramDBatteryLvlP >= 90 ? "qrc:///img/icons/iconBat100.png" :
+                            currentVector.funcBattery().paramDBatteryLvlP >= 75 ? "qrc:///img/icons/iconBat75.png" :
+                            currentVector.funcBattery().paramDBatteryLvlP >= 50 ? "qrc:///img/icons/iconBat50.png" :
+                            currentVector.funcBattery().paramDBatteryLvlP >= 25 ? "qrc:///img/icons/iconBat25.png" :
+                            currentVector.funcBattery().paramDBatteryLvlP >= 10 ? "qrc:///img/icons/iconBat00.png" :
+                            "qrc:///img/icons/iconBatEmpty.png"
+                    fillMode: Image.PreserveAspectFit
+                }
+
+                Item {
+                    Layout.fillHeight: true
+                    // Spacer
+                }
+            }
+
+
+
+            Text {
+                text : currentVector.funcBattery().paramDBatteryLvlP + " %"
+            }
+
+
+
+        }
+
         Rectangle {
             // seaparator
             width: 5
@@ -277,6 +325,13 @@ Rectangle {
             background: Rectangle {
                 color: "transparent"
             }
+
+            hoverEnabled: true
+
+            ToolTip.delay: 500
+            ToolTip.timeout: 5000
+            ToolTip.visible: hovered
+            ToolTip.text: qsTr("Etat : " + (2 === currentVector.FuncStateConnection ? qsTr("Connecté") : 1 === currentVector.FuncStateConnection ? qsTr("Partiellement connecté") : qsTr("Déconnecté")));
         }
 
         Button {
@@ -333,6 +388,8 @@ Rectangle {
         function onEvFuncStateConnectionChanged() {
             if( 2 === currentVector.FuncStateConnection ) {
                 btVectorConnection.icon.source = "qrc:///img/icons/iconConnected.png"
+            } else if( 1 === currentVector.FuncStateConnection ) {
+                btVectorConnection.icon.source = "qrc:///img/icons/iconPartiallyConnected.png"
             } else {
                 btVectorConnection.icon.source = "qrc:///img/icons/iconDisconnected.png"
             }

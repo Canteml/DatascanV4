@@ -390,19 +390,19 @@ ColumnLayout {
             } else {
                 s = ""
             }
-            idTxtPreviousVirole.text =  qsTr("GAUCHE")+" (#"+s+(examManager.getGeneratrixNumberPrevious()+1)+")";
+            idTxtLeftGene.text =  qsTr("GAUCHE")+" (#"+s+(examManager.getGeneratrixNumberNext()+1)+")";
             if( examManager.getGeneratrixNumberNext()+1 < 10 ) {
                 s = "0"
             } else {
                 s = ""
             }
-            idTxtNextVirole.text =  qsTr("DROITE")+" (#"+s+(examManager.getGeneratrixNumberNext()+1)+")";
+            idTxtRightVirole.text =  qsTr("DROITE")+" (#"+s+(examManager.getGeneratrixNumberPrevious()+1)+")";
             if( examManager.selectedBScanGeneratrix+1 < 10 ) {
                 s = "0"
             } else {
                 s = ""
             }
-            idTxtCurrentVirole.text =  qsTr("ACTUELLE")+" (#"+s+(examManager.selectedBScanGeneratrix+1)+")";
+            idTxtCurrentGene.text =  qsTr("ACTUELLE")+" (#"+s+(examManager.selectedBScanGeneratrix+1)+")";
         }
 
         ColumnLayout {
@@ -417,7 +417,7 @@ ColumnLayout {
 
             Text {
                 Layout.fillWidth: true
-                text: qsTr("Choix de la prochaine virole :")
+                text: qsTr("Choix de la prochaine génératrice :")
                 font.bold: true
                 font.pointSize: 12
                 horizontalAlignment: Text.AlignHCenter
@@ -441,9 +441,9 @@ ColumnLayout {
 
                     spacing: 10
 
-                    // Button Previous
+                    // Button Left
                     Button {
-                        id: btPrevious
+                        id: btLeft
                         Layout.alignment: Qt.AlignHCenter
 
                         Layout.preferredWidth: 200
@@ -457,22 +457,22 @@ ColumnLayout {
                         antialiasing: true
 
                         background: Rectangle {
-                            color: btPrevious.pressed ? Design.colButtonSelectedBackground : btPrevious.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                            color: btLeft.pressed ? Design.colButtonSelectedBackground : btLeft.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
                             border.width: 2
                             border.color: Design.colButtonBorder
                             radius: 40
                         }
 
                         onPressed: {
-                            examManager.selectPreviousGeneratrix();
+                            examManager.selectNextGeneratrix();
                             examManager.examStep = 0; // STOPPED
                         }
                     }
 
                     Text {
                         Layout.fillWidth: true
-                        id: idTxtPreviousVirole
-                        text: "GAUCHE"
+                        id: idTxtLeftGene
+                        text: qsTr("GAUCHE")
                         font.bold: true
                         font.pointSize: 12
                         horizontalAlignment: Text.AlignHCenter
@@ -489,7 +489,7 @@ ColumnLayout {
 
                     spacing: 10
 
-                    // Button Next
+                    // Button Current
                     Button {
                         id: btAgain
                         Layout.alignment: Qt.AlignHCenter
@@ -519,8 +519,8 @@ ColumnLayout {
 
                     Text {
                         Layout.fillWidth: true
-                        id: idTxtCurrentVirole
-                        text: "ACTUELLE"
+                        id: idTxtCurrentGene
+                        text: qsTr("ACTUELLE")
                         font.bold: true
                         font.pointSize: 14
                         horizontalAlignment: Text.AlignHCenter
@@ -538,7 +538,7 @@ ColumnLayout {
 
                     // Button Next
                     Button {
-                        id: btNext
+                        id: btRight
                         Layout.alignment: Qt.AlignHCenter
 
                         Layout.preferredWidth: 200
@@ -552,22 +552,22 @@ ColumnLayout {
                         antialiasing: true
 
                         background: Rectangle {
-                            color: btNext.pressed ? Design.colButtonSelectedBackground : btNext.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                            color: btRight.pressed ? Design.colButtonSelectedBackground : btRight.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
                             border.width: 2
                             border.color: Design.colButtonBorder
                             radius: 40
                         }
 
                         onPressed: {
-                            examManager.selectNextGeneratrix();
+                            examManager.selectPreviousGeneratrix();
                             examManager.examStep = 0; // STOPPED
                         }
                     }
 
                     Text {
                         Layout.fillWidth: true
-                        id: idTxtNextVirole
-                        text: "DROITE"
+                        id: idTxtRightVirole
+                        text: qsTr("DROITE")
                         font.bold: true
                         font.pointSize: 14
                         horizontalAlignment: Text.AlignHCenter

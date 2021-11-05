@@ -27,6 +27,8 @@
 #include <scan/BScanGraph.h>
 #include "GlobalManager.h"
 #include <v2/exam/ExamManager.h>
+#include <v2/vector/VectorFuncLight.h>
+#include <v2/vector/VectorFuncBattery.h>
 
 // -- Qt Includes
 #include <QQmlApplicationEngine>
@@ -164,6 +166,8 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<ScanManager*>("ScanManager*");
     qRegisterMetaType<ExamManager*>("ExamManager*");
     qRegisterMetaType<GlobalManager*>("GlobalManager*");
+    qRegisterMetaType<VectorFuncLight*>("VectorFuncLight*");
+    qRegisterMetaType<VectorFuncBattery*>("VectorFuncBattery*");
 
     // -- declare C++ components instanciated from QML
     // exemple : qmlRegisterType<AScan>("ascan", 1, 0, "AScanItem");

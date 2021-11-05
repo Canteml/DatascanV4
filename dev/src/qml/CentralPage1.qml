@@ -55,16 +55,21 @@ Rectangle {
                 ComboBox {
                     id: idCbProduct
                     Layout.preferredHeight: 30
-                    model: [qsTr("UT POLE IP68"), qsTr("ALTISCAN"), qsTr("ROVER"), qsTr("ROVER SCANNER"), qsTr("ROVER CLEANER"),
-                        qsTr("PANDA Vol.1"), qsTr("PANDA Vol.3")]
+                    Layout.preferredWidth: 200
+                    model: [qsTr("PERCHE IP68"), qsTr("ALTISCAN"), qsTr("ROVER"), qsTr("ROVER SCANNER"), qsTr("ROVER CLEANER"),
+                        qsTr("UT POLE"), qsTr("PANDA Vol.3")]
+                    property var ready : false
 
                     onCurrentIndexChanged: {
-                        if( currentVector.prodId !== (currentIndex+1) ) {
-                            currentVector.setProdIdDeviceAd(currentIndex+1, 0 /*MPC*/); /// value in PROD_ID, start at 1 (0 = invalid)
+                        if( ready ) {
+                            if( currentVector.prodId !== (currentIndex+1) ) {
+                                currentVector.setProdIdDeviceAd(currentIndex+1, 0 /*MPC*/); /// value in PROD_ID, start at 1 (0 = invalid)
+                            }
                         }
                     }
                     Component.onCompleted: {
-                        currentVector.setProdIdDeviceAd(currentIndex+1, 0 /*MPC*/); /// value in PROD_ID, start at 1 (0 = invalid)
+                        currentIndex = currentVector.prodId - 1; /// value in PROD_ID, start at 1 (0 = invalid)
+                        ready = true;
                     }
                 }
 

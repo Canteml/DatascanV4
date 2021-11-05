@@ -628,6 +628,7 @@ void BScanGraph::onBScanReplotted()
 void BScanGraph::onMeasureDisplayChanged(quint32)
 {
     processLastSurface();
+    needRefresh();
 }
 
 void BScanGraph::onExamStepChanged(quint32 p_value)
@@ -637,6 +638,8 @@ void BScanGraph::onExamStepChanged(quint32 p_value)
     } else {
         m_pPositionLine->setStyle(QColor("#40DD40"), 3);
     }
+
+    needRefresh();
 }
 
 void BScanGraph::updateAxes()
