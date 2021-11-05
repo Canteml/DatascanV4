@@ -138,6 +138,7 @@ Rectangle {
 
                         Button {
                             id: idBtAScan3
+                            visible: currentVector.NbFuncAScanEnabled > 2
                             Layout.preferredHeight: 25
                             Layout.preferredWidth: 35
                             background: Rectangle {
@@ -157,6 +158,7 @@ Rectangle {
 
                         Button {
                             id: idBtAScan4
+                            visible: currentVector.NbFuncAScanEnabled > 3
                             Layout.preferredHeight: 25
                             Layout.preferredWidth: 35
                             background: Rectangle {

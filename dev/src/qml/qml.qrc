@@ -70,5 +70,12 @@
         <file>icons/iconNext.png</file>
         <file>icons/iconPrevious.png</file>
         <file>icons/iconOkDisabledBright.png</file>
+        <file>icons/iconPartiallyConnected.png</file>
+        <file>icons/iconBat00.png</file>
+        <file>icons/iconBat25.png</file>
+        <file>icons/iconBat50.png</file>
+        <file>icons/iconBat75.png</file>
+        <file>icons/iconBat100.png</file>
+        <file>icons/iconBatEmpty.png</file>
     </qresource>
 </RCC>
