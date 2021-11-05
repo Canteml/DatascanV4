@@ -251,7 +251,7 @@ Rectangle {
             Layout.fillHeight: true
             Layout.topMargin: 5
             Layout.bottomMargin: 5
-            source: "qrc:///img/icons/iconJoystickDisconnected.png"
+            source: joystickManager.isConnected ? "qrc:///img/icons/iconJoystickConnected.png" : "qrc:///img/icons/iconJoystickDisconnected.png"
             fillMode: Image.PreserveAspectFit
         }
 
@@ -289,14 +289,9 @@ Rectangle {
                 }
             }
 
-
-
             Text {
                 text : currentVector.funcBattery().paramDBatteryLvlP + " %"
             }
-
-
-
         }
 
         Rectangle {

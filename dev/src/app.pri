@@ -25,6 +25,10 @@ HEADERS +=  $$files($$PWD/*.h)
 SOURCES += $$files($$PWD/scan/*.cpp)
 HEADERS += $$files($$PWD/scan/*.h)
 
+SOURCES += $$files($$PWD/control/*.cpp)
+HEADERS += $$files($$PWD/control/*.h)
+
+
 # JK PLOTTER COMPONENTS
 SOURCES += $$files($$PWD/jkPlot/*.cpp)
 HEADERS += $$files($$PWD/jkPlot/*.h)
@@ -62,3 +66,10 @@ INCLUDEPATH += ext/fw_common/dev/src/v2/vector
 INCLUDEPATH += lib\jkqtplotter\include
 LIBS += -Llib/jkqtplotter/bin
 LIBS += -ljkqtplotterlib -ljkqtpcommonlib
+
+## SDL2
+LIBS += -Llib/SDL2/bin
+INCLUDEPATH += lib/SDL2/include
+
+LIBS += -lSDL2
+DEFINES += SDL_MAIN_HANDLED

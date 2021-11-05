@@ -20,6 +20,7 @@ class VectorStd;
 class ScanManager;
 class GlobalManager;
 class ExamManager;
+class JoystickManager;
 
 class CoreApp : public CoreUiQml
 {
@@ -58,6 +59,7 @@ private :
     ScanManager* m_pScanManager;
     ExamManager* m_pExamManager;
     GlobalManager* m_pGlobalManager;
+    JoystickManager* m_pJoystickManager;
 
 };
 
