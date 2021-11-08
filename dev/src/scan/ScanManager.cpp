@@ -32,6 +32,11 @@ ScanManager::ScanManager() : XmlSettingsLoggable("ScanManger")
     m_pGate1 = nullptr;
     m_pVector = nullptr;
     m_selectedAScanIndex = 0;
+    m_lastUpdateAScan = 0;
+
+    m_timUpdateAScan = new QTimer();
+    m_timUpdateAScan->setSingleShot(true);
+    connect(m_timUpdateAScan, &QTimer::timeout, this, &ScanManager::onUpdateAScanTimed);
 
     for(int i=0; i<VectorStd::NB_FUNC_ASCAN; i++) {
         m_pAScan[i].init();
@@ -41,6 +46,12 @@ ScanManager::ScanManager() : XmlSettingsLoggable("ScanManger")
 
 ScanManager::~ScanManager()
 {
+    if( m_timUpdateAScan->isActive() ) {
+        m_timUpdateAScan->stop();
+    }
+    delete m_timUpdateAScan;
+    m_timUpdateAScan = nullptr;
+
     if( nullptr != m_pGate0) {
         delete m_pGate0;
         m_pGate0 = nullptr;
@@ -246,7 +257,7 @@ void ScanManager::onNewAScanTreated(AScan * p_pAscan)
     if( p_pAscan->m_source == m_selectedAScanIndex && nullptr != m_pAScanGraphMain ) {
         m_pAScan[p_pAscan->m_source].copy(*p_pAscan);
         m_pAScanGraphMain->updateAScan(&m_pAScan[p_pAscan->m_source]);
-        emit evUpdateAScan();
+        emitUpdateAScanTimed();
     }
     //fLogDebug1(QString("ASCAN X = %1").arg(p_pAscan->getAScanRawSample()->m_position.x()));
     m_pExamManager->pushAScan(p_pAscan);
@@ -299,11 +310,11 @@ void ScanManager::onExamManagerStepChanged(qint32 p_value)
         }
     } else if( p_value == ExamManager::EXAM_RECORDING || p_value == ExamManager::EXAM_STOPPED  || p_value == ExamManager::EXAM_PAUSED) {
         // Go to Auto if full
-        if( m_pBScanGraphMain->getViewXMode() != BScanGraph::VIEW_X_AUTO ) {
+        if( m_pBScanGraphMain->getViewXMode() == BScanGraph::VIEW_X_FULL ) {
              m_pBScanGraphMain->setViewXMode(BScanGraph::VIEW_X_AUTO);
         }
-        if( m_pBScanGraphMain->getViewYMode() != BScanGraph::VIEW_Y_AUTO ) {
-            m_pBScanGraphMain->setViewYMode(BScanGraph::VIEW_Y_AUTO);
+        if( m_pBScanGraphMain->getViewYMode() == BScanGraph::VIEW_Y_FULL ) {
+            m_pBScanGraphMain->setViewYMode(BScanGraph::VIEW_Y_USER);
         }
 
         // When go to STOPPED (at the end of one acquisition), clear BSCAN (even if the vector is disconnected)
@@ -311,6 +322,11 @@ void ScanManager::onExamManagerStepChanged(qint32 p_value)
             m_pBScanGraphMain->clearBScan();
         }
     }
+}
+
+void ScanManager::onUpdateAScanTimed()
+{
+    emitUpdateAScanTimed(true);
 }
 
 bool ScanManager::customLoadSettings(QDomElement * p_pParent)
@@ -360,5 +376,23 @@ void ScanManager::setPrivateSelectedAScanIndex(quint32 p_index)
     m_pAScanGraphMain->updateAScan(&m_pAScan[p_index]);
     m_pGate0->setAScan(getSelectedFuncAScan());
     m_pGate1->setAScan(getSelectedFuncAScan());
-    emit evUpdateAScan();
+    emitUpdateAScanTimed(true);
+}
+
+void ScanManager::emitUpdateAScanTimed(bool p_force)
+{
+    qint64 curTime = QDateTime::currentMSecsSinceEpoch();
+
+    if( (curTime - m_lastUpdateAScan) >= ASCAN_MEASURE_REFRESH_DELAY ) {
+        p_force = true;
+    }
+
+    if( p_force ) {
+        m_lastUpdateAScan = QDateTime::currentMSecsSinceEpoch();
+        emit evUpdateAScan();
+    } else {
+        if( !m_timUpdateAScan->isActive() ) {
+            m_timUpdateAScan->start(ASCAN_MEASURE_REFRESH_DELAY - (curTime - m_lastUpdateAScan));
+        }
+    }
 }
