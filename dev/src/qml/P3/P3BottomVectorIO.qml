@@ -149,7 +149,142 @@ Rectangle {
             // Spacer
             Layout.fillHeight: true
         }
+
+        // -- MOVE
+        ColumnLayout {
+            id: keyLayout
+            visible : currentVector.funcMove().isEnabled
+            spacing: 5
+
+            // -- LINE UP
+            RowLayout {
+                Item{
+                    Layout.fillWidth : true;
+                }
+
+                Button {
+                    id: arrow_up
+                    icon.source: "qrc:///img/icons/btArrowKeyUp.png"
+                    icon.width: 30
+                    icon.height: 30
+                    Layout.minimumWidth: 45
+                    Layout.minimumHeight: 45
+
+                    background: Rectangle {
+                       id: arrow_upRect
+                       color: (currentVector.funcMove().moveDir & 0b0100 ) ? Design.colBlueSelected : parent.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                       border.color: Design.colFrameBorder
+                       border.width: 1
+                       radius: 4
+                    }
+
+                    onPressed: {
+                       currentVector.funcMove().moveKeyUp();
+                    }
+                    onReleased: {
+                       currentVector.funcMove().moveStopY();
+                    }
+                }
+
+                Item{
+                    Layout.fillWidth : true;
+                }
+            }
+
+            // -- LINE MIDDLE
+           RowLayout {
+                spacing: 5
+
+                Item{
+                    Layout.fillWidth : true;
+                }
+
+                Button {
+                   id: arrow_left
+                   icon.source: "qrc:///img/icons/btArrowKeyLeft.png"
+                   icon.width: 30
+                   icon.height: 30
+                   Layout.minimumWidth: 45
+                   Layout.minimumHeight: 45
+
+                   background: Rectangle {
+                       id: arrow_leftRect
+                       color: (currentVector.funcMove().moveDir & 0b0001 ) ? Design.colBlueSelected : parent.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                       border.color: Design.colFrameBorder
+                       border.width: 1
+                       radius: 4
+                   }
+
+                   onPressed: {
+                       currentVector.funcMove().moveKeyLeft();
+                   }
+                   onReleased: {
+                       currentVector.funcMove().moveStopX();
+                   }
+               }
+
+                Button {
+                   id: arrow_down
+                   icon.source: "qrc:///img/icons/btArrowKeyDown.png"
+                   icon.width: 30
+                   icon.height: 30
+                   Layout.minimumWidth: 45
+                   Layout.minimumHeight: 45
+
+                   background: Rectangle {
+                       id: arrow_downRect
+                       color: (currentVector.funcMove().moveDir & 0b1000 ) ? Design.colBlueSelected : parent.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                       border.color: Design.colFrameBorder
+                       border.width: 1
+                       radius: 4
+                   }
+
+                   onPressed: {
+                       currentVector.funcMove().moveKeyDown();
+                   }
+                   onReleased: {
+                       currentVector.funcMove().moveStopY();
+                   }
+                }
+
+
+
+                Button {
+                   id: arrow_right
+                   icon.source: "qrc:///img/icons/btArrowKeyRight.png"
+                   icon.width: 30
+                   icon.height: 30
+                   Layout.minimumWidth: 45
+                   Layout.minimumHeight: 45
+
+                   background: Rectangle {
+                       id: arrow_rightRect
+                       color: (currentVector.funcMove().moveDir & 0b0010 ) ? Design.colBlueSelected : parent.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                       border.color: Design.colFrameBorder
+                       border.width: 1
+                       radius: 4
+                   }
+
+                   onPressed: {
+                       currentVector.funcMove().moveKeyRight();
+                   }
+                   onReleased: {
+                       currentVector.funcMove().moveStopX();
+                   }
+               }
+
+                Item{
+                    Layout.fillWidth : true;
+                }
+            }
+
+        }
+
     }
 
 
 }
+
+
+
+

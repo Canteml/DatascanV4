@@ -13,13 +13,17 @@
 #include "JoystickManager.h"
 #include <QTimer>
 
+#include <v2/vector/VectorFuncMove.h>
+#include <v2/vector/VectorStd.h>
+#include <v2/vector/VectorManager.h>
+
 // SDL
 #include <SDL2/SDL.h>
 
 JoystickManager *JoystickManager::m_pMyInstance = nullptr;
 
 const int JoystickManager::POLL_JOYSTICK = 10;
-const qreal JoystickManager::AXE_DEAD_RANDE = 0.3;
+const qreal JoystickManager::AXE_DEAD_RANDE = 0.1;
 
 JoystickManager::JoystickManager() : Loggable("JoystickManager")
 {
@@ -48,6 +52,9 @@ JoystickManager::~JoystickManager()
 bool JoystickManager::start()
 {
     bool bRet = true;
+
+    m_pFuncMove = VectorManager::getInstance()->getVectorStd()->funcMove();
+
     if (SDL_Init (SDL_INIT_HAPTIC | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER)) {
         fLogError("Fail to init SDL");
         bRet = false;
@@ -69,6 +76,7 @@ void JoystickManager::setConnection(bool p_connected)
 {
     if( !p_connected ) {
         m_idJoystick = -1;
+        m_pFuncMove->stopMove();
     }
     if( p_connected != m_isConnected ) {
         m_isConnected = p_connected;
@@ -199,6 +207,7 @@ void JoystickManager::update()
                             setAxeY(y);
                         }
                    }
+                   m_pFuncMove->moveXY(m_axeX*127, m_axeY*127);
                 }
                 break;
 

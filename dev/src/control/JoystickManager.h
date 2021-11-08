@@ -15,8 +15,7 @@
 
 // -- Internal includes
 #include "log/Loggable.h"
-class vectorManager;
-class ViroleManager;
+class VectorFuncMove;
 
 // -- Qt includes
 #include <QtCore/QObject>
@@ -83,7 +82,7 @@ private:
     QTimer * m_timPoll;
 
     static JoystickManager * m_pMyInstance;
-    vectorManager * m_pVectorManager;
     _SDL_Joystick * m_joy;
-    ViroleManager * m_pViroleManager;
+
+    VectorFuncMove * m_pFuncMove;
 };
