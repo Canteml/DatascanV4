@@ -47,7 +47,7 @@ include($$BASEDIR_FW_UI/fw_ui.pri)
 ## -- COPY FILES
 
 CONFIG += file_copies
-COPIES += CopyRes
+COPIES += CopyRes CopySDL2
 
 ## Copy resources
 CopyRes.files = $$PWD/src/res
