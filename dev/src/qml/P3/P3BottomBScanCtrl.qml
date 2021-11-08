@@ -174,9 +174,24 @@ Rectangle {
                     icon.color: "transparent"
                     padding: 1
 
+                    Action {
+                        shortcut: "x"
+                        onTriggered: idBtBScanZoneAdd.keyAction()
+                    }
+                    Action {
+                        shortcut: "X"
+                        onTriggered: idBtBScanZoneAdd.keyAction()
+                    }
                     onPressed: {
+                        keyAction();
+                    }
+
+                    function keyAction() {
+
                         examManager.zoneAddToCurrentPosition();
                     }
+
+
                 }
             }
 

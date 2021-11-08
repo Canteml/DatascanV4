@@ -27,8 +27,19 @@ Rectangle {
                 }
                 text: qsTr("-")
                 font.pointSize: 12
-                onPressed:
-                {
+                onPressed: {
+                    keyAction();
+                }
+                Action {
+                    shortcut: "-"
+                    onTriggered: btPumpMinus.keyAction()
+                }
+                Action {
+                    shortcut: "_"
+                    onTriggered: btPumpMinus.keyAction()
+                }
+
+                function keyAction() {
                     var v = currentVector.funcPump().paramLPumpLevel;
                     if( v>10 ) {
                         currentVector.funcPump().paramLPumpLevel = v - 10
@@ -52,8 +63,21 @@ Rectangle {
                 }
                 font.pointSize: 9
 
+                Action {
+                    shortcut: "p"
+                    onTriggered: btPumpEnable.keyAction()
+                }
+                Action {
+                    shortcut: "P"
+                    onTriggered: btPumpEnable.keyAction()
+                }
+
                 onReleased:
                 {
+                    currentVector.funcPump().paramLPumpEnable = 1-currentVector.funcPump().paramLPumpEnable
+                }
+
+                function keyAction() {
                     currentVector.funcPump().paramLPumpEnable = 1-currentVector.funcPump().paramLPumpEnable
                 }
             }
@@ -68,9 +92,21 @@ Rectangle {
                     border.color: Design.colFrameBorder
                 }
                 text: qsTr("+")
+
                 font.pointSize: 12
-                onPressed:
-                {
+                onPressed: {
+                    keyAction()
+                }
+                Action {
+                    shortcut: "+"
+                    onTriggered: btPumpPlus.keyAction()
+                }
+                Action {
+                    shortcut: "="
+                    onTriggered: btPumpPlus.keyAction()
+                }
+
+                function keyAction() {
                     var v = currentVector.funcPump().paramLPumpLevel;
                     if( v<100 ) {
                         currentVector.funcPump().paramLPumpLevel = v + 10
@@ -152,18 +188,21 @@ Rectangle {
 
         // -- MOVE
         ColumnLayout {
+            focus: true
             id: keyLayout
             visible : currentVector.funcMove().isEnabled
             spacing: 5
 
             // -- LINE UP
             RowLayout {
+                focus: true
                 Item{
                     Layout.fillWidth : true;
                 }
 
                 Button {
                     id: arrow_up
+                    focus: true
                     icon.source: "qrc:///img/icons/btArrowKeyUp.png"
                     icon.width: 30
                     icon.height: 30
@@ -191,9 +230,10 @@ Rectangle {
                 }
             }
 
-            // -- LINE MIDDLE
+            // -- LINE BOTTOM
            RowLayout {
-                spacing: 5
+               focus: true
+               spacing: 5
 
                 Item{
                     Layout.fillWidth : true;

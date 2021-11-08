@@ -28,6 +28,7 @@ class GlobalManager : public QObject, public Loggable
 {
     Q_OBJECT
     Q_PROPERTY(quint32 guiPage READ getGuiPage WRITE setGuiPage NOTIFY evGuiPageChanged)
+    Q_PROPERTY(bool keyboardQwerty READ getKeyboardQwerty NOTIFY evKeyboardQwertyChanged)
 
 public:    
 
@@ -53,8 +54,12 @@ public:
     quint32 getGuiPage() const;
     void setGuiPage(quint32 p_value);
 
+    bool getKeyboardQwerty() const;
+
+
 signals :
     void evGuiPageChanged(quint32);
+    void evKeyboardQwertyChanged(bool);
 
 private slots :
     void onExamManagerStepChanged(qint32);
@@ -69,6 +74,7 @@ private :
     // -- Behaviour
     static GlobalManager* m_pMyInstance;
     ExamManager* m_pExamManager;
+    bool m_isKeyboardQwerty;
 
     ComDeviceManager* m_pComDeviceManager;
 };

@@ -12,6 +12,7 @@
 
 #include "JoystickManager.h"
 #include <QTimer>
+#include <v2/exam/ExamManager.h>
 
 #include <v2/vector/VectorFuncMove.h>
 #include <v2/vector/VectorStd.h>
@@ -207,7 +208,7 @@ void JoystickManager::update()
                             setAxeY(y);
                         }
                    }
-                   m_pFuncMove->moveXY(m_axeX*127, m_axeY*127);
+                   m_pFuncMove->setJoyXY(m_axeX*127, m_axeY*127);
                 }
                 break;
 
@@ -215,6 +216,7 @@ void JoystickManager::update()
                 if( event.jdevice.which == m_idJoystick ) {
                     if ( event.jbutton.button == 0 ) {
                         setButtonPressed(true);
+                        ExamManager::getInstance()->zoneAddToCurrentPosition();
                     }
                 }
                 break;

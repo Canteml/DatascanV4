@@ -20,13 +20,28 @@
 // -- Qt includes
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
+#include <QApplication>
+#include <QInputMethod>
+#include <QLocale>
+
 
 GlobalManager* GlobalManager::m_pMyInstance = nullptr;
+
+bool GlobalManager::getKeyboardQwerty() const
+{
+    return m_isKeyboardQwerty;
+}
 
 GlobalManager::GlobalManager() : Loggable("GlobalManager")
 {
     m_guiPage = PAGE_SCAN;
     m_pExamManager = nullptr;
+    m_isKeyboardQwerty = false;
+
+    if( qApp->inputMethod()->locale().language() != QLocale::French ) {
+        m_isKeyboardQwerty = true;
+        fLogInfo("Detected azerty Keyboard");
+    }
 }
 
 GlobalManager::~GlobalManager()
