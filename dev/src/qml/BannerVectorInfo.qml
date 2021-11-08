@@ -54,10 +54,22 @@ Rectangle {
                     loops : Animation.Infinite
                     onRunningChanged: if(!running){idBtStartBG.color = "#FFFFFFFF"} // reset
                 }
+            }
 
+            Action {
+                id: idActMin
+                onTriggered: btScanStartPause.keyAction()
+            }
+            Action {
+                id: idActMaj
+                onTriggered: btScanStartPause.keyAction()
             }
 
             onPressed: {
+                keyAction()
+            }
+
+            function keyAction() {
                 if( examManager.examStep === 0 ) {
                     examManager.examStep = 1    // record measure
                 } else if( examManager.examStep === 1 ) {
@@ -66,6 +78,16 @@ Rectangle {
                     examManager.examStep = 1 // record measure
                 } else {
                     examManager.examStep = 2 // pause
+                }
+            }
+
+            Component.onCompleted: {
+                if( globalManager.keyboardQwerty ) {
+                    idActMin.shortcut = "q";
+                    idActMaj.shortcut = "Q";
+                } else {
+                    idActMin.shortcut = "a";
+                    idActMaj.shortcut = "A";
                 }
             }
         }
@@ -340,9 +362,11 @@ Rectangle {
             icon.height: idBannerVectorInfo.height
             icon.color: "transparent"
             padding: 2
+            property var emergencyActivated : false
 
             background: Rectangle {
-                color: btVectorEmergencyStop.pressed ? "#FF0000" : btVectorEmergencyStop.hovered ? "#FFAE4C" : "transparent"
+                id: rectBtVectorEmergencyStop
+                color: (btVectorEmergencyStop.pressed || btVectorEmergencyStop.emergencyActivated) ? "#FF0000" : btVectorEmergencyStop.hovered ? "#FFAE4C" : "transparent"
                 // keep 1 pixel clean arround the button to not override the layout frame
                 width: btVectorEmergencyStop.width-2
                 x : 1
@@ -351,6 +375,25 @@ Rectangle {
             }
 
             onPressed: {
+                keyAction();
+            }
+
+            Action {
+                shortcut: "Escape"
+                onTriggered: {
+                    btVectorEmergencyStop.emergencyActivated = true;
+                    timDisEm.start()
+                    btVectorEmergencyStop.keyAction()
+                }
+            }
+
+            Timer {
+                id: timDisEm
+                interval: 500; running: false; repeat: false
+                onTriggered:  btVectorEmergencyStop.emergencyActivated = false;
+            }
+
+            function keyAction() {
                 currentVector.emergencyStop();
             }
         }

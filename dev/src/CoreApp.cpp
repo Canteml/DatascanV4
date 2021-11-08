@@ -223,3 +223,14 @@ bool CoreApp::useOpenGlRender() const
 {
     return true;
 }
+
+bool CoreApp::eventFilter(QObject * p_object, QEvent * p_event)
+{
+    if( QEvent::KeyPress == p_event->type() ) {
+//        QKeyEvent * kpe = (QKeyEvent *)p_event;
+//        if( Qt::Key_Space == kpe->key() ) {
+//            m_pVectorManager->getVectorStd()->emergencyStop();
+//        }
+    }
+    return CoreUiQml::eventFilter(p_object, p_event);
+}

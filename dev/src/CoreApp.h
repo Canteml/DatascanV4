@@ -40,15 +40,15 @@ public:
     virtual void deleteApp() override;
 
     // -- Qml
-
     virtual bool initQmlType() override;
     virtual bool initQmlContext() override;
     virtual bool initQmlPath() override;
     virtual void initCppFromQml() override;
 
+protected :
+    bool eventFilter(QObject*, QEvent*) override;   ///< key catcher
+
 private :
-
-
     bool useOpenGlRender() const override;
 
     // managers
@@ -60,6 +60,5 @@ private :
     ExamManager* m_pExamManager;
     GlobalManager* m_pGlobalManager;
     JoystickManager* m_pJoystickManager;
-
 };
 
