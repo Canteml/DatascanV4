@@ -19,7 +19,7 @@ Rectangle {
 
         // --
         Text {
-            text: qsTr("Echelle X (m) :")
+            text: qsTr("Distance affichée (m) :")
             font.pointSize: 12
         }
 

@@ -27,6 +27,7 @@ class ExamManager;
 // -- Qt Includes
 #include <QObject>
 class QQmlApplicationEngine;
+class QTimer;
 
 /**
  * @brief The ScanManager class
@@ -92,6 +93,9 @@ public :
     void setBScanAxeYMaxMm(qreal p_value);
 
 
+    static const qint32 ASCAN_MEASURE_REFRESH_DELAY = 100;
+
+
 signals :
     void evSelectedAScanIndexChanged(quint32);
     void evSelectedFuncAScanChanged(VectorFuncAScan*);
@@ -115,6 +119,8 @@ private slots :
 
     void onExamManagerStepChanged(qint32);
 
+    void onUpdateAScanTimed();
+
 protected :
     // -- Settings
     virtual bool customLoadSettings(QDomElement * p_pParent) override;
@@ -125,9 +131,12 @@ protected :
 private :
     void onVectorProductChanged();    
     void setPrivateSelectedAScanIndex(quint32 p_index); ///< value in 0..3
+    void emitUpdateAScanTimed(bool p_force = false);
 
     // -- Behaviour
     quint32 m_selectedAScanIndex;   ///< value in 0..3
+    QTimer * m_timUpdateAScan;
+    qint64 m_lastUpdateAScan;
 
     JkGate * m_pGate0;
     JkGate * m_pGate1;

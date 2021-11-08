@@ -45,7 +45,7 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_axeYMinMm = 0;
     m_axeYMaxMm = 10;
     m_viewXMode = VIEW_X_AUTO;
-    m_viewYMode = VIEW_Y_AUTO;
+    m_viewYMode = VIEW_Y_USER;
     m_pLastSurface1d = nullptr;
     m_mouseDoubleClicked = false;
 
@@ -768,7 +768,7 @@ bool BScanGraph::customLoadDefaultSettings()
     m_axeYMinMm = 0;
     m_axeYMaxMm = 10;
     m_viewXMode = VIEW_X_AUTO;
-    m_viewYMode = VIEW_Y_AUTO;
+    m_viewYMode = VIEW_Y_USER;
     return bRet;
 }
 
