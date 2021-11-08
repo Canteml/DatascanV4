@@ -77,5 +77,10 @@
         <file>icons/iconBat75.png</file>
         <file>icons/iconBat100.png</file>
         <file>icons/iconBatEmpty.png</file>
+        <file>icons/btArrowKey.png</file>
+        <file>icons/btArrowKeyDown.png</file>
+        <file>icons/btArrowKeyLeft.png</file>
+        <file>icons/btArrowKeyRight.png</file>
+        <file>icons/btArrowKeyUp.png</file>
     </qresource>
 </RCC>

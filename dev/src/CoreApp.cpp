@@ -30,6 +30,7 @@
 #include <v2/vector/VectorFuncLight.h>
 #include <v2/vector/VectorFuncBattery.h>
 #include "control/JoystickManager.h"
+#include <v2/vector/VectorFuncMove.h>
 
 // -- Qt Includes
 #include <QQmlApplicationEngine>
@@ -176,6 +177,7 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<VectorFuncLight*>("VectorFuncLight*");
     qRegisterMetaType<VectorFuncBattery*>("VectorFuncBattery*");
     qRegisterMetaType<JoystickManager*>("JoystickManager*");
+    qRegisterMetaType<VectorFuncMove*>("VectorFuncMove*");
 
     // -- declare C++ components instanciated from QML
     // exemple : qmlRegisterType<AScan>("ascan", 1, 0, "AScanItem");
