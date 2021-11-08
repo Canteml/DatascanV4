@@ -36,6 +36,8 @@ rem copy libraries
 rem JKQTPLOTTER :
 xcopy %~dp0\..\..\dev\lib\jkqtplotter\bin\jkqtplotterlib.dll %~dp0\app\bin
 xcopy %~dp0\..\..\dev\lib\jkqtplotter\bin\jkqtpcommonlib.dll %~dp0\app\bin
+rem SDL2 :
+xcopy %~dp0\..\..\dev\lib\SDL2\bin\SDL2.dll %~dp0\app\bin
 
 rem build depencendies
 call %PATH_QT%\mingw81_32\bin\windeployqt.exe --qmldir %~dp0\..\..\dev\src\qml  %~dp0\app\bin\%APPLICATION_NAME%.exe --opengl --printsupport
