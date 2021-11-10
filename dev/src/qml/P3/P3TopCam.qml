@@ -80,7 +80,6 @@ Rectangle {
             }
 
             model: QtMultimedia.availableCameras
-            //displayText: "toto"
             delegate : ItemDelegate {
                text: index + " : " + modelData.displayName
 
@@ -89,6 +88,7 @@ Rectangle {
                     onClicked: {
                         idCamera.deviceId = modelData.deviceId
                         idCbCam.displayText = text
+                        console.log("Cam ID : " + idCamera.deviceId)
                     }
                 }
             }

@@ -21,6 +21,7 @@ class ScanManager;
 class GlobalManager;
 class ExamManager;
 class JoystickManager;
+class CameraManager;
 
 class CoreApp : public CoreUiQml
 {
@@ -60,5 +61,6 @@ private :
     ExamManager* m_pExamManager;
     GlobalManager* m_pGlobalManager;
     JoystickManager* m_pJoystickManager;
+    CameraManager* m_pCameraManager;
 };
 

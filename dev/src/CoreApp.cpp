@@ -31,6 +31,8 @@
 #include <v2/vector/VectorFuncBattery.h>
 #include "control/JoystickManager.h"
 #include <v2/vector/VectorFuncMove.h>
+#include "camera/CameraManager.h"
+#include "camera/Camera.h"
 
 // -- Qt Includes
 #include <QQmlApplicationEngine>
@@ -47,6 +49,7 @@ CoreApp::CoreApp() : CoreUiQml("CoreApp")
     m_pExamManager = nullptr;
     m_pGlobalManager = nullptr;
     m_pJoystickManager = nullptr;
+    m_pCameraManager = nullptr;
 }
 
 
@@ -72,10 +75,11 @@ bool CoreApp::initApp()
     bool bRet = CoreUiQml::initApp();
 
     // -- make my managers
-    // example : m_pStatisticApp = StatisticApp::makeInstance();
+    // example : m_pStatisticApp = StatisticApp::makeInstance();    
     m_pJoystickManager = JoystickManager::makeInstance();
     m_pVectorManager = VectorManager::makeInstance(this);
     m_pScanManager = new ScanManager();
+    m_pCameraManager = CameraManager::makeInstance();
 
     m_pExamManager = ExamManager::makeInstance();
     m_pGlobalManager = GlobalManager::makeInstance();    
@@ -88,6 +92,7 @@ bool CoreApp::initApp()
     m_pGlobalManager->initManager();
     m_pExamManager->initManager();
     m_pJoystickManager->start();
+    m_pCameraManager->start();
 
     // -- load settings of my managers
     // example : bRet &= m_pStatisticApp->loadSettings();
@@ -126,6 +131,7 @@ void CoreApp::stopApp()
 {
 //    StatisticApp::stopAppExecution();
     m_pJoystickManager->stop();
+    m_pCameraManager->stop();
 
     // -- core stop
     CoreUiQml::stopApp();
@@ -150,6 +156,8 @@ void CoreApp::deleteApp()
     m_pVectorManager = nullptr;
     delete m_pJoystickManager;
     m_pJoystickManager = nullptr;
+    delete m_pCameraManager;
+    m_pCameraManager = nullptr;
 
     // -- core delete
     CoreUiQml::deleteApp();
@@ -178,6 +186,10 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<VectorFuncBattery*>("VectorFuncBattery*");
     qRegisterMetaType<JoystickManager*>("JoystickManager*");
     qRegisterMetaType<VectorFuncMove*>("VectorFuncMove*");
+    qRegisterMetaType<CameraManager*>("CameraManager*");
+    qRegisterMetaType<CameraRole*>("CameraRole*");
+    qRegisterMetaType<CameraVideo*>("CameraVideo*");
+    qRegisterMetaType<QCamera*>("QCamera*");
 
     // -- declare C++ components instanciated from QML
     // exemple : qmlRegisterType<AScan>("ascan", 1, 0, "AScanItem");
@@ -198,6 +210,7 @@ bool CoreApp::initQmlContext()
     m_pQmlApplicationEngine->rootContext()->setContextProperty("examManager", m_pExamManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("globalManager", m_pGlobalManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("joystickManager", m_pJoystickManager);
+    m_pQmlApplicationEngine->rootContext()->setContextProperty("cameraManager", m_pCameraManager);
 
     return true;
 }

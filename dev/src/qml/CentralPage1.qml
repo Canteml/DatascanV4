@@ -1,7 +1,9 @@
 import QtQuick 2.4
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
+import QtMultimedia 5.15
 import "rp_components"
+import Design 1.0
 
 Rectangle {
     width: 600
@@ -19,6 +21,7 @@ Rectangle {
         anchors.fill: parent
         anchors.margins: 5
 
+        // -- EQUIPEMENT
         RowLayout {
             id: idP1EqLy
             Layout.fillWidth: true
@@ -32,61 +35,224 @@ Rectangle {
             id: idRowProduct
             Layout.fillWidth: true
             Layout.leftMargin: 20
-            ColumnLayout {
 
-                Text {
-                    id: lbProduct
-                    text: qsTr("Appareil :")
-                    font.pixelSize: 14
-                }
-                // -- SPACER
-                Item {
-                    // Spacer
-                    Layout.fillHeight: true
-                }
+            Text {
+                id: lbProduct
+                text: qsTr("Appareil :")
+                font.pixelSize: 14
+                verticalAlignment: Text.AlignVCenter
+                Layout.preferredWidth: 100
+
+                Layout.preferredHeight: idRowProduct.height
 
             }
 
+            ComboBox {
+                id: idCbProduct
+                Layout.preferredHeight: 30
+                Layout.preferredWidth: 200
+                model: [qsTr("PERCHE IP68"), qsTr("ALTISCAN"), qsTr("ROVER"), qsTr("ROVER SCANNER"), qsTr("ROVER CLEANER"),
+                    qsTr("UT POLE"), qsTr("PANDA Vol.3")]
+                property var ready : false
+
+                onCurrentIndexChanged: {
+                    if( ready ) {
+                        if( currentVector.prodId !== (currentIndex+1) ) {
+                            currentVector.setProdIdDeviceAd(currentIndex+1, 0 /*MPC*/); /// value in PROD_ID, start at 1 (0 = invalid)
+                        }
+                    }
+                }
+                Component.onCompleted: {
+                    currentIndex = currentVector.prodId - 1; /// value in PROD_ID, start at 1 (0 = invalid)
+                    ready = true;
+                }
+            }
+        }
+
+        ListView {
+            // lsit of devices
+            id: idlvListDevices
+            Layout.fillWidth: true
+            Layout.leftMargin: 130
+            model: modelDeviceList
+            delegate: Rectangle {
+                height: 40
+                Text {
+                     text: modelData
+                     font.pixelSize: 14
+                }
+            }
+
+            Connections {
+                // Change the size of the listview function to the number of items
+                target: currentVector.getDeviceManager()
+                function onEvDeviceListChanged(p_value) {
+                    //console.log("value " + p_value);
+                    idlvListDevices.Layout.preferredHeight = (p_value) * 35;
+                    idlvListDevices.height = (p_value) * 35;
+                }
+            }
+        }
+
+        // -- CAMERA
+        RowLayout {
+            id: idP1CamLy
+            Layout.fillWidth: true
+
+            FormSection {
+                text: qsTr("Caméra")
+            }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.leftMargin: 20
             ColumnLayout {
+                id: idClCam
+                //Layout.fillHeight: true
+                // One row by camera role
+                property var txtWidth: 80
+                property var btAssignWidth: 100
+                property var btPreviewWidth: 100
+                RowLayout {
+                    Rectangle {
+                        width: 12
+                        height: 12
+                        radius: 12
+                        border.color: "#000000"
+                        border.width: 1
+                        color: "#FFFFFF"
+                    }
+                    Text {
+                        Layout.preferredWidth: idClCam.txtWidth
+                        font.pixelSize: 14
+                        text: qsTr("Alarme :")
+                    }
+                    Button {
+                        id: idBtAssign0
+                        Layout.preferredWidth: idClCam.btAssignWidth
+                        background: Rectangle {
+                            color: idBtAssign0.pressed ? Design.colButtonSelectedBackground : idBtAssign0.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                            border.width: 1
+                            border.color: Design.colFrameBorder
+                        }
 
-                Layout.fillWidth: true
-                Layout.leftMargin: 20
+                        contentItem: Text {
+                            text: qsTr("Assigner")
+                            font.pointSize: 10
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
 
-                ComboBox {
-                    id: idCbProduct
-                    Layout.preferredHeight: 30
-                    Layout.preferredWidth: 200
-                    model: [qsTr("PERCHE IP68"), qsTr("ALTISCAN"), qsTr("ROVER"), qsTr("ROVER SCANNER"), qsTr("ROVER CLEANER"),
-                        qsTr("UT POLE"), qsTr("PANDA Vol.3")]
-                    property var ready : false
+                        onPressed: {
 
-                    onCurrentIndexChanged: {
-                        if( ready ) {
-                            if( currentVector.prodId !== (currentIndex+1) ) {
-                                currentVector.setProdIdDeviceAd(currentIndex+1, 0 /*MPC*/); /// value in PROD_ID, start at 1 (0 = invalid)
+                        }
+                    }
+
+                    Button {
+                        id: idBtPv0
+                        Layout.preferredWidth: idClCam.btPreviewWidth
+                        background: Rectangle {
+                            color: (cameraManager.camAlarm().camera === cameraManager.getPreviewCamera() ) ? Design.colButtonSelectedBackground : idBtPv0.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                            border.width: 1
+                            border.color: Design.colFrameBorder
+                        }
+
+                        contentItem: Text {
+                            text: qsTr("Preview")
+                            font.pointSize: 10
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        onPressed: {
+
+                        }
+                    }
+                }
+            }
+            Rectangle {
+                // Vertical orange bar
+                Layout.preferredWidth: 3
+                Layout.preferredHeight: idClCam.height
+                width : 3
+                color: Design.colFromSection
+            }
+
+            ColumnLayout {
+//                Camera {
+//                    id: idPreviewCamera
+//                    source: cameraManager.getPreviewCamera()
+//                    imageCapture {
+//                        onImageCaptured: {
+//                            photoPreview.source = preview  // Show the preview in an Image
+//                        }
+//                    }
+//                }
+                VideoOutput {
+                    id: idVideo
+                    Layout.preferredHeight: 200
+                    source: cameraManager.previewCamera
+
+//                    Connections {
+//                        target : cameraManager
+//                        function onPreviewCameraChanged(p_pCamera) {
+//                            idVideo.source = p_pCamera;
+//                        }
+//                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text {
+                        text: qsTr("Camera : ")
+                        font.pixelSize: 12
+                    }
+
+                    ComboBox {
+                        id: idCbSelectCameraPreview
+                        model: modelCameraList
+//                        Connections {
+//                            target: cameraManager
+//                            function onEvCameraListChanged(p_value) {
+//                                //idCbSelectCameraPreview.model.clear();
+//                                for(var i=0; i<p_value; i++) {
+//                                    idCbSelectCameraPreview.model.append(i);
+//                                }
+//                            }
+//                        }
+                        onCurrentIndexChanged: {
+                            cameraManager.setPreviewCameraIndex(idCbSelectCameraPreview.currentIndex)
+                        }
+
+                        Connections {
+                            target : cameraManager
+                            function onPreviewCameraIndexChanged(p_value) {
+                                if( idCbSelectCameraPreview.currentIndex !== p_value ) {
+                                    idCbSelectCameraPreview.currentIndex = p_value;
+                                }
                             }
                         }
                     }
-                    Component.onCompleted: {
-                        currentIndex = currentVector.prodId - 1; /// value in PROD_ID, start at 1 (0 = invalid)
-                        ready = true;
-                    }
+
+//                    Item {
+//                        // Spacer
+//                        Layout.fillHeight: true
+//                    }
                 }
 
 
-                ListView {
-                    id: idlvListDevices
-                     Layout.fillWidth: true
-                     Layout.fillHeight: true
-                     model: modelDeviceList
-                     delegate: Rectangle {
-                         height: 40
-                         Text {
-                             text: modelData
-                             font.pixelSize: 14
-                         }
-                     }
-                }
+                // -- SPACER
+//                Item {
+//                    // Spacer
+//                    Layout.fillHeight: true
+//                }
+            }
+
+            // -- SPACER
+            Item {
+                // Spacer
+                Layout.fillWidth: true
             }
         }
 
@@ -155,7 +321,6 @@ Rectangle {
         // -- SPACER
         Item {
             // Spacer
-            Layout.fillWidth: true
             Layout.fillHeight: true
         }
 

@@ -28,6 +28,9 @@ HEADERS += $$files($$PWD/scan/*.h)
 SOURCES += $$files($$PWD/control/*.cpp)
 HEADERS += $$files($$PWD/control/*.h)
 
+SOURCES += $$files($$PWD/camera/*.cpp)
+HEADERS += $$files($$PWD/camera/*.h)
+
 
 # JK PLOTTER COMPONENTS
 SOURCES += $$files($$PWD/jkPlot/*.cpp)
