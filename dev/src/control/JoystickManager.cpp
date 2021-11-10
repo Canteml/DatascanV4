@@ -56,7 +56,7 @@ bool JoystickManager::start()
 
     m_pFuncMove = VectorManager::getInstance()->getVectorStd()->funcMove();
 
-    if (SDL_Init (SDL_INIT_HAPTIC | SDL_INIT_AUDIO | SDL_INIT_GAMECONTROLLER)) {
+    if (SDL_Init (SDL_INIT_JOYSTICK | SDL_INIT_GAMECONTROLLER)) {
         fLogError("Fail to init SDL");
         bRet = false;
     }
@@ -105,7 +105,7 @@ void JoystickManager::setButtonPressed(bool p_value)
 {
     if( p_value != m_button ) {
         // sur font descendant
-        if( !p_value ) {            
+        if( !p_value ) {
             emit evButtonPressed();
         }
         //fLogDebug1(QString(" Button : %1").arg(p_value));
@@ -172,7 +172,7 @@ void JoystickManager::update()
             case SDL_JOYDEVICEADDED:
                 if( -1 == m_idJoystick ) {
                     m_joy = SDL_JoystickOpen (event.jdevice.which);
-                    SDL_GameControllerOpen (event.jdevice.which);
+                    //SDL_GameControllerOpen (event.jdevice.which);
                     m_idJoystick = SDL_JoystickInstanceID(m_joy);
                     setConnection(true);
                 }
@@ -182,7 +182,7 @@ void JoystickManager::update()
             case SDL_JOYDEVICEREMOVED:
                 if( event.jdevice.which == m_idJoystick ) {
                     SDL_JoystickClose (m_joy);
-                    SDL_GameControllerClose (SDL_GameControllerOpen (event.jdevice.which));
+                    //SDL_GameControllerClose (SDL_GameControllerOpen (event.jdevice.which));
                     setButtonPressed(false);
                     setConnection(false);
                 }
@@ -229,6 +229,7 @@ void JoystickManager::update()
                 }
                 break;
             default:
+                fLogWarning("Joystick event not handeld : "+ QString(event.type));
                 break;
         }
     }
