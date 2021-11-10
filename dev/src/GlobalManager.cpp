@@ -16,6 +16,8 @@
 #include <v2/vector/VectorManager.h>
 #include <v2/vector/VectorStd.h>
 #include "CoreApp.h"
+#include "camera/CameraManager.h"
+#include "camera/Camera.h"
 
 // -- Qt includes
 #include <QQmlApplicationEngine>
@@ -37,6 +39,7 @@ GlobalManager::GlobalManager() : Loggable("GlobalManager")
     m_guiPage = PAGE_SCAN;
     m_pExamManager = nullptr;
     m_isKeyboardQwerty = false;
+    m_pCameraManager = nullptr;
 
     if( qApp->inputMethod()->locale().language() != QLocale::French ) {
         m_isKeyboardQwerty = true;
@@ -77,7 +80,11 @@ void GlobalManager::initManager()
     m_pComDeviceManager = VectorManager::getInstance()->getVectorStd()->getDeviceManager();
     connect(m_pComDeviceManager, &ComDeviceManager::evDeviceListChanged, this, &GlobalManager::onDeviceListChanged);
 
+    m_pCameraManager = CameraManager::getInstance();
+    connect(m_pCameraManager, &CameraManager::evCameraListChanged, this, &GlobalManager::onCameraListChanged);
 
+    // init QML models
+    onCameraListChanged(0);
 }
 
 quint32 GlobalManager::getGuiPage() const
@@ -104,7 +111,16 @@ void GlobalManager::onExamManagerStepChanged(qint32)
 void GlobalManager::onDeviceListChanged()
 {
     QStringList slListDevices = m_pComDeviceManager->getDeviceListInfo();
-    CoreApp::getInstanceCoreUiQml()->getApplicationEngine()->rootContext()->setContextProperty("modelDeviceList", QVariant::fromValue(slListDevices));
+    CoreApp::getInstanceCoreUiQml()->getApplicationEngine()->rootContext()->setContextProperty("modelDeviceList", QVariant::fromValue(slListDevices));   
+}
+
+void GlobalManager::onCameraListChanged(qint32 p_size)
+{
+    QStringList slListCamera;
+    for(int i=0; i<p_size; i++) {
+        slListCamera.append(QString("Camera %1").arg(i+1));
+    }
+    CoreApp::getInstanceCoreUiQml()->getApplicationEngine()->rootContext()->setContextProperty("modelCameraList", QVariant::fromValue(slListCamera));
 }
 
 

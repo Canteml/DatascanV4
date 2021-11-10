@@ -15,6 +15,7 @@
 #include <log/Loggable.h>
 class ExamManager;
 class ComDeviceManager;
+class CameraManager;
 
 /**
  * @brief The GlobalManager class
@@ -64,6 +65,7 @@ signals :
 private slots :
     void onExamManagerStepChanged(qint32);
     void onDeviceListChanged();
+    void onCameraListChanged(qint32 p_size);
 
 private :
     GlobalManager();
@@ -77,5 +79,6 @@ private :
     bool m_isKeyboardQwerty;
 
     ComDeviceManager* m_pComDeviceManager;
+    CameraManager* m_pCameraManager;
 };
 
