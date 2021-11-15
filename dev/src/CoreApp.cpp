@@ -98,6 +98,7 @@ bool CoreApp::initApp()
     // example : bRet &= m_pStatisticApp->loadSettings();
     bRet &= m_pVectorManager->loadSettings();
     bRet &= m_pExamManager->loadSettings();
+    bRet &= m_pCameraManager->loadSettings();
 
     return bRet;
 }
@@ -189,7 +190,6 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<CameraManager*>("CameraManager*");
     qRegisterMetaType<CameraRole*>("CameraRole*");
     qRegisterMetaType<CameraVideo*>("CameraVideo*");
-    qRegisterMetaType<QCamera*>("QCamera*");
 
     // -- declare C++ components instanciated from QML
     // exemple : qmlRegisterType<AScan>("ascan", 1, 0, "AScanItem");

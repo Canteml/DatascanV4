@@ -15,10 +15,10 @@
 // -- Internal includes
 #include "log/Loggable.h"
 #include "xml/XmlSettings.h"
+#include "xml/XmlProject.h"
 // -- Qt includes
 #include <QObject>
-#include <QCamera>
-#include <QCameraImageCapture>
+
 
 
 // ----------------------------------------------------------------------------
@@ -34,23 +34,25 @@ class CameraVideo : public QObject, public Loggable
 {
     Q_OBJECT
 public:
-    CameraVideo(QCamera* p_camera, const QString& p_cameraId);
+    CameraVideo(qint32 p_index, const QString& p_cameraId);
     ~CameraVideo();
 
     // -- Parameter
     Q_INVOKABLE QString getCameraId() const;
 
     // -- Behaviour
-    Q_INVOKABLE QCamera* getCamera() const;
+    Q_INVOKABLE qint32 getCameraIndex() const;
+    Q_INVOKABLE void setCameraIndex(qint32 p_index);
 
     QString capture(const QString& p_prefix);  ///< return filename (auto generated in project directory)
+
+    static const qint32 CAMERA_INDEX_UNDEF = -1;
 
 
 private :
 
     // -- Behaviour
-    QCamera* m_pCamera;                 ///< Object in QCameraInfo::availableCameras();
-    QCameraImageCapture* m_pCapture;    ///< Record pictures
+    qint32 m_index;                     ///< index in QCameraInfo::availableCameras();
     QString m_cameraId;                 ///< Value given by QCameraInfo.deviceId()
 };
 
@@ -66,7 +68,7 @@ class CameraRole : public QObject, public Loggable
 {
     Q_OBJECT
     Q_PROPERTY(bool isEnabled READ getIsEnabled NOTIFY evIsEnabledChanged)
-    Q_PROPERTY(QCamera* camera READ getCamera NOTIFY evCameraChanged)
+    Q_PROPERTY(qint32 cameraIndex READ getCameraIndex NOTIFY evCameraIndexChanged)
     Q_PROPERTY(CameraVideo* cameraVideo READ getCameraVideo NOTIFY evCameraVideoChanged)
     Q_PROPERTY(bool isReady READ getIsReady NOTIFY evIsReadyChanged)
 
@@ -75,7 +77,7 @@ public:
     ~CameraRole();
 
     // -- Parameter
-    QCamera* getCamera() const;
+    qint32 getCameraIndex() const;
     CameraVideo *getCameraVideo() const;
     void setCamera(CameraVideo* p_camera);
 
@@ -87,7 +89,7 @@ public:
     void setIsReady(bool p_value);
     bool getIsReady() const;
 
-    qint32 getRole() const;
+    Q_INVOKABLE qint32 getRole() const;
 
     enum ROLE_CAMERA {
         ROLE_ALARM,
@@ -102,7 +104,7 @@ public:
 
 signals :
     void evIsEnabledChanged(bool);
-    void evCameraChanged(QCamera *);
+    void evCameraIndexChanged(qint32);
     void evCameraVideoChanged(CameraVideo *);
     void evIsReadyChanged(bool);
 
@@ -124,7 +126,7 @@ private :
  *
  */
 
-class CameraDatabase : public QObject, public Loggable, public XmlSettings
+class CameraDatabase : public QObject, public Loggable, public XmlProject
 {
     Q_OBJECT
 
@@ -143,12 +145,11 @@ public:
     qint32 getCameraRole() const;
     void setCameraRole(qint32 p_value);
 
-protected :
-    // -- Settings
-    virtual bool customLoadSettings(QDomElement * p_pParent) override;
-    virtual bool customLoadDefaultSettings() override;
-    virtual bool customApplySettings() override;
-    virtual bool customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pParent) override;
+    // -- XmlProject
+    virtual bool customLoadParam(QDomElement * p_pParent) override;
+    virtual bool customLoadDefaultParam() override;
+    virtual bool customApplyParam() override;
+    virtual bool customSaveParam(QDomDocument * p_pDoc, QDomElement * p_pParent) override;
 
 private :
     // -- Parameter
