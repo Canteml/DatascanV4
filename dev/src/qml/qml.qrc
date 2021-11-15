@@ -27,6 +27,7 @@
         <file>BannerBottomNavigate.qml</file>
         <file>rp_components/FormSection.qml</file>
         <file>P3/P3TopExportBscan.qml</file>
+        <file>rp_components/CameraParam.qml</file>
     </qresource>
     <qresource prefix="/img">
         <file>logo.png</file>

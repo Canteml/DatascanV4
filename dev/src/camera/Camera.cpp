@@ -20,29 +20,15 @@
 // ----------------------------------------------------------------------------
 // -- CameraVideo
 
-CameraVideo::CameraVideo(QCamera* p_camera, const QString& p_cameraId) : Loggable("CameraVideo")
+CameraVideo::CameraVideo(qint32 p_index, const QString& p_cameraId) : Loggable("CameraVideo")
 {
-    m_pCamera = p_camera;
+    m_index = p_index;
     m_cameraId = p_cameraId;
-    m_pCamera->setCaptureMode(QCamera::CaptureStillImage);
-
-    m_pCapture = new QCameraImageCapture(m_pCamera);
-
-    m_pCamera->start();
-
-
 }
 
 CameraVideo::~CameraVideo()
 {
-    if( nullptr != m_pCapture ) {
-        delete m_pCapture;
-        m_pCapture = nullptr;
-    }
-    if( nullptr != m_pCamera ) {
-        delete m_pCamera;
-        m_pCamera = nullptr;
-    }
+
 }
 
 // -- Parameter
@@ -52,19 +38,24 @@ QString CameraVideo::getCameraId() const
 }
 
 // -- Behaviour
-QCamera* CameraVideo::getCamera() const
+qint32 CameraVideo::getCameraIndex() const
 {
-    return m_pCamera;
+    return m_index;
 }
 
-QString CameraVideo::capture(const QString& p_prefix)
+void CameraVideo::setCameraIndex(qint32 p_index)
 {
-    QString fileName = QString("%1/%2 %3").arg(ExamManager::getInstance()->getExportFolder())
-                                .arg(p_prefix)
-                                .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH-mm-ss.zzz"));
-    m_pCapture->capture(fileName);
-    return fileName;
+    m_index = p_index;
 }
+
+//QString CameraVideo::capture(const QString& p_prefix)
+//{
+//    QString fileName = QString("%1/%2 %3").arg(ExamManager::getInstance()->getExportFolder())
+//                                .arg(p_prefix)
+//                                .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH-mm-ss.zzz"));
+//    m_pCapture->capture(fileName);
+//    return fileName;
+//}
 
 // ----------------------------------------------------------------------------
 // -- CameraRole
@@ -79,16 +70,16 @@ CameraRole::CameraRole(qint32 p_role) : Loggable("CameraRole")
 
 CameraRole::~CameraRole()
 {
-
+    m_pCamera = nullptr;
 }
 
 // -- Parameter
-QCamera* CameraRole::getCamera() const
+qint32 CameraRole::getCameraIndex() const
 {
     if( nullptr == m_pCamera ) {
-        return nullptr;
+        return CameraVideo::CAMERA_INDEX_UNDEF;
     }
-    return m_pCamera->getCamera();
+    return m_pCamera->getCameraIndex();
 }
 
 CameraVideo *CameraRole::getCameraVideo() const
@@ -101,9 +92,9 @@ void CameraRole::setCamera(CameraVideo* p_camera)
     m_pCamera = p_camera;
     updateReadyStatus();
     if( nullptr != m_pCamera ) {
-        emit evCameraChanged(m_pCamera->getCamera());
+        emit evCameraIndexChanged(m_pCamera->getCameraIndex());
     } else {
-        emit evCameraChanged(nullptr);
+        emit evCameraIndexChanged(CameraVideo::CAMERA_INDEX_UNDEF);
     }
     emit evCameraVideoChanged(m_pCamera);
 }
@@ -153,14 +144,14 @@ void CameraRole::updateReadyStatus()
 // ----------------------------------------------------------------------------
 // -- CameraDatabase
 
-CameraDatabase::CameraDatabase() : Loggable("CameraDatabase"), XmlSettings("CameraDatabase")
+CameraDatabase::CameraDatabase() : Loggable("CameraDatabase"), XmlProject("CameraDatabase")
 {
     m_cameraId = "";
     m_productId = "";
     m_role = 0;
 }
 
-CameraDatabase::CameraDatabase(const QString& p_cameraId, const QString& p_productUid, const qint32 p_role) : Loggable("CameraDatabase"), XmlSettings("CameraDatabase")
+CameraDatabase::CameraDatabase(const QString& p_cameraId, const QString& p_productUid, const qint32 p_role) : Loggable("CameraDatabase"), XmlProject("CameraDatabase")
 {
     m_cameraId = p_cameraId;
     m_productId = p_productUid;
@@ -204,7 +195,7 @@ void CameraDatabase::setCameraRole(qint32 p_value)
 }
 
 // -- Settings
-bool CameraDatabase::customLoadSettings(QDomElement * p_pParent)
+bool CameraDatabase::customLoadParam(QDomElement * p_pParent)
 {
     bool bRet = true;
     bRet &= XML_READ_UNIQUE_DEFAULT(QString, m_cameraId, "");
@@ -213,7 +204,7 @@ bool CameraDatabase::customLoadSettings(QDomElement * p_pParent)
     return bRet;
 }
 
-bool CameraDatabase::customLoadDefaultSettings()
+bool CameraDatabase::customLoadDefaultParam()
 {
     m_cameraId = "";
     m_productId = "";
@@ -221,12 +212,12 @@ bool CameraDatabase::customLoadDefaultSettings()
     return true;
 }
 
-bool CameraDatabase::customApplySettings()
+bool CameraDatabase::customApplyParam()
 {
     return true;
 }
 
-bool CameraDatabase::customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pParent)
+bool CameraDatabase::customSaveParam(QDomDocument * p_pDoc, QDomElement * p_pParent)
 {
     bool bRet = true;
     bRet &= XML_WRITE_UNIQUE(m_cameraId);

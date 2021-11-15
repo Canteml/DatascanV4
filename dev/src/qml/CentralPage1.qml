@@ -105,133 +105,106 @@ Rectangle {
         }
 
         RowLayout {
+            id: idRwCam
             Layout.fillWidth: true
             Layout.leftMargin: 20
             ColumnLayout {
                 id: idClCam
-                //Layout.fillHeight: true
+                Layout.alignment: Qt.AlignTop
                 // One row by camera role
-                property var txtWidth: 80
-                property var btAssignWidth: 100
-                property var btPreviewWidth: 100
-                RowLayout {
-                    Rectangle {
-                        width: 12
-                        height: 12
-                        radius: 12
-                        border.color: "#000000"
-                        border.width: 1
-                        color: "#FFFFFF"
-                    }
-                    Text {
-                        Layout.preferredWidth: idClCam.txtWidth
-                        font.pixelSize: 14
-                        text: qsTr("Alarme :")
-                    }
-                    Button {
-                        id: idBtAssign0
-                        Layout.preferredWidth: idClCam.btAssignWidth
-                        background: Rectangle {
-                            color: idBtAssign0.pressed ? Design.colButtonSelectedBackground : idBtAssign0.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
-                            border.width: 1
-                            border.color: Design.colFrameBorder
-                        }
-
-                        contentItem: Text {
-                            text: qsTr("Assigner")
-                            font.pointSize: 10
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        onPressed: {
-
-                        }
-                    }
-
-                    Button {
-                        id: idBtPv0
-                        Layout.preferredWidth: idClCam.btPreviewWidth
-                        background: Rectangle {
-                            color: (cameraManager.camAlarm().camera === cameraManager.getPreviewCamera() ) ? Design.colButtonSelectedBackground : idBtPv0.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
-                            border.width: 1
-                            border.color: Design.colFrameBorder
-                        }
-
-                        contentItem: Text {
-                            text: qsTr("Preview")
-                            font.pointSize: 10
-                            horizontalAlignment: Text.AlignHCenter
-                            verticalAlignment: Text.AlignVCenter
-                        }
-
-                        onPressed: {
-
-                        }
-                    }
+                CameraParam {
+                    cameraRoleText : qsTr("Alarme :")
+                    cameraRoleItem : cameraManager.camAlarm()
+                }
+                CameraParam {
+                    cameraRoleText : qsTr("Capteur 1 :")
+                    cameraRoleItem : cameraManager.camSensor1()
+                }
+                CameraParam {
+                    cameraRoleText : qsTr("Capteur 2 :")
+                    cameraRoleItem : cameraManager.camSensor2()
+                }
+                CameraParam {
+                    cameraRoleText : qsTr("Capteur 3 :")
+                    cameraRoleItem : cameraManager.camSensor3()
+                }
+                CameraParam {
+                    cameraRoleText : qsTr("Capteur 4 :")
+                    cameraRoleItem : cameraManager.camSensor4()
+                }
+                CameraParam {
+                    cameraRoleText : qsTr("Avant :")
+                    cameraRoleItem : cameraManager.camFront()
+                }
+                CameraParam {
+                    cameraRoleText : qsTr("Arrière :")
+                    cameraRoleItem : cameraManager.camRear()
                 }
             }
             Rectangle {
                 // Vertical orange bar
                 Layout.preferredWidth: 3
-                Layout.preferredHeight: idClCam.height
+                Layout.preferredHeight: idRwCam.height
                 width : 3
                 color: Design.colFromSection
             }
 
             ColumnLayout {
-//                Camera {
-//                    id: idPreviewCamera
-//                    source: cameraManager.getPreviewCamera()
-//                    imageCapture {
-//                        onImageCaptured: {
-//                            photoPreview.source = preview  // Show the preview in an Image
-//                        }
-//                    }
-//                }
-                VideoOutput {
-                    id: idVideo
-                    Layout.preferredHeight: 200
-                    source: cameraManager.previewCamera
+                Camera {
+                    id: idCameraPreview
 
-//                    Connections {
-//                        target : cameraManager
-//                        function onPreviewCameraChanged(p_pCamera) {
-//                            idVideo.source = p_pCamera;
-//                        }
-//                    }
+                    imageCapture {
+                        onImageCaptured: {
+                            // Show the preview in an Image
+                            photoPreview.source = preview
+                        }
+                    }
                 }
 
                 RowLayout {
+                    id: idRwCamPreview
                     Layout.fillWidth: true
+
+                    Rectangle {
+                        id: idFrameCamPreview
+                        border.color: Design.colFrameBorder
+                        border.width: 1
+                        Layout.preferredHeight: idVideo.height+2
+                        Layout.preferredWidth: idVideo.width+2
+                        VideoOutput {
+                            id: idVideo
+                            // Keept aspect ration of camera frame
+                            height: 200
+                            width: sourceRect.width * 200 / sourceRect.height
+
+                            // Frame around the camera
+                            x:1
+                            y:1
+
+                            //source: cameraManager.previewCamera
+                            source: idCameraPreview
+                        }
+                    }
+
+                    Item {
+                        Layout.fillWidth: true
+                    }
+                }
+
+                RowLayout {
+                    Layout.maximumWidth: idFrameCamPreview.width
                     Text {
                         text: qsTr("Camera : ")
-                        font.pixelSize: 12
+                        font.pixelSize: 14
                     }
 
                     ComboBox {
                         id: idCbSelectCameraPreview
                         model: modelCameraList
-//                        Connections {
-//                            target: cameraManager
-//                            function onEvCameraListChanged(p_value) {
-//                                //idCbSelectCameraPreview.model.clear();
-//                                for(var i=0; i<p_value; i++) {
-//                                    idCbSelectCameraPreview.model.append(i);
-//                                }
-//                            }
-//                        }
+                        Layout.fillWidth: true
+
                         onCurrentIndexChanged: {
                             cameraManager.setPreviewCameraIndex(idCbSelectCameraPreview.currentIndex)
-                        }
-
-                        Connections {
-                            target : cameraManager
-                            function onPreviewCameraIndexChanged(p_value) {
-                                if( idCbSelectCameraPreview.currentIndex !== p_value ) {
-                                    idCbSelectCameraPreview.currentIndex = p_value;
-                                }
-                            }
                         }
                     }
 
@@ -253,6 +226,22 @@ Rectangle {
             Item {
                 // Spacer
                 Layout.fillWidth: true
+            }
+
+            Connections {
+                target : cameraManager
+                function onPreviewCameraIndexChanged(p_index) {
+                    if( idCbSelectCameraPreview.currentIndex !== p_index ) {
+                        idCbSelectCameraPreview.currentIndex = p_index;
+                    }
+                    console.log(p_index);
+                    if( -1 === p_index ) {
+                        idCameraPreview.stop()
+                    } else {
+                        idCameraPreview.deviceId = QtMultimedia.availableCameras[p_index].deviceId;
+                        idCameraPreview.start()
+                    }
+                }
             }
         }
 

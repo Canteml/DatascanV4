@@ -9,24 +9,24 @@ Rectangle {
     //color: "#0055AA"
 
 
-    Camera {
-        id: idCamera
+//    Camera {
+//        id: idCamera
 
 
-//      imageProcessing.whiteBalanceMode: CameraImageProcessing.WhiteBalanceFlash
+////      imageProcessing.whiteBalanceMode: CameraImageProcessing.WhiteBalanceFlash
 
-//      exposure {
-//          exposureCompensation: -1.0
-//          exposureMode: Camera.ExposurePortrait
-//      }
+////      exposure {
+////          exposureCompensation: -1.0
+////          exposureMode: Camera.ExposurePortrait
+////      }
 
 
-        imageCapture {
-            onImageCaptured: {
-                photoPreview.source = preview  // Show the preview in an Image
-            }
-        }
-    }
+//        imageCapture {
+//            onImageCaptured: {
+//                photoPreview.source = preview  // Show the preview in an Image
+//            }
+//        }
+//    }
 
     Connections {
         target : currentVector;
@@ -35,13 +35,13 @@ Rectangle {
         }
     }
 
-    function updateCamera() {
-        if( currentVector.hasCamera ) {
-            idCamera.start();
-        } else {
-            idCamera.stop();
-        }
-    }
+//    function updateCamera() {
+//        if( currentVector.hasCamera ) {
+//            idCamera.start();
+//        } else {
+//            idCamera.stop();
+//        }
+//    }
 
     Component.onCompleted: {
         updateCamera();
@@ -58,14 +58,14 @@ Rectangle {
             anchors.fill: parent
         }
 
-        VideoOutput {
-            source: idCamera
-//            Layout.fillHeight: true;
-//            Layout.fillWidth: true;
-            anchors.margins: 1
-            anchors.fill: parent
-            focus : visible // to receive focus and capture key events when visible
-        }
+//        VideoOutput {
+//            source: idCamera
+////            Layout.fillHeight: true;
+////            Layout.fillWidth: true;
+//            anchors.margins: 1
+//            anchors.fill: parent
+//            focus : visible // to receive focus and capture key events when visible
+//        }
 
         ComboBox {
             id: idCbCam

@@ -30,8 +30,8 @@ class QTimer;
 class CameraManager : public QObject, public XmlSettingsLoggable
 {
     Q_OBJECT
-    Q_PROPERTY(QCamera* previewCamera READ getPreviewCamera NOTIFY previewCameraChanged)
-    Q_PROPERTY(QCamera* mainCamera READ getMainCamera NOTIFY mainCameraChanged)
+    Q_PROPERTY(qint32 previewCameraIndex READ getPreviewCameraIndex NOTIFY previewCameraIndexChanged)
+    Q_PROPERTY(qint32 mainCameraIndex READ getMainCameraIndex NOTIFY mainCameraIndexChanged)
     Q_PROPERTY(bool selectMainCameraAuto READ getMainCameraSelectAuto NOTIFY selectMainCameraAutoChanged)
 
 public:
@@ -53,9 +53,9 @@ public:
     Q_INVOKABLE CameraRole* camRear();
 
     // -- Cameras
-    Q_INVOKABLE QCamera* getPreviewCamera() const;
-    Q_INVOKABLE QCamera* getMainCamera() const;
-    Q_INVOKABLE void assignPreviewAs(qint32 p_role) const;
+    Q_INVOKABLE qint32 getPreviewCameraIndex() const;
+    Q_INVOKABLE qint32 getMainCameraIndex() const;
+    Q_INVOKABLE void assignPreviewAs(qint32 p_role);
     bool getMainCameraSelectAuto() const;
     void setMainCameraSelectAuto(bool p_value);
 
@@ -67,9 +67,8 @@ public:
 
 signals :
     // -- Properties
-    void previewCameraChanged(QCamera*);
-    void previewCameraIndexChanged(qint32);
-    void mainCameraChanged(QCamera*);
+    void previewCameraIndexChanged(qint32 p_index);
+    void mainCameraIndexChanged(qint32 p_index);
     void selectMainCameraAutoChanged(bool);
 
     // --
@@ -80,6 +79,7 @@ private slots :
     void onVectorProductIdChanged(qint32);
     void onVectorDeviceListChanged(qint32);
     void onUpdateCameraList();
+    void onUpdateCameraDatabase();
 
 protected :
     // -- Settings
