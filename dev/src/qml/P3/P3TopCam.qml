@@ -18,14 +18,6 @@ Rectangle {
         id: idCameraMain
         objectName: "cameraMain"
 
-        imageCapture {
-            onImageCaptured: {
-                // Show the preview in an Image
-                photoPreview.source = preview
-            }
-        }
-
-
         Component.onCompleted: {
             idCameraMain.deviceId = cameraManager.getMainCameraId();
             idCameraMain.stop()
@@ -43,6 +35,14 @@ Rectangle {
         target : cameraManager
         function onEvMainCameraReady() {
             idCameraMain.deviceId = cameraManager.getMainCameraId();
+        }
+    }
+
+    Connections {
+        target : cameraManager
+        function onEvRequestMainCameraCapture(p_fileName) {
+            idCameraMain.imageCapture.captureToLocation(p_fileName)
+            //idCameraMain.imageCapture.capture(p_fileName);
         }
     }
 
@@ -110,6 +110,30 @@ Rectangle {
         Component.onCompleted: {
             idCbSelectCameraMain.currentIndex = cameraManager.getProductRoleMainCamera();
             ready = true;
+        }
+    }
+
+    Button {
+        id: idBtCapture
+        visible: !cameraManager.selectMainCameraAuto
+        anchors.right: idRectTopCam.right
+        anchors.bottom: idRectTopCam.bottom
+        anchors.margins: 10
+        width : 100
+        height : 35
+        font.pixelSize: 18
+        background: Rectangle {
+            color: (idBtCapture.pressed) ? Design.colButtonSelectedBackground : idBtCapture.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+            opacity: 0.6
+            border.width: 1
+            border.color: Design.colFrameBorder
+        }
+
+        text: qsTr("Photo")
+        font.pointSize: 18
+
+        onPressed: {
+            cameraManager.captureMainCamera();
         }
     }
 }
