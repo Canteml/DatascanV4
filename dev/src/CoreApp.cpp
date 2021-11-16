@@ -226,7 +226,8 @@ bool CoreApp::initQmlPath()
 void CoreApp::initCppFromQml()
 {
     // -- map C++ object with QML item
-    m_pScanManager->initQmlObject(m_pQmlTopLevel);
+    m_pScanManager->initQmlObject(m_pQmlTopLevel);    
+    m_pCameraManager->initQmlObject(m_pQmlTopLevel);
 
     // load graphical settings (wait QML instanciated)
     m_pScanManager->loadSettings();

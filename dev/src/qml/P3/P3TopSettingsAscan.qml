@@ -110,7 +110,9 @@ Rectangle {
                     value: scanManager.SelectedFuncAScan.paramDGain
 
                     onValueChanged: {
-                        scanManager.SelectedFuncAScan.paramDGain = value
+                        if( scanManager.SelectedFuncAScan.paramDGain !== value ) {
+                            scanManager.SelectedFuncAScan.paramDGain = value
+                        }
                     }
                     onValueModified: {
                         focus = false;
@@ -166,7 +168,9 @@ Rectangle {
                     value: scanManager.SelectedFuncAScan.paramDVoltage
 
                     onValueChanged: {
-                        scanManager.SelectedFuncAScan.paramDVoltage = value
+                        if( scanManager.SelectedFuncAScan.paramDVoltage !== value ) {
+                            scanManager.SelectedFuncAScan.paramDVoltage = value
+                        }
                     }
 
                     onValueModified: {
@@ -191,7 +195,9 @@ Rectangle {
                     value: scanManager.SelectedFuncAScan.paramDUtElement
 
                     onValueChanged: {
-                        scanManager.SelectedFuncAScan.paramDUtElement = value
+                        if( scanManager.SelectedFuncAScan.paramDUtElement !== value ) {
+                            scanManager.SelectedFuncAScan.paramDUtElement = value
+                        }
                     }
                     onValueModified: {
                         focus = false;

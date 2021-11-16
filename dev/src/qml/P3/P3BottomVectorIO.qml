@@ -6,6 +6,9 @@ import Design 1.0
 Rectangle {
     color: "#FFFFFF"
     Layout.preferredWidth: 200
+    border.width: 1
+    border.color: Design.colFrameBorder
+
 
     ColumnLayout {
         id: idColBScanCtrl

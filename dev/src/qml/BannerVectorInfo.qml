@@ -2,6 +2,7 @@ import QtQuick 2.4
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
 import Design 1.0
+import QtMultimedia 5.15
 
 Rectangle {
     id: idBannerVectorInfo
@@ -255,6 +256,80 @@ Rectangle {
             id: itSpacerHorizontal
             Layout.fillWidth: true
             Layout.fillHeight: true
+        }
+
+        // -------------------
+        // Camera
+
+        Camera {
+            id: idCameraAlarm
+            objectName: "cameraAlarm"            
+
+            imageCapture {
+                onImageCaptured: {
+                    // Show the preview in an Image
+                    photoPreview.source = preview
+                }
+            }
+
+
+            Component.onCompleted: {
+                if( cameraManager.camAlarm().cameraVideo ) {
+                    idCameraAlarm.deviceId = cameraManager.camAlarm().cameraVideo.getCameraId();
+                }
+                idCameraAlarm.stop()
+            }
+        }
+
+        Connections {
+            target : cameraManager.camAlarm()
+            function onCameraVideoChanged() {
+                if( cameraManager.camAlarm().cameraVideo ) {
+                    idCameraAlarm.deviceId = cameraManager.camAlarm().cameraVideo.getCameraId();
+                }
+            }
+        }
+
+        Connections {
+            target : cameraManager
+            function onPreviewCameraIndexChanged() {
+                if( cameraManager.camAlarm().cameraVideo ) {
+                    idCameraAlarm.deviceId = cameraManager.camAlarm().cameraVideo.getCameraId();
+                }
+            }
+        }
+
+        Connections {
+            target : cameraManager
+            function onEvAlarmCameraReady() {
+                if( cameraManager.camAlarm().cameraVideo ) {
+                    idCameraAlarm.deviceId = cameraManager.camAlarm().cameraVideo.getCameraId();
+//                    if( cameraManager.camAlarm().isEnabled ) {
+//                        idCameraAlarm.start();
+//                    }
+                }
+            }
+        }
+
+        Rectangle {
+            id: idFrameCamAlarm
+            visible : cameraManager.camAlarm().isEnabled            
+            border.color: Design.colFrameBorder
+            border.width: 1
+            Layout.preferredHeight: idVideo.height+2
+            Layout.preferredWidth: idVideo.width+2
+            VideoOutput {
+                id: idVideo
+                // Keept aspect ration of camera frame
+                height: 60
+                width: sourceRect.width * 60 / sourceRect.height
+
+                // Frame around the camera
+                x:1
+                y:1
+
+                source: idCameraAlarm
+            }
         }
 
         Rectangle {
