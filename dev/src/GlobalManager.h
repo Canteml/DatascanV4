@@ -17,6 +17,8 @@ class ExamManager;
 class ComDeviceManager;
 class CameraManager;
 
+class QCamera;
+
 /**
  * @brief The GlobalManager class
  *
@@ -70,6 +72,8 @@ private slots :
 private :
     GlobalManager();
 
+    void treatGuiPageSetup();
+
     // -- Properties
     quint32 m_guiPage; //    project : 0 / prepare : 1 / sueprvise : 2 / scan : 3 / help : 4
 
@@ -80,5 +84,6 @@ private :
 
     ComDeviceManager* m_pComDeviceManager;
     CameraManager* m_pCameraManager;
+
 };
 

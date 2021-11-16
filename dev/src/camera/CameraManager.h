@@ -17,11 +17,13 @@
 #include <xml/XmlSettingsLoggable.h>
 #include <camera/Camera.h>
 class VectorStd;
+class GlobalManager;
 
 // -- Qt includes
 #include <QObject>
 #include <QList>
 class QTimer;
+class QCamera;
 
 /**
  * @brief The CameraManager class
@@ -37,6 +39,7 @@ class CameraManager : public QObject, public XmlSettingsLoggable
 public:
     static CameraManager * makeInstance();
     static CameraManager * getInstance();
+    void initQmlObject(QObject * p_pQmlTopLevel);
 
     void start();
     void stop();
@@ -55,11 +58,13 @@ public:
     // -- Cameras
     Q_INVOKABLE qint32 getPreviewCameraIndex() const;
     Q_INVOKABLE qint32 getMainCameraIndex() const;
+    Q_INVOKABLE QString getMainCameraId() const;
     Q_INVOKABLE void assignPreviewAs(qint32 p_role);
     bool getMainCameraSelectAuto() const;
     void setMainCameraSelectAuto(bool p_value);
 
-    Q_INVOKABLE void setProductRoleMainCamera(qint32 p_productRole);
+    Q_INVOKABLE void setProductRoleMainCamera(qint32 p_productRole);    ///< QML uses list of role function to the product
+    Q_INVOKABLE qint32 getProductRoleMainCamera();                      ///< QML uses list of role function to the product
     Q_INVOKABLE void setRoleMainCamera(qint32 p_role);
     Q_INVOKABLE void setPreviewCameraIndex(qint32 p_index);
 
@@ -73,6 +78,8 @@ signals :
 
     // --
     void evCameraListChanged(qint32 p_value);   ///< number of items in the list
+    void evMainCameraReady();
+    void evAlarmCameraReady();
 
 
 private slots :
@@ -80,6 +87,9 @@ private slots :
     void onVectorDeviceListChanged(qint32);
     void onUpdateCameraList();
     void onUpdateCameraDatabase();
+    void onGuiPageChanged(quint32);
+
+    void onCameraIsReadyChanged(CameraRole*,bool);
 
 protected :
     // -- Settings
@@ -105,4 +115,10 @@ private:
 
     // -- Managers
     VectorStd* m_pVectorStd;
+    GlobalManager* m_pGlobalManager;
+
+    // -- QML components
+    QCamera* m_pCameraPreview;
+    QCamera* m_pCameraAlarm;
+    QCamera* m_pCameraMain;
 };

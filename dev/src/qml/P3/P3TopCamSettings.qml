@@ -135,29 +135,29 @@ Rectangle {
         }
     }
 
-    Connections {
-        target : currentVector
-        function onHasCameraChanged() {
-            updateCamera();
-        }
-    }
+//    Connections {
+//        target : currentVector
+//        function onHasCameraChanged() {
+//            updateCamera();
+//        }
+//    }
 
     Component.onCompleted: {
         updateCamera();
     }
 
     function updateCamera() {
-        // has camera ?
-        if( currentVector.hasCamera ) {
-            // yes
+//        // has camera ?
+//        if( currentVector.hasCamera ) {
+//            // yes
             idBtCam.visible = true;
             idSlP4TopCamSettings.currentIndex = 0;
             idSlP4TopCamSettings.visible = true;
-        } else {
-            idBtCam.visible = false;
-            idSlP4TopCamSettings.currentIndex = 0;
-            idSlP4TopCamSettings.visible = false;
-        }
+//        } else {
+//            idBtCam.visible = false;
+//            idSlP4TopCamSettings.currentIndex = 0;
+//            idSlP4TopCamSettings.visible = false;
+//        }
 
 
     }

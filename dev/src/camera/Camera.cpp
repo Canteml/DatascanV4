@@ -118,6 +118,7 @@ void CameraRole::setIsReady(bool p_value)
     if( m_isReady != p_value ) {
         m_isReady = p_value;
         emit evIsReadyChanged(m_isReady);
+        emit evCameraIsReadyChanged(this, m_isReady);
     }
 }
 

@@ -107,6 +107,7 @@ signals :
     void evCameraIndexChanged(qint32);
     void evCameraVideoChanged(CameraVideo *);
     void evIsReadyChanged(bool);
+    void evCameraIsReadyChanged(CameraRole*,bool);
 
 private :
     void updateReadyStatus();

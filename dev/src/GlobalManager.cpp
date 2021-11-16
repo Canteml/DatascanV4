@@ -25,6 +25,7 @@
 #include <QApplication>
 #include <QInputMethod>
 #include <QLocale>
+#include <QCamera>
 
 
 GlobalManager* GlobalManager::m_pMyInstance = nullptr;
@@ -96,7 +97,7 @@ void GlobalManager::setGuiPage(quint32 p_value)
 {
     if( m_guiPage != p_value ) {
         m_guiPage = p_value;
-        emit evGuiPageChanged(m_guiPage);
+        emit evGuiPageChanged(p_value);
     }
 }
 
@@ -116,11 +117,12 @@ void GlobalManager::onDeviceListChanged()
 
 void GlobalManager::onCameraListChanged(qint32 p_size)
 {
+    // Update combobox in Page1 (param) to preview camera
     QStringList slListCamera;
     for(int i=0; i<p_size; i++) {
         slListCamera.append(QString("Camera %1").arg(i+1));
     }
-    CoreApp::getInstanceCoreUiQml()->getApplicationEngine()->rootContext()->setContextProperty("modelCameraList", QVariant::fromValue(slListCamera));
+    CoreApp::getInstanceCoreUiQml()->getApplicationEngine()->rootContext()->setContextProperty("modelCameraList", QVariant::fromValue(slListCamera));        
 }
 
 

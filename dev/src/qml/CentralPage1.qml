@@ -152,6 +152,7 @@ Rectangle {
             ColumnLayout {
                 Camera {
                     id: idCameraPreview
+                    objectName: "cameraPreview"
 
                     imageCapture {
                         onImageCaptured: {
@@ -159,6 +160,7 @@ Rectangle {
                             photoPreview.source = preview
                         }
                     }
+                    Component.onCompleted: idCameraPreview.stop()
                 }
 
                 RowLayout {
@@ -207,19 +209,7 @@ Rectangle {
                             cameraManager.setPreviewCameraIndex(idCbSelectCameraPreview.currentIndex)
                         }
                     }
-
-//                    Item {
-//                        // Spacer
-//                        Layout.fillHeight: true
-//                    }
                 }
-
-
-                // -- SPACER
-//                Item {
-//                    // Spacer
-//                    Layout.fillHeight: true
-//                }
             }
 
             // -- SPACER
@@ -234,7 +224,6 @@ Rectangle {
                     if( idCbSelectCameraPreview.currentIndex !== p_index ) {
                         idCbSelectCameraPreview.currentIndex = p_index;
                     }
-                    console.log(p_index);
                     if( -1 === p_index ) {
                         idCameraPreview.stop()
                     } else {

@@ -95,7 +95,7 @@ Rectangle {
 
                     GridLayout {
                         columns: 2
-                        visible: currentVector.NbFuncAScanEnabled > 1
+                        visible: currentVector.NbFuncAScanEnabled > 1 && !cameraManager.selectMainCameraAuto
 
                         Button {
                             id: idBtAScan1

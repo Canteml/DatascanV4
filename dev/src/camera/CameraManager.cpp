@@ -16,10 +16,15 @@
 #include <v2/vector/VectorStd.h>
 #include <v2/prot/ProtMsg.h>
 #include <v2/com/ComDeviceManager.h>
+#include "CoreApp.h"
+#include "GlobalManager.h"
 
 // -- Qt includes
 #include <QTimer>
 #include <QCameraInfo>
+#include <QQmlApplicationEngine>
+#include <QQmlContext>
+#include <QCamera>
 
 CameraManager* CameraManager::m_pMyInstance = nullptr;
 
@@ -28,6 +33,7 @@ CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
     for(int i=0; i<CameraRole::ROLE_MAX; i++) {
         m_aCameraRole[i] = new CameraRole(i);
         m_aCameraRole[i]->setParent(this);
+        connect(m_aCameraRole[i], &CameraRole::evCameraIsReadyChanged, this, &CameraManager::onCameraIsReadyChanged);
     }
 
     m_indexPreviewCamera = CAMERA_PREVIEW_UNDEF;
@@ -80,8 +86,56 @@ CameraManager* CameraManager::getInstance()
     return m_pMyInstance;
 }
 
+void CameraManager::initQmlObject(QObject *p_pQmlTopLevel)
+{
+    QObject* qmlCamera = p_pQmlTopLevel->findChild<QObject*>("cameraAlarm");
+    m_pCameraAlarm = qvariant_cast<QCamera*>(qmlCamera->property("mediaObject"));
+    qmlCamera = p_pQmlTopLevel->findChild<QObject*>("cameraPreview");
+    m_pCameraPreview = qvariant_cast<QCamera*>(qmlCamera->property("mediaObject"));
+    qmlCamera = p_pQmlTopLevel->findChild<QObject*>("cameraMain");
+    m_pCameraMain = qvariant_cast<QCamera*>(qmlCamera->property("mediaObject"));
+
+    onGuiPageChanged(m_pGlobalManager->getGuiPage());
+}
+
+
+void CameraManager::onGuiPageChanged(quint32 p_page)
+{
+    if( 1 == p_page ) {
+        m_pCameraAlarm->stop();
+        m_pCameraMain->stop();
+        m_pCameraPreview->start();
+    } else {
+        m_pCameraPreview->stop();
+        m_pCameraMain->start();
+        m_pCameraAlarm->start();
+    }
+}
+
+void CameraManager::onCameraIsReadyChanged(CameraRole *p_pCameraRole, bool p_enable)
+{
+    if( p_enable ) {
+        if( -1 != m_roleMainCamera && p_pCameraRole == m_aCameraRole[m_roleMainCamera] ) {
+            emit evMainCameraReady();
+        }
+        if( p_pCameraRole == m_aCameraRole[CameraRole::ROLE_ALARM] ) {
+            if( m_aCameraRole[CameraRole::ROLE_ALARM]->getIsEnabled() && m_aCameraRole[CameraRole::ROLE_ALARM]->getCameraVideo() ) {
+                if( getMainCameraId() != m_aCameraRole[CameraRole::ROLE_ALARM]->getCameraVideo()->getCameraId() ) {
+                    if( 1 != m_pGlobalManager->getGuiPage() ) {
+                        m_pCameraAlarm->start();
+                    }
+                }
+            }
+            emit evAlarmCameraReady();
+        }
+    }
+}
+
 void CameraManager::start()
 {
+    m_pGlobalManager = GlobalManager::getInstance();
+    connect(m_pGlobalManager, &GlobalManager::evGuiPageChanged, this, &CameraManager::onGuiPageChanged);
+
     m_pVectorStd = VectorManager::getInstance()->getVectorStd();
     connect(m_pVectorStd, &VectorStd::prodIdChanged, this, &CameraManager::onVectorProductIdChanged);
     connect(m_pVectorStd, &VectorStd::evFuncStateConnectionChanged, this, &CameraManager::onUpdateCameraDatabase);
@@ -133,17 +187,6 @@ CameraRole* CameraManager::camRear()
 }
 
 // -- Cameras
-//QCamera* CameraManager::getPreviewCamera() const
-//{
-//    if( 0 <= m_indexPreviewCamera && m_indexPreviewCamera < m_lCameraVideo.size()) {
-////        fLogDebug1(QString("index pv = %1 / %2").arg(m_indexPreviewCamera).arg(m_lCameraVideo.size()));
-////        fLogDebug1(QString("Cam state : %1 / status : %2").arg(m_lCameraVideo.at(m_indexPreviewCamera)->getCamera()->state())
-////                   .arg(m_lCameraVideo.at(m_indexPreviewCamera)->getCamera()->status()));
-//        return m_lCameraVideo.at(m_indexPreviewCamera)->getCamera();
-//    }
-//    return nullptr;
-//}
-
 qint32 CameraManager::getPreviewCameraIndex() const
 {
     return m_indexPreviewCamera;
@@ -154,10 +197,19 @@ qint32 CameraManager::getMainCameraIndex() const
     return m_aCameraRole[m_roleMainCamera]->getCameraIndex();
 }
 
+QString CameraManager::getMainCameraId() const
+{
+    QString sRet;
+    if( -1 != m_roleMainCamera && nullptr != m_aCameraRole[m_roleMainCamera]->getCameraVideo() ) {
+        sRet = m_aCameraRole[m_roleMainCamera]->getCameraVideo()->getCameraId();
+    }
+    return sRet;
+}
+
 void CameraManager::assignPreviewAs(qint32 p_role)
 {
     // Map current preview camera with the specified role
-    fLogDebug1(QString("index pv = %1/2").arg(m_indexPreviewCamera, m_lCameraVideo.size()));
+    //fLogDebug1(QString("index pv = %1/2").arg(m_indexPreviewCamera, m_lCameraVideo.size()));
     if( -1 != m_indexPreviewCamera ) {
         m_aCameraRole[p_role]->setCamera(m_lCameraVideo.at(m_indexPreviewCamera));
     }
@@ -181,33 +233,16 @@ void CameraManager::setMainCameraSelectAuto(bool p_value)
 
 void CameraManager::setProductRoleMainCamera(qint32 p_productRole)
 {
-    // Key shortcut
     qint32 role = -1;
-    qint32 pid = m_pVectorStd->getProdId();
 
-    if( CameraRole::ROLE_ALARM == p_productRole ) {
-        if( ProtMsg::PROD_ROVER == pid || ProtMsg::PROD_ROVER_CLEANER == pid ||  ProtMsg::PROD_PANDA_VOL1 == pid || ProtMsg::PROD_PANDA_VOL3 == pid ) {
-            role = CameraRole::ROLE_ALARM;
-        }
-    } else if( 1 == p_productRole ) {
-        if( ProtMsg::PROD_PANDA_VOL3 == pid ) {
-            role = CameraRole::ROLE_SENSOR1;
-        } else {
-            role = CameraRole::ROLE_FRONT;
-        }
-    } else if( 2 == p_productRole ) {
-        if(  ProtMsg::PROD_ALTISCAN == pid || ProtMsg::PROD_ROVER == pid ||  ProtMsg::PROD_ROVER_SCANNER == pid || ProtMsg::PROD_ROVER_CLEANER == pid ) {
-            role = CameraRole::ROLE_REAR;
-        } else if( ProtMsg::PROD_PANDA_VOL3 == pid ){
-            role = CameraRole::ROLE_SENSOR2;
-        }
-    } else if( 3 == p_productRole ) {
-        if( ProtMsg::PROD_PANDA_VOL3 == pid ) {
-            role = CameraRole::ROLE_SENSOR3;
-        }
-    } else if( 4 == p_productRole ) {
-        if( ProtMsg::PROD_PANDA_VOL3 == pid ) {
-            role = CameraRole::ROLE_SENSOR3;
+    for(int i=0; i<CameraRole::ROLE_MAX; i++) {
+        if( m_aCameraRole[i]->getIsEnabled() ) {
+            if( 0 == p_productRole ) {
+                role = i;
+                break;
+            } else {
+                p_productRole--;
+            }
         }
     }
 
@@ -216,10 +251,34 @@ void CameraManager::setProductRoleMainCamera(qint32 p_productRole)
     }
 }
 
+qint32 CameraManager::getProductRoleMainCamera()
+{
+    qint32 role = 0;
+
+    for(int i=0; i<CameraRole::ROLE_MAX; i++) {
+        if( m_aCameraRole[i]->getIsEnabled() ) {
+            if( i == m_roleMainCamera ) {
+                break;
+            }
+            role++;
+        }
+    }
+
+    return role;
+}
+
 void CameraManager::setRoleMainCamera(qint32 p_role)
 {
     if( m_roleMainCamera != p_role ) {
         m_roleMainCamera = p_role;
+
+        if( m_aCameraRole[CameraRole::ROLE_ALARM]->getIsEnabled() && m_aCameraRole[CameraRole::ROLE_ALARM]->getCameraVideo() ) {
+            if( getMainCameraId() == m_aCameraRole[CameraRole::ROLE_ALARM]->getCameraVideo()->getCameraId() ) {
+                m_pCameraAlarm->stop();
+            } else {
+                m_pCameraAlarm->start();
+            }
+        }
         emit mainCameraIndexChanged(getMainCameraIndex());
     }
 }
@@ -241,6 +300,8 @@ void CameraManager::onVectorProductIdChanged(qint32 p_pid)
         m_pTimer->stop();
     }
 
+    QStringList slRoles;
+
     // -- remove cameras from roles
     for(int i=0; i<CameraRole::ROLE_MAX; i++) {
         m_aCameraRole[i]->setCamera(nullptr);
@@ -249,6 +310,7 @@ void CameraManager::onVectorProductIdChanged(qint32 p_pid)
     // enable / disable roles
     if(p_pid == ProtMsg::PROD_ROVER || p_pid == ProtMsg::PROD_ROVER_CLEANER || p_pid == ProtMsg::PROD_PANDA_VOL1 || p_pid == ProtMsg::PROD_PANDA_VOL3 ) {
         m_aCameraRole[CameraRole::ROLE_ALARM]->setIsEnabled(true);
+        slRoles.append(tr("Alarme"));
     } else {
         m_aCameraRole[CameraRole::ROLE_ALARM]->setIsEnabled(false);
     }
@@ -257,10 +319,12 @@ void CameraManager::onVectorProductIdChanged(qint32 p_pid)
         m_aCameraRole[CameraRole::ROLE_FRONT]->setIsEnabled(false);
     } else {
         m_aCameraRole[CameraRole::ROLE_FRONT]->setIsEnabled(true);
+        slRoles.append(tr("Avant"));
     }
 
     if(p_pid == ProtMsg::PROD_ALTISCAN || p_pid == ProtMsg::PROD_ROVER || p_pid == ProtMsg::PROD_ROVER_CLEANER || p_pid == ProtMsg::PROD_ROVER_SCANNER ) {
         m_aCameraRole[CameraRole::ROLE_REAR]->setIsEnabled(true);
+        slRoles.append(tr("Arrière"));
     } else {
         m_aCameraRole[CameraRole::ROLE_REAR]->setIsEnabled(false);
     }
@@ -270,6 +334,10 @@ void CameraManager::onVectorProductIdChanged(qint32 p_pid)
         m_aCameraRole[CameraRole::ROLE_SENSOR2]->setIsEnabled(true);
         m_aCameraRole[CameraRole::ROLE_SENSOR3]->setIsEnabled(true);
         m_aCameraRole[CameraRole::ROLE_SENSOR4]->setIsEnabled(true);
+        slRoles.append(tr("Capteur 1"));
+        slRoles.append(tr("Capteur 2"));
+        slRoles.append(tr("Capteur 3"));
+        slRoles.append(tr("Capteur 4"));
     } else {
         m_aCameraRole[CameraRole::ROLE_SENSOR1]->setIsEnabled(false);
         m_aCameraRole[CameraRole::ROLE_SENSOR2]->setIsEnabled(false);
@@ -277,13 +345,18 @@ void CameraManager::onVectorProductIdChanged(qint32 p_pid)
         m_aCameraRole[CameraRole::ROLE_SENSOR4]->setIsEnabled(false);
     }
 
-    m_aCameraRole[CameraRole::ROLE_SENSOR4]->setIsEnabled(false);
-
     // -- Auto select the camera
     setMainCameraSelectAuto(p_pid == ProtMsg::PROD_PANDA_VOL3);
 
     onUpdateCameraDatabase();
 
+    CoreApp::getInstanceCoreUiQml()->getApplicationEngine()->rootContext()->setContextProperty("modelCameraRoleList", QVariant::fromValue(slRoles));
+
+    if( m_aCameraRole[CameraRole::ROLE_ALARM]->getIsEnabled() ) {
+        setProductRoleMainCamera(1);
+    } else {
+        setProductRoleMainCamera(0);
+    }
 
     // -- restart timer
     m_pTimer->start();
@@ -295,6 +368,7 @@ void CameraManager::onVectorDeviceListChanged(qint32)
     // unmap camera in list of Role that are no more associated to a device
 
     // try to map a camera to a role function to list of CameraDatabase
+    onUpdateCameraDatabase();
 
 }
 
@@ -428,7 +502,6 @@ bool CameraManager::customLoadSettings(QDomElement * p_pParent)
         }
     }
 
-    bRet &= XML_READ_UNIQUE_DEFAULT(qint32, m_roleMainCamera, CameraRole::ROLE_ALARM);
     return bRet;
 }
 
@@ -473,7 +546,6 @@ bool CameraManager::customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pP
         i->customSaveParam(p_pDoc, &eCamDb);
     }
 
-    bRet &= XML_WRITE_UNIQUE(m_roleMainCamera);
     return bRet;
 }
 
