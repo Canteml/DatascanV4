@@ -70,6 +70,8 @@ public:
 
     static const qint32 CAMERA_PREVIEW_UNDEF = -1;
 
+    Q_INVOKABLE QString captureMainCamera(void);
+
 signals :
     // -- Properties
     void previewCameraIndexChanged(qint32 p_index);
@@ -80,7 +82,7 @@ signals :
     void evCameraListChanged(qint32 p_value);   ///< number of items in the list
     void evMainCameraReady();
     void evAlarmCameraReady();
-
+    void evRequestMainCameraCapture(QString p_fileName);
 
 private slots :
     void onVectorProductIdChanged(qint32);
@@ -105,6 +107,7 @@ private:
     // -- Behaviour
     QList<CameraVideo* > m_lCameraVideo;            ///< list of available cameras, updated by timer
     CameraRole* m_aCameraRole[CameraRole::ROLE_MAX]; ///< list of camera by role
+    QStringList m_slCameraRole;
     QList<CameraDatabase* > m_lCameraDatabase;
 
     QTimer* m_pTimer;

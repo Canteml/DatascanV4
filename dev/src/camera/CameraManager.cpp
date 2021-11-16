@@ -18,6 +18,7 @@
 #include <v2/com/ComDeviceManager.h>
 #include "CoreApp.h"
 #include "GlobalManager.h"
+#include <v2/exam/ExamManager.h>
 
 // -- Qt includes
 #include <QTimer>
@@ -35,6 +36,14 @@ CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
         m_aCameraRole[i]->setParent(this);
         connect(m_aCameraRole[i], &CameraRole::evCameraIsReadyChanged, this, &CameraManager::onCameraIsReadyChanged);
     }
+
+    m_slCameraRole.append(tr("Alarme"));
+    m_slCameraRole.append(tr("Capteur 1"));
+    m_slCameraRole.append(tr("Capteur 2"));
+    m_slCameraRole.append(tr("Capteur 3"));
+    m_slCameraRole.append(tr("Capteur 4"));
+    m_slCameraRole.append(tr("Avant"));
+    m_slCameraRole.append(tr("Arrière"));
 
     m_indexPreviewCamera = CAMERA_PREVIEW_UNDEF;
     m_roleMainCamera = 0;
@@ -290,6 +299,18 @@ void CameraManager::setPreviewCameraIndex(qint32 p_index)
         //m_lCameraVideo.at(m_indexPreviewCamera)->capture("CAM");
         emit previewCameraIndexChanged(m_indexPreviewCamera);
     }
+}
+
+QString CameraManager::captureMainCamera()
+{
+    QString fileName;
+    if( -1 != m_roleMainCamera && m_aCameraRole[m_roleMainCamera]->getIsReady() ) {
+        fileName = QString("%1/%2 %3").arg(ExamManager::getInstance()->getExportFolder())
+                                    .arg(m_slCameraRole[m_roleMainCamera])
+                                    .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH-mm-ss.zzz"));
+        emit evRequestMainCameraCapture(fileName);
+    }
+    return fileName;
 }
 
 // -- SLOTS

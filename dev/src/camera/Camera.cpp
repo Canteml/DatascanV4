@@ -12,7 +12,6 @@
 
 // -- Internal includes
 #include "camera/Camera.h"
-#include <v2/exam/ExamManager.h>
 
 // -- Qt includes
 #include <QDateTime>

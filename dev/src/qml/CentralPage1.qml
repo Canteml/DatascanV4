@@ -154,12 +154,6 @@ Rectangle {
                     id: idCameraPreview
                     objectName: "cameraPreview"
 
-                    imageCapture {
-                        onImageCaptured: {
-                            // Show the preview in an Image
-                            photoPreview.source = preview
-                        }
-                    }
                     Component.onCompleted: idCameraPreview.stop()
                 }
 

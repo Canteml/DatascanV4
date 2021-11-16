@@ -265,14 +265,6 @@ Rectangle {
             id: idCameraAlarm
             objectName: "cameraAlarm"            
 
-            imageCapture {
-                onImageCaptured: {
-                    // Show the preview in an Image
-                    photoPreview.source = preview
-                }
-            }
-
-
             Component.onCompleted: {
                 if( cameraManager.camAlarm().cameraVideo ) {
                     idCameraAlarm.deviceId = cameraManager.camAlarm().cameraVideo.getCameraId();
