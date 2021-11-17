@@ -53,7 +53,10 @@ class ScanManager : public QObject, public XmlSettingsLoggable
     Q_PROPERTY(qreal BScanAxeYMaxMm READ getBScanAxeYMaxMm WRITE setBScanAxeYMaxMm NOTIFY evBScanAxeYMaxMmChanged)
 
 public :
-    ScanManager();
+
+    static ScanManager * makeInstance();
+    static ScanManager * getInstance();
+
     ~ScanManager();    
 
     void init();
@@ -61,7 +64,7 @@ public :
     void stop();
 
     quint32 getSelectedAScanIndex() const;
-    void setSelectedAScanIndex(quint32 p_index); ///< value in 0..3
+    void setSelectedAScanIndex(quint32 p_index); ///< value in 0..3 : select AScan chanel
 
     VectorFuncAScan* getSelectedFuncAScan() const;
 
@@ -129,6 +132,9 @@ protected :
     virtual bool customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pParent) override;
 
 private :
+    ScanManager();
+    static ScanManager* m_pMyInstance;
+
     void onVectorProductChanged();    
     void setPrivateSelectedAScanIndex(quint32 p_index); ///< value in 0..3
     void emitUpdateAScanTimed(bool p_force = false);

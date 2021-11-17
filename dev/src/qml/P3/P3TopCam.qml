@@ -3,13 +3,13 @@ import QtMultimedia 5.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
 import Design 1.0
-
 Rectangle {
     id: idRectTopCam
 
     Rectangle {
-        border.color: "black"
-        color: "transparent"
+        border.color: Design.colButtonBorder
+        //color: "transparent"
+        color: Design.colBackgroundDark
         anchors.fill: parent
     }
 
@@ -21,6 +21,13 @@ Rectangle {
         Component.onCompleted: {
             idCameraMain.deviceId = cameraManager.getMainCameraId();
             idCameraMain.stop()
+        }
+
+        imageCapture {
+            onImageSaved : {
+                console.log("photo")
+                cameraManager.signalMainCameraCaptureSaved(path)
+            }
         }
     }
 
@@ -42,12 +49,12 @@ Rectangle {
         target : cameraManager
         function onEvRequestMainCameraCapture(p_fileName) {
             idCameraMain.imageCapture.captureToLocation(p_fileName)
-            //idCameraMain.imageCapture.capture(p_fileName);
         }
     }
 
     VideoOutput {
         source: idCameraMain
+        fillMode: VideoOutput.PreserveAspectCrop
         anchors.margins: 1
         anchors.fill: parent
         focus : visible // to receive focus and capture key events when visible
@@ -58,6 +65,8 @@ Rectangle {
         model: modelCameraRoleList
         visible: !cameraManager.selectMainCameraAuto
         anchors.horizontalCenter: idRectTopCam.horizontalCenter
+        anchors.top : idRectTopCam.top
+        anchors.topMargin: 0    // 5 ?
         width : 150
         height : 35
         font.pixelSize: 18
@@ -118,7 +127,7 @@ Rectangle {
         visible: !cameraManager.selectMainCameraAuto
         anchors.right: idRectTopCam.right
         anchors.bottom: idRectTopCam.bottom
-        anchors.margins: 10
+        anchors.margins: 5
         width : 100
         height : 35
         font.pixelSize: 18

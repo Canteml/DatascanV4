@@ -33,6 +33,7 @@
 #include <v2/vector/VectorFuncMove.h>
 #include "camera/CameraManager.h"
 #include "camera/Camera.h"
+#include "exam/ExamPipeManager.h"
 
 // -- Qt Includes
 #include <QQmlApplicationEngine>
@@ -50,6 +51,7 @@ CoreApp::CoreApp() : CoreUiQml("CoreApp")
     m_pGlobalManager = nullptr;
     m_pJoystickManager = nullptr;
     m_pCameraManager = nullptr;
+    m_pExamPipeManager = nullptr;
 }
 
 
@@ -78,8 +80,9 @@ bool CoreApp::initApp()
     // example : m_pStatisticApp = StatisticApp::makeInstance();    
     m_pJoystickManager = JoystickManager::makeInstance();
     m_pVectorManager = VectorManager::makeInstance(this);
-    m_pScanManager = new ScanManager();
+    m_pScanManager = ScanManager::makeInstance();
     m_pCameraManager = CameraManager::makeInstance();
+    m_pExamPipeManager = ExamPipeManager::makeInstance();
 
     m_pExamManager = ExamManager::makeInstance();
     m_pGlobalManager = GlobalManager::makeInstance();    
@@ -93,6 +96,7 @@ bool CoreApp::initApp()
     m_pExamManager->initManager();
     m_pJoystickManager->start();
     m_pCameraManager->start();
+    m_pExamPipeManager->init();
 
     // -- load settings of my managers
     // example : bRet &= m_pStatisticApp->loadSettings();
@@ -159,6 +163,8 @@ void CoreApp::deleteApp()
     m_pJoystickManager = nullptr;
     delete m_pCameraManager;
     m_pCameraManager = nullptr;
+    delete m_pExamPipeManager;
+    m_pExamPipeManager = nullptr;
 
     // -- core delete
     CoreUiQml::deleteApp();
@@ -190,6 +196,7 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<CameraManager*>("CameraManager*");
     qRegisterMetaType<CameraRole*>("CameraRole*");
     qRegisterMetaType<CameraVideo*>("CameraVideo*");
+    qRegisterMetaType<ExamPipeManager*>("ExamPipeManager*");
 
     // -- declare C++ components instanciated from QML
     // exemple : qmlRegisterType<AScan>("ascan", 1, 0, "AScanItem");
@@ -211,6 +218,7 @@ bool CoreApp::initQmlContext()
     m_pQmlApplicationEngine->rootContext()->setContextProperty("globalManager", m_pGlobalManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("joystickManager", m_pJoystickManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("cameraManager", m_pCameraManager);
+    m_pQmlApplicationEngine->rootContext()->setContextProperty("examPipeManager", m_pExamPipeManager);
 
     return true;
 }

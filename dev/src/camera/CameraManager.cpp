@@ -82,7 +82,7 @@ CameraManager::~CameraManager()
 CameraManager* CameraManager::makeInstance()
 {
     if( nullptr != m_pMyInstance ) {
-        Logger::logError("JoystickManager::makeInstance instance already exists !");
+        Logger::logError("CameraManager::makeInstance instance already exists !");
     } else {
         m_pMyInstance = new CameraManager();
     }
@@ -301,16 +301,23 @@ void CameraManager::setPreviewCameraIndex(qint32 p_index)
     }
 }
 
-QString CameraManager::captureMainCamera()
+QString CameraManager::captureMainCamera(const QString& p_prefix)
 {
     QString fileName;
     if( -1 != m_roleMainCamera && m_aCameraRole[m_roleMainCamera]->getIsReady() ) {
-        fileName = QString("%1/%2 %3").arg(ExamManager::getInstance()->getExportFolder())
+        fileName = QString("%1/%2%3 %4.jpg").arg(ExamManager::getInstance()->getExportFolder())
+                                    .arg(p_prefix)
                                     .arg(m_slCameraRole[m_roleMainCamera])
                                     .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH-mm-ss.zzz"));
+        fileName.replace("/", "\\\\");
         emit evRequestMainCameraCapture(fileName);
     }
     return fileName;
+}
+
+void CameraManager::signalMainCameraCaptureSaved(QString p_fileName)
+{
+    emit evMainCameraCaptureSaved(p_fileName);
 }
 
 // -- SLOTS

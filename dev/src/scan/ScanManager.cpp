@@ -24,6 +24,9 @@
 // -- Qt Includes
 #include <QQmlApplicationEngine>
 
+
+ScanManager* ScanManager::m_pMyInstance = nullptr;
+
 ScanManager::ScanManager() : XmlSettingsLoggable("ScanManger")
 {
     m_pAScanGraphMain = nullptr;
@@ -43,7 +46,6 @@ ScanManager::ScanManager() : XmlSettingsLoggable("ScanManger")
     }
 
 }
-
 ScanManager::~ScanManager()
 {
     if( m_timUpdateAScan->isActive() ) {
@@ -69,6 +71,23 @@ ScanManager::~ScanManager()
         delete m_pBScanGraphMain;
         m_pBScanGraphMain = nullptr;
     }
+}
+
+
+ScanManager *ScanManager::makeInstance()
+{
+    if( nullptr != m_pMyInstance ) {
+        Logger::logError("ScanManager::makeInstance instance already exists !");
+    } else {
+        m_pMyInstance = new ScanManager();
+    }
+
+    return m_pMyInstance;
+}
+
+ScanManager *ScanManager::getInstance()
+{
+    return m_pMyInstance;
 }
 
 void ScanManager::init()

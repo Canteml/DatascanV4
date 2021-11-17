@@ -6,6 +6,7 @@ import Design 1.0
 Rectangle {
     color: "#FFFFFF"
     Layout.preferredWidth: 200
+    visible: examManager.controlType !== 2 // Panda V3
     border.width: 1
     border.color: Design.colFrameBorder
 

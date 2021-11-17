@@ -69,81 +69,8 @@ Item {
                 onHoveredChanged: checkMainMenuHovered();
             }
 
-            Button {
-                id: btBannerTitle
-                text: examManager.currentExamName
-                font.pointSize: 12
-                Layout.preferredWidth: 160
-                Layout.fillWidth: false
-                Layout.fillHeight: true
-                padding: 0
+            BannerVectorInfo {}
 
-                contentItem: Text {
-                    text: btBannerTitle.text
-                    font: btBannerTitle.font
-                    horizontalAlignment: Text.AlignHCenter
-                    verticalAlignment: Text.AlignVCenter
-                    lineHeight: 1.25 // line-spacing
-                }
-
-                background: Rectangle {
-                    id: ibBtBannerTitleBG
-                    color: examManager.examStep !== 0 /*stopped*/ ?
-                               Design.colGreen : Design.colButtonBackground //btBannerTitle.pressed ? Design.colButtonSelectedBackground : btBannerTitle.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
-                    //color: btBannerTitle.hovered ? "#9C9B9B" : "#FFFFFF"
-                    border.width: 1
-                    border.color: Design.colFrameBorder
-
-//                    ColorAnimation on color{
-//                        from:"#FFFFFFFF"
-//                        to:"#F0FF0000"
-//                        duration: 500
-//                        running:  examManager.examStep === 1 // recording measure
-//                        loops : Animation.Infinite
-//                        onRunningChanged: if(!running){ibBtBannerTitleBG.color = "#FFFFFFFF"} // reset
-//                    }
-                }
-
-                onPressed: { globalManager.guiPage = globalManager.guiPage === 3 ? 2 : 3;}
-            }
-
-            //            ColumnLayout {
-            //                id: colBannerInfo
-            //                Layout.preferredWidth: 150
-            //                Layout.fillWidth: false
-            //                spacing: 0
-
-            //                Label {
-            //                    id: lbBannerScan
-            //                    text: qsTr("PIECE")
-            //                    horizontalAlignment: Text.AlignHCenter
-            //                    verticalAlignment: Text.AlignVCenter
-            //                    font.pointSize: 10
-            //                    Layout.fillHeight: true
-            //                    Layout.fillWidth: true
-            //                    background: Rectangle {
-            //                        color: "#C9C7C7"
-            //                    }
-            //                }
-            //                Label {
-            //                    id: lbBannerPiece
-            //                    text: qsTr("GENERATRICE")
-            //                    horizontalAlignment: Text.AlignHCenter
-            //                    verticalAlignment: Text.AlignVCenter
-            //                    font.pointSize: 10
-            //                    Layout.fillHeight: true
-            //                    Layout.fillWidth: true
-            //                    background: Rectangle {
-            //                        color: "#C9C7C7"
-            //                    }
-            //                }
-            //            }
-            RowLayout {
-                id: rowVectorInfo
-                Layout.fillWidth: true
-
-                BannerVectorInfo {}
-            }
         }
 
         Rectangle {
