@@ -107,6 +107,7 @@ Rectangle {
                     id: idBtBScanSettings
                     Layout.fillHeight: true
                     Layout.fillWidth: true
+                    visible: (examManager.controlType === 0) // CONTROL_BSCAN_GENERATRIX
                     background: Rectangle {
                         color: (idBtBScanSettings.pressed
                                 || (idSlP4TopCamSettings.visible
@@ -147,6 +148,7 @@ Rectangle {
     }
 
     function updateCamera() {
+        // always have camera
 //        // has camera ?
 //        if( currentVector.hasCamera ) {
 //            // yes

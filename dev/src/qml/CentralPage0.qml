@@ -53,7 +53,7 @@ Rectangle {
             }
 
             Text {
-                text: qsTr("Dossier CSV :")
+                text: qsTr("Dossier exports :")
                 font.pixelSize: 14
                 Layout.leftMargin: 10
             }

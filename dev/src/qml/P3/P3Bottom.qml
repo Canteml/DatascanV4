@@ -17,6 +17,8 @@ Rectangle {
             currentIndex: examManager.controlType
             Layout.fillWidth: true
 
+            // --------------------------------------------------------------------
+            // -- PAGE BSCAN
             RowLayout {
                 id: idBScan
                 spacing: 0
@@ -39,14 +41,35 @@ Rectangle {
                 }
             }
 
+            // --------------------------------------------------------------------
+            // -- PAGE MEP
             Rectangle {
                 id: idMep
-                color: "#900010"
+                color: "#C9C9C9"
             }
 
-            Rectangle {
+            // --------------------------------------------------------------------
+            // -- PAGE PIPE
+            RowLayout {
                 id: idPipe // panda vol 3
-                color: "#12AA85"
+                spacing: 0
+                Layout.fillWidth: true
+
+                P3BottomPipeCtrl {
+                    Layout.preferredWidth: 70
+                    Layout.fillHeight: true
+                }
+
+                Rectangle {
+                    border.width: 1
+                    border.color: "#000000"
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+                    P3BottomPipeView {
+                        anchors.fill : parent
+                        anchors.margins: 1
+                    }
+                }
             }
         }
 

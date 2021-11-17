@@ -24,6 +24,7 @@ QtObject {
     readonly property color colButtonBorder: "black"
 
     readonly property color colFrameBorder: "black"
+    readonly property color colBackgroundDark: "#303030"
     readonly property color colSeparator: "#9C9B9B"
 
 

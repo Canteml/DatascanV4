@@ -28,6 +28,9 @@
         <file>rp_components/FormSection.qml</file>
         <file>P3/P3TopExportBscan.qml</file>
         <file>rp_components/CameraParam.qml</file>
+        <file>P3/P3BottomPipeCtrl.qml</file>
+        <file>P3/P3BottomPipeView.qml</file>
+        <file>rp_components/PipeSensor.qml</file>
     </qresource>
     <qresource prefix="/img">
         <file>logo.png</file>
@@ -83,5 +86,11 @@
         <file>icons/btArrowKeyLeft.png</file>
         <file>icons/btArrowKeyRight.png</file>
         <file>icons/btArrowKeyUp.png</file>
+        <file>icons/fileNew.png</file>
+        <file>icons/fileSave.png</file>
+        <file>icons/iconCamera.png</file>
+        <file>icons/iconLight.png</file>
+        <file>icons/iconNextAcq.png</file>
+        <file>icons/iconNote.png</file>
     </qresource>
 </RCC>

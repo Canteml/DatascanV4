@@ -70,7 +70,8 @@ public:
 
     static const qint32 CAMERA_PREVIEW_UNDEF = -1;
 
-    Q_INVOKABLE QString captureMainCamera(void);
+    Q_INVOKABLE QString captureMainCamera(const QString& p_prefix = "");
+    Q_INVOKABLE void signalMainCameraCaptureSaved(QString p_fileName);
 
 signals :
     // -- Properties
@@ -83,6 +84,7 @@ signals :
     void evMainCameraReady();
     void evAlarmCameraReady();
     void evRequestMainCameraCapture(QString p_fileName);
+    void evMainCameraCaptureSaved(QString);
 
 private slots :
     void onVectorProductIdChanged(qint32);
