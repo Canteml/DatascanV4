@@ -1,6 +1,7 @@
 import QtQuick 2.4
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
+import QtQuick.Dialogs 1.3
 import Design 1.0
 
 Rectangle {
@@ -38,8 +39,26 @@ Rectangle {
                 padding: 1
 
                 onPressed: {
-                    examPipeManager.resetExam()
+                    if( examPipeManager.isExamModified() ) {
+                        idMsdExamModified.visible = true;
+                    } else {
+                        examPipeManager.resetExam();
+                    }
                 }
+
+                ToolTip.delay: 1000
+                ToolTip.timeout: 5000
+                ToolTip.visible: hovered
+                ToolTip.text: qsTr("Démarrer un nouvel examen.")
+            }
+
+            MessageDialog {
+                id: idMsdExamModified
+                icon: StandardIcon.Question
+                title: qsTr("Examen non sauvegardé !")
+                text: qsTr("Des données n'ont pas été enregistrées.\nVoulez-vous quand même démarrer un nouvel examen ?")
+                standardButtons: StandardButton.Yes | StandardButton.No
+                onYes: examPipeManager.resetExam();
             }
 
             Button {
@@ -62,7 +81,22 @@ Rectangle {
                 padding: 1
 
                 onPressed: {
-                    examPipeManager.exportExam("");
+                    idFdExamExport.visible = true;
+                }
+
+                ToolTip.delay: 1000
+                ToolTip.timeout: 5000
+                ToolTip.visible: hovered
+                ToolTip.text: qsTr("Sauvegarder l'examen en cours.")
+            }
+
+            FileDialog  {
+                id: idFdExamExport
+                title: qsTr("Enregistrement de l'examen ...")
+                selectExisting : false
+                folder: "file:///" + examManager.exportFolder
+                onAccepted: {
+                    examPipeManager.exportExam(idFdExamExport.fileUrls);
                 }
             }
         }
@@ -82,9 +116,10 @@ Rectangle {
             Layout.preferredWidth: 60
             Layout.leftMargin: 5
             antialiasing: true
+            property var keyPressed : false
 
             background: Rectangle {
-                color: idBtPipeAcq.pressed ? Design.colButtonSelectedBackground : idBtPipeAcq.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                color: idBtPipeAcq.pressed || idBtPipeAcq.keyPressed ? Design.colButtonSelectedBackground : idBtPipeAcq.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
                 border.width: 1
                 border.color: Design.colButtonBorder
                 radius: 5
@@ -97,8 +132,39 @@ Rectangle {
             padding: 1
 
             onPressed: {
+                keyAction()
+            }
+
+            Action {
+                shortcut: "v"
+                enabled: examManager.controlType === 2
+                onTriggered: { idBtPipeAcq.keyAction();
+                idBtPipeAcq.keyPressed = true;
+                timKeyPressedAcq.start();}
+            }
+
+            Action {
+                shortcut: "V"
+                enabled: examManager.controlType === 2
+                onTriggered: { idBtPipeAcq.keyAction();
+                idBtPipeAcq.keyPressed = true;
+                timKeyPressedAcq.start();}
+            }
+
+            function keyAction() {
                 examPipeManager.takeMeasure();
             }
+
+            Timer {
+                id: timKeyPressedAcq
+                interval: 500; running: false; repeat: false
+                onTriggered: idBtPipeAcq.keyPressed = false;
+            }
+
+            ToolTip.delay: 1000
+            ToolTip.timeout: 5000
+            ToolTip.visible: hovered
+            ToolTip.text: qsTr("Saisir la [V]aleur d'épaisseur du capteur sélectionné.")
         }
 
         Button {
@@ -107,9 +173,10 @@ Rectangle {
             Layout.preferredWidth: 60
             Layout.leftMargin: 5
             antialiasing: true
+            property var keyPressed : false
 
             background: Rectangle {
-                color: idBtPipePicture.pressed ? Design.colButtonSelectedBackground : idBtPipePicture.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                color: idBtPipePicture.pressed || idBtPipePicture.keyPressed ? Design.colButtonSelectedBackground : idBtPipePicture.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
                 border.width: 1
                 border.color: Design.colButtonBorder
                 radius: 5
@@ -122,8 +189,39 @@ Rectangle {
             padding: 1
 
             onPressed: {
+                keyAction()
+            }
+
+            Action {
+                shortcut: "c"
+                enabled: examManager.controlType === 2
+                onTriggered: { idBtPipePicture.keyAction();
+                idBtPipePicture.keyPressed = true;
+                timKeyPressed.start();}
+            }
+
+            Action {
+                shortcut: "C"
+                enabled: examManager.controlType === 2
+                onTriggered: { idBtPipePicture.keyAction();
+                idBtPipePicture.keyPressed = true;
+                timKeyPressed.start();}
+            }
+
+            function keyAction() {
                 examPipeManager.takePicture();
             }
+
+            Timer {
+                id: timKeyPressed
+                interval: 500; running: false; repeat: false
+                onTriggered: idBtPipePicture.keyPressed = false;
+            }
+
+            ToolTip.delay: 1000
+            ToolTip.timeout: 5000
+            ToolTip.visible: hovered
+            ToolTip.text: qsTr("[C]apturer une photo du capteur sélectionné.")
         }
 
         Button {
@@ -132,9 +230,10 @@ Rectangle {
             Layout.preferredWidth: 60
             Layout.leftMargin: 5
             antialiasing: true
+            property var keyPressed : false
 
             background: Rectangle {
-                color: (idBtPipeNext.pressed || currentVector.funcLight().LLightEnable) ? Design.colButtonSelectedBackground : idBtPipeNext.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                color: (idBtPipeNext.pressed || idBtPipeNext.keyPressed) ? Design.colButtonSelectedBackground : idBtPipeNext.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
                 border.width: 1
                 border.color: Design.colButtonBorder
                 radius: 5
@@ -147,8 +246,39 @@ Rectangle {
             padding: 1
 
             onPressed: {
+                keyAction()
+            }
+
+            Action {
+                shortcut: "n"
+                enabled: examManager.controlType === 2
+                onTriggered: { idBtPipeNext.keyAction();
+                idBtPipeNext.keyPressed = true;
+                timKeyPressedNext.start();}
+            }
+
+            Action {
+                shortcut: "N"
+                enabled: examManager.controlType === 2
+                onTriggered: { idBtPipeNext.keyAction();
+                idBtPipeNext.keyPressed = true;
+                timKeyPressedNext.start();}
+            }
+
+            function keyAction() {
                 examPipeManager.nextAcquisition();
             }
+
+            Timer {
+                id: timKeyPressedNext
+                interval: 500; running: false; repeat: false
+                onTriggered: idBtPipeNext.keyPressed = false;
+            }
+
+            ToolTip.delay: 1000
+            ToolTip.timeout: 5000
+            ToolTip.visible: hovered
+            ToolTip.text: qsTr("Passer à l'acquisition suivante [N].")
         }
 
         Rectangle {
@@ -191,6 +321,11 @@ Rectangle {
                     currentVector.funcLight().paramLLightEnable = false;
                 }
             }
+
+            ToolTip.delay: 1000
+            ToolTip.timeout: 5000
+            ToolTip.visible: hovered
+            ToolTip.text: qsTr("Commander la lumière des caméras.")
         }
 
         Item {

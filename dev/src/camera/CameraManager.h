@@ -18,6 +18,7 @@
 #include <camera/Camera.h>
 class VectorStd;
 class GlobalManager;
+class ExamManager;
 
 // -- Qt includes
 #include <QObject>
@@ -35,6 +36,8 @@ class CameraManager : public QObject, public XmlSettingsLoggable
     Q_PROPERTY(qint32 previewCameraIndex READ getPreviewCameraIndex NOTIFY previewCameraIndexChanged)
     Q_PROPERTY(qint32 mainCameraIndex READ getMainCameraIndex NOTIFY mainCameraIndexChanged)
     Q_PROPERTY(bool selectMainCameraAuto READ getMainCameraSelectAuto NOTIFY selectMainCameraAutoChanged)
+    Q_PROPERTY(bool mainCameraIsAlarm READ getMainCameraIsAlarm NOTIFY mainCameraIsAlarmChanged)
+
 
 public:
     static CameraManager * makeInstance();
@@ -59,11 +62,13 @@ public:
     Q_INVOKABLE qint32 getPreviewCameraIndex() const;
     Q_INVOKABLE qint32 getMainCameraIndex() const;
     Q_INVOKABLE QString getMainCameraId() const;
+    bool getMainCameraIsAlarm() const;
     Q_INVOKABLE void assignPreviewAs(qint32 p_role);
     bool getMainCameraSelectAuto() const;
     void setMainCameraSelectAuto(bool p_value);
 
     Q_INVOKABLE void setProductRoleMainCamera(qint32 p_productRole);    ///< QML uses list of role function to the product
+    Q_INVOKABLE void setProductRoleMainCameraNoAlarm(qint32 p_productRole);    ///< QML uses list of role function to the product
     Q_INVOKABLE qint32 getProductRoleMainCamera();                      ///< QML uses list of role function to the product
     Q_INVOKABLE void setRoleMainCamera(qint32 p_role);
     Q_INVOKABLE void setPreviewCameraIndex(qint32 p_index);
@@ -78,6 +83,7 @@ signals :
     void previewCameraIndexChanged(qint32 p_index);
     void mainCameraIndexChanged(qint32 p_index);
     void selectMainCameraAutoChanged(bool);
+    void mainCameraIsAlarmChanged(bool);
 
     // --
     void evCameraListChanged(qint32 p_value);   ///< number of items in the list
@@ -94,6 +100,7 @@ private slots :
     void onGuiPageChanged(quint32);
 
     void onCameraIsReadyChanged(CameraRole*,bool);
+    void onExamControlTypeChanged(quint32);
 
 protected :
     // -- Settings
@@ -101,6 +108,9 @@ protected :
     virtual bool customLoadDefaultSettings() override;
     virtual bool customApplySettings() override;
     virtual bool customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pParent) override;
+
+    // -- Properties
+    void setMainCameraIsAlarm(bool p_value);
 
 private:
     CameraManager();
@@ -117,10 +127,12 @@ private:
     qint32 m_indexPreviewCamera;
     qint32 m_roleMainCamera;
     bool m_selectMainCameraAuto;          ///< function to the product, user can select le main camera or not
+    bool m_mainCameraIsAlarm;
 
     // -- Managers
     VectorStd* m_pVectorStd;
     GlobalManager* m_pGlobalManager;
+    ExamManager* m_pExamManager;
 
     // -- QML components
     QCamera* m_pCameraPreview;

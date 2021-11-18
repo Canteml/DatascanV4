@@ -25,7 +25,6 @@ Rectangle {
 
         imageCapture {
             onImageSaved : {
-                console.log("photo")
                 cameraManager.signalMainCameraCaptureSaved(path)
             }
         }
@@ -142,7 +141,48 @@ Rectangle {
         font.pointSize: 18
 
         onPressed: {
+            keyAction()
+        }
+
+        Action {
+            shortcut: "c"
+            enabled: examManager.controlType !== 2
+            onTriggered: idBtCapture.keyAction()
+        }
+
+        Action {
+            shortcut: "C"
+            enabled: examManager.controlType !== 2
+            onTriggered: idBtCapture.keyAction()
+        }
+
+        function keyAction() {
             cameraManager.captureMainCamera();
+        }
+
+        // Select camera (Control ASCAN , MEP, not for PANDA)
+        Action {
+            shortcut: "1"
+            enabled: examManager.controlType !== 2
+            onTriggered: cameraManager.setProductRoleMainCameraNoAlarm(0)
+        }
+
+        Action {
+            shortcut: "2"
+            enabled: examManager.controlType !== 2
+            onTriggered: cameraManager.setProductRoleMainCameraNoAlarm(1)
+        }
+
+        Action {
+            shortcut: "3"
+            enabled: examManager.controlType !== 2
+            onTriggered: cameraManager.setProductRoleMainCameraNoAlarm(2)
+        }
+
+        Action {
+            shortcut: "4"
+            enabled: examManager.controlType !== 2
+            onTriggered: cameraManager.setProductRoleMainCameraNoAlarm(3)
         }
     }
 }
