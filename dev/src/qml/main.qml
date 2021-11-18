@@ -62,7 +62,10 @@ Window  {
                     if (event.key === Qt.Key_D ) actMoveRight = true;
                 }
 
-                if (event.key === Qt.Key_Shift ) actMoveBoost = true;
+                if (event.key === Qt.Key_Shift ) {
+                    actMoveBoost = true;
+                    event.accepted = false;
+                }
             }
         }
 
@@ -80,7 +83,10 @@ Window  {
                     if (event.key === Qt.Key_D ) actMoveRight = false;
                 }
 
-                if (event.key === Qt.Key_Shift ) actMoveBoost = false;
+                if (event.key === Qt.Key_Shift ) {
+                    actMoveBoost = false;
+                    event.accepted = false;
+                }
             }
         }
 

@@ -5,7 +5,7 @@ import QtQuick.Layouts 1.11
 import Design 1.0
 
 
-Item {
+Rectangle {
     id: idRectPipeSensor
     Layout.fillWidth: true;
     Layout.fillHeight: true;
@@ -18,8 +18,8 @@ Item {
     property var selectShorcut2;
     property alias selectShorcut2 : idRectPipeSensor.selectShorcut2;
 
-//    border.color: examPipeManager.currentSensorNumber === sensorNumber ? Design.colOrange : "white"
-//    border.width: 2
+    border.width: 0
+    color: Design.colBackgroundDark
 
     ColumnLayout {
         id: idColPipeSensor
@@ -44,12 +44,14 @@ Item {
 
             Action {
                 shortcut: selectShorcut1
-                onTriggered: btTitle.keyAction()
+                enabled: examManager.controlType === 2
+                onTriggered: {if(examManager.controlType === 2) btTitle.keyAction()}
             }
 
             Action {
                 shortcut: selectShorcut2
-                onTriggered: btTitle.keyAction()
+                enabled: examManager.controlType === 2
+                onTriggered: {if(examManager.controlType === 2) btTitle.keyAction()}
             }
 
             onReleased:
@@ -99,12 +101,7 @@ Item {
             target : examPipeManager
             function onEvSensorPictureChanged(p_sensorNumber, p_sensorPictureFile) {
                 if( p_sensorNumber === sensorNumber ) {
-                    console.log(p_sensorPictureFile)
                     idImgPicture.source = "file:/"+p_sensorPictureFile;
-                    //idImgPicture.source = "file:///C://Users//TLE-RP//Documents//Acq 0 - Capteur 1 2021-11-17 18-30-00.502.jpg"
-
-
-                    // idImgPicture.source = "file:/C:\\Users\\TLE-RP\\Documents\\1.jpg" ///"file:///"+p_sensorPictureFile;
                 }
             }
         }

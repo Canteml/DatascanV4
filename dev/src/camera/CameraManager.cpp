@@ -48,7 +48,8 @@ CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
     m_indexPreviewCamera = CAMERA_PREVIEW_UNDEF;
     m_roleMainCamera = 0;
     m_pVectorStd = nullptr;
-    m_selectMainCameraAuto = true;
+    m_selectMainCameraAuto = false;
+    m_mainCameraIsAlarm = false;
 
     m_pTimer = new QTimer();
     m_pTimer->setSingleShot(false);
@@ -111,13 +112,20 @@ void CameraManager::initQmlObject(QObject *p_pQmlTopLevel)
 void CameraManager::onGuiPageChanged(quint32 p_page)
 {
     if( 1 == p_page ) {
+        // -- Configure : display on Preview video
         m_pCameraAlarm->stop();
         m_pCameraMain->stop();
         m_pCameraPreview->start();
+        emit previewCameraIndexChanged(getPreviewCameraIndex());
     } else {
+        // -- display on Alarm + Main video
         m_pCameraPreview->stop();
         m_pCameraMain->start();
-        m_pCameraAlarm->start();
+        emit mainCameraIndexChanged(getMainCameraIndex());
+        if( getMainCameraIndex() != getPreviewCameraIndex() ) {
+            m_pCameraAlarm->start();
+            emit mainCameraIndexChanged(getMainCameraIndex());
+        }
     }
 }
 
@@ -140,10 +148,18 @@ void CameraManager::onCameraIsReadyChanged(CameraRole *p_pCameraRole, bool p_ena
     }
 }
 
+void CameraManager::onExamControlTypeChanged(quint32 p_type)
+{
+    setMainCameraSelectAuto(p_type == ExamManager::CONTROL_PIPE);
+}
+
 void CameraManager::start()
 {
     m_pGlobalManager = GlobalManager::getInstance();
     connect(m_pGlobalManager, &GlobalManager::evGuiPageChanged, this, &CameraManager::onGuiPageChanged);
+
+    m_pExamManager = ExamManager::getInstance();
+    connect(m_pExamManager, &ExamManager::evControlTypeChanged, this, &CameraManager::onExamControlTypeChanged);
 
     m_pVectorStd = VectorManager::getInstance()->getVectorStd();
     connect(m_pVectorStd, &VectorStd::prodIdChanged, this, &CameraManager::onVectorProductIdChanged);
@@ -215,6 +231,11 @@ QString CameraManager::getMainCameraId() const
     return sRet;
 }
 
+bool CameraManager::getMainCameraIsAlarm() const
+{
+    return m_mainCameraIsAlarm;
+}
+
 void CameraManager::assignPreviewAs(qint32 p_role)
 {
     // Map current preview camera with the specified role
@@ -260,6 +281,26 @@ void CameraManager::setProductRoleMainCamera(qint32 p_productRole)
     }
 }
 
+void CameraManager::setProductRoleMainCameraNoAlarm(qint32 p_productRole)
+{
+    qint32 role = -1;
+
+    for(int i=1; i<CameraRole::ROLE_MAX; i++) { ///< do not take care of alarm role
+        if( m_aCameraRole[i]->getIsEnabled() ) {
+            if( 0 == p_productRole ) {
+                role = i;
+                break;
+            } else {
+                p_productRole--;
+            }
+        }
+    }
+
+    if( -1 != role ) {
+        setRoleMainCamera(role);
+    }
+}
+
 qint32 CameraManager::getProductRoleMainCamera()
 {
     qint32 role = 0;
@@ -280,6 +321,8 @@ void CameraManager::setRoleMainCamera(qint32 p_role)
 {
     if( m_roleMainCamera != p_role ) {
         m_roleMainCamera = p_role;
+
+        setMainCameraIsAlarm(m_roleMainCamera == CameraRole::ROLE_ALARM);
 
         if( m_aCameraRole[CameraRole::ROLE_ALARM]->getIsEnabled() && m_aCameraRole[CameraRole::ROLE_ALARM]->getCameraVideo() ) {
             if( getMainCameraId() == m_aCameraRole[CameraRole::ROLE_ALARM]->getCameraVideo()->getCameraId() ) {
@@ -374,17 +417,11 @@ void CameraManager::onVectorProductIdChanged(qint32 p_pid)
     }
 
     // -- Auto select the camera
-    setMainCameraSelectAuto(p_pid == ProtMsg::PROD_PANDA_VOL3);
-
     onUpdateCameraDatabase();
 
     CoreApp::getInstanceCoreUiQml()->getApplicationEngine()->rootContext()->setContextProperty("modelCameraRoleList", QVariant::fromValue(slRoles));
 
-    if( m_aCameraRole[CameraRole::ROLE_ALARM]->getIsEnabled() ) {
-        setProductRoleMainCamera(1);
-    } else {
-        setProductRoleMainCamera(0);
-    }
+    setProductRoleMainCameraNoAlarm(0);
 
     // -- restart timer
     m_pTimer->start();
@@ -575,6 +612,14 @@ bool CameraManager::customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pP
     }
 
     return bRet;
+}
+
+void CameraManager::setMainCameraIsAlarm(bool p_value)
+{
+    if( m_mainCameraIsAlarm != p_value) {
+        m_mainCameraIsAlarm = p_value;
+        emit mainCameraIsAlarmChanged(m_mainCameraIsAlarm);
+    }
 }
 
 

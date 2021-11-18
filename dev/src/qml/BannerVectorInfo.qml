@@ -141,6 +141,11 @@ Rectangle {
                             idActMaj.shortcut = "A";
                         }
                     }
+
+                    ToolTip.delay: 500
+                    ToolTip.timeout: 5000
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("Démarrer ou mettre en pause une acquisition.");
                 }
 
                 Button {
@@ -169,6 +174,11 @@ Rectangle {
                     onPressed: {
                         examManager.examStep = 3    // export
                     }
+
+                    ToolTip.delay: 500
+                    ToolTip.timeout: 5000
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("Générer un rapport BSCAN.");
                 }
 
                 Button {
@@ -191,6 +201,11 @@ Rectangle {
                         // switch direction
                         currentVector.funcPosition().paramLVectorDirX = 1 - currentVector.funcPosition().paramLVectorDirX;
                     }
+
+                    ToolTip.delay: 500
+                    ToolTip.timeout: 5000
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("Direction du porteur, permet d'inverser son sens de progression.");
                 }
 
                 Rectangle {
@@ -316,8 +331,6 @@ Rectangle {
                 id: rowMep
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-
-
             }
 
             // --------------------------------------------------------------
@@ -329,7 +342,7 @@ Rectangle {
 
                 Button {
                     id: btBannerTitlePipe
-                    text: qsTr("Acquisition\n#" + examPipeManager.acquisitionNumber)
+                    text: qsTr("Acquisition\n#" + (examPipeManager.acquisitionNumber+1))
                     font.pointSize: 12
                     Layout.preferredWidth: 160
                     Layout.fillWidth: false
@@ -372,14 +385,40 @@ Rectangle {
                     TextArea  {
                         id: txtComment
                         anchors.fill: parent
-                        //anchors.margins: 5
                         font.pointSize: 12
 
-                        onTextChanged: {examPipeManager.examCurrentComment = txtComment.text}
+                        Keys.onReturnPressed: {
+                            if(!event.modifiers) {
+
+                                txtComment.focus = false
+                            }
+                            else {
+                                // Ignore other cases
+                                event.accepted = false;
+                            }
+                        }
+
+                        onEditingFinished: {
+                            examPipeManager.examCurrentComment = text
+                        }
+
+                        hoverEnabled: true
+
+                        ToolTip.delay: 500
+                        ToolTip.timeout: 5000
+                        ToolTip.visible: hovered
+                        ToolTip.text: qsTr("Commentaire sur les acquisitions en cours.")
                     }
+
                 }
 
 
+                Connections {
+                    target : examPipeManager
+                    function onEvClearCircular() {
+                        txtComment.text = "";
+                    }
+                }
             }
         }
 
@@ -409,21 +448,12 @@ Rectangle {
 
         Connections {
             target : cameraManager
-            function onPreviewCameraIndexChanged() {
-                if( cameraManager.camAlarm().cameraVideo ) {
-                    idCameraAlarm.deviceId = cameraManager.camAlarm().cameraVideo.getCameraId();
-                }
-            }
-        }
-
-        Connections {
-            target : cameraManager
             function onEvAlarmCameraReady() {
                 if( cameraManager.camAlarm().cameraVideo ) {
                     idCameraAlarm.deviceId = cameraManager.camAlarm().cameraVideo.getCameraId();
-//                    if( cameraManager.camAlarm().isEnabled ) {
-//                        idCameraAlarm.start();
-//                    }
+                    if( cameraManager.camAlarm().isEnabled ) {
+                        idCameraAlarm.start();
+                    }
                 }
             }
         }
@@ -447,6 +477,24 @@ Rectangle {
 
                 source: idCameraAlarm
             }
+
+            MouseArea {
+                id: idMaCamera
+                anchors.fill: parent
+
+                onPressed: {
+                    keyAction()
+                }
+
+                Action {
+                    shortcut: "0"
+                    onTriggered: idMaCamera.keyAction()
+                }
+
+                function keyAction() {
+                    cameraManager.setRoleMainCamera(0);
+                }
+            }
         }
 
         Rectangle {
@@ -460,13 +508,31 @@ Rectangle {
 
         // -------------------
         // Peripherals
-        Image {
+        Button {
             id: icJoystick
             Layout.fillHeight: true
             Layout.topMargin: 5
-            Layout.bottomMargin: 5
-            source: joystickManager.isConnected ? "qrc:///img/icons/iconJoystickConnected.png" : "qrc:///img/icons/iconJoystickDisconnected.png"
-            fillMode: Image.PreserveAspectFit
+            Layout.bottomMargin: 5           
+
+//            Layout.preferredWidth: idBannerVectorInfo.height
+//            Layout.preferredHeight: idBannerVectorInfo.height
+
+            icon.source: joystickManager.isConnected ? "qrc:///img/icons/iconJoystickConnected.png" : "qrc:///img/icons/iconJoystickDisconnected.png"
+            icon.width: idBannerVectorInfo.height
+            icon.height: idBannerVectorInfo.height
+            icon.color: "transparent"
+            padding: 1
+
+            background: Rectangle {
+                color: "transparent"
+            }
+
+            hoverEnabled: true
+
+            ToolTip.delay: 500
+            ToolTip.timeout: 5000
+            ToolTip.visible: hovered
+            ToolTip.text: qsTr("Etat de la connection du joystick : " + (joystickManager.isConnected ? qsTr("Connecté") : qsTr("Déconnecté")));
         }
 
         ColumnLayout {
@@ -540,7 +606,7 @@ Rectangle {
             ToolTip.delay: 500
             ToolTip.timeout: 5000
             ToolTip.visible: hovered
-            ToolTip.text: qsTr("Etat : " + (2 === currentVector.FuncStateConnection ? qsTr("Connecté") : 1 === currentVector.FuncStateConnection ? qsTr("Partiellement connecté") : qsTr("Déconnecté")));
+            ToolTip.text: qsTr("Etat de la connection avec le porteur : " + (2 === currentVector.FuncStateConnection ? qsTr("Connecté") : 1 === currentVector.FuncStateConnection ? qsTr("Partiellement connecté") : qsTr("Déconnecté")));
         }
 
         Button {
@@ -558,7 +624,7 @@ Rectangle {
 
             background: Rectangle {
                 id: rectBtVectorEmergencyStop
-                color: (btVectorEmergencyStop.pressed || btVectorEmergencyStop.emergencyActivated) ? "#FF0000" : btVectorEmergencyStop.hovered ? "#FFAE4C" : "transparent"
+                color: (btVectorEmergencyStop.pressed || btVectorEmergencyStop.emergencyActivated) ? "#FF0000" : btVectorEmergencyStop.hovered ? Design.colOrange : "transparent"
                 // keep 1 pixel clean arround the button to not override the layout frame
                 width: btVectorEmergencyStop.width-2
                 x : 1
@@ -588,10 +654,14 @@ Rectangle {
             function keyAction() {
                 currentVector.emergencyStop();
             }
+
+            ToolTip.delay: 500
+            ToolTip.timeout: 5000
+            ToolTip.visible: hovered
+            ToolTip.text: qsTr("Arrêt d'urgence");
         }
     }
 
-    //    idLePosition.text : currentVector.funcPosition().paramLBscanPosMmX
     Connections {
         target : currentVector.funcPosition()
         function onParamLBscanPosMmXChanged() {

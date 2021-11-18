@@ -27,7 +27,9 @@ ExamPipeManager::ExamPipeManager() : Loggable("ExamPipeManager")
     m_pExamPipe = new ExamPipe;
     m_acquisitionNumber = 0;
     m_currentSensorNumber = 0;
-    m_pCurrentCircular = nullptr;
+    m_examModified = false;
+    m_pExamPipe->m_lExamCircular.append(new ExamCircular());
+    m_pCurrentCircular = m_pExamPipe->m_lExamCircular.last();
 }
 
 ExamPipeManager::~ExamPipeManager()
@@ -59,8 +61,7 @@ void ExamPipeManager::init()
     m_pExamManager = ExamManager::getInstance();
 
     connect(m_pCameraManager, &CameraManager::evMainCameraCaptureSaved, this, &ExamPipeManager::onMainCameraCaptureSaved);
-
-    resetExam();
+    connect(m_pExamManager, &ExamManager::evControlTypeChanged, this, &ExamPipeManager::onExamControlTypeChanged);
 }
 
 // -- Properties
@@ -98,6 +99,11 @@ void ExamPipeManager::onMainCameraCaptureSaved(QString p_fileName)
     }
 }
 
+void ExamPipeManager::onExamControlTypeChanged()
+{
+    resetExam();
+}
+
 QString ExamPipeManager::getExamCurrentComment() const
 {
     return m_pCurrentCircular->m_comment;
@@ -119,49 +125,9 @@ void ExamPipeManager::setCurrentSensorNumber(qint32 p_value)
     m_currentSensorNumber = p_value;
     m_pCameraManager->setRoleMainCamera(CameraRole::ROLE_SENSOR1+m_currentSensorNumber);
     // For now, with Panda V3, we have only 3 sensors, the number 3 is used also to take measure of sensor 4
-    m_pScanManager->setSelectedAScanIndex(qMin(m_currentSensorNumber,3));
+    m_pScanManager->setSelectedAScanIndex(qMin(m_currentSensorNumber,2));
     emit currentSensorNumberChanged(m_currentSensorNumber);
 }
-
-//QString ExamPipeManager::getExamCurrentMeasure0() const
-//{
-//    return getExamCurrentMeasure(0);
-//}
-
-//QString ExamPipeManager::getExamCurrentMeasure1() const
-//{
-//    return getExamCurrentMeasure(1);
-//}
-
-//QString ExamPipeManager::getExamCurrentMeasure2() const
-//{
-//    return getExamCurrentMeasure(2);
-//}
-
-//QString ExamPipeManager::getExamCurrentMeasure3() const
-//{
-//    return getExamCurrentMeasure(3);
-//}
-
-//QString ExamPipeManager::getExamCurrentPicture0() const
-//{
-//    return m_pCurrentCircular->m_aExamPipeSensor[0].m_photoFileName;
-//}
-
-//QString ExamPipeManager::getExamCurrentPicture1() const
-//{
-//    return m_pCurrentCircular->m_aExamPipeSensor[1].m_photoFileName;
-//}
-
-//QString ExamPipeManager::getExamCurrentPicture2() const
-//{
-//    return m_pCurrentCircular->m_aExamPipeSensor[2].m_photoFileName;
-//}
-
-//QString ExamPipeManager::getExamCurrentPicture3() const
-//{
-//    return m_pCurrentCircular->m_aExamPipeSensor[3].m_photoFileName;
-//}
 
 // -- Behaviour
 
@@ -172,6 +138,7 @@ void ExamPipeManager::nextAcquisition()
     setAcquisitionNumber(m_acquisitionNumber + 1);
 
     clearCircular();
+    setCurrentSensorNumber(0);
 }
 
 void ExamPipeManager::resetExam()
@@ -181,42 +148,32 @@ void ExamPipeManager::resetExam()
     m_pCurrentCircular = m_pExamPipe->m_lExamCircular.last();
     setAcquisitionNumber(0);
     setCurrentSensorNumber(0);
+    m_examModified = false;
 
     clearCircular();
 }
 
-void ExamPipeManager::exportExam(QString& p_fileName)
+void ExamPipeManager::exportExam(const QString& p_fileName)
 {
+    m_examModified = false;
+    fLogDebug1("Save : " + p_fileName);
     // fill excel template with data of exam
 }
 
 void ExamPipeManager::takeMeasure()
 {
+    m_examModified = true;
     m_pCurrentCircular->m_aExamPipeSensor[m_currentSensorNumber].m_measureMm = m_pScanManager->getAScanThicknessMmMultiEcho();
     emit evSensorThickessChanged(m_currentSensorNumber, getExamCurrentMeasure(m_currentSensorNumber));
-//    if( 0 == m_currentSensorNumber ) {
-//        emit examCurrentMeasure0Changed(getExamCurrentMeasure0());
-//    } else if( 1 == m_currentSensorNumber ) {
-//        emit examCurrentMeasure1Changed(getExamCurrentMeasure1());
-//    }else if( 2 == m_currentSensorNumber ) {
-//        emit examCurrentMeasure2Changed(getExamCurrentMeasure2());
-//    }else if( 3 == m_currentSensorNumber ) {
-//        emit examCurrentMeasure3Changed(getExamCurrentMeasure3());
-//    }
 }
 
 void ExamPipeManager::takePicture()
 {
+    m_examModified = true;
     m_pCurrentCircular->m_aExamPipeSensor[m_currentSensorNumber].m_photoFileName = m_pCameraManager->captureMainCamera(QString("Acq %1 - ").arg(m_acquisitionNumber));
-    //emit evSensorPictureChanged(m_currentSensorNumber, m_pCurrentCircular->m_aExamPipeSensor[0].m_photoFileName);
+}
 
-//    if( 0 == m_currentSensorNumber ) {
-//        emit examCurrentPicture0Changed(getExamCurrentPicture0());
-//    } else if( 1 == m_currentSensorNumber ) {
-//        emit examCurrentPicture1Changed(getExamCurrentPicture1());
-//    }else if( 2 == m_currentSensorNumber ) {
-//        emit examCurrentPicture2Changed(getExamCurrentPicture2());
-//    }else if( 3 == m_currentSensorNumber ) {
-//        emit examCurrentPicture3Changed(getExamCurrentPicture3());
-//    }
+bool ExamPipeManager::isExamModified()
+{
+    return m_examModified;
 }
