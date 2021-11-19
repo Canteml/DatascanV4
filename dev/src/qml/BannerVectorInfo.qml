@@ -430,9 +430,6 @@ Rectangle {
             objectName: "cameraAlarm"            
 
             Component.onCompleted: {
-                if( cameraManager.camAlarm().cameraVideo ) {
-                    idCameraAlarm.deviceId = cameraManager.camAlarm().cameraVideo.getCameraId();
-                }
                 idCameraAlarm.stop()
             }
         }
@@ -440,8 +437,14 @@ Rectangle {
         Connections {
             target : cameraManager.camAlarm()
             function onCameraVideoChanged() {
-                if( cameraManager.camAlarm().cameraVideo ) {
+                if( cameraManager.camAlarm().isEnabled && cameraManager.camAlarm().cameraVideo ) {
                     idCameraAlarm.deviceId = cameraManager.camAlarm().cameraVideo.getCameraId();
+                    idFrameCamAlarm.visible = true
+                    if( globalManager.guiPage !== 1 ) { // page Config
+                        idCameraAlarm.start()
+                    }
+                } else {
+                    idFrameCamAlarm.visible = false
                 }
             }
         }
@@ -449,18 +452,21 @@ Rectangle {
         Connections {
             target : cameraManager
             function onEvAlarmCameraReady() {
-                if( cameraManager.camAlarm().cameraVideo ) {
+                if( cameraManager.camAlarm().isEnabled && cameraManager.camAlarm().cameraVideo ) {
                     idCameraAlarm.deviceId = cameraManager.camAlarm().cameraVideo.getCameraId();
-                    if( cameraManager.camAlarm().isEnabled ) {
-                        idCameraAlarm.start();
+                    idFrameCamAlarm.visible = true
+                    if( globalManager.guiPage !== 1 ) { // page Config
+                        idCameraAlarm.start()
                     }
+                } else {
+                    idFrameCamAlarm.visible = false
                 }
             }
         }
 
         Rectangle {
             id: idFrameCamAlarm
-            visible : cameraManager.camAlarm().isEnabled            
+            visible : cameraManager.camAlarm().isEnabled && cameraManager.camAlarm().cameraVideo
             border.color: Design.colFrameBorder
             border.width: 1
             Layout.preferredHeight: idVideo.height+2

@@ -577,7 +577,7 @@ Rectangle {
                         Connections {
                             target: scanManager.SelectedFuncAScan
                             function onParamLProbeDelayMmChanged() {
-                                updateValueDisplayed();
+                                idSbProbeDelay.updateValueDisplayed();
                             }
                         }
 
