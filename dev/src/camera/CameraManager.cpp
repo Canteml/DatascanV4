@@ -239,13 +239,26 @@ bool CameraManager::getMainCameraIsAlarm() const
 void CameraManager::assignPreviewAs(qint32 p_role)
 {
     // Map current preview camera with the specified role
-    //fLogDebug1(QString("index pv = %1/2").arg(m_indexPreviewCamera, m_lCameraVideo.size()));
+//    if( -1 != m_indexPreviewCamera ) {
+//        m_aCameraRole[p_role]->setCamera(m_lCameraVideo.at(m_indexPreviewCamera));
+//    }
     if( -1 != m_indexPreviewCamera ) {
-        m_aCameraRole[p_role]->setCamera(m_lCameraVideo.at(m_indexPreviewCamera));
+        if(m_aCameraRole[p_role]->getCameraVideo() == m_lCameraVideo.at(m_indexPreviewCamera)) {
+            // un-assign this camera => remove it from database
+            for(auto db : qAsConst(m_lCameraDatabase) ) {
+                if( db->getCameraRole() == p_role &&
+                    db->getProductUid() == m_pVectorStd->getFuncGeneralParam().m_paramDProdUid ) {
+                        m_lCameraDatabase.removeAll(db);
+                }
+            }
+            // camera already assigned for this role => remove assignation
+            m_aCameraRole[p_role]->setCamera(nullptr);
+        } else {
+            // assign
+            m_aCameraRole[p_role]->setCamera(m_lCameraVideo.at(m_indexPreviewCamera));
+        }
     }
-
     onUpdateCameraDatabase();
-
 }
 
 bool CameraManager::getMainCameraSelectAuto() const
@@ -421,7 +434,9 @@ void CameraManager::onVectorProductIdChanged(qint32 p_pid)
 
     CoreApp::getInstanceCoreUiQml()->getApplicationEngine()->rootContext()->setContextProperty("modelCameraRoleList", QVariant::fromValue(slRoles));
 
-    setProductRoleMainCameraNoAlarm(0);
+    if( !getMainCameraSelectAuto() ) {
+        setProductRoleMainCameraNoAlarm(0);
+    }
 
     // -- restart timer
     m_pTimer->start();

@@ -1,7 +1,8 @@
 import QtQuick 2.4
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
-import QtQuick.Dialogs 1.3
+import QtQuick.Dialogs 1.3 as Std
+import Qt.labs.platform 1.1 as Platform
 import Design 1.0
 
 Rectangle {
@@ -52,12 +53,12 @@ Rectangle {
                 ToolTip.text: qsTr("Démarrer un nouvel examen.")
             }
 
-            MessageDialog {
+            Std.MessageDialog {
                 id: idMsdExamModified
-                icon: StandardIcon.Question
+                icon: Std.StandardIcon.Warning
                 title: qsTr("Examen non sauvegardé !")
                 text: qsTr("Des données n'ont pas été enregistrées.\nVoulez-vous quand même démarrer un nouvel examen ?")
-                standardButtons: StandardButton.Yes | StandardButton.No
+                standardButtons: Std.StandardButton.Yes | Std.StandardButton.No
                 onYes: examPipeManager.resetExam();
             }
 
@@ -90,15 +91,29 @@ Rectangle {
                 ToolTip.text: qsTr("Sauvegarder l'examen en cours.")
             }
 
-            FileDialog  {
+            Platform.FileDialog  {
                 id: idFdExamExport
                 title: qsTr("Enregistrement de l'examen ...")
-                selectExisting : false
+                nameFilters: ["Excel (*.xlsx)"]
+                fileMode : Platform.FileDialog.SaveFile
+                property var retExport;
+
                 folder: "file:///" + examManager.exportFolder
                 onAccepted: {
-                    examPipeManager.exportExam(idFdExamExport.fileUrls);
+                    retExport = examPipeManager.exportExam(currentFile)
+                    if( retExport !== "" ) {
+                        idMsgError.visible = true
+                    }
                 }
             }
+        }
+
+        Std.MessageDialog {
+            id: idMsgError
+            icon: Std.StandardIcon.Critical
+            title: qsTr("Erreur")
+            text: qsTr("L'examen n'a pas pu être sauvegardé :\n" + idFdExamExport.retExport )
+            standardButtons: Std.StandardButton.Ok
         }
 
         Rectangle {

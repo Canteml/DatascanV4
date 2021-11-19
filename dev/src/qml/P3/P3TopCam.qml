@@ -19,7 +19,6 @@ Rectangle {
         objectName: "cameraMain"
 
         Component.onCompleted: {
-            idCameraMain.deviceId = cameraManager.getMainCameraId();
             idCameraMain.stop()
         }
 
@@ -33,14 +32,30 @@ Rectangle {
     Connections {
         target : cameraManager
         function onMainCameraIndexChanged() {
-            idCameraMain.deviceId = cameraManager.getMainCameraId();
+            if( cameraManager.getMainCameraIndex() !== -1 ) {
+                idMainVideo.visible = true;
+                idCameraMain.deviceId = cameraManager.getMainCameraId()
+                if( globalManager.guiPage !== 1 ) { // page Config
+                    idCameraMain.start()
+                }
+            } else {
+                idMainVideo.visible = false;
+            }
         }
     }
 
     Connections {
         target : cameraManager
         function onEvMainCameraReady() {
-            idCameraMain.deviceId = cameraManager.getMainCameraId();
+            if( cameraManager.getMainCameraIndex() !== -1  ) {
+                idMainVideo.visible = true;
+                idCameraMain.deviceId = cameraManager.getMainCameraId()
+                if( globalManager.guiPage !== 1 ) { // page Config
+                    idCameraMain.start()
+                }
+            } else {
+                idMainVideo.visible = false;
+            }
         }
     }
 
@@ -52,6 +67,8 @@ Rectangle {
     }
 
     VideoOutput {
+        id: idMainVideo
+        visible : false;
         source: idCameraMain
         fillMode: VideoOutput.PreserveAspectCrop
         anchors.margins: 1
