@@ -21,6 +21,7 @@ class ExamManager;
 
 // -- Qt includes
 #include <QObject>
+#include <QDateTime>
 
 /**
  * @brief The ExamPipeManager class
@@ -54,7 +55,7 @@ public:
     // -- Behaviour
     Q_INVOKABLE void nextAcquisition(); ///< go to the next acuiqition
     Q_INVOKABLE void resetExam();       ///< clear current exam, clear qml form
-    Q_INVOKABLE void exportExam(const QString &p_fileName);   ///< export exam to excel file
+    Q_INVOKABLE QString exportExam(const QString &p_fileName);   ///< export exam to excel file
 
     Q_INVOKABLE void takeMeasure();     ///< for the currentSensorNumber, save the thickness measure
     Q_INVOKABLE void takePicture();       ///< for the currentSensorNumber, capture a photo
@@ -65,10 +66,12 @@ private :
     void setAcquisitionNumber(qint32 p_value);
     QString getExamCurrentMeasure(qint32 p_sensorNumber) const;
     void clearCircular();
+    void setExamModified(bool p_value);
 
 private slots :
     void onMainCameraCaptureSaved(QString p_fileName);
-    void onExamControlTypeChanged();
+    void onExamControlTypeChanged(quint32 p_type);
+    void onVectorProductIdChanged(qint32);
 
 signals :
     // -- Properties
@@ -92,6 +95,7 @@ private:
     qint32 m_currentSensorNumber;
     ExamCircular* m_pCurrentCircular;
     bool m_examModified;    ///< need to be saved
+    QDateTime m_startExamTime;
 
     // -- Manager
     CameraManager* m_pCameraManager;

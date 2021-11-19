@@ -33,6 +33,8 @@ public :
 
     QString m_photoFileName;
     qreal m_measureMm;          ///< -1 = no measure done
+
+    static const int SENSOR_NO_MEARURE = -1;
 };
 
 

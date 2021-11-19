@@ -19,7 +19,7 @@
 
 ExamPipeSensor::ExamPipeSensor() : Loggable("ExamPipeSensor")
 {
-    m_measureMm = -1;
+    m_measureMm = SENSOR_NO_MEARURE;
 }
 
 ExamPipeSensor::~ExamPipeSensor()

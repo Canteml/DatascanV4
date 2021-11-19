@@ -78,3 +78,13 @@ INCLUDEPATH += lib/SDL2/include
 
 LIBS += -lSDL2
 DEFINES += SDL_MAIN_HANDLED
+
+## QXlsx : The MIT License - Copyright 2017 - https://github.com/j2doll/QXlsx
+LIBS += -Llib/QXlsx/bin
+INCLUDEPATH += lib/QXlsx/include
+
+CONFIG(debug, debug|release) {
+    LIBS += -lQXlsxd
+} else {
+    LIBS += -lQXlsx
+}
