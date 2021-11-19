@@ -15,9 +15,22 @@
 #include "camera/CameraManager.h"
 #include "scan/ScanManager.h"
 #include <v2/exam/ExamManager.h>
+#include <coreUi/CoreUiQml.h>
+#include <v2/vector/VectorManager.h>
+#include <v2/vector/VectorStd.h>
 
 // -- Qt includes
-#include <QObject>
+#include <QFileInfo>
+
+
+// -- QXlsx includes
+#include "xlsxdocument.h"
+#include "xlsxchartsheet.h"
+#include "xlsxcellrange.h"
+#include "xlsxchart.h"
+#include "xlsxrichstring.h"
+#include "xlsxworkbook.h"
+#include "xlsxcell.h"
 
 ExamPipeManager* ExamPipeManager::m_pMyInstance = nullptr;
 
@@ -62,6 +75,7 @@ void ExamPipeManager::init()
 
     connect(m_pCameraManager, &CameraManager::evMainCameraCaptureSaved, this, &ExamPipeManager::onMainCameraCaptureSaved);
     connect(m_pExamManager, &ExamManager::evControlTypeChanged, this, &ExamPipeManager::onExamControlTypeChanged);
+    connect(VectorManager::getInstance()->getVectorStd(), &VectorStd::prodIdChanged, this, &ExamPipeManager::onVectorProductIdChanged);
 }
 
 // -- Properties
@@ -92,6 +106,16 @@ void ExamPipeManager::clearCircular()
     emit evClearCircular();
 }
 
+void ExamPipeManager::setExamModified(bool p_value)
+{
+    if( m_examModified != p_value ) {
+        m_examModified = p_value;
+        if( m_examModified ) {
+            m_startExamTime = QDateTime::currentDateTime();
+        }
+    }
+}
+
 void ExamPipeManager::onMainCameraCaptureSaved(QString p_fileName)
 {
     if( m_pExamManager->getControlType() == ExamManager::CONTROL_PIPE ) {
@@ -99,9 +123,18 @@ void ExamPipeManager::onMainCameraCaptureSaved(QString p_fileName)
     }
 }
 
-void ExamPipeManager::onExamControlTypeChanged()
+void ExamPipeManager::onExamControlTypeChanged(quint32 p_type)
 {
-    resetExam();
+    if( ExamManager::CONTROL_PIPE == p_type) {
+        resetExam();
+    }
+}
+
+void ExamPipeManager::onVectorProductIdChanged(qint32)
+{
+    if( m_pCameraManager->getMainCameraSelectAuto() ) {
+        setCurrentSensorNumber(0);
+    }
 }
 
 QString ExamPipeManager::getExamCurrentComment() const
@@ -148,32 +181,93 @@ void ExamPipeManager::resetExam()
     m_pCurrentCircular = m_pExamPipe->m_lExamCircular.last();
     setAcquisitionNumber(0);
     setCurrentSensorNumber(0);
-    m_examModified = false;
+    setExamModified(false);
 
     clearCircular();
 }
 
-void ExamPipeManager::exportExam(const QString& p_fileName)
-{
-    m_examModified = false;
-    fLogDebug1("Save : " + p_fileName);
-    // fill excel template with data of exam
-}
-
 void ExamPipeManager::takeMeasure()
 {
-    m_examModified = true;
+    setExamModified(true);
     m_pCurrentCircular->m_aExamPipeSensor[m_currentSensorNumber].m_measureMm = m_pScanManager->getAScanThicknessMmMultiEcho();
     emit evSensorThickessChanged(m_currentSensorNumber, getExamCurrentMeasure(m_currentSensorNumber));
 }
 
 void ExamPipeManager::takePicture()
 {
-    m_examModified = true;
+    setExamModified(true);
     m_pCurrentCircular->m_aExamPipeSensor[m_currentSensorNumber].m_photoFileName = m_pCameraManager->captureMainCamera(QString("Acq %1 - ").arg(m_acquisitionNumber));
 }
 
 bool ExamPipeManager::isExamModified()
 {
     return m_examModified;
+}
+
+QString ExamPipeManager::exportExam(const QString& p_fileName)
+{
+    // fill excel template with data of exam
+    QString sRet;
+    // Find template function to the language
+    QString fileTemplate = QString("%1/templates/pipe_fr.xlsx").arg(CoreUiQml::getDirAppRes());
+
+    if( !QFileInfo::exists(fileTemplate) ) {
+        fLogError("Template file not found : " + fileTemplate);
+        sRet = tr("Base de données corrompue.");
+    } else {
+        QXlsx::Document doc(fileTemplate);
+        if( !doc.load() ) {
+            fLogError("Fail to open template : " + fileTemplate);
+            sRet = tr("Erreur à l'ouverture de la base de données.");
+        } else {
+            // -- General Info
+            doc.write("C8", m_startExamTime.toString("dd.MM.yyyy hh:mm:ss"));
+            doc.write("C13", m_pExamManager->getStructName());
+            doc.write("I13", m_pExamManager->getPieceName());
+
+            // -- Vector Info
+            doc.write("E17", VectorManager::getInstance()->getVectorStd()->getFuncGeneralParam().m_paramDProdUid);
+
+            // -- Exam
+            int yCircular = 58;
+            // Pase all circular
+            for(auto i : qAsConst(m_pExamPipe->m_lExamCircular) ) {
+                // parse the 4 sensors
+                for(int s = 0; s<4; s++) {
+                    // thikness measure
+                    if( ExamPipeSensor::SENSOR_NO_MEARURE != i->m_aExamPipeSensor[s].m_measureMm ) {
+                        doc.write(yCircular+1, 2+s*6, QString("%1 mm").arg(((qreal)((qint32)(i->m_aExamPipeSensor[s].m_measureMm*10)))/10));
+                    }
+                    // photo
+                    if( !i->m_aExamPipeSensor[s].m_photoFileName.isEmpty() ) {
+                        // Image camera : W : 640 , H = 480
+                        // Screen Excel H : 490 => 365 => ratio : 0.75
+                        // New image format : 640 => 477 / 480 => 358
+                        doc.insertImage(yCircular+1, 1+s*6, QImage(QString(i->m_aExamPipeSensor[s].m_photoFileName).replace("\\\\", "/")).scaled(640*0.755, 480*0.755));
+                    }
+                }
+                // Comment
+                doc.write(yCircular+1, 26, i->m_comment);
+                // prepare next
+                yCircular+=2; // One circular = 2 row
+            }
+
+            // -- Write file :
+            QString fileName = p_fileName.right(p_fileName.length()-8); // remove "file:///" appenened by qml
+            if( ".xlsx" != fileName.right(5) ) {
+                fileName.append(".xlsx");
+            }
+            if( ! doc.saveAs(fileName) ) {
+                fLogError("Fail to save file : " + fileName);
+                sRet = tr("Impossible d'écrire le fichier.");
+            }
+        }
+    }
+
+    // reset 'exam modified' if no error
+    if( sRet.isEmpty() ) {
+        setExamModified(false);
+    }
+
+    return sRet;
 }
