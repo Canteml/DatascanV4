@@ -16,6 +16,7 @@
 
 
 bool JkGate::m_isGateClicked = false;
+const qreal JkGate::DEFAULT_MOUSE_MARGIN = 15;
 
 JkGate::JkGate(MyJkQtPlotter* p_pPlot, qint32 p_gateIndex) :
     Loggable("JkGate")
@@ -29,7 +30,7 @@ JkGate::JkGate(MyJkQtPlotter* p_pPlot, qint32 p_gateIndex) :
     m_isVisible = true;
 
     m_elementHovered = 0;
-    m_margin = 10;
+    m_margin = DEFAULT_MOUSE_MARGIN;
     m_offsetFromGate1 = 0;
     m_P1X = 0;
     m_P2X = 0;

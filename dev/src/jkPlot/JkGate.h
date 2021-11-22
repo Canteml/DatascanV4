@@ -98,7 +98,8 @@ private :
 
     static bool m_isGateClicked;    ///< only one gate can be clicked at a time
 
-    qreal m_margin;
+    qreal m_margin; ///< margin around item to be selected by the mouse
+    static const qreal DEFAULT_MOUSE_MARGIN;    ///< default value of m_margin, not changed for now (no user preferences)
     qreal m_offsetFromGate1;
 
     qreal m_P1X; ///< value computed from testia gate, without consideration of SynchroGate1
