@@ -357,7 +357,7 @@ Rectangle {
                                 value : scanManager.SelectedFuncAScan.paramLGate0Start
                                 onValueChanged: {
                                     if( value !== scanManager.SelectedFuncAScan.paramLGate0Start ) {
-                                        console.log("paramLGate0Start last value : " + scanManager.SelectedFuncAScan.paramLGate0Start + " / new : " + value )
+                                        //console.log("paramLGate0Start last value : " + scanManager.SelectedFuncAScan.paramLGate0Start + " / new : " + value )
                                         scanManager.SelectedFuncAScan.paramLGate0Start = value;
                                     }
                                 }
@@ -385,7 +385,7 @@ Rectangle {
                                 value : scanManager.SelectedFuncAScan.paramLGate0Width
                                 onValueChanged: {
                                     if( value !== scanManager.SelectedFuncAScan.paramLGate0Width ) {
-                                        console.log("paramLGate0Width last value : " + scanManager.SelectedFuncAScan.paramLGate0Width + " / new : " + value )
+                                        //console.log("paramLGate0Width last value : " + scanManager.SelectedFuncAScan.paramLGate0Width + " / new : " + value )
                                         scanManager.SelectedFuncAScan.paramLGate0Width = value;
                                     }
                                 }
@@ -455,7 +455,7 @@ Rectangle {
                                 value : scanManager.SelectedFuncAScan.paramLGate1Start
                                 onValueChanged: {
                                     if( value !== scanManager.SelectedFuncAScan.paramLGate1Start ) {
-                                        console.log("paramLGate1Startlast value : " + scanManager.SelectedFuncAScan.paramLGate1Start + " / new : " + value )
+                                        //console.log("paramLGate1Startlast value : " + scanManager.SelectedFuncAScan.paramLGate1Start + " / new : " + value )
                                         scanManager.SelectedFuncAScan.paramLGate1Start = value;
                                     }
                                 }
@@ -483,7 +483,7 @@ Rectangle {
                                 value : scanManager.SelectedFuncAScan.paramLGate1Width
                                 onValueChanged: {
                                     if( value !== scanManager.SelectedFuncAScan.paramLGate1Width ) {
-                                        console.log("paramLGate1Width last value : " + scanManager.SelectedFuncAScan.paramLGate1Width + " / new : " + value )
+                                        //console.log("paramLGate1Width last value : " + scanManager.SelectedFuncAScan.paramLGate1Width + " / new : " + value )
                                         scanManager.SelectedFuncAScan.paramLGate1Width = value;
                                     }
                                 }
@@ -512,7 +512,7 @@ Rectangle {
                                 value : scanManager.SelectedFuncAScan.paramLGate1Height
                                 onValueChanged: {
                                     if( value !== scanManager.SelectedFuncAScan.paramLGate1Height ) {
-                                        console.log("paramLGate1Height last value : " + scanManager.SelectedFuncAScan.paramLGate1Height + " / new : " + value )
+                                        //console.log("paramLGate1Height last value : " + scanManager.SelectedFuncAScan.paramLGate1Height + " / new : " + value )
                                         scanManager.SelectedFuncAScan.paramLGate1Height = value;
                                     }
                                 }
