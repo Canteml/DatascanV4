@@ -227,6 +227,11 @@ Rectangle {
                     onReleased: {
                        currentVector.funcMove().moveStopY();
                     }
+                    onHoveredChanged: {
+                        if( !arrow_up.hovered && (currentVector.funcMove().moveDir & 0b0100) ) {
+                            onReleased();
+                        }
+                    }
                 }
 
                 Item{
@@ -265,6 +270,11 @@ Rectangle {
                    onReleased: {
                        currentVector.funcMove().moveStopX();
                    }
+                   onHoveredChanged: {
+                       if( !arrow_left.hovered && (currentVector.funcMove().moveDir & 0b0001) ) {
+                           onReleased();
+                       }
+                   }
                }
 
                 Button {
@@ -288,6 +298,11 @@ Rectangle {
                    }
                    onReleased: {
                        currentVector.funcMove().moveStopY();
+                   }
+                   onHoveredChanged: {
+                       if( !arrow_down.hovered && (currentVector.funcMove().moveDir & 0b1000) ) {
+                           onReleased();
+                       }
                    }
                 }
 
@@ -314,6 +329,11 @@ Rectangle {
                    }
                    onReleased: {
                        currentVector.funcMove().moveStopX();
+                   }
+                   onHoveredChanged: {
+                       if( !arrow_right.hovered && (currentVector.funcMove().moveDir & 0b0010) ) {
+                           onReleased();
+                       }
                    }
                }
 
