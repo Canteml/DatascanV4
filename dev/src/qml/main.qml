@@ -129,14 +129,12 @@ Window  {
 
     onActiveChanged: {
         if (!active) {
-            if( idMaster.actMoveDown || idMaster.actMoveLeft || idMaster.actMoveUp || idMaster.actMoveRight ) {
-                currentVector.funcMove().stopMove();
-                idMaster.actMoveDown = false;
-                idMaster.actMoveLeft = false;
-                idMaster.actMoveUp = false;
-                idMaster.actMoveRight = false;
-                idMaster.actMoveBoost = false;
-            }
+            currentVector.funcMove().stopMove();
+            idMaster.actMoveDown = false;
+            idMaster.actMoveLeft = false;
+            idMaster.actMoveUp = false;
+            idMaster.actMoveRight = false;
+            idMaster.actMoveBoost = false;
         }
     }
 }
