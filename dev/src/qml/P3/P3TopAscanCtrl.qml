@@ -92,7 +92,6 @@ Rectangle {
 
         }
 
-
         Rectangle {
             // Separator
             Layout.leftMargin: 5
@@ -149,6 +148,96 @@ Rectangle {
                     scanManager.ascanZoomIn()
                 }
             }
+        }
+
+        Rectangle {
+            // Separator
+            Layout.leftMargin: 5
+            Layout.rightMargin: 5
+            Layout.topMargin: 5
+            //Layout.bottomMargin: 5
+            Layout.fillWidth: true
+            Layout.preferredHeight: 2
+            color : Design.colSeparator
+        }
+
+        Text {
+            Layout.alignment: Qt.AlignCenter
+            text: qsTr("2nd Echo")
+            font.pixelSize: 16
+            Layout.topMargin: 5
+        }
+
+        SpinBox {
+            id: sb2EchoStart
+
+            from: 0
+            to: 80
+            stepSize: 5
+            editable: true
+
+            value: scanManager.SelectedFuncAScan.paramLGate1Start
+
+            onValueChanged: {
+                scanManager.SelectedFuncAScan.paramLGate1Start = value
+            }
+            onValueModified: {
+                focus = false;
+            }
+
+            Layout.alignment: Qt.AlignCenter
+            implicitHeight: 64
+            implicitWidth: 60
+
+            contentItem: TextInput {
+                text: sb2EchoStart.textFromValue(sb2EchoStart.value, sb2EchoStart.locale)
+
+                anchors.fill: parent
+                anchors.bottomMargin: 30
+
+                font.pixelSize: 16
+                color: "#000000"
+
+                horizontalAlignment: Qt.AlignHCenter
+                verticalAlignment: Qt.AlignVCenter
+
+                readOnly: !sb2EchoStart.editable
+                validator: sb2EchoStart.validator
+                inputMethodHints: Qt.ImhFormattedNumbersOnly
+
+            }
+
+            up.indicator: Rectangle {
+                height: parent.height/2
+                anchors.right: parent.right
+                anchors.bottom: parent.bottom
+                implicitHeight: 30
+                implicitWidth: 30 // Adjust width here
+                color: sb2EchoStart.up.pressed ? Design.colButtonSelectedBackground : Design.colButtonBackground
+                border.color: enabled ? Design.colFrameBorder : Design.colButtonHoveredBackground
+                Text {
+                    text: '+'
+                    font.pointSize: 12
+                    anchors.centerIn: parent
+                    color : parent.enabled ? Design.colButtonSelectedText : Design.colButtonSelectedBackground
+                }
+            }
+            down.indicator: Rectangle {
+                height: parent.height/2
+                anchors.left: parent.left
+                anchors.bottom: parent.bottom
+                implicitHeight: 30
+                implicitWidth: 30 // Adjust width here
+                color: sb2EchoStart.down.pressed ? Design.colButtonSelectedBackground : Design.colButtonBackground
+                border.color: enabled ? Design.colFrameBorder : Design.colButtonHoveredBackground
+                Text {
+                    text: '-'
+                    font.pointSize: 12
+                    anchors.centerIn: parent
+                    color : parent.enabled ? Design.colButtonSelectedText : Design.colButtonSelectedBackground
+                }
+            }
+
         }
 
         Item {
