@@ -13,21 +13,25 @@ Rectangle {
         spacing: 0
         PipeSensor {
             sensorNumber : 0
+            sensorAngle : 90
             selectShorcut1 : "1"
             selectShorcut2 : "&"
         }
         PipeSensor {
             sensorNumber : 1
+            sensorAngle : 180
             selectShorcut1 : "2"
             selectShorcut2 : "é"
         }
         PipeSensor {
             sensorNumber : 2
+            sensorAngle : 270
             selectShorcut1 : "3"
             selectShorcut2 : "\""
         }
         PipeSensor {
             sensorNumber : 3
+            sensorAngle : 0
             selectShorcut1 : "4"
             selectShorcut2 : "'"
         }

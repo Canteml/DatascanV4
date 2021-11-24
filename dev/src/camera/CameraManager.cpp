@@ -26,6 +26,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QCamera>
+#include <QThread>
 
 CameraManager* CameraManager::m_pMyInstance = nullptr;
 
@@ -115,11 +116,13 @@ void CameraManager::onGuiPageChanged(quint32 p_page)
         // -- Configure : display on Preview video
         m_pCameraAlarm->stop();
         m_pCameraMain->stop();
+        QThread::msleep(100);   ///< wait camera stop
         m_pCameraPreview->start();
         emit previewCameraIndexChanged(getPreviewCameraIndex());
     } else {
         // -- display on Alarm + Main video
         m_pCameraPreview->stop();
+        QThread::msleep(100);   ///< wait camera stop
         m_pCameraMain->start();
         emit mainCameraIndexChanged(getMainCameraIndex());
         if( getMainCameraIndex() != getPreviewCameraIndex() ) {
@@ -490,6 +493,7 @@ void CameraManager::onUpdateCameraList()
     }
 
     // -- remove camera no more connected
+    QList<CameraVideo* > camToDelete;
     for(auto i : qAsConst(m_lCameraVideo) ) {
         bool bFound = false;
         for (const QCameraInfo &cameraInfo : cameras) {
@@ -504,10 +508,13 @@ void CameraManager::onUpdateCameraList()
                     m_aCameraRole[r]->setCamera(nullptr);
                 }
             }
-            m_lCameraVideo.removeAll(i);
-            delete i;
+            camToDelete.append(i);
             bListCameraChanged = true;
         }
+    }    
+    for(auto i : qAsConst(camToDelete)) {
+        m_lCameraVideo.removeAll(i);
+        delete i;
     }
 
     if( CAMERA_PREVIEW_UNDEF != m_indexPreviewCamera && m_lCameraVideo.isEmpty() ) {
