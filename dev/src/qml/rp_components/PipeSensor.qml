@@ -13,6 +13,9 @@ Rectangle {
     property var sensorNumber;
     property alias sensorNumber : idRectPipeSensor.sensorNumber;
 
+    property var sensorAngle;
+    property alias sensorAngle : idRectPipeSensor.sensorAngle;
+
     property var selectShorcut1;
     property alias selectShorcut1 : idRectPipeSensor.selectShorcut1;
     property var selectShorcut2;
@@ -30,7 +33,7 @@ Rectangle {
             id: btTitle
             Layout.fillWidth: true
             Layout.preferredHeight: 40
-            text: qsTr(sensorNumber*90 + " °")
+            text: qsTr(sensorAngle + " °")
 
             checked: examPipeManager.currentSensorNumber === sensorNumber
             checkable: true

@@ -6,6 +6,7 @@ import Design 1.0
 import AScanGraph 1.0
 
 Rectangle {
+    id: idRectP3TopAScan
     Layout.preferredWidth: 70
 
     RowLayout {
@@ -187,9 +188,22 @@ Rectangle {
                     Layout.fillHeight: true
                     Layout.margins: 2
                 }
-
             }
         }
+    }
+
+    Image {
+        source: (("qrc:///img/icons/schPipeAngle") + (examPipeManager.currentSensorNumber) + (".png"));
+        visible: examManager.controlType === 2 /// Panda
+        anchors.right: idRectP3TopAScan.right
+        anchors.top: idRectP3TopAScan.top
+        anchors.topMargin: 5
+        anchors.rightMargin: 5
+        height: 140
+        fillMode: Image.PreserveAspectFit
+        mipmap : true
+        antialiasing : true
+        smooth: true
     }
 }
 /*##^##

@@ -225,6 +225,13 @@ QString ExamPipeManager::exportExam(const QString& p_fileName)
             doc.write("C13", m_pExamManager->getStructName());
             doc.write("I13", m_pExamManager->getPieceName());
 
+            qreal colWidth6 = 0;
+            for(int i=2; i<8; i++) {
+                colWidth6 += doc.columnWidth(i);
+            }
+            fLogDebug1(QString("ColWidth = %1").arg(colWidth6));
+
+
             // -- Vector Info
             doc.write("E17", VectorManager::getInstance()->getVectorStd()->getFuncGeneralParam().m_paramDProdUid);
 
@@ -241,9 +248,12 @@ QString ExamPipeManager::exportExam(const QString& p_fileName)
                     // photo
                     if( !i->m_aExamPipeSensor[s].m_photoFileName.isEmpty() ) {
                         // Image camera : W : 640 , H = 480
-                        // Screen Excel H : 490 => 365 => ratio : 0.75
+                        // Screen Excel H : 490 => 365 => ratio : 0.75 (0.755 after manual adjustement)
                         // New image format : 640 => 477 / 480 => 358
-                        doc.insertImage(yCircular+1, 1+s*6, QImage(QString(i->m_aExamPipeSensor[s].m_photoFileName).replace("\\\\", "/")).scaled(640*0.755, 480*0.755));
+                        // CF31 integration : images are too bigs : H = 390 instead of 358
+                        // New ratio computed with Paint : 0.59
+                        qreal ratio_xls = 0.59; // 0.755
+                        doc.insertImage(yCircular+1, 1+s*6, QImage(QString(i->m_aExamPipeSensor[s].m_photoFileName).replace("\\\\", "/")).scaled(640*ratio_xls, 480*ratio_xls));
                     }
                 }
                 // Comment

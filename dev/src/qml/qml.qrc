@@ -92,5 +92,9 @@
         <file>icons/iconLight.png</file>
         <file>icons/iconNextAcq.png</file>
         <file>icons/iconNote.png</file>
+        <file>icons/schPipeAngle0.png</file>
+        <file>icons/schPipeAngle1.png</file>
+        <file>icons/schPipeAngle2.png</file>
+        <file>icons/schPipeAngle3.png</file>
     </qresource>
 </RCC>
