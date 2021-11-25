@@ -52,7 +52,7 @@ Rectangle {
                 Layout.preferredHeight: 30
                 Layout.preferredWidth: 200
                 model: [qsTr("PERCHE IP68"), qsTr("ALTISCAN"), qsTr("ROVER"), qsTr("ROVER SCANNER"), qsTr("ROVER CLEANER"),
-                    qsTr("UT POLE"), qsTr("PANDA Vol.3")]
+                    qsTr("UT POLE"), qsTr("PANDA Vol.3"), qsTr("MULTISCAN")]
                 property var ready : false
 
                 onCurrentIndexChanged: {
