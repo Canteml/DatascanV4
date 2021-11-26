@@ -13,7 +13,7 @@
 
 ## -- VERSION
 
-DEF_VERSION = 1.0.0
+DEF_VERSION = 1.0.1
 CONFIG(debug, debug|release) {
     DEF_VERSION = $$DEF_VERSION"-DEV"
 }

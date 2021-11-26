@@ -3,7 +3,8 @@ cls
 echo.
 
 rem variables to set function to user installation
-SET PATH_QT=C:\Qt\5.15.2
+rem SET PATH_QT=C:\Qt\5.15.2
+SET PATH_QT=C:\Qt\5.15.0
 SET APPLICATION_NAME=DatascanV2
 
 echo Variables :
