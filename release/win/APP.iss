@@ -1,12 +1,12 @@
 #define MyAppName "DatascanV2"
-#define MyAppVersion "1.0.0"
+#define MyAppVersion "1.0.1"
 #define MyAppPublisher "Roboplanet"
 #define MyAppURL "http://www.roboplanet.fr"
 #define MyAppExeName "DatascanV2.exe"
  
 [Setup]
 PrivilegesRequired=admin
-AppId={{ID à regénérer pour chaque application}
+AppId={{18A43CCC-3F2B-4F4B-8247-4EEFA600A762}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
