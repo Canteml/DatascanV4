@@ -59,3 +59,8 @@ CopySDL2.path = $$DESTDIR
 
 ## -- ICON
 RC_ICONS = $$PWD/src/res/img/application.ico
+
+SOURCES +=
+
+RESOURCES += \
+    translations.qrc
