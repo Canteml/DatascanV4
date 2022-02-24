@@ -3,6 +3,17 @@
 =                         Copyright Roboplanet 2021                           =
 ===============================================================================
 
+# DatascanV2 Version 1.0.2 (26/01/2022)
+	# Changements :		
+		- Correction format des fichiers CSV (Valeurs US-SPI enregistrée non compatible avant)
+
+
+# DatascanV2 Version 1.0.1 (26/01/2022)
+	# Changements :		
+		- Ajout de la selection de la langue au démarrage de l'application
+		- Anglais sélectionnable
+		- Baudrate du port série à 115200 au lieu de 921600
+
 # DatascanV2 Version 1.0.0 (25/11/2021)
 	
 	# Changements :		
