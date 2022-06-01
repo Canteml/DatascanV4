@@ -136,14 +136,14 @@
         <source>GENERATRICE
 BSCAN</source>
         <translation>BSCAN
-GENERATRIX</translation>
+LINE</translation>
     </message>
     <message>
         <location filename="src/qml/CentralPage0.qml" line="110"/>
         <source>GENERATRICE
 MEP</source>
         <translation>MEP
-GENERATRIX</translation>
+LINE</translation>
     </message>
     <message>
         <location filename="src/qml/CentralPage0.qml" line="122"/>
