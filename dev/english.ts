@@ -155,7 +155,7 @@ GENERATRIX</translation>
     <message>
         <location filename="src/qml/CentralPage0.qml" line="147"/>
         <source>■  Nombre de génératrices :</source>
-        <translation>■  Number of generatrix :</translation>
+        <translation>■  Number of line :</translation>
     </message>
     <message>
         <location filename="src/qml/CentralPage0.qml" line="166"/>
@@ -322,12 +322,12 @@ GENERATRIX</translation>
     <message>
         <location filename="src/qml/CentralPage2.qml" line="34"/>
         <source>Generatrice BSCAN</source>
-        <translation>BSCAN Generatrix</translation>
+        <translation>BSCAN Line</translation>
     </message>
     <message>
         <location filename="src/qml/CentralPage2.qml" line="43"/>
         <source>Choix du numéro de la génératice à scanner :</source>
-        <translation>Choice of the number of the generatrix to scan :</translation>
+        <translation>Choice of the line number to scan :</translation>
     </message>
     <message>
         <location filename="src/qml/CentralPage2.qml" line="77"/>
@@ -667,7 +667,7 @@ Do you still want to start a new inspection ?</translation>
     <message>
         <location filename="src/qml/P3/P3TopExportBscan.qml" line="420"/>
         <source>Choix de la prochaine génératrice :</source>
-        <translation>Choice of the next generatrix :</translation>
+        <translation>Choice of the next line :</translation>
     </message>
 </context>
 <context>
