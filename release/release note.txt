@@ -2,6 +2,11 @@
 =                          Release note DatascanV2                            =
 =                         Copyright Roboplanet 2021                           =
 ===============================================================================
+# DatascanV2 Version 1.0.3 (01/06/2022)
+	# Changements :		
+		- Compilation avec MinGW 5.12.2 32 bits (au lieu de 5.12.0).
+		- Correction du probleme de passage d'une génératrice à une autre apres l'enregistrement d'un scan
+		- Version Anglaise ou version francaise en installation
 
 # DatascanV2 Version 1.0.2 (26/01/2022)
 	# Changements :		
