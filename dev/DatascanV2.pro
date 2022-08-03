@@ -65,3 +65,6 @@ SOURCES +=
 
 RESOURCES += \
     translations.qrc
+
+DISTFILES += \
+   ext/fw_common/dev/ext/.gitignore

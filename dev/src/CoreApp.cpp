@@ -34,6 +34,7 @@
 #include "camera/CameraManager.h"
 #include "camera/Camera.h"
 #include "exam/ExamPipeManager.h"
+#include "licence/LicenceManager.h"
 
 // -- Qt Includes
 #include <QQmlApplicationEngine>
@@ -52,6 +53,7 @@ CoreApp::CoreApp() : CoreUiQml("CoreApp")
     m_pJoystickManager = nullptr;
     m_pCameraManager = nullptr;
     m_pExamPipeManager = nullptr;
+    m_pLicenceManager = nullptr;
 }
 
 
@@ -85,7 +87,9 @@ bool CoreApp::initApp()
     m_pExamPipeManager = ExamPipeManager::makeInstance();
 
     m_pExamManager = ExamManager::makeInstance();
-    m_pGlobalManager = GlobalManager::makeInstance();    
+    m_pGlobalManager = GlobalManager::makeInstance();
+
+    m_pLicenceManager = LicenceManager::makeInstance();
 
     // -- init my managers
     // example : m_pStatisticApp->initManager();
@@ -97,6 +101,7 @@ bool CoreApp::initApp()
     m_pJoystickManager->start();
     m_pCameraManager->start();
     m_pExamPipeManager->init();
+    m_pLicenceManager->init();
 
     // -- load settings of my managers
     // example : bRet &= m_pStatisticApp->loadSettings();
@@ -165,6 +170,8 @@ void CoreApp::deleteApp()
     m_pCameraManager = nullptr;
     delete m_pExamPipeManager;
     m_pExamPipeManager = nullptr;
+    delete m_pLicenceManager;
+    m_pLicenceManager = nullptr;
 
     // -- core delete
     CoreUiQml::deleteApp();
@@ -197,6 +204,7 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<CameraRole*>("CameraRole*");
     qRegisterMetaType<CameraVideo*>("CameraVideo*");
     qRegisterMetaType<ExamPipeManager*>("ExamPipeManager*");
+    qRegisterMetaType<LicenceManager*>("LicenceManager*");
 
     // -- declare C++ components instanciated from QML
     // exemple : qmlRegisterType<AScan>("ascan", 1, 0, "AScanItem");
@@ -219,6 +227,7 @@ bool CoreApp::initQmlContext()
     m_pQmlApplicationEngine->rootContext()->setContextProperty("joystickManager", m_pJoystickManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("cameraManager", m_pCameraManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("examPipeManager", m_pExamPipeManager);
+    m_pQmlApplicationEngine->rootContext()->setContextProperty("licenceManager", m_pLicenceManager);
 
     return true;
 }

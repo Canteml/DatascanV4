@@ -20,7 +20,10 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs depr
 # -- SOURCES
 # MAIN
 SOURCES += $$files($$PWD/*.cpp)
-HEADERS +=  $$files($$PWD/*.h)
+HEADERS += $$files($$PWD/*.h)
+
+SOURCES += $$files($$PWD/licence/*.cpp)
+HEADERS += $$files($$PWD/licence/*.h)
 
 SOURCES += $$files($$PWD/scan/*.cpp)
 HEADERS += $$files($$PWD/scan/*.h)
