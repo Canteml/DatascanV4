@@ -321,6 +321,7 @@ Rectangle {
                     id: itSpacerHorizontal
                     Layout.fillWidth: true
                     Layout.fillHeight: true
+
                 }
 
             }

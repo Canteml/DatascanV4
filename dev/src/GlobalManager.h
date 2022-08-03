@@ -44,6 +44,7 @@ public:
         PAGE_PREPARE,
         PAGE_SUPERVISE,
         PAGE_SCAN,
+        PAGE_LICENCE,
         PAGE_HELP
     };
 
@@ -75,7 +76,7 @@ private :
     void treatGuiPageSetup();
 
     // -- Properties
-    quint32 m_guiPage; //    project : 0 / prepare : 1 / sueprvise : 2 / scan : 3 / help : 4
+    quint32 m_guiPage; //    project : 0 / prepare : 1 / sueprvise : 2 / scan : 3 / licence : 4 / help : 5
 
     // -- Behaviour
     static GlobalManager* m_pMyInstance;

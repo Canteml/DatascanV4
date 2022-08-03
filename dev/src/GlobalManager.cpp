@@ -67,7 +67,7 @@ GlobalManager* GlobalManager::makeInstance()
 GlobalManager* GlobalManager::getInstance()
 {
     if( nullptr == m_pMyInstance ) {
-        Logger::logError("ExamManager::getInstance : manager not instanciated");
+        Logger::logError("GlobalManager::getInstance : manager not instanciated");
     }
     return m_pMyInstance;
 }
