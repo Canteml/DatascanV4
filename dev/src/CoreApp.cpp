@@ -29,6 +29,7 @@
 #include <v2/exam/ExamManager.h>
 #include <v2/vector/VectorFuncLight.h>
 #include <v2/vector/VectorFuncBattery.h>
+#include <v2/vector/VectorFuncCleaning.h>
 #include "control/JoystickManager.h"
 #include <v2/vector/VectorFuncMove.h>
 #include "camera/CameraManager.h"
@@ -191,6 +192,7 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<GlobalManager*>("GlobalManager*");
     qRegisterMetaType<VectorFuncLight*>("VectorFuncLight*");
     qRegisterMetaType<VectorFuncBattery*>("VectorFuncBattery*");
+    qRegisterMetaType<VectorFuncCleaning*>("VectorFuncCleaning*");
     qRegisterMetaType<JoystickManager*>("JoystickManager*");
     qRegisterMetaType<VectorFuncMove*>("VectorFuncMove*");
     qRegisterMetaType<CameraManager*>("CameraManager*");
