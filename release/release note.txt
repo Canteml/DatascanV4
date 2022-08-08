@@ -2,6 +2,18 @@
 =                          Release note DatascanV2                            =
 =                         Copyright Roboplanet 2021                           =
 ===============================================================================
+# DatascanV2 Version 1.0.4 (08/08/2022)
+
+	# Changements :
+		- Modification du processus d'enregistrement d'un AScan pour générer un BScan :
+			- Pas d'arrondissement de la position vers le centre de la cellule la plus proche : on remplit la cellule sur laquelle le AScan se situe
+			- En plus de remplir la cellule courante, on remplit les cellules voisines : potentielle perte de précision mais diminution des trous du BScan
+			- La résolution a été laissée à 5mm par cellule, ceci validant toujours le CDC
+		- Ajout du vecteur de la fonction de nettoyage ainsi que des contrôles associés
+
+	# Bugs résolus :
+		- Fichier prepare_release.bat : un espace dans le chemin vers le dossier DatascanV2 mettait en erreur les commandes
+
 # DatascanV2 Version 1.0.3 (01/06/2022)
 	# Changements :		
 		- Compilation avec MinGW 5.12.2 32 bits (au lieu de 5.12.0).
