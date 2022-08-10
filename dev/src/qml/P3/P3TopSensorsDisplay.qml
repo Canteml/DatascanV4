@@ -73,6 +73,7 @@ Rectangle {
 
         Text {
             text: qsTr("Température :")
+            Layout.row: 1
             visible: currentVector.funcTemperatureSensor0().isEnabled
             font.pointSize: 11
         }
@@ -97,7 +98,7 @@ Rectangle {
 
         }
 
-        Rectangle {
+        /*Rectangle {
             id: idTemperatureGauge
             visible: currentVector.funcTemperatureSensor0().isEnabled
             Layout.fillWidth: true
@@ -127,10 +128,11 @@ Rectangle {
                 x: parent.width * 0.5
             }
 
-        }
+        }*/
 
         Text {
             text: qsTr("Humidité :")
+            Layout.row: 2
             visible: currentVector.funcHumiditySensor0().isEnabled
             font.pointSize: 11
         }
@@ -155,7 +157,7 @@ Rectangle {
 
         }
 
-        Rectangle {
+        /*Rectangle {
             id: idHumidityGauge
             visible: currentVector.funcHumiditySensor0().isEnabled
             Layout.fillWidth: true
@@ -185,13 +187,13 @@ Rectangle {
                 x: parent.width * 0.3
             }
 
-        }
+        }*/
 
         Connections {
             target: currentVector.funcHumiditySensor0()
             function onParamDHumidityCChanged(humidity) {
                 idHumidityLabel.text = humidity + " %"
-                idHumidityCursor.x = idHumidityGauge.width * (humidity / 100)
+                //idHumidityCursor.x = idHumidityGauge.width * (humidity / 100)
             }
         }
 
@@ -200,7 +202,7 @@ Rectangle {
             function onParamDTemperatureCChanged(raw_temperature) {
                 var temperature = raw_temperature / 10
                 idTemperatureLabel.text = temperature + " °C"
-                idTemperatureCursor.x = idTemperatureGauge.width * (temperature / 200)
+                //idTemperatureCursor.x = idTemperatureGauge.width * (temperature / 200)
             }
         }
 
