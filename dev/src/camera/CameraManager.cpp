@@ -395,7 +395,7 @@ void CameraManager::onVectorProductIdChanged(qint32 p_pid)
     }
 
     // enable / disable roles
-    if(p_pid == ProtMsg::PROD_ROVER || p_pid == ProtMsg::PROD_ROVER_CLEANER || p_pid == ProtMsg::PROD_PANDA_VOL1
+    if(p_pid == ProtMsg::PROD_ROVER || p_pid == ProtMsg::PROD_PANDA_VOL1
             || p_pid == ProtMsg::PROD_PANDA_VOL3 || p_pid == ProtMsg::PROD_MULTISCAN ) {
         m_aCameraRole[CameraRole::ROLE_ALARM]->setIsEnabled(true);
         slRoles.append(tr("Alarme"));
@@ -410,8 +410,8 @@ void CameraManager::onVectorProductIdChanged(qint32 p_pid)
         slRoles.append(tr("Avant"));
     }
 
-    if(p_pid == ProtMsg::PROD_ALTISCAN || p_pid == ProtMsg::PROD_ROVER || p_pid == ProtMsg::PROD_ROVER_CLEANER
-            || p_pid == ProtMsg::PROD_ROVER_SCANNER || p_pid == ProtMsg::PROD_MULTISCAN) {
+    if(p_pid == ProtMsg::PROD_ALTISCAN || p_pid == ProtMsg::PROD_ROVER
+            || p_pid == ProtMsg::PROD_ROVER_IP68 || p_pid == ProtMsg::PROD_MULTISCAN) {
         m_aCameraRole[CameraRole::ROLE_REAR]->setIsEnabled(true);
         slRoles.append(tr("Arrière"));
     } else {
