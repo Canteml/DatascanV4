@@ -34,6 +34,9 @@ HEADERS += $$files($$PWD/camera/*.h)
 SOURCES += $$files($$PWD/exam/*.cpp)
 HEADERS += $$files($$PWD/exam/*.h)
 
+SOURCES += $$files($$PWD/mep/*.cpp)
+HEADERS += $$files($$PWD/mep/*.h)
+
 # JK PLOTTER COMPONENTS
 SOURCES += $$files($$PWD/jkPlot/*.cpp)
 HEADERS += $$files($$PWD/jkPlot/*.h)
@@ -63,6 +66,7 @@ CONFIG += qmltypes
 QML_IMPORT_NAME = roboplanet.v2
 QML_IMPORT_MAJOR_VERSION = 1
 INCLUDEPATH += ext/fw_common/dev/src/v2/vector
+INCLUDEPATH += $$PWD/mep
 
 ## -- LIBRARIES
 

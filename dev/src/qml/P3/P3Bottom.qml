@@ -2,6 +2,8 @@ import QtQuick 2.4
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
 
+import Qt.labs.qmlmodels 1.0
+
 Rectangle {
 
     Layout.fillWidth: true
@@ -43,9 +45,25 @@ Rectangle {
 
             // --------------------------------------------------------------------
             // -- PAGE MEP
-            Rectangle {
-                id: idMep
-                color: "#C9C9C9"
+
+            RowLayout {
+                id: idMEP
+                spacing: 0
+                Layout.fillWidth: true
+
+                Rectangle {
+                    id: idMep
+                    color: "#C9C9C9"
+                    Layout.fillWidth: true
+                    Layout.fillHeight: true
+
+                    P3BottomMepView {
+                        anchors.fill: parent
+                        anchors.margins: 1
+                    }
+
+                }
+
             }
 
             // --------------------------------------------------------------------

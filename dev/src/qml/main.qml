@@ -66,6 +66,10 @@ Window  {
                     actMoveBoost = true;
                     event.accepted = false;
                 }
+
+                if(event.key === Qt.Key_Up) {
+                    verticallScrollbar.decrease()
+                }
             }
         }
 
