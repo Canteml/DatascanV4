@@ -14,6 +14,7 @@ Rectangle {
 
     property alias idBtAScanSettings: idBtAScanSettings
     property alias idBtBScanSettings: idBtBScanSettings
+    property alias idBtSensorDisplay: idBtSensorDisplay
     property alias idSlP4TopCamSettings: idSlP4TopCamSettings
     property alias idBtCam: idBtCam
 
@@ -30,6 +31,7 @@ Rectangle {
             P3TopCam {}
             P3TopSettingsAscan {}
             P3TopSettingsBscan {}
+            P3TopSensorsDisplay {}
         }
 
         Rectangle {
@@ -130,6 +132,36 @@ Rectangle {
                     onPressed: {
                         idSlP4TopCamSettings.currentIndex === 2 && idSlP4TopCamSettings.visible ? idSlP4TopCamSettings.visible = false : idSlP4TopCamSettings.visible = true;
                         idSlP4TopCamSettings.currentIndex = 2;
+                    }
+                }
+
+                Button {
+                    id: idBtSensorDisplay
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    //visible: (examManager.controlType === 0) // CONTROL_BSCAN_GENERATRIX
+                    background: Rectangle {
+                        color: (idBtSensorDisplay.pressed
+                                || (idSlP4TopCamSettings.visible
+                                    && idSlP4TopCamSettings.currentIndex
+                                    == 3)) ? Design.colButtonSelectedBackground : idBtSensorDisplay.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                        //color: btBannerTitle.hovered ? "#9C9B9B" : "#FFFFFF"
+                        border.width: 1
+                        border.color: Design.colFrameBorder
+                    }
+
+                    contentItem: Text {
+                        text: qsTr("CAPTEURS")
+                        font.pointSize: 12
+                        font.bold: true
+                        rotation: -90
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    onPressed: {
+                        idSlP4TopCamSettings.currentIndex === 3 && idSlP4TopCamSettings.visible ? idSlP4TopCamSettings.visible = false : idSlP4TopCamSettings.visible = true;
+                        idSlP4TopCamSettings.currentIndex = 3;
                     }
                 }
             }

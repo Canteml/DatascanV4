@@ -27,6 +27,9 @@
 #include <scan/BScanGraph.h>
 #include "GlobalManager.h"
 #include <v2/exam/ExamManager.h>
+#include <v2/vector/VectorFuncPressureSensor.h>
+#include <v2/vector/VectorFuncTemperatureSensor.h>
+#include <v2/vector/VectorFuncHumiditySensor.h>
 #include <v2/vector/VectorFuncLight.h>
 #include <v2/vector/VectorFuncBattery.h>
 #include <v2/vector/VectorFuncCleaning.h>
@@ -190,6 +193,9 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<ScanManager*>("ScanManager*");
     qRegisterMetaType<ExamManager*>("ExamManager*");
     qRegisterMetaType<GlobalManager*>("GlobalManager*");
+    qRegisterMetaType<VectorFuncPressureSensor*>("VectorFuncPressureSensor*");
+    qRegisterMetaType<VectorFuncHumiditySensor*>("VectorFuncHumiditySensor*");
+    qRegisterMetaType<VectorFuncTemperatureSensor*>("VectorFuncTemperatureSensor*");
     qRegisterMetaType<VectorFuncLight*>("VectorFuncLight*");
     qRegisterMetaType<VectorFuncBattery*>("VectorFuncBattery*");
     qRegisterMetaType<VectorFuncCleaning*>("VectorFuncCleaning*");

@@ -31,6 +31,7 @@
         <file>P3/P3BottomPipeCtrl.qml</file>
         <file>P3/P3BottomPipeView.qml</file>
         <file>rp_components/PipeSensor.qml</file>
+        <file>P3/P3TopSensorsDisplay.qml</file>
     </qresource>
     <qresource prefix="/img">
         <file>logo.png</file>
