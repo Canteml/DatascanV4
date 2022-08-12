@@ -24,6 +24,7 @@ class JoystickManager;
 class CameraManager;
 class ExamPipeManager;
 class LicenceManager;
+class ClipboardAdapter;
 
 class CoreApp : public CoreUiQml
 {
@@ -66,5 +67,7 @@ private :
     CameraManager* m_pCameraManager;
     ExamPipeManager* m_pExamPipeManager;
     LicenceManager* m_pLicenceManager;
+
+    ClipboardAdapter* m_pClipboardAdapter;
 };
 

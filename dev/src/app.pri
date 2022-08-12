@@ -37,6 +37,9 @@ HEADERS += $$files($$PWD/camera/*.h)
 SOURCES += $$files($$PWD/exam/*.cpp)
 HEADERS += $$files($$PWD/exam/*.h)
 
+SOURCES += $$files($$PWD/adapter/*.cpp)
+HEADERS += $$files($$PWD/adapter/*.h)
+
 # JK PLOTTER COMPONENTS
 SOURCES += $$files($$PWD/jkPlot/*.cpp)
 HEADERS += $$files($$PWD/jkPlot/*.h)
