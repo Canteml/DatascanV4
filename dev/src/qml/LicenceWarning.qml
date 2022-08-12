@@ -21,6 +21,7 @@ RowLayout {
         Text {
             id: idLicenceWarningText
             text: qsTr("Votre licence équipement d'utilisation est bientôt épuisée ! Merci de contacter ROBOPLANET pour la renouveller")
+            visible: currentVector.funcLicence().paramDStatusLicenceP <= 20
             font.bold: true
             horizontalAlignment: Text.AlignHCenter
             verticalAlignment: Text.AlignVCenter
@@ -32,9 +33,9 @@ RowLayout {
     }
 
     Connections {
-        target: licenceManager
-        function onLicenceValidityChanged(validity) {
-            idLicenceWarningBox.visible = !validity
+        target: currentVector.funcLicence()
+        function onParamDStatusLicencePChanged(status) {
+            idLicenceWarningBox.visible = status <= 20
         }
     }
 

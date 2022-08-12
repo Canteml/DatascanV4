@@ -29,18 +29,18 @@ Rectangle {
             Layout.fillWidth: true
 
             Text {
-                text: qsTr("Temps d'utilisation restant :")
+                text: qsTr("Utilisation restante : ")
                 font.pixelSize: 14
             }
 
             Text {
-                id: idRemainingTimeLabel
-                text: qsTr("47")
+                id: idRemainingLicenceLabel
+                text: currentVector.funcLicence().paramDStatusLicenceP
                 font.pixelSize: 14
             }
 
             Text {
-                text: qsTr("minutes")
+                text: qsTr("%")
                 font.pixelSize: 14
             }
 
@@ -48,30 +48,11 @@ Rectangle {
                 Layout.fillWidth: true
             }
 
-        }
-
-        RowLayout {
-            Layout.leftMargin: 20
-            Layout.fillWidth: true
-
-            Text {
-                text: qsTr("Distance d'utilisation restante :")
-                font.pixelSize: 14
-            }
-
-            Text {
-                id: idRemainingDistanceLabel
-                text: qsTr("789")
-                font.pixelSize: 14
-            }
-
-            Text {
-                text: qsTr("mètres")
-                font.pixelSize: 14
-            }
-
-            Item {
-                Layout.fillWidth: true
+            Connections {
+                target: currentVector.funcLicence()
+                function onParamDStatusLicencePChanged(status) {
+                    idRemainingLicenceLabel.text = status
+                }
             }
 
         }
@@ -84,6 +65,7 @@ Rectangle {
                 text: qsTr("Actualiser")
                 Layout.preferredHeight: 30
                 font.pixelSize: 14
+                onClicked: currentVector.funcLicence().askForStatusLicence()
             }
         }
 
@@ -117,7 +99,7 @@ Rectangle {
 
             TextField {
                 id: idEquipmentKeyDisplay
-                text: qsTr("qndjqnsdklqzd")
+                text: ""
                 readOnly: true
                 selectByMouse: true
                 Layout.preferredHeight: 30
@@ -130,9 +112,7 @@ Rectangle {
                 text: qsTr("Générer une clé d'équipement")
                 Layout.preferredHeight: 30
                 font.pixelSize: 14
-                onClicked: {
-                    idBtCopyEquipmentKey.enabled = true
-                }
+                onClicked: currentVector.funcLicence().askForKeyEquipment()
             }
 
             Button {
@@ -141,6 +121,15 @@ Rectangle {
                 Layout.preferredHeight: 30
                 enabled: false
                 font.pixelSize: 14
+                onClicked: clipboard.setText(idEquipmentKeyDisplay.text)
+            }
+
+            Connections {
+                target: currentVector.funcLicence()
+                function onKeyEquipmentChanged(keyEquipment) {
+                    idEquipmentKeyDisplay.text = keyEquipment
+                    idBtCopyEquipmentKey.enabled = true
+                }
             }
 
         }
