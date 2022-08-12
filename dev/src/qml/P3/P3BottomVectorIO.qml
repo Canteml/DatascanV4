@@ -190,6 +190,151 @@ Rectangle {
             Layout.fillHeight: true
         }
 
+        Text {
+            text: qsTr("Nettoyage")
+            visible: currentVector.funcCleaning().isEnabled
+            Layout.fillWidth: true
+            font.pixelSize: 16
+            horizontalAlignment: Text.AlignHCenter
+        }
+
+        RowLayout {
+            visible: currentVector.funcCleaning().isEnabled
+            Layout.preferredHeight: 30
+            Layout.fillWidth: true
+            Button {
+                id: btBrushMinus
+                Layout.preferredWidth: 30
+                Layout.preferredHeight: 30
+                background: Rectangle {
+                    color: (btBrushMinus.pressed) ? Design.colButtonSelectedBackground : btBrushMinus.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                    border.width: 1
+                    border.color: Design.colFrameBorder
+                }
+                text: qsTr("-")
+                font.pointSize: 12
+                onPressed:
+                {
+                    var v = currentVector.funcCleaning().paramLBrushLevel;
+                    if( v>10 ) {
+                        currentVector.funcCleaning().paramLBrushLevel = v - 10
+                    }
+                }
+            }
+
+            Button {
+                id: btBrushEnable
+                Layout.fillWidth: true
+                Layout.preferredHeight: 30
+                text: qsTr("BROSSE ") + currentVector.funcCleaning().paramLBrushLevel + " %"
+                background: Rectangle {
+                    color: (btBrushEnable.pressed) ? Design.colButtonSelectedBackground : (btBrushEnable.checked) ?  "#008800" : btBrushEnable.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                    border.width: 1
+                    border.color: Design.colFrameBorder
+                }
+
+                checked: currentVector.funcCleaning().paramLBrushEnable
+                checkable: true
+                font.pointSize: 9
+
+                onReleased:
+                {
+                    currentVector.funcCleaning().paramLBrushEnable = 1-currentVector.funcCleaning().paramLBrushEnable
+                }
+            }
+
+            Button {
+                id: btBrushPlus
+                Layout.preferredWidth: 30
+                Layout.preferredHeight: 30
+                background: Rectangle {
+                    color: (btBrushPlus.pressed) ? Design.colButtonSelectedBackground : btBrushPlus.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                    border.width: 1
+                    border.color: Design.colFrameBorder
+                }
+                text: qsTr("+")
+                font.pointSize: 12
+                onPressed:
+                {
+                    var v = currentVector.funcCleaning().paramLBrushLevel;
+                    if( v<100 ) {
+                        currentVector.funcCleaning().paramLBrushLevel = v + 10
+                    }
+                }
+            }
+        }
+
+        RowLayout {
+            visible: currentVector.funcCleaning().isEnabled
+            Layout.preferredHeight: 30
+            Layout.fillWidth: true
+            Button {
+                id: btCPumpMinus
+                Layout.preferredWidth: 30
+                Layout.preferredHeight: 30
+                background: Rectangle {
+                    color: (btCPumpMinus.pressed) ? Design.colButtonSelectedBackground : btCPumpMinus.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                    border.width: 1
+                    border.color: Design.colFrameBorder
+                }
+                text: qsTr("-")
+                font.pointSize: 12
+                onPressed:
+                {
+                    var v = currentVector.funcCleaning().paramLPumpLevel;
+                    if( v>10 ) {
+                        currentVector.funcCleaning().paramLPumpLevel = v - 10
+                    }
+                }
+            }
+
+            Button {
+                id: btCPumpEnable
+                Layout.fillWidth: true
+                Layout.preferredHeight: 30
+                text: qsTr("POMPE ") + currentVector.funcCleaning().paramLPumpLevel + " %"
+                background: Rectangle {
+                    color: (btCPumpEnable.pressed) ? Design.colButtonSelectedBackground : (btCPumpEnable.checked) ?  "#008800" : btCPumpEnable.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                    border.width: 1
+                    border.color: Design.colFrameBorder
+                }
+
+                checked: currentVector.funcCleaning().paramLPumpEnable
+                checkable: true
+                font.pointSize: 9
+
+                onReleased:
+                {
+                    currentVector.funcCleaning().paramLPumpEnable = 1-currentVector.funcCleaning().paramLPumpEnable
+                }
+            }
+
+            Button {
+                id: btCPumpPlus
+                Layout.preferredWidth: 30
+                Layout.preferredHeight: 30
+                background: Rectangle {
+                    color: (btCPumpPlus.pressed) ? Design.colButtonSelectedBackground : btCPumpPlus.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                    border.width: 1
+                    border.color: Design.colFrameBorder
+                }
+                text: qsTr("+")
+                font.pointSize: 12
+                onPressed:
+                {
+                    var v = currentVector.funcCleaning().paramLPumpLevel;
+                    if( v<100 ) {
+                        currentVector.funcCleaning().paramLPumpLevel = v + 10
+                    }
+                }
+            }
+        }
+
+        Item {
+            // Spacer
+            Layout.fillHeight: true
+        }
+
         // -- MOVE
         ColumnLayout {
             focus: true
