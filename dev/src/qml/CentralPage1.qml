@@ -51,15 +51,15 @@ Rectangle {
                 id: idCbProduct
                 Layout.preferredHeight: 30
                 Layout.preferredWidth: 200
-                model: [qsTr("PERCHE IP68"), qsTr("ALTISCAN"), qsTr("ROVER"), qsTr("ROVER IP68"), //qsTr("ROVER CLEANER"),
-                    qsTr("UT POLE"), qsTr("PANDA Vol.3"), qsTr("MULTISCAN")]
+                model: [qsTr("UT POLE"), qsTr("ALTISCAN"), qsTr("ROVER"), qsTr("ROVER IP68"), //qsTr("ROVER CLEANER"),
+                    qsTr("PANDA Vol.3"), qsTr("MULTISCAN")]
                 property var ready : false
 
                 onCurrentIndexChanged: {
                     if( ready ) {
                         var computedIndex = currentIndex + 1;
                         if( computedIndex >= 5 ) {
-                            computedIndex += 1; // Rover cleaner has been removed from datascan but its product id still exists !
+                            computedIndex += 2; // Rover cleaner and panda v1 have been removed from datascan but its product id still exists !
                         }
                         if( currentVector.prodId !== (currentIndex+1) ) {
                             currentVector.setProdIdDeviceAd(currentIndex+1, 0 /*MPC*/); /// value in PROD_ID, start at 1 (0 = invalid)

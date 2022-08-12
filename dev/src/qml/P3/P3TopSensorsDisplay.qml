@@ -30,7 +30,8 @@ Rectangle {
             Layout.fillWidth: true
 
             Text {
-                text: qsTr("2 bar")
+                id: idPressureLabel
+                text: qsTr("Non connecté")
                 anchors.fill: parent
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
@@ -49,7 +50,8 @@ Rectangle {
             Layout.fillWidth: true
 
             Text {
-                text: qsTr("40 m")
+                id: idDepthLabel
+                text: qsTr("Non connecté")
                 anchors.fill: parent
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
@@ -67,7 +69,7 @@ Rectangle {
             font.pointSize: 12
             Layout.preferredHeight: 50
             onClicked: {
-                currentVector.funcPressureSensor0()
+                currentVector.funcPressureSensor0().calibrateDepth0();
             }
         }
 
@@ -86,7 +88,7 @@ Rectangle {
 
             Text {
                 id: idTemperatureLabel
-                text: qsTr("50 °C")
+                text: qsTr("Non connecté")
                 anchors.fill: parent
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
@@ -98,37 +100,6 @@ Rectangle {
 
         }
 
-        /*Rectangle {
-            id: idTemperatureGauge
-            visible: currentVector.funcTemperatureSensor0().isEnabled
-            Layout.fillWidth: true
-            Layout.columnSpan: 2
-            height: 50
-            border.color: "#000000"
-            border.width: 1
-
-            LinearGradient {
-                anchors.fill: parent
-                anchors.margins: 1
-                start: Qt.point(1, 1)
-                end: Qt.point(idTemperatureGauge.width - 1, 1)
-                gradient: Gradient {
-                    GradientStop { position: 0.0 ; color: "green" }
-                    GradientStop { position: 0.5 ; color: "#CAE400" }
-                    GradientStop { position: 0.75 ; color: "orange" }
-                    GradientStop { position: 1.0 ; color: "red" }
-                }
-            }
-
-            Rectangle {
-                id: idTemperatureCursor
-                width: 3
-                color: "black"
-                height: 50
-                x: parent.width * 0.5
-            }
-
-        }*/
 
         Text {
             text: qsTr("Humidité :")
@@ -145,7 +116,7 @@ Rectangle {
 
             Text {
                 id: idHumidityLabel
-                text: qsTr("30 %")
+                text: qsTr("Non connecté")
                 anchors.fill: parent
                 horizontalAlignment: Text.AlignHCenter
                 verticalAlignment: Text.AlignVCenter
@@ -157,52 +128,32 @@ Rectangle {
 
         }
 
-        /*Rectangle {
-            id: idHumidityGauge
-            visible: currentVector.funcHumiditySensor0().isEnabled
-            Layout.fillWidth: true
-            Layout.columnSpan: 2
-            height: 50
-            border.color: "#000000"
-            border.width: 1
-
-            LinearGradient {
-                anchors.fill: parent
-                anchors.margins: 1
-                start: Qt.point(1, 1)
-                end: Qt.point(idTemperatureGauge.width - 1, 1)
-                gradient: Gradient {
-                    GradientStop { position: 0.0 ; color: "green" }
-                    GradientStop { position: 0.5 ; color: "#CAE400" }
-                    GradientStop { position: 0.75 ; color: "orange" }
-                    GradientStop { position: 1.0 ; color: "red" }
-                }
+        Connections {
+            target: currentVector.funcPressureSensor0()
+            function onParamDPressureBChanged(pressure) {
+                idPressureLabel.text = (pressure / 1000.0) + " bar"
             }
+        }
 
-            Rectangle {
-                id: idHumidityCursor
-                width: 3
-                color: "black"
-                height: 50
-                x: parent.width * 0.3
+        Connections {
+            target: currentVector.funcPressureSensor0()
+            function onDepthStrValueChanged(depth) {
+                idDepthLabel.text = depth
             }
+        }
 
-        }*/
 
         Connections {
             target: currentVector.funcHumiditySensor0()
-            function onParamDHumidityCChanged(humidity) {
-                idHumidityLabel.text = humidity + " %"
-                //idHumidityCursor.x = idHumidityGauge.width * (humidity / 100)
+            function onEvUpdateHumidity(humidity) {
+                idHumidityLabel.text = (humidity / 10.0) + " %"
             }
         }
 
         Connections {
             target: currentVector.funcTemperatureSensor0()
-            function onParamDTemperatureCChanged(raw_temperature) {
-                var temperature = raw_temperature / 10
-                idTemperatureLabel.text = temperature + " °C"
-                //idTemperatureCursor.x = idTemperatureGauge.width * (temperature / 200)
+            function onEvUpdateTemperature(temperature) {
+                idTemperatureLabel.text = (temperature / 10.0) + " °C"
             }
         }
 
