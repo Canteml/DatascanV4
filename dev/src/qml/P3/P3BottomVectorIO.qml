@@ -55,7 +55,7 @@ Rectangle {
                 id: btPumpEnable
                 Layout.fillWidth: true
                 Layout.preferredHeight: 30
-                text: qsTr("POMPE 1 ") + currentVector.funcPump().paramLPumpLevel + " %"
+                text: qsTr("POMPE ") + currentVector.funcPump().paramLPumpLevel + " %"
 
                 checked: currentVector.funcPump().paramLPumpEnable
                 checkable: true
@@ -185,6 +185,19 @@ Rectangle {
             }
         }
 
+        Item {
+            // Spacer
+            Layout.fillHeight: true
+        }
+
+        Text {
+            text: qsTr("Nettoyage")
+            visible: currentVector.funcCleaning().isEnabled
+            Layout.fillWidth: true
+            font.pixelSize: 16
+            horizontalAlignment: Text.AlignHCenter
+        }
+
         RowLayout {
             visible: currentVector.funcCleaning().isEnabled
             Layout.preferredHeight: 30
@@ -279,7 +292,7 @@ Rectangle {
                 id: btCPumpEnable
                 Layout.fillWidth: true
                 Layout.preferredHeight: 30
-                text: qsTr("POMPE 2 ") + currentVector.funcCleaning().paramLPumpLevel + " %"
+                text: qsTr("POMPE ") + currentVector.funcCleaning().paramLPumpLevel + " %"
                 background: Rectangle {
                     color: (btCPumpEnable.pressed) ? Design.colButtonSelectedBackground : (btCPumpEnable.checked) ?  "#008800" : btCPumpEnable.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
                     border.width: 1
