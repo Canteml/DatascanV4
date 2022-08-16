@@ -31,6 +31,8 @@
         <file>P3/P3BottomPipeCtrl.qml</file>
         <file>P3/P3BottomPipeView.qml</file>
         <file>rp_components/PipeSensor.qml</file>
+        <file>CentralPage5.qml</file>
+        <file>LicenceWarning.qml</file>
         <file>P3/P3TopSensorsDisplay.qml</file>
         <file>P3/P3BottomMepView.qml</file>
     </qresource>

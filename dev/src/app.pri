@@ -20,7 +20,7 @@ DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs depr
 # -- SOURCES
 # MAIN
 SOURCES += $$files($$PWD/*.cpp)
-HEADERS +=  $$files($$PWD/*.h)
+HEADERS += $$files($$PWD/*.h)
 
 SOURCES += $$files($$PWD/scan/*.cpp)
 HEADERS += $$files($$PWD/scan/*.h)
@@ -36,6 +36,9 @@ HEADERS += $$files($$PWD/exam/*.h)
 
 SOURCES += $$files($$PWD/mep/*.cpp)
 HEADERS += $$files($$PWD/mep/*.h)
+
+SOURCES += $$files($$PWD/adapter/*.cpp)
+HEADERS += $$files($$PWD/adapter/*.h)
 
 # JK PLOTTER COMPONENTS
 SOURCES += $$files($$PWD/jkPlot/*.cpp)

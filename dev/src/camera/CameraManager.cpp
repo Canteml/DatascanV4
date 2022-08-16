@@ -395,8 +395,7 @@ void CameraManager::onVectorProductIdChanged(qint32 p_pid)
     }
 
     // enable / disable roles
-    if(p_pid == ProtMsg::PROD_ROVER || p_pid == ProtMsg::PROD_PANDA_VOL1
-            || p_pid == ProtMsg::PROD_PANDA_VOL3 || p_pid == ProtMsg::PROD_MULTISCAN ) {
+    if(p_pid == ProtMsg::PROD_ROVER || p_pid == ProtMsg::PROD_PANDA_VOL3 || p_pid == ProtMsg::PROD_MULTISCAN ) {
         m_aCameraRole[CameraRole::ROLE_ALARM]->setIsEnabled(true);
         slRoles.append(tr("Alarme"));
     } else {
