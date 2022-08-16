@@ -41,7 +41,6 @@
 #include "camera/CameraManager.h"
 #include "camera/Camera.h"
 #include "exam/ExamPipeManager.h"
-#include "licence/LicenceManager.h"
 #include "adapter/ClipboardAdapter.h"
 
 // -- Qt Includes
@@ -61,7 +60,6 @@ CoreApp::CoreApp() : CoreUiQml("CoreApp")
     m_pJoystickManager = nullptr;
     m_pCameraManager = nullptr;
     m_pExamPipeManager = nullptr;
-    m_pLicenceManager = nullptr;
 }
 
 
@@ -97,8 +95,6 @@ bool CoreApp::initApp()
     m_pExamManager = ExamManager::makeInstance();
     m_pGlobalManager = GlobalManager::makeInstance();
 
-    m_pLicenceManager = LicenceManager::makeInstance();
-
     // -- init my managers
     // example : m_pStatisticApp->initManager();
     m_pVectorManager->init();
@@ -109,7 +105,6 @@ bool CoreApp::initApp()
     m_pJoystickManager->start();
     m_pCameraManager->start();
     m_pExamPipeManager->init();
-    m_pLicenceManager->init();
 
     // -- load settings of my managers
     // example : bRet &= m_pStatisticApp->loadSettings();
@@ -180,8 +175,6 @@ void CoreApp::deleteApp()
     m_pCameraManager = nullptr;
     delete m_pExamPipeManager;
     m_pExamPipeManager = nullptr;
-    delete m_pLicenceManager;
-    m_pLicenceManager = nullptr;
 
     delete m_pClipboardAdapter;
     m_pClipboardAdapter = nullptr;
@@ -224,7 +217,6 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<CameraRole*>("CameraRole*");
     qRegisterMetaType<CameraVideo*>("CameraVideo*");
     qRegisterMetaType<ExamPipeManager*>("ExamPipeManager*");
-    qRegisterMetaType<LicenceManager*>("LicenceManager*");
     qRegisterMetaType<ClipboardAdapter*>("ClipboardAdapter*");
 
     // -- declare C++ components instanciated from QML
@@ -248,7 +240,6 @@ bool CoreApp::initQmlContext()
     m_pQmlApplicationEngine->rootContext()->setContextProperty("joystickManager", m_pJoystickManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("cameraManager", m_pCameraManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("examPipeManager", m_pExamPipeManager);
-    m_pQmlApplicationEngine->rootContext()->setContextProperty("licenceManager", m_pLicenceManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("clipboard", m_pClipboardAdapter);
 
     return true;
