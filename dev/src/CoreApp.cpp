@@ -33,11 +33,16 @@
 #include <v2/vector/VectorFuncLight.h>
 #include <v2/vector/VectorFuncBattery.h>
 #include <v2/vector/VectorFuncCleaning.h>
+#include <v2/vector/VectorFuncEndStop.h>
+#include <v2/vector/VectorFuncLicence.h>
+#include <v2/vector/VectorFuncCompass.h>
 #include "control/JoystickManager.h"
 #include <v2/vector/VectorFuncMove.h>
 #include "camera/CameraManager.h"
 #include "camera/Camera.h"
 #include "exam/ExamPipeManager.h"
+#include "licence/LicenceManager.h"
+#include "adapter/ClipboardAdapter.h"
 
 // -- Qt Includes
 #include <QQmlApplicationEngine>
@@ -56,6 +61,7 @@ CoreApp::CoreApp() : CoreUiQml("CoreApp")
     m_pJoystickManager = nullptr;
     m_pCameraManager = nullptr;
     m_pExamPipeManager = nullptr;
+    m_pLicenceManager = nullptr;
 }
 
 
@@ -89,7 +95,9 @@ bool CoreApp::initApp()
     m_pExamPipeManager = ExamPipeManager::makeInstance();
 
     m_pExamManager = ExamManager::makeInstance();
-    m_pGlobalManager = GlobalManager::makeInstance();    
+    m_pGlobalManager = GlobalManager::makeInstance();
+
+    m_pLicenceManager = LicenceManager::makeInstance();
 
     // -- init my managers
     // example : m_pStatisticApp->initManager();
@@ -101,12 +109,15 @@ bool CoreApp::initApp()
     m_pJoystickManager->start();
     m_pCameraManager->start();
     m_pExamPipeManager->init();
+    m_pLicenceManager->init();
 
     // -- load settings of my managers
     // example : bRet &= m_pStatisticApp->loadSettings();
     bRet &= m_pVectorManager->loadSettings();
     bRet &= m_pExamManager->loadSettings();
     bRet &= m_pCameraManager->loadSettings();
+
+    m_pClipboardAdapter = new ClipboardAdapter(this);
 
     return bRet;
 }
@@ -169,6 +180,11 @@ void CoreApp::deleteApp()
     m_pCameraManager = nullptr;
     delete m_pExamPipeManager;
     m_pExamPipeManager = nullptr;
+    delete m_pLicenceManager;
+    m_pLicenceManager = nullptr;
+
+    delete m_pClipboardAdapter;
+    m_pClipboardAdapter = nullptr;
 
     // -- core delete
     CoreUiQml::deleteApp();
@@ -199,12 +215,17 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<VectorFuncLight*>("VectorFuncLight*");
     qRegisterMetaType<VectorFuncBattery*>("VectorFuncBattery*");
     qRegisterMetaType<VectorFuncCleaning*>("VectorFuncCleaning*");
+    qRegisterMetaType<VectorFuncEndStop*>("VectorFuncEndStop");
+    qRegisterMetaType<VectorFuncLicence*>("VectorFuncLicence*");
+    qRegisterMetaType<VectorFuncCompass*>("VectorFuncCompass");
     qRegisterMetaType<JoystickManager*>("JoystickManager*");
     qRegisterMetaType<VectorFuncMove*>("VectorFuncMove*");
     qRegisterMetaType<CameraManager*>("CameraManager*");
     qRegisterMetaType<CameraRole*>("CameraRole*");
     qRegisterMetaType<CameraVideo*>("CameraVideo*");
     qRegisterMetaType<ExamPipeManager*>("ExamPipeManager*");
+    qRegisterMetaType<LicenceManager*>("LicenceManager*");
+    qRegisterMetaType<ClipboardAdapter*>("ClipboardAdapter*");
 
     // -- declare C++ components instanciated from QML
     // exemple : qmlRegisterType<AScan>("ascan", 1, 0, "AScanItem");
@@ -227,6 +248,8 @@ bool CoreApp::initQmlContext()
     m_pQmlApplicationEngine->rootContext()->setContextProperty("joystickManager", m_pJoystickManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("cameraManager", m_pCameraManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("examPipeManager", m_pExamPipeManager);
+    m_pQmlApplicationEngine->rootContext()->setContextProperty("licenceManager", m_pLicenceManager);
+    m_pQmlApplicationEngine->rootContext()->setContextProperty("clipboard", m_pClipboardAdapter);
 
     return true;
 }

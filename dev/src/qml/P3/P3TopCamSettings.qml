@@ -151,7 +151,7 @@ Rectangle {
                     }
 
                     contentItem: Text {
-                        text: qsTr("CAPTEURS")
+                        text: qsTr("ETAT")
                         font.pointSize: 12
                         font.bold: true
                         rotation: -90
