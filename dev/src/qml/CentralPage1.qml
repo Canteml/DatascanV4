@@ -61,13 +61,16 @@ Rectangle {
                         if( computedIndex >= 5 ) {
                             computedIndex += 2; // Rover cleaner and panda v1 have been removed from datascan but its product id still exists !
                         }
-                        if( currentVector.prodId !== (currentIndex+1) ) {
-                            currentVector.setProdIdDeviceAd(currentIndex+1, 0 /*MPC*/); /// value in PROD_ID, start at 1 (0 = invalid)
+                        if( currentVector.prodId !== (computedIndex) ) {
+                            currentVector.setProdIdDeviceAd(computedIndex, 0 /*MPC*/); /// value in PROD_ID, start at 1 (0 = invalid)
                         }
                     }
                 }
                 Component.onCompleted: {
                     currentIndex = currentVector.prodId - 1; /// value in PROD_ID, start at 1 (0 = invalid)
+                    if(currentIndex >= 5) {
+                        currentIndex -= 2
+                    }
                     ready = true;
                 }
             }

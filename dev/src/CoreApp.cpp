@@ -33,7 +33,9 @@
 #include <v2/vector/VectorFuncLight.h>
 #include <v2/vector/VectorFuncBattery.h>
 #include <v2/vector/VectorFuncCleaning.h>
+#include <v2/vector/VectorFuncEndStop.h>
 #include <v2/vector/VectorFuncLicence.h>
+#include <v2/vector/VectorFuncCompass.h>
 #include "control/JoystickManager.h"
 #include <v2/vector/VectorFuncMove.h>
 #include "camera/CameraManager.h"
@@ -213,7 +215,9 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<VectorFuncLight*>("VectorFuncLight*");
     qRegisterMetaType<VectorFuncBattery*>("VectorFuncBattery*");
     qRegisterMetaType<VectorFuncCleaning*>("VectorFuncCleaning*");
+    qRegisterMetaType<VectorFuncEndStop*>("VectorFuncEndStop");
     qRegisterMetaType<VectorFuncLicence*>("VectorFuncLicence*");
+    qRegisterMetaType<VectorFuncCompass*>("VectorFuncCompass");
     qRegisterMetaType<JoystickManager*>("JoystickManager*");
     qRegisterMetaType<VectorFuncMove*>("VectorFuncMove*");
     qRegisterMetaType<CameraManager*>("CameraManager*");
