@@ -69,6 +69,10 @@ Rectangle {
             }
         }
 
+        Item {
+            height: 20
+        }
+
         RowLayout {
             Layout.fillWidth: true
 
@@ -132,6 +136,10 @@ Rectangle {
                 }
             }
 
+        }
+
+        Item {
+            height: 20
         }
 
         RowLayout {
