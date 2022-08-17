@@ -12,6 +12,7 @@ RowLayout {
     Layout.preferredHeight: 70
 
     Rectangle {
+        id: idLicenceWarningBackground
         Layout.fillHeight: true
         Layout.fillWidth: true
         color: "red"
@@ -35,7 +36,19 @@ RowLayout {
     Connections {
         target: currentVector.funcLicence()
         function onParamDStatusLicencePChanged(status) {
-            idLicenceWarningBox.visible = status <= 20
+            if(status === 0) {
+                idLicenceWarningBox.visible = true
+                idLicenceWarningText.text = qsTr("Votre licence équipement d'utilisation épuisée ! L'export de CSV est désactivé. Merci de contacter ROBOPLANET pour la renouveller")
+                idLicenceWarningBackground.color = "red"
+                return
+            }
+            if(status <= 20) {
+                idLicenceWarningBox.visible = true
+                idLicenceWarningText.text = qsTr("Votre licence équipement d'utilisation est bientôt épuisée ! Merci de contacter ROBOPLANET pour la renouveller")
+                idLicenceWarningBackground.color = "orange"
+                return
+            }
+            idLicenceWarningBox.visible = false
         }
     }
 
