@@ -48,25 +48,6 @@ Rectangle {
                 Layout.fillWidth: true
             }
 
-            Connections {
-                target: currentVector.funcLicence()
-                function onParamDStatusLicencePChanged(status) {
-                    idRemainingLicenceLabel.text = status
-                }
-            }
-
-        }
-
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.leftMargin: 20
-
-            Button {
-                text: qsTr("Actualiser")
-                Layout.preferredHeight: 30
-                font.pixelSize: 14
-                onClicked: currentVector.funcLicence().askForStatusLicence()
-            }
         }
 
         Item {
@@ -125,7 +106,7 @@ Rectangle {
                 Layout.preferredHeight: 30
                 enabled: false
                 font.pixelSize: 14
-                onClicked: clipboard.setText(idEquipmentKeyDisplay.text)
+                onClicked: clipboard.text = idEquipmentKeyDisplay.text
             }
 
             Connections {
@@ -160,6 +141,7 @@ Rectangle {
             }
 
             TextField {
+                id: idNewLicenceKey
                 selectByMouse: true
                 Layout.fillWidth: true;
                 Layout.preferredHeight: 30
@@ -170,7 +152,33 @@ Rectangle {
                 text: qsTr("Utiliser la clé")
                 Layout.preferredHeight: 30
                 font.pixelSize: 14
+                onClicked: {
+                    currentVector.funcLicence().configureNewLicence(idNewLicenceKey.text)
+                }
             }
+        }
+
+        RowLayout {
+            Layout.margins: 50
+
+            Rectangle {
+                Layout.fillWidth: true
+                height: 60
+                color: "#E5E5E5"
+
+                Text {
+                    anchors.fill: parent
+                    text: qsTr("Ne pas éteindre l'équipement pendant tout le processus de mise à jour de la licence !")
+                    color: "black"
+                    font.bold: true
+                    font.pixelSize: 18
+                    wrapMode: Text.WordWrap
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+
+            }
+
         }
 
         Item {
