@@ -31,7 +31,8 @@ Rectangle {
 
                 Text {
                     id: idTemperatureLabel
-                    text: ""
+                    text: currentVector.funcTemperatureSensor0().hasReceivedMessage ?
+                              (currentVector.funcTemperatureSensor0().paramDTemperatureC / 10.0).toFixed(2) : ""
                     anchors.fill: parent
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -45,7 +46,9 @@ Rectangle {
             Rectangle {
                 id: idTemperatureColorIndicator
                 visible: currentVector.funcTemperatureSensor0().isEnabled
-                color: "#E5E5E5"
+                color: currentVector.funcTemperatureSensor0().hasReceivedMessage ?
+                           currentVector.funcTemperatureSensor0().paramDTemperatureC >= 750 ?
+                               "red" : "#E5E5E5" : "#E5E5E5"
                 border.color: "#E5E5E5"
                 border.width: 1
                 height: 30
@@ -66,7 +69,8 @@ Rectangle {
 
                 Text {
                     id: idHumidityLabel
-                    text: ""
+                    text: currentVector.funcHumiditySensor0().hasReceivedMessage ?
+                              (currentVector.funcHumiditySensor0().paramDHumidityC / 10.0).toFixed(2) : ""
                     anchors.fill: parent
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -81,7 +85,9 @@ Rectangle {
             Rectangle {
                 id: idHumidityColorIndicator
                 visible: currentVector.funcHumiditySensor0().isEnabled
-                color: "#E5E5E5"
+                color: currentVector.funcHumiditySensor0().hasReceivedMessage ?
+                           currentVector.funcHumiditySensor0().paramDHumidityC >= 650 ?
+                               "red" : "#E5E5E5" : "#E5E5E5"
                 border.color: "#E5E5E5"
                 border.width: 1
                 height: 30
@@ -102,7 +108,8 @@ Rectangle {
 
                 Text {
                     id: idPumpLabel
-                    text: "" //currentVector.funcPump().paramDTankLevel
+                    text: currentVector.funcPump().hasReceivedMessage ?
+                              currentVector.funcPump().paramDTankLevel : ""
                     anchors.fill: parent
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -117,7 +124,9 @@ Rectangle {
             Rectangle {
                 id: idPumpColorIndicator
                 visible: currentVector.funcPump().isEnabled
-                color: "#E5E5E5"
+                color: currentVector.funcPump().hasReceivedMessage ?
+                           currentVector.funcPump().paramDTankLevel > 15 ?
+                               "blue" : "#A0A0FF" : "#E5E5E5"
                 border.color: "#E5E5E5"
                 border.width: 1
                 height: 30
@@ -125,7 +134,9 @@ Rectangle {
             }
 
             Button {
+                id: idPumpTankButton
                 visible: currentVector.funcPump().isEnabled
+                enabled: currentVector.funcPump().hasReceivedMessage
                 text: "↑"
                 font.pointSize: 14
                 Layout.preferredHeight: 30
@@ -133,6 +144,18 @@ Rectangle {
                 onClicked: {
                     currentVector.funcPump().paramDTankLevel = 100
                 }
+                background: Rectangle {
+                    border.width: 1
+                    border.color: "black"
+                    color:  (idPumpTankButton.pressed) ? Design.colButtonSelectedBackground :
+                                (idPumpTankButton.hovered) ? Design.colButtonHoveredBackground :
+                                    Design.colButtonBackground
+                }
+                hoverEnabled: true
+                ToolTip.delay: 500
+                ToolTip.timeout: 5000
+                ToolTip.visible: hovered
+                ToolTip.text: qsTr("Remet le niveau du réservoir à 100%")
             }
 
             Text {
@@ -149,7 +172,8 @@ Rectangle {
 
                 Text {
                     id: idCleaningLabel
-                    text: ""
+                    text: currentVector.funcCleaning().hasReceivedMessage ?
+                              currentVector.funcCleaning().paramDTankLevel : ""
                     anchors.fill: parent
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -164,7 +188,9 @@ Rectangle {
             Rectangle {
                 id: idCleaningColorIndicator
                 visible: currentVector.funcCleaning().isEnabled
-                color: "#E5E5E5"
+                color: currentVector.funcCleaning().hasReceivedMessage ?
+                           currentVector.funcCleaning().paramDTankLevel > 15 ?
+                               "blue" : "#A0A0FF" : "#E5E5E5"
                 border.color: "#E5E5E5"
                 border.width: 1
                 height: 30
@@ -172,6 +198,7 @@ Rectangle {
             }
 
             Button {
+                id: idCleaningTankButton
                 visible: currentVector.funcCleaning().isEnabled
                 text: "↑"
                 font.pointSize: 14
@@ -179,6 +206,13 @@ Rectangle {
                 Layout.preferredWidth: 30
                 onClicked: {
                     currentVector.funcCleaning().paramDTankLevel = 100
+                }
+                background: Rectangle {
+                    border.width: 1
+                    border.color: "black"
+                    color:  (idCleaningTankButton.pressed) ? Design.colButtonSelectedBackground :
+                                (idCleaningTankButton.hovered) ? Design.colButtonHoveredBackground :
+                                    Design.colButtonBackground
                 }
             }
 
@@ -196,7 +230,8 @@ Rectangle {
 
                 Text {
                     id: idPressureLabel
-                    text: ""
+                    text: currentVector.funcPressureSensor0().hasReceivedMessage ?
+                              currentVector.funcPressureSensor0().paramDPressureB / 1000.0 : ""
                     anchors.fill: parent
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -208,7 +243,8 @@ Rectangle {
             }
 
             Text {
-                text: qsTr("↳ Hauteur (m) : ")
+                id: idDepthType
+                text: "↳ " + currentVector.funcPressureSensor0().depthType + " : "
                 visible: currentVector.funcPressureSensor0().isEnabled
                 color: "#555555"
                 font.pointSize: 12
@@ -222,7 +258,8 @@ Rectangle {
 
                 Text {
                     id: idDepthLabel
-                    text: ""
+                    text: currentVector.funcPressureSensor0().hasReceivedMessage ?
+                            currentVector.funcPressureSensor0().depthStrValue : ""
                     anchors.fill: parent
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -234,7 +271,9 @@ Rectangle {
             }
 
             Button {
+                id: idButtonTare
                 visible: currentVector.funcPressureSensor0().isEnabled
+                enabled: currentVector.funcPressureSensor0().hasReceivedMessage
                 text: qsTr("Tare")
                 font.pointSize: 12
                 Layout.preferredHeight: 65
@@ -245,6 +284,13 @@ Rectangle {
                 Layout.column: 2
                 onClicked: {
                     currentVector.funcPressureSensor0().calibrateDepth0();
+                }
+                background: Rectangle {
+                    border.width: 1
+                    border.color: "black"
+                    color:  (idButtonTare.pressed) ? Design.colButtonSelectedBackground :
+                                (idButtonTare.hovered) ? Design.colButtonHoveredBackground :
+                                    Design.colButtonBackground
                 }
             }
 
@@ -262,7 +308,8 @@ Rectangle {
 
                 Text {
                     id: idCompassLabel
-                    text: ""
+                    text: currentVector.funcCompass().hasReceivedMessage ?
+                              currentVector.funcCompass().paramDCompassDegr : ""
                     anchors.fill: parent
                     horizontalAlignment: Text.AlignHCenter
                     verticalAlignment: Text.AlignVCenter
@@ -278,66 +325,10 @@ Rectangle {
                 ToolTip.delay: 500
                 ToolTip.timeout: 5000
                 ToolTip.visible: idCompassTooltipArea.containsMouse
-                ToolTip.text: qsTr("Nord = 0 degrés ; Est = 90 degrés")
+                ToolTip.text: qsTr("Nord = 0° ; Est = 90° ; Sud = 180° ; Ouest = 270°")
 
                 height: 30
                 width: 90
-            }
-
-            Connections {
-                target: currentVector.funcTemperatureSensor0()
-                function onEvUpdateTemperature(raw_temperature) {
-                    var temperature = (raw_temperature / 10.0).toFixed(2)
-                    idTemperatureColorIndicator.color = (temperature < 75) ? "#E5E5E5" : "red"
-                    idTemperatureLabel.text = temperature + " °C"
-                }
-            }
-
-            Connections {
-                target: currentVector.funcHumiditySensor0()
-                function onEvUpdateHumidity(raw_humidity) {
-                    var humidity = (raw_humidity / 10.0).toFixed(2)
-                    idHumidityColorIndicator.color = (humidity < 65) ? "#E5E5E5" : "red"
-                    idHumidityLabel.text = humidity + " %"
-                }
-            }
-
-            Connections {
-                target: currentVector.funcPump()
-                function onEvUpdateTankLevel(tank_level) {
-                    idPumpLabel.text = tank_level
-                    idPumpColorIndicator.color = (tank_level > 15) ? "blue" : "#A0A0FF"
-                }
-            }
-
-            Connections {
-                target: currentVector.funcCleaning()
-                function onEvUpdateTankLevel(tank_level) {
-                    idCleaningLabel.text = tank_level
-                    idCleaningColorIndicator.color =(tank_level > 15) ? "blue" : "#A0A0FF"
-                }
-            }
-
-            Connections {
-                target: currentVector.funcPressureSensor0()
-                function onEvUpdatePressure(pressure) {
-                    idPressureLabel.text = (pressure / 1000.0) + " bar"
-                    idDepthLabel.text = currentVector.funcPressureSensor0().depthStrValue
-                }
-            }
-
-            Connections {
-                target: currentVector.funcPressureSensor0()
-                function onDepthStrValueChanged(depth) {
-                    idDepthLabel.text = depth
-                }
-            }
-
-            Connections {
-                target: currentVector.funcCompass()
-                function onEvUpdateCompass(orientation) {
-                    idCompassLabel.text = orientation
-                }
             }
 
             Item {
