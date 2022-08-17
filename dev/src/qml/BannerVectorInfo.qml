@@ -317,6 +317,34 @@ Rectangle {
                     }
                 }
 
+                Rectangle {
+                    // seaparator
+                    visible: currentVector.funcPressureSensor0().hasReceivedMessage
+                    width: 5
+                    Layout.fillHeight: true
+                    color: "#9C9B9B"
+                    Layout.topMargin: 5
+                    Layout.bottomMargin: 5
+                }
+
+                ColumnLayout {
+                    visible: currentVector.funcPressureSensor0().hasReceivedMessage
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 20
+                    spacing: 0
+
+                    Text {
+                        text: currentVector.funcPressureSensor0().depthType
+                        font.pointSize: 12
+                    }
+
+                    Text {
+                        text: currentVector.funcPressureSensor0().depthStrValue
+                        font.pointSize: 30
+                    }
+                }
+
                 Item {
                     id: itSpacerHorizontal
                     Layout.fillWidth: true
