@@ -68,7 +68,7 @@ Window  {
                 }
 
                 if(event.key === Qt.Key_Up) {
-                    verticallScrollbar.decrease()
+
                 }
             }
         }
@@ -90,6 +90,11 @@ Window  {
                 if (event.key === Qt.Key_Shift ) {
                     actMoveBoost = false;
                     event.accepted = false;
+                }
+
+                if( (event.key === Qt.Key_Return) && (examManager.controlType === 1) ) {
+                    if(currentVector.funcAScan0().hasReceivedMessage)
+                        examManager.startWaitingForMepAScan();
                 }
             }
         }

@@ -1,28 +1,82 @@
 #include "MepTableModel.h"
 
+#include <QObject>
+#include <v2/exam/ExamManager.h>
+#include <v2/scan/AScan.h>
+#include <v2/scan/MepMatrix.h>
+
+MepTableModel::MepTableModel(QObject *parent) : QAbstractTableModel{parent}
+{
+    m_examManager = ExamManager::getInstance();
+    connect(m_examManager, &ExamManager::evMepNbRowChanged, this, &MepTableModel::onLayoutChanged);
+    connect(m_examManager, &ExamManager::evMepNbColChanged, this, &MepTableModel::onLayoutChanged);
+    connect(m_examManager, &ExamManager::evMepIntervalXChanged, this, &MepTableModel::onLayoutChanged);
+    connect(m_examManager, &ExamManager::evMepIntervalYChanged, this, &MepTableModel::onLayoutChanged);
+    connect(m_examManager, &ExamManager::evMepNbColChanged, this, &MepTableModel::onLayoutChanged);
+    connect(m_examManager, &ExamManager::evMepUpdated, this, &MepTableModel::onDataChanged);
+}
+
+MepTableModel::~MepTableModel()
+{
+    m_examManager = nullptr;
+}
+
 int MepTableModel::rowCount(const QModelIndex &) const
 {
-    return 100;
+    return m_examManager->getMepNbRow();
 }
 
 int MepTableModel::columnCount(const QModelIndex &) const
 {
-    return 100;
+    return m_examManager->getMepNbCol();
 }
 
 QVariant MepTableModel::data(const QModelIndex &index, int role) const
 {
-    switch (role) {
-        case Qt::DisplayRole:
-            return QString("%1:%2").arg(index.column()).arg(index.row());
-        default:
-            break;
+    MepMatrix* pMatrix = m_examManager->getMepMatrix();
+    if(nullptr == pMatrix) {
+        return QString();
     }
+    AScan* pAScan = pMatrix->getAScanAt(index.row(), index.column());
+    if(nullptr == pAScan) {
+        return QString();
+    }
+    return QString::number(pAScan->getAScanMeasure()->m_thicknessMm1Echo, 'f', 1);
+}
 
-    return QVariant();
+QVariant MepTableModel::headerData(int p_i32Section, Qt::Orientation p_eOrientation, int p_i32Role) const
+{
+    if(Qt::Vertical == p_eOrientation) {
+        qreal begin = (m_examManager->getMepHeight() - (p_i32Section+1) * m_examManager->getMepIntervalY());
+        qreal end = begin + m_examManager->getMepIntervalY();
+        return QString::number(begin, 'f', 1) + QString(" → ") + QString::number(end, 'f', 1) + QString("m");
+    }
+    return QVariant(p_i32Section + 1);
+    /*QString qsLabel;
+    quint32 u32Index = (quint32) p_i32Section;
+    do {
+        quint32 base = 5;
+        quint8 toConvert = (u32Index % base) + 1;
+        quint8 toInsert = (char) (toConvert + 65);
+        qsLabel.insert(0, toInsert);
+        u32Index /= base;
+    } while(u32Index > 0);
+    return QVariant(qsLabel);*/
 }
 
 QHash<int, QByteArray> MepTableModel::roleNames() const
 {
     return { {Qt::DisplayRole, "display"} };
+}
+
+void MepTableModel::onLayoutChanged()
+{
+    emit layoutChanged();
+    emit headerDataChanged(Qt::Vertical, 0, m_examManager->getMepNbRow() - 1);
+    emit headerDataChanged(Qt::Horizontal, 0, m_examManager->getMepNbCol() - 1);
+}
+
+void MepTableModel::onDataChanged() {
+    emit layoutChanged();
+    emit dataChanged(index(0,0), index(m_examManager->getMepNbRow()-1, m_examManager->getMepNbCol()-1));
 }
