@@ -41,7 +41,7 @@ QVariant MepTableModel::data(const QModelIndex &index, int role) const
     if(nullptr == pAScan) {
         return QString();
     }
-    return QString::number(pAScan->getAScanMeasure()->m_thicknessMm1Echo, 'f', 1);
+    return QString::number(pAScan->getAScanMeasure()->m_thicknessMmMultiEcho, 'f', 1);
 }
 
 QVariant MepTableModel::headerData(int p_i32Section, Qt::Orientation p_eOrientation, int p_i32Role) const
@@ -51,17 +51,20 @@ QVariant MepTableModel::headerData(int p_i32Section, Qt::Orientation p_eOrientat
         qreal end = begin + m_examManager->getMepIntervalY();
         return QString::number(begin, 'f', 1) + QString(" → ") + QString::number(end, 'f', 1) + QString("m");
     }
-    return QVariant(p_i32Section + 1);
-    /*QString qsLabel;
+    //return QVariant(p_i32Section + 1);
+    QString qsLabel;
     quint32 u32Index = (quint32) p_i32Section;
-    do {
-        quint32 base = 5;
-        quint8 toConvert = (u32Index % base) + 1;
-        quint8 toInsert = (char) (toConvert + 65);
-        qsLabel.insert(0, toInsert);
+    quint32 base = 26;
+    if(u32Index < base) {
+        return QString((char) (u32Index + 'A'));
+    }
+    u32Index++;
+    while(u32Index > 0) {
+        u32Index--;
+        qsLabel = QString((char) (u32Index % base + 'A') ) + qsLabel;
         u32Index /= base;
-    } while(u32Index > 0);
-    return QVariant(qsLabel);*/
+    }
+    return QVariant(qsLabel);
 }
 
 QHash<int, QByteArray> MepTableModel::roleNames() const
