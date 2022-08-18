@@ -35,6 +35,7 @@
         <file>LicenceWarning.qml</file>
         <file>P3/P3TopSensorsDisplay.qml</file>
         <file>P3/P3BottomMepView.qml</file>
+        <file>P3/P3TopSettingsMep.qml</file>
     </qresource>
     <qresource prefix="/img">
         <file>logo.png</file>

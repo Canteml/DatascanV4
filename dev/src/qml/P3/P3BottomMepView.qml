@@ -10,13 +10,25 @@ Item {
     TableView {
         id: idMepTable
         anchors.fill: parent;
-        anchors.topMargin: 30
-        anchors.leftMargin: 30
+        anchors.topMargin: 35
+        anchors.leftMargin: 100
         clip: true
         boundsBehavior: Flickable.StopAtBounds
+        contentHeight: rows * 35
+        contentWidth: columns * 100
 
-        ScrollBar.vertical: ScrollBar { id: verticalScrollbar ; width: 15 }
-        ScrollBar.horizontal: ScrollBar { id: horizontalScrollbar ; height: 15 }
+        interactive: false
+
+        ScrollBar.vertical: ScrollBar {
+            id: verticalScrollbar
+            width: 15
+            policy: ScrollBar.AlwaysOn
+        }
+        ScrollBar.horizontal: ScrollBar {
+            id: horizontalScrollbar
+            height: 15
+            policy: ScrollBar.AlwaysOn
+        }
 
         model: MepTableModel {}
 
@@ -24,20 +36,28 @@ Item {
             property int thisRow: row
             property int thisColumn: column
             implicitWidth: 100
-            implicitHeight: 50
+            implicitHeight: 35
             border.width: 1
+
+            color: ( (thisRow == examManager.mepRow) && (thisColumn == examManager.mepCol) ) ? "#FFE46A" : "white"
 
             Text {
                 text: display
                 anchors.centerIn: parent
-                font.pointSize: 10
+                font.pointSize: 12
             }
 
             MouseArea {
+                acceptedButtons: Qt.RightButton | Qt.LeftButton
                 anchors.fill: parent
                 onClicked: {
-                    console.log(parent.thisRow)
-                    console.log(parent.thisColumn)
+                    if(mouse.button === Qt.RightButton) {
+                        examManager.removeMepAScan(parent.thisRow, parent.thisColumn)
+                        return;
+                    }
+                    examManager.mepCol = parent.thisColumn
+                    examManager.mepRow = parent.thisRow
+                    examManager.isMepAutoMode = false
                 }
             }
         }
@@ -49,12 +69,12 @@ Item {
         clip: true
         syncView: idMepTable
         anchors.left: idMepTable.left
-        height: 30
+        height: 35
         delegate: Rectangle {
             implicitWidth: 100
-            implicitHeight: 30
+            implicitHeight: 35
             border.width: 1
-            color: "#333333"
+            color: examManager.mepCol === column ? "#243178" : "#333333"
             Text {
                 text: display
                 anchors.centerIn: parent
@@ -69,12 +89,12 @@ Item {
         clip: true
         syncView: idMepTable
         anchors.top: idMepTable.top
-        width: 30
+        width: 100
         delegate: Rectangle {
-            implicitWidth: 30
-            implicitHeight: 50
+            implicitWidth: 100
+            implicitHeight: 35
             border.width: 1
-            color: "#333333"
+            color: examManager.mepRow === row ? "#243178" : "#333333"
             Text {
                 text: display
                 anchors.centerIn: parent
@@ -83,5 +103,19 @@ Item {
             }
         }
     }
+
+    /*Connections {
+        target: examManager
+        function onMepColChanged(col) {
+            idMepTable.contentX = col
+        }
+    }
+
+    Connections {
+        target: examManager
+        function onMepRowChanged(row) {
+
+        }
+    }*/
 
 }

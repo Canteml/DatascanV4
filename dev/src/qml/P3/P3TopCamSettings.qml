@@ -31,6 +31,7 @@ Rectangle {
             P3TopCam {}
             P3TopSettingsAscan {}
             P3TopSettingsBscan {}
+            P3TopSettingsMep {}
             P3TopSensorsDisplay {}
         }
 
@@ -136,6 +137,36 @@ Rectangle {
                 }
 
                 Button {
+                    id: idBtMepSettings
+                    Layout.fillHeight: true
+                    Layout.fillWidth: true
+                    visible: (examManager.controlType === 1) // CONTROL_BSCAN_MEP
+                    background: Rectangle {
+                        color: (idBtMepSettings.pressed
+                                || (idSlP4TopCamSettings.visible
+                                    && idSlP4TopCamSettings.currentIndex
+                                    == 3)) ? Design.colButtonSelectedBackground : idBtMepSettings.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                        //color: btBannerTitle.hovered ? "#9C9B9B" : "#FFFFFF"
+                        border.width: 1
+                        border.color: Design.colFrameBorder
+                    }
+
+                    contentItem: Text {
+                        text: qsTr("MEP")
+                        font.pointSize: 12
+                        font.bold: true
+                        rotation: -90
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    onPressed: {
+                        idSlP4TopCamSettings.currentIndex === 3 && idSlP4TopCamSettings.visible ? idSlP4TopCamSettings.visible = false : idSlP4TopCamSettings.visible = true;
+                        idSlP4TopCamSettings.currentIndex = 3;
+                    }
+                }
+
+                Button {
                     id: idBtSensorDisplay
                     Layout.fillHeight: true
                     Layout.fillWidth: true
@@ -144,7 +175,7 @@ Rectangle {
                         color: (idBtSensorDisplay.pressed
                                 || (idSlP4TopCamSettings.visible
                                     && idSlP4TopCamSettings.currentIndex
-                                    == 3)) ? Design.colButtonSelectedBackground : idBtSensorDisplay.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                                    == 4)) ? Design.colButtonSelectedBackground : idBtSensorDisplay.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
                         //color: btBannerTitle.hovered ? "#9C9B9B" : "#FFFFFF"
                         border.width: 1
                         border.color: Design.colFrameBorder
@@ -160,8 +191,8 @@ Rectangle {
                     }
 
                     onPressed: {
-                        idSlP4TopCamSettings.currentIndex === 3 && idSlP4TopCamSettings.visible ? idSlP4TopCamSettings.visible = false : idSlP4TopCamSettings.visible = true;
-                        idSlP4TopCamSettings.currentIndex = 3;
+                        idSlP4TopCamSettings.currentIndex === 4 && idSlP4TopCamSettings.visible ? idSlP4TopCamSettings.visible = false : idSlP4TopCamSettings.visible = true;
+                        idSlP4TopCamSettings.currentIndex = 4;
                     }
                 }
             }

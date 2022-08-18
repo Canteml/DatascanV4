@@ -14,7 +14,10 @@ Rectangle {
 
     property alias idBtPositionPlus: btPositionPlus
     property alias idBtPositionMinus: btPositionMinus
+    property alias idMepBtPositionPlus: mepBtPositionPlus
+    property alias idMepBtPositionMinus: mepBtPositionMinus
     property alias idLePosition: lePosition
+    property alias idMepLePosition: mepLePosition
     property alias btVectorConnection: btVectorConnection
 
     RowLayout {
@@ -360,6 +363,178 @@ Rectangle {
                 id: rowMep
                 Layout.fillHeight: true
                 Layout.fillWidth: true
+
+                Button {
+                    Layout.fillHeight: true
+                    Layout.margins: 10
+                    font.pointSize: 12
+                    enabled: currentVector.funcAScan0().hasReceivedMessage && !examManager.isMepAutoMode
+                    text: qsTr("Mesure manuelle")
+                    onPressed: {
+                        examManager.startWaitingForMepAScan()
+                    }
+                }
+
+                Switch {
+                    id: idMepAutoSwitch
+                    Layout.fillHeight: true
+                    enabled: currentVector.funcAScan0().hasReceivedMessage
+                    Layout.margins: 5
+                    checked: examManager.isMepAutoMode
+                    onClicked: {
+                        examManager.isMepAutoMode = !examManager.isMepAutoMode
+                    }
+                    font.pointSize: 12
+                    text: qsTr("Mode automatique")
+                    background: Rectangle {
+                        visible: currentVector.funcAScan0().hasReceivedMessage
+                        border.width: 3
+                        border.color: idMepAutoSwitch.checked ? "green" : "red"
+                        radius: 15
+                        SequentialAnimation on opacity {
+                            loops: Animation.Infinite
+                            running: !idMepAutoSwitch.checked
+                            PropertyAnimation { to: 0 ; duration: 500 }
+                            PropertyAnimation { to: 1.0 ; duration: 500 }
+                        }
+                        SequentialAnimation on opacity {
+                            loops: Animation.Infinite
+                            running: idMepAutoSwitch.checked
+                            PropertyAnimation { to: 0 ; duration: 2000 }
+                            PropertyAnimation { to: 1.0 ; duration: 2000 }
+                        }
+                    }
+                }
+
+                Button {
+                    id: btVectorMepDirection
+
+                    Layout.preferredWidth: idBannerVectorInfo.height
+                    Layout.preferredHeight: idBannerVectorInfo.height
+
+                    icon.source: currentVector.funcPosition().paramLVectorDirX === 0 ? "qrc:///img/icons/altiscan_up_up.png" : "qrc:///img/icons/altiscan_up_down.png"
+                    icon.width: idBannerVectorInfo.height
+                    icon.height: idBannerVectorInfo.height
+                    icon.color: "transparent"
+                    padding: 1
+
+                    background: Rectangle {
+                        color: "transparent"
+                    }
+
+                    onPressed: {
+                        var newDirection = 1 - currentVector.funcPosition().paramLVectorDirX;
+                        currentVector.funcPosition().paramLVectorDirX = newDirection;
+                        var maxRow = examManager.mepNbRow - 1;
+                        if( (newDirection === 0) && (examManager.mepRow === 0) ) {
+                            examManager.mepRow = examManager.mepNbRow - 1;
+                        } else if( (newDirection === 1) && (examManager.mepRow === maxRow) ) {
+                            examManager.mepRow = 0;
+                        }
+                    }
+
+                    ToolTip.delay: 500
+                    ToolTip.timeout: 5000
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("Direction du porteur, permet d'inverser son sens de progression.");
+                }
+
+                Rectangle {
+                    // separator
+                    width: 5
+                    Layout.fillHeight: true
+                    color: "#9C9B9B"
+                    Layout.topMargin: 5
+                    Layout.bottomMargin: 5
+                }
+
+                RowLayout {
+
+                    //Layout.fillHeight: true
+                    TextInput {
+                        id: mepLePosition
+                        Layout.minimumWidth: 120
+
+                        //Layout.fillHeight: true
+                        text: "12.34"
+                        font.family: "Helvetica"
+                        font.pixelSize: 48
+                        horizontalAlignment: Text.AlignRight
+                        color: "black"
+                        maximumLength: 5
+                        smooth: true
+                        validator: RegExpValidator {
+                            regExp: /^(?:[1-9]\d*|0)?(?:\.\d+)?$/
+                        }
+
+                        onAccepted: focus = false
+
+                        onFocusChanged: {
+                            if(!focus) {
+                                currentVector.funcPosition().setParamLBscanPosMmXFromString(text);
+                            }
+                        }
+                    }
+
+                    Item {
+                        id: mepItPosition
+                        Layout.fillHeight: true
+                        Layout.preferredWidth: 40
+
+                        Label {
+                            id: mepLbPositionDim
+                            anchors.fill: mepItPosition
+                            anchors.bottomMargin: 10
+                            text: "m"
+                            font.pixelSize: 36
+                            verticalAlignment: Text.AlignBottom
+                        }
+
+                        ColumnLayout {
+                            anchors.fill: mepItPosition
+                            anchors.topMargin: 5
+                            anchors.bottomMargin: 5
+                            spacing: 0
+
+                            visible: mepLePosition.focus | mepBtPositionPlus.focus | mepBtPositionPlus.focus
+
+                            Button {
+                                id: mepBtPositionPlus
+                                text: "+"
+                                font.pixelSize: 24
+                                //Layout.preferredWidth: lbPositionDim.width
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+
+                                background: Rectangle {
+                                    color: mepBtPositionPlus.pressed ? Design.colButtonSelectedBackground : mepBtPositionPlus.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                                    border.width: 1
+                                    border.color: "black"
+                                }
+
+                                onPressed: mepLePosition.focus = true
+
+                                //on: focus = false
+                            }
+                            Button {
+                                id: mepBtPositionMinus
+                                text: "-"
+                                font.pixelSize: 24
+                                //Layout.preferredWidth: lbPositionDim.width
+                                Layout.fillWidth: true
+                                Layout.fillHeight: true
+
+                                background: Rectangle {
+                                    color: mepBtPositionMinus.pressed ? Design.colButtonSelectedBackground : mepBtPositionMinus.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                                    border.width: 1
+                                    border.color: "black"
+                                }
+
+                                onPressed: mepLePosition.focus = true
+                            }
+                        }
+                    }
+                }
             }
 
             // --------------------------------------------------------------
@@ -719,6 +894,20 @@ Rectangle {
     }
 
     Connections {
+        target : idMepBtPositionPlus
+        function onPressed() {
+            currentVector.funcPosition().bscanPosMmXAddMm(10);
+        }
+    }
+
+    Connections {
+        target : idMepBtPositionMinus
+        function onPressed() {
+            currentVector.funcPosition().bscanPosMmXAddMm(-10);
+        }
+    }
+
+    Connections {
         target : currentVector
         function onEvFuncStateConnectionChanged() {
             if( 2 === currentVector.FuncStateConnection ) {
@@ -736,7 +925,8 @@ Rectangle {
     }
 
     function updateLePosition() {
-        idLePosition.text = currentVector.funcPosition().getBScanPosMeterWith2Decimals(); //(Math.round(currentVector.funcPosition().paramLBscanPosMmX/10)/100);
+        idLePosition.text = currentVector.funcPosition().getBScanPosMeterWith2Decimals();
+        idMepLePosition.text = currentVector.funcPosition().getBScanPosMeterWith2Decimals();//(Math.round(currentVector.funcPosition().paramLBscanPosMmX/10)/100);
     }
 
 }
