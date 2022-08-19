@@ -30,9 +30,13 @@ public slots:
 
     void onLayoutChanged();
     void onDataChanged();
+    void onHeaderDataChanged();
 
 protected:
 
     ExamManager *m_examManager;
+
+    quint32 m_u32NbCol;
+    quint32 m_u32NbRow;
 
 };
