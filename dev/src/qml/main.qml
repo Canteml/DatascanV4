@@ -67,10 +67,13 @@ Window  {
                     event.accepted = false;
                 }
 
-                if(event.key === Qt.Key_Up) {
-
-                }
             }
+
+            if(event.key === Qt.Key_Up) examManager.mepRow -= 1
+            if(event.key === Qt.Key_Down) examManager.mepRow += 1
+            if(event.key === Qt.Key_Left) examManager.mepCol -= 1
+            if(event.key === Qt.Key_Right) examManager.mepCol += 1
+
         }
 
         Keys.onReleased: {

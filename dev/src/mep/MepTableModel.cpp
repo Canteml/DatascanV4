@@ -10,8 +10,8 @@ MepTableModel::MepTableModel(QObject *parent) : QAbstractTableModel{parent}
     m_examManager = ExamManager::getInstance();
     connect(m_examManager, &ExamManager::evMepNbRowChanged, this, &MepTableModel::onLayoutChanged);
     connect(m_examManager, &ExamManager::evMepNbColChanged, this, &MepTableModel::onLayoutChanged);
-    connect(m_examManager, &ExamManager::evMepIntervalXChanged, this, &MepTableModel::onHeaderDataChanged);
-    connect(m_examManager, &ExamManager::evMepIntervalYChanged, this, &MepTableModel::onHeaderDataChanged);
+    connect(m_examManager, &ExamManager::evMepZoomChanged, this, &MepTableModel::onLayoutChanged);
+    connect(m_examManager, &ExamManager::evMepHeaderUpdated, this, &MepTableModel::onHeaderDataChanged);
     connect(m_examManager, &ExamManager::evMepUpdated, this, &MepTableModel::onDataChanged);
     onLayoutChanged();
 }
@@ -49,20 +49,29 @@ QVariant MepTableModel::headerData(int p_i32Section, Qt::Orientation p_eOrientat
     if(Qt::Vertical == p_eOrientation) {
         qreal begin = abs((m_examManager->getMepHeight() - (p_i32Section+1) * m_examManager->getMepIntervalY()));
         qreal end = begin + m_examManager->getMepIntervalY();
-        return QString::number(begin, 'f', 1) + QString(" → ") + QString::number(end, 'f', 1) + QString("m");
+        return  /*QString::number(p_i32Section) + QString(" : ") +*/
+                    QString::number(begin, 'f', 1) + QString(" → ") +
+                            QString::number(end, 'f', 1) + QString("m");
     }
     //return QVariant(p_i32Section + 1);
     QString qsLabel;
     quint32 u32Index = (quint32) p_i32Section;
     quint32 base = 26;
     if(u32Index < base) {
-        return QString((char) (u32Index + 'A'));
+        qsLabel = QString((char) (u32Index + 'A'));
+    } else {
+        u32Index++;
+        while(u32Index > 0) {
+            u32Index--;
+            qsLabel = QString((char) (u32Index % base + 'A') ) + qsLabel;
+            u32Index /= base;
+        }
     }
-    u32Index++;
-    while(u32Index > 0) {
-        u32Index--;
-        qsLabel = QString((char) (u32Index % base + 'A') ) + qsLabel;
-        u32Index /= base;
+    if(0 == m_examManager->getMepMatrix()->getColumnDirection(p_i32Section)) {
+        qsLabel += " ↑";
+
+    } else if(1 == m_examManager->getMepMatrix()->getColumnDirection(p_i32Section)){
+        qsLabel += " ↓";
     }
     return QVariant(qsLabel);
 }
