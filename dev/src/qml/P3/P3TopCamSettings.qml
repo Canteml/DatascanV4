@@ -199,6 +199,13 @@ Rectangle {
         }
     }
 
+    Connections {
+        target: examManager
+        function onControlTypeChanged() {
+            idSlP4TopCamSettings.currentIndex = 0
+        }
+    }
+
 //    Connections {
 //        target : currentVector
 //        function onHasCameraChanged() {

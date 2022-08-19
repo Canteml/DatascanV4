@@ -34,12 +34,22 @@ Item {
             visible: (idMepTable.contentHeight + idMepTable.headerHHeight > idMepView.height)
             width: 15
             policy: ScrollBar.AlwaysOn
+            contentItem: Rectangle {
+                color: "#E5E5E5"
+                radius: 30
+                border.width: 1
+            }
         }
         ScrollBar.horizontal: ScrollBar {
             id: horizontalScrollbar
             visible: (idMepTable.contentWidth + idMepTable.headerVWidth > idMepView.width)
             height: 15
             policy: ScrollBar.AlwaysOn
+            contentItem: Rectangle {
+                color: "#E5E5E5"
+                radius: 30
+                border.width: 1
+            }
         }
 
         model: MepTableModel {}

@@ -146,6 +146,7 @@ Rectangle {
                     Button {
                         text: qsTr("Supprimer")
                         font.pointSize: 12
+                        enabled : examManager.mepNbRow > 1
                         onPressed: {
                             examManager.removeCurrentMepRow()
                         }
@@ -160,6 +161,7 @@ Rectangle {
                     Button {
                         text: qsTr("Supprimer")
                         font.pointSize: 12
+                        enabled : examManager.mepNbCol > 1
                         onPressed: {
                             examManager.removeCurrentMepCol()
                         }
@@ -201,6 +203,11 @@ Rectangle {
                 Layout.fillHeight: true
                 Layout.fillWidth: true
 
+                Text {
+                    text: qsTr("Commentaire global sur l'acquisition :")
+                    font.pointSize: 12
+                }
+
                 ScrollView {
                     Layout.fillHeight: true
                     Layout.fillWidth: true
@@ -225,6 +232,11 @@ Rectangle {
                             font.pointSize: 12
                         }
                     }
+                }
+
+                Text {
+                    text: qsTr("Annotations de cellules :")
+                    font.pointSize: 12
                 }
 
                 ScrollView {

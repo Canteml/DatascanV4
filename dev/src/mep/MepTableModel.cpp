@@ -46,12 +46,15 @@ QVariant MepTableModel::data(const QModelIndex &index, int role) const
 
 QVariant MepTableModel::headerData(int p_i32Section, Qt::Orientation p_eOrientation, int p_i32Role) const
 {
+    if(nullptr == m_examManager->getMepMatrix()) {
+        return QString();
+    }
     if(Qt::Vertical == p_eOrientation) {
-        qreal begin = abs((m_examManager->getMepHeight() - (p_i32Section+1) * m_examManager->getMepIntervalY()));
-        qreal end = begin + m_examManager->getMepIntervalY();
-        return  /*QString::number(p_i32Section) + QString(" : ") +*/
-                    QString::number(begin, 'f', 1) + QString(" → ") +
-                            QString::number(end, 'f', 1) + QString("m");
+        qreal begin = abs((m_examManager->getMepHeight() - (p_i32Section) * m_examManager->getMepIntervalY()));
+        //qreal end = begin + m_examManager->getMepIntervalY();
+        return  QString::number(m_examManager->getMepNbRow() - 1 - p_i32Section) + QString(" | ") +
+                    QString::number(begin, 'f', 1) + QString("m")// + QString(" → ") +
+                            /*QString::number(end, 'f', 1) + QString("m")*/;
     }
     //return QVariant(p_i32Section + 1);
     QString qsLabel;
