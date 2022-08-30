@@ -1,6 +1,8 @@
 import QtQuick 2.4
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
+import QtQuick.Dialogs 1.3 as Std
+import Qt.labs.platform 1.1 as Platform
 import Design 1.0
 import QtMultimedia 5.15
 
@@ -535,6 +537,58 @@ Rectangle {
                         }
                     }
                 }
+
+                Button {
+                    id: idBtMepSave
+                    antialiasing: true
+
+                    background: Rectangle {
+                        color: idBtMepSave.pressed ? Design.colButtonSelectedBackground : idBtMepSave.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                        border.width: 1
+                        border.color: Design.colButtonBorder
+                        radius: 3
+                    }
+
+                    icon.source: "qrc:///img/icons/fileSave.png"
+                    icon.color: "transparent"
+                    icon.height: 22
+                    icon.width: 22
+                    padding: 1
+
+                    onPressed: {
+                        idFdMepExport.visible = true;
+                    }
+
+                    ToolTip.delay: 1000
+                    ToolTip.timeout: 5000
+                    ToolTip.visible: hovered
+                    ToolTip.text: qsTr("Sauvegarder l'examen en cours.")
+                }
+
+                Platform.FileDialog  {
+                    id: idFdMepExport
+                    title: qsTr("Enregistrement de l'examen ...")
+                    nameFilters: ["Excel (*.xlsx)"]
+                    fileMode : Platform.FileDialog.SaveFile
+                    property var retExport;
+
+                    folder: "file:///" + examManager.exportFolder
+                    onAccepted: {
+                        retExport = examPipeManager.exportExam(currentFile)
+                        if( retExport !== "" ) {
+                            idMsgError.visible = true
+                        }
+                    }
+                }
+
+                Std.MessageDialog {
+                    id: idMsgError
+                    icon: Std.StandardIcon.Critical
+                    title: qsTr("Erreur")
+                    text: qsTr("L'examen n'a pas pu être sauvegardé :\n" + idFdExamExport.retExport )
+                    standardButtons: Std.StandardButton.Ok
+                }
+
             }
 
             // --------------------------------------------------------------
