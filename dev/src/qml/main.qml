@@ -74,6 +74,10 @@ Window  {
             if(event.key === Qt.Key_Left) examManager.mepCol -= 1
             if(event.key === Qt.Key_Right) examManager.mepCol += 1
 
+            if(examManager.controlType === 1 &&
+                    ( event.key === Qt.Key_Up || event.key === Qt.Key_Down || event.key === Qt.Key_Left || event.key === Qt.Key_Right )
+              ) examManager.isMepAutoMode = false
+
         }
 
         Keys.onReleased: {
@@ -98,6 +102,10 @@ Window  {
                 if( (event.key === Qt.Key_Return) && (examManager.controlType === 1) ) {
                     if(currentVector.funcAScan0().hasReceivedMessage)
                         examManager.startWaitingForMepAScan();
+                }
+
+                if( (event.key === Qt.Key_O) && (examManager.controlType === 1) ) {
+                    examManager.isMepAutoMode = !examManager.isMepAutoMode
                 }
             }
         }

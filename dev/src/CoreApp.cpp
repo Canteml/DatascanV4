@@ -41,6 +41,7 @@
 #include "camera/CameraManager.h"
 #include "camera/Camera.h"
 #include "exam/ExamPipeManager.h"
+#include "exam/MepExporter.h"
 #include "adapter/ClipboardAdapter.h"
 
 // -- Qt Includes
@@ -60,6 +61,7 @@ CoreApp::CoreApp() : CoreUiQml("CoreApp")
     m_pJoystickManager = nullptr;
     m_pCameraManager = nullptr;
     m_pExamPipeManager = nullptr;
+    m_pMepExporter = nullptr;
 }
 
 
@@ -112,6 +114,7 @@ bool CoreApp::initApp()
     bRet &= m_pExamManager->loadSettings();
     bRet &= m_pCameraManager->loadSettings();
 
+    m_pMepExporter = new MepExporter();
     m_pClipboardAdapter = new ClipboardAdapter(this);
 
     return bRet;
@@ -176,6 +179,9 @@ void CoreApp::deleteApp()
     delete m_pExamPipeManager;
     m_pExamPipeManager = nullptr;
 
+    delete m_pMepExporter;
+    m_pMepExporter = nullptr;
+
     delete m_pClipboardAdapter;
     m_pClipboardAdapter = nullptr;
 
@@ -217,6 +223,7 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<CameraRole*>("CameraRole*");
     qRegisterMetaType<CameraVideo*>("CameraVideo*");
     qRegisterMetaType<ExamPipeManager*>("ExamPipeManager*");
+    qRegisterMetaType<MepExporter*>("MepExporter");
     qRegisterMetaType<ClipboardAdapter*>("ClipboardAdapter*");
 
     // -- declare C++ components instanciated from QML
@@ -240,6 +247,7 @@ bool CoreApp::initQmlContext()
     m_pQmlApplicationEngine->rootContext()->setContextProperty("joystickManager", m_pJoystickManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("cameraManager", m_pCameraManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("examPipeManager", m_pExamPipeManager);
+    m_pQmlApplicationEngine->rootContext()->setContextProperty("mepExporter", m_pMepExporter);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("clipboard", m_pClipboardAdapter);
 
     return true;

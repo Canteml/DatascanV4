@@ -20,7 +20,7 @@
 #include "xlsxworkbook.h"
 #include "xlsxcell.h"
 
-#define U32_MEP_TABLE_BEGIN_ROW ((quint32) 33)
+#define U32_MEP_TABLE_BEGIN_ROW ((quint32) 31)
 #define U32_MEP_TABLE_BEGIN_COL ((quint32) 1)
 
 MepExporter::MepExporter() : Loggable("MepExporter")
@@ -44,7 +44,9 @@ QString MepExporter::startExport(const QString &p_fileName)
     QXlsx::Format cellFormat;
     headerFormat.setPatternBackgroundColor(QColor("#BBBBBB"));
     headerFormat.setBorderStyle(QXlsx::Format::BorderThin);
+    headerFormat.setHorizontalAlignment(QXlsx::Format::AlignHCenter);
     cellFormat.setBorderStyle(QXlsx::Format::BorderThin);
+    cellFormat.setHorizontalAlignment(QXlsx::Format::AlignHCenter);
 
     if( !QFileInfo::exists(fileTemplate) ) {
         fLogError("Template file not found : " + fileTemplate);
@@ -56,12 +58,13 @@ QString MepExporter::startExport(const QString &p_fileName)
             sRet = tr("Erreur à l'ouverture de la base de données.");
         } else {
             // -- General Info
-            doc.write("C9", pExam->getMepBegin().toString("dd.MM.yyyy hh:mm:ss"));
-            doc.write("E16", pExam->getMepHeight());
-            doc.write("I16", pExam->getMepDiameter());
+            doc.write("C3", pExam->getStructName());
+            doc.write("C11", pExam->getMepBegin().toString("dd.MM.yyyy hh:mm:ss"));
+            doc.write("C6", QString::number(pExam->getMepHeight()) + "m");
+            doc.write("C5", QString::number(pExam->getMepDiameter()) + "m");
             QString prodName = ProtMsg::prodName(VectorManager::getInstance()->getVectorStd()->getProdId());
-            doc.write("I19", prodName);
-
+            doc.write("I16", prodName);
+            doc.write(U32_MEP_TABLE_BEGIN_ROW, U32_MEP_TABLE_BEGIN_COL, "", headerFormat);
             for(quint32 u32Row = 0 ; u32Row < mepSize.rows ; u32Row++) {
                 QString rowDistance = QString::number(abs((pExam->getMepHeight() - (u32Row) * pExam->getMepIntervalY()))) + tr("m");
                 quint32 rowY = U32_MEP_TABLE_BEGIN_ROW + u32Row + 1;
@@ -71,12 +74,17 @@ QString MepExporter::startExport(const QString &p_fileName)
                     if(0 == u32Row) { // Write header for first line
                         doc.write(U32_MEP_TABLE_BEGIN_ROW, colX, u32Col + 1, headerFormat);
                     }
-                    doc.write(rowY, colX, pMatrix->getAScanAt(u32Row, u32Col)->getAScanMeasure()->m_thicknessMm1Echo, cellFormat);
+                    AScan* cellAScan = pMatrix->getAScanAt(u32Row, u32Col);
+                    if(nullptr == cellAScan) {
+                        doc.write(rowY, colX, "-", cellFormat);
+                    } else {
+                        doc.write(rowY, colX, cellAScan->getAScanMeasure()->m_thicknessMm1Echo, cellFormat);
+                    }
                 }
             }
 
             // -- Write file :
-            QString fileName = p_fileName.right(p_fileName.length()-8); // remove "file:///" appenened by qml
+            QString fileName = p_fileName.right(p_fileName.length()-8); // remove "file:///" append by qml
             if( ".xlsx" != fileName.right(5) ) {
                 fileName.append(".xlsx");
             }

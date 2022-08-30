@@ -144,11 +144,30 @@ Rectangle {
                     }
 
                     Button {
-                        text: qsTr("Supprimer")
+                        id: removeRow
+                        text: confirmRemoveRow.visible? qsTr("Annuler") : qsTr("Supprimer")
+                        font.pointSize: 12
+                        enabled : examManager.mepNbRow > 1
+                        onPressed: {
+                            confirmRemoveRow.visible = !confirmRemoveRow.visible
+                        }
+                    }
+
+                    Button {
+                        id: confirmRemoveRow
+                        visible: false
+                        text: qsTr("Valider ?")
+                        palette.buttonText: "white"
                         font.pointSize: 12
                         enabled : examManager.mepNbRow > 1
                         onPressed: {
                             examManager.removeCurrentMepRow()
+                            confirmRemoveRow.visible = false
+                        }
+                        background: Rectangle {
+                            implicitWidth: 100
+                            implicitHeight: 40
+                            color: "red"
                         }
                     }
 
@@ -159,11 +178,30 @@ Rectangle {
                     }
 
                     Button {
-                        text: qsTr("Supprimer")
+                        id: removeCol
+                        text: confirmRemoveCol.visible? qsTr("Annuler") : qsTr("Supprimer")
+                        font.pointSize: 12
+                        enabled : examManager.mepNbCol > 1
+                        onPressed: {
+                            confirmRemoveCol.visible = !confirmRemoveCol.visible
+                        }
+                    }
+
+                    Button {
+                        id: confirmRemoveCol
+                        visible: false
+                        text: qsTr("Valider ?")
+                        palette.buttonText: "white"
                         font.pointSize: 12
                         enabled : examManager.mepNbCol > 1
                         onPressed: {
                             examManager.removeCurrentMepCol()
+                            confirmRemoveCol.visible = false
+                        }
+                        background: Rectangle {
+                            implicitWidth: 100
+                            implicitHeight: 40
+                            color: "red"
                         }
                     }
 

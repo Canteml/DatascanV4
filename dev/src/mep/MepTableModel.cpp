@@ -52,8 +52,8 @@ QVariant MepTableModel::headerData(int p_i32Section, Qt::Orientation p_eOrientat
     if(Qt::Vertical == p_eOrientation) {
         qreal begin = abs((m_examManager->getMepHeight() - (p_i32Section) * m_examManager->getMepIntervalY()));
         //qreal end = begin + m_examManager->getMepIntervalY();
-        return  QString::number(m_examManager->getMepNbRow() - 1 - p_i32Section) + QString(" | ") +
-                    QString::number(begin, 'f', 1) + QString("m")// + QString(" → ") +
+        return  QString::number(m_examManager->getMepNbRow() - p_i32Section)
+                //+ QString(" | ") + QString::number(begin, 'f', 1) + QString("m")// + QString(" → ") +
                             /*QString::number(end, 'f', 1) + QString("m")*/;
     }
     //return QVariant(p_i32Section + 1);

@@ -24,6 +24,7 @@ class JoystickManager;
 class CameraManager;
 class ExamPipeManager;
 class ClipboardAdapter;
+class MepExporter;
 
 class CoreApp : public CoreUiQml
 {
@@ -65,6 +66,8 @@ private :
     JoystickManager* m_pJoystickManager;
     CameraManager* m_pCameraManager;
     ExamPipeManager* m_pExamPipeManager;
+
+    MepExporter* m_pMepExporter;
 
     ClipboardAdapter* m_pClipboardAdapter;
 };
