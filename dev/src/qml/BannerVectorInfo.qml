@@ -538,10 +538,21 @@ Rectangle {
                     }
                 }
 
+                Rectangle {
+                    // separator
+                    width: 5
+                    Layout.fillHeight: true
+                    color: "#9C9B9B"
+                    Layout.topMargin: 5
+                    Layout.bottomMargin: 5
+                }
+
                 Button {
                     id: idBtMepSave
                     antialiasing: true
-
+                    Layout.fillHeight: true
+                    Layout.margins: 10
+                    Layout.preferredWidth: idBtMepSave.height
                     background: Rectangle {
                         color: idBtMepSave.pressed ? Design.colButtonSelectedBackground : idBtMepSave.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
                         border.width: 1
@@ -551,8 +562,8 @@ Rectangle {
 
                     icon.source: "qrc:///img/icons/fileSave.png"
                     icon.color: "transparent"
-                    icon.height: 22
-                    icon.width: 22
+                    icon.height: 30
+                    icon.width: 30
                     padding: 1
 
                     onPressed: {
@@ -574,7 +585,7 @@ Rectangle {
 
                     folder: "file:///" + examManager.exportFolder
                     onAccepted: {
-                        retExport = examPipeManager.exportExam(currentFile)
+                        retExport = mepExporter.startExport(currentFile)
                         if( retExport !== "" ) {
                             idMsgError.visible = true
                         }
@@ -585,7 +596,7 @@ Rectangle {
                     id: idMsgError
                     icon: Std.StandardIcon.Critical
                     title: qsTr("Erreur")
-                    text: qsTr("L'examen n'a pas pu être sauvegardé :\n" + idFdExamExport.retExport )
+                    text: qsTr("L'examen n'a pas pu être sauvegardé :\n" + idFdMepExport.retExport )
                     standardButtons: Std.StandardButton.Ok
                 }
 

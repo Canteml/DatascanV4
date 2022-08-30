@@ -13,7 +13,7 @@ Rectangle {
         anchors.margins: 5
 
         FormSection {
-            text: qsTr("Information sur l'ouvrage")
+            text: qsTr("Caractéristiques de la structure")
         }
 
         RowLayout {
@@ -36,12 +36,14 @@ Rectangle {
 
             Text {
                 text: qsTr("Nom de la Pièce :")
+                visible: examManager.controlType === 2 // Only for pipe
                 font.pixelSize: 14
                 Layout.leftMargin: 10
             }
 
             ComboBox {
                 id: idCbPiece
+                visible: examManager.controlType === 2 // Only for pipe
                 model: examManager.commonPieceNames
                 Layout.preferredHeight: 30
                 editable: true
@@ -95,7 +97,7 @@ Rectangle {
             Button {
                 id: idBtCtl0
                 Layout.preferredHeight: 50
-                text: qsTr("GENERATRICE\nBSCAN")
+                text: qsTr("CONTROLE\nBSCAN")
                 checked: examManager.controlType === 0
                 onClicked: {examManager.controlType = 0}
                 onCheckedChanged: {checked = (examManager.controlType === 0)}
@@ -107,7 +109,7 @@ Rectangle {
             Button {
                 id: idBtCtl1
                 Layout.preferredHeight: 50
-                text: qsTr("GENERATRICE\nMEP")
+                text: qsTr("CONTROLE\nMEP")
                 checked: examManager.controlType === 1
                 onClicked: {examManager.controlType = 1}
                 onCheckedChanged: {checked = (examManager.controlType === 1)}
@@ -234,10 +236,76 @@ Rectangle {
             ColumnLayout {
                 Layout.fillWidth: true
                 Layout.fillHeight: true
+
+                RowLayout {
+                    Layout.fillWidth: true
+
+                    Text {
+                        text: qsTr("Site :")
+                        font.pixelSize: 14
+                    }
+
+                    TextField {
+                        text: qsTr("")
+                        selectByMouse: true
+                        Layout.fillWidth: true;
+                        Layout.preferredHeight: 30
+                        //onTextChanged: {examManager.structName = text}
+                    }
+
+                    Text {
+                        text: qsTr("Secteur :")
+                        Layout.leftMargin: 10
+                        font.pixelSize: 14
+                    }
+
+                    TextField {
+                        text: qsTr("")
+                        selectByMouse: true
+                        Layout.fillWidth: true;
+                        Layout.preferredHeight: 30
+                        //onTextChanged: {examManager.structName = text}
+                    }
+
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+
+                    Text {
+                        text: qsTr("Origine :")
+                        font.pixelSize: 14
+                    }
+
+                    TextField {
+                        text: qsTr("")
+                        selectByMouse: true
+                        Layout.fillWidth: true;
+                        Layout.preferredHeight: 30
+                        //onTextChanged: {examManager.structName = text}
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+
+                    Text {
+                        text: qsTr("Activité :")
+                        Layout.leftMargin: 10
+                        font.pixelSize: 14
+                    }
+
+                    Switch {
+                        text: checked ? qsTr("Actif") : qsTr("Inactif")
+                        Layout.leftMargin: 10
+                        font.pixelSize: 14
+                    }
+                }
+
                 RowLayout {
                     Layout.fillWidth: true
                     Text {
-                        text: qsTr("■  Nombre de mesures sur la largeur :")+" "
+                        text: qsTr("■  Nombre de génératrices :")+" "
                     }
                     RpSpinBox {
                         id: idSbNbMesW
@@ -255,7 +323,7 @@ Rectangle {
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.leftMargin: 40
-                    Text {
+                    /*Text {
                         text: qsTr("Intervalle X (m) : ")
                         Layout.minimumWidth: 105
                     }
@@ -263,11 +331,11 @@ Rectangle {
                         text: examManager.mepIntervalX.toFixed(2)
                         font.bold: true
                         Layout.minimumWidth: 40
-                    }
+                    }*/
 
                     Text {
                         text: qsTr("Périmètre (m) : ")
-                        Layout.leftMargin: 10
+                        //Layout.leftMargin: 10
                     }
                     TextField {
                         id: idTxtPerimeterMep
@@ -321,7 +389,7 @@ Rectangle {
                 RowLayout {
                     Layout.fillWidth: true
                     Text {
-                        text: qsTr("■  Nombre de mesures sur la hauteur :")
+                        text: qsTr("■  Nombre de mesures par génératrice :")
                     }
                     RpSpinBox {
                         id: idSbNbMesH
@@ -343,6 +411,27 @@ Rectangle {
                         text: qsTr("Intervalle Y (m) : ")
                         Layout.minimumWidth: 105
                     }
+                    /*TextField {
+                        id: idTxtIntervalYMep
+                        Layout.preferredWidth: 80
+                        selectByMouse: true
+                        Layout.preferredHeight: 30
+                        validator: RegExpValidator {
+                            regExp: /([0-9]+(\.[0-9]+))/
+                        }
+                        onTextEdited: {examManager.mepIntervalY = parseFloat(idTxtIntervalYMep.text)}
+                        Connections {
+                            target : examManager
+                            function onMepIntervalYChanged() {
+                                if(!idTxtIntervalYMep.focus) {
+                                    idTxtIntervalYMep.text = examManager.mepIntervalY.toFixed(2)
+                                }
+                            }
+                        }
+                        Component.onCompleted: {
+                            idTxtIntervalYMep.text = examManager.mepIntervalY.toFixed(2)
+                        }
+                    }*/
                     Text {
                         text: examManager.mepIntervalY.toFixed(2)
                         font.bold: true
@@ -364,7 +453,7 @@ Rectangle {
                         onTextEdited: {examManager.mepHeight = parseFloat(idTxtHeightMep.text)}
                         Connections {
                             target : examManager
-                            function onMepPerimeterChanged() {
+                            function onMepHeightChanged() {
                                 if(!idTxtHeightMep.focus) {
                                     idTxtHeightMep.text = examManager.mepHeight.toFixed(2)
                                 }
