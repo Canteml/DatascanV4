@@ -5,7 +5,7 @@ import Design 1.0
 
 
 RowLayout {
-    visible: false
+    visible: currentVector.funcLicence().hasReceivedMessage && (currentVector.funcLicence().paramDStatusLicenceP <= 20)
     id: idLicenceWarningBox
     Layout.fillHeight: false
     Layout.fillWidth: true
@@ -15,13 +15,15 @@ RowLayout {
         id: idLicenceWarningBackground
         Layout.fillHeight: true
         Layout.fillWidth: true
-        color: "red"
+        color: currentVector.funcLicence().paramDStatusLicenceP === 0 ? "red" : "orange"
         border.width: 1
         border.color: "black"
 
         Text {
             id: idLicenceWarningText
-            text: qsTr("Votre licence équipement d'utilisation est bientôt épuisée ! Merci de contacter ROBOPLANET pour la renouveller")
+            text: currentVector.funcLicence().paramDStatusLicenceP === 0 ?
+                      qsTr("Votre licence équipement d'utilisation épuisée ! L'export de CSV est désactivé. Merci de contacter ROBOPLANET pour la renouveller") :
+                      qsTr("Votre licence équipement d'utilisation est bientôt épuisée ! Merci de contacter ROBOPLANET pour la renouveller")
             visible: currentVector.funcLicence().paramDStatusLicenceP <= 20
             font.bold: true
             horizontalAlignment: Text.AlignHCenter
@@ -30,25 +32,6 @@ RowLayout {
             wrapMode: Text.WordWrap
             font.pixelSize: 20
             color: "white"
-        }
-    }
-
-    Connections {
-        target: currentVector.funcLicence()
-        function onParamDStatusLicencePChanged(status) {
-            if(status === 0) {
-                idLicenceWarningBox.visible = true
-                idLicenceWarningText.text = qsTr("Votre licence équipement d'utilisation épuisée ! L'export de CSV est désactivé. Merci de contacter ROBOPLANET pour la renouveller")
-                idLicenceWarningBackground.color = "red"
-                return
-            }
-            if(status <= 20) {
-                idLicenceWarningBox.visible = true
-                idLicenceWarningText.text = qsTr("Votre licence équipement d'utilisation est bientôt épuisée ! Merci de contacter ROBOPLANET pour la renouveller")
-                idLicenceWarningBackground.color = "orange"
-                return
-            }
-            idLicenceWarningBox.visible = false
         }
     }
 
