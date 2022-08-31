@@ -94,24 +94,24 @@ QString MepExporter::startExport(const QString &p_fileName)
                     QXlsx::CellReference refTop(i32TopCellY, U32_MEP_TABLE_BEGIN_COL);
                     QXlsx::CellReference refBottom(i32BottomCellY, U32_MEP_TABLE_BEGIN_COL);
                     QXlsx::CellRange mergeRange(refTop, refBottom);
-                    doc.mergeCells(mergeRange);
-                    doc.write(refTop, tr("Virole ") + QString::number(viroleIndex));
+                    doc.mergeCells(mergeRange, headerFormat);
+                    doc.write(refTop, tr("Virole ") + QString::number(viroleIndex), headerFormat);
                     i32BottomCellY = i32TopCellY - 1;
                     viroleIndex++;
                 }
             }
 
             doc.write(U32_MEP_TABLE_BEGIN_ROW, U32_MEP_TABLE_BEGIN_COL + virolePadding, "Indice", headerFormat);
-            doc.write(U32_MEP_TABLE_BEGIN_ROW, U32_MEP_TABLE_BEGIN_COL + virolePadding + 1, "Distance", headerFormat);
+            //doc.write(U32_MEP_TABLE_BEGIN_ROW, U32_MEP_TABLE_BEGIN_COL + virolePadding + 1, "Distance", headerFormat);
 
             for(quint32 u32Row = 0 ; u32Row < mepSize.rows ; u32Row++) {
-                QString rowDistance = QString::number(abs((pExam->getMepHeight() - (u32Row) * pExam->getMepIntervalY())),'f',2) + tr("m");
+                //QString rowDistance = QString::number(abs((pExam->getMepHeight() - (u32Row) * pExam->getMepIntervalY())),'f',2) + tr("m");
                 quint32 rowY = U32_MEP_TABLE_BEGIN_ROW + u32Row + 1;
                 doc.write(rowY, U32_MEP_TABLE_BEGIN_COL + virolePadding, pExam->getMepNbRow() - u32Row, headerFormat);
-                doc.write(rowY, U32_MEP_TABLE_BEGIN_COL + virolePadding + 1, rowDistance, headerFormat);
+                //doc.write(rowY, U32_MEP_TABLE_BEGIN_COL + virolePadding + 1, rowDistance, headerFormat);
                 for(quint32 u32Col = 0 ; u32Col < mepSize.columns ; u32Col++) {
 
-                    quint32 colX = U32_MEP_TABLE_BEGIN_COL + u32Col + virolePadding + 2;
+                    quint32 colX = U32_MEP_TABLE_BEGIN_COL + u32Col + virolePadding + 1;
                     if(0 == u32Row) { // Write header for first line
                         doc.write(U32_MEP_TABLE_BEGIN_ROW, colX, MepTableModel::getColumnLabel(u32Col), headerFormat);
                     }
