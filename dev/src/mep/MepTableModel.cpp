@@ -11,6 +11,7 @@ MepTableModel::MepTableModel(QObject *parent) : QAbstractTableModel{parent}
     connect(m_examManager, &ExamManager::evMepNbRowChanged, this, &MepTableModel::onLayoutChanged);
     connect(m_examManager, &ExamManager::evMepNbColChanged, this, &MepTableModel::onLayoutChanged);
     connect(m_examManager, &ExamManager::evMepZoomChanged, this, &MepTableModel::onLayoutChanged);
+    connect(m_examManager, &ExamManager::evMepVirolesEnabledChanged, this, &MepTableModel::onLayoutChanged);
     connect(m_examManager, &ExamManager::evMepHeaderUpdated, this, &MepTableModel::onHeaderDataChanged);
     connect(m_examManager, &ExamManager::evMepUpdated, this, &MepTableModel::onDataChanged);
     onLayoutChanged();
@@ -57,6 +58,16 @@ QVariant MepTableModel::headerData(int p_i32Section, Qt::Orientation p_eOrientat
                             /*QString::number(end, 'f', 1) + QString("m")*/;
     }
     //return QVariant(p_i32Section + 1);
+    return QVariant(MepTableModel::getColumnLabel(p_i32Section));
+}
+
+QHash<int, QByteArray> MepTableModel::roleNames() const
+{
+    return { {Qt::DisplayRole, "display"} };
+}
+
+QString MepTableModel::getColumnLabel(const quint32 p_i32Section)
+{
     QString qsLabel;
     quint32 u32Index = (quint32) p_i32Section;
     quint32 base = 26;
@@ -70,18 +81,13 @@ QVariant MepTableModel::headerData(int p_i32Section, Qt::Orientation p_eOrientat
             u32Index /= base;
         }
     }
-    if(0 == m_examManager->getMepMatrix()->getColumnDirection(p_i32Section)) {
+    if(0 == ExamManager::getInstance()->getMepMatrix()->getColumnDirection(p_i32Section)) {
         qsLabel += " ↑";
 
-    } else if(1 == m_examManager->getMepMatrix()->getColumnDirection(p_i32Section)){
+    } else if(1 == ExamManager::getInstance()->getMepMatrix()->getColumnDirection(p_i32Section)){
         qsLabel += " ↓";
     }
-    return QVariant(qsLabel);
-}
-
-QHash<int, QByteArray> MepTableModel::roleNames() const
-{
-    return { {Qt::DisplayRole, "display"} };
+    return qsLabel;
 }
 
 void MepTableModel::onLayoutChanged()
@@ -103,4 +109,34 @@ void MepTableModel::onHeaderDataChanged()
 {
     emit headerDataChanged(Qt::Vertical, 0, m_u32NbRow - 1);
     emit headerDataChanged(Qt::Horizontal, 0, m_u32NbCol - 1);
+}
+
+MepVirolesHeaderModel::MepVirolesHeaderModel(QObject *parent) : MepTableModel{parent}
+{
+    connect(m_examManager, &ExamManager::evMeasuresPerViroleChanged, this, &MepVirolesHeaderModel::onHeaderDataChanged);
+}
+
+MepVirolesHeaderModel::~MepVirolesHeaderModel()
+{
+    m_examManager = nullptr;
+}
+
+QVariant MepVirolesHeaderModel::headerData(int p_i32Section, Qt::Orientation p_eOrientation, int p_i32Role) const
+{
+    if(Qt::Horizontal == p_eOrientation) return QVariant();
+    quint32 u32Virole = (m_examManager->getMepNbRow() - 1 - p_i32Section) / m_examManager->getMeasuresPerVirole() + 1;
+    quint32 u32Index = (m_examManager->getMepNbRow() - 1 - p_i32Section) % m_examManager->getMeasuresPerVirole();
+    if(u32Index == 1) {
+        return tr("Virole");
+    } else if(u32Index == 0) {
+        return QString::number(u32Virole);
+    }
+    else {
+        return QString();
+    }
+}
+
+void MepVirolesHeaderModel::onHeaderDataChanged()
+{
+    emit headerDataChanged(Qt::Horizontal, 0, m_examManager->getMepNbRow() - 1);
 }

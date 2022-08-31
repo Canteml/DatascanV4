@@ -31,6 +31,9 @@ Rectangle {
                 Layout.fillWidth: true;
                 Layout.preferredHeight: 30
                 onTextChanged: {examManager.structName = text}
+                Keys.onReturnPressed: {
+                    console.log("Captured !")
+                }
 
             }
 
@@ -86,8 +89,77 @@ Rectangle {
             }
         }
 
-        FormSection {
-            text: qsTr("Plan de contrôle")
+        RowLayout {
+            Layout.leftMargin: 15
+            Layout.fillWidth: true
+
+            Text {
+                text: qsTr("Site :")
+                font.pixelSize: 14
+            }
+
+            TextField {
+                text: examManager.siteName
+                selectByMouse: true
+                Layout.fillWidth: true;
+                Layout.preferredHeight: 30
+                onTextChanged: {examManager.siteName = text}
+            }
+
+            Text {
+                text: qsTr("Secteur :")
+                Layout.leftMargin: 10
+                font.pixelSize: 14
+            }
+
+            TextField {
+                text: examManager.sectorName
+                selectByMouse: true
+                Layout.fillWidth: true;
+                Layout.preferredHeight: 30
+                onTextChanged: {examManager.sectorName = text}
+            }
+
+        }
+
+        RowLayout {
+            Layout.leftMargin: 15
+            Layout.fillWidth: true
+
+            Text {
+                text: qsTr("Origine :")
+                font.pixelSize: 14
+            }
+
+            TextField {
+                text: examManager.examOrigin
+                selectByMouse: true
+                Layout.fillWidth: true;
+                Layout.preferredHeight: 30
+                onTextChanged: {examManager.examOrigin = text}
+            }
+        }
+
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.leftMargin: 15
+
+            Text {
+                text: qsTr("Activité :")
+                font.pixelSize: 14
+            }
+
+            Switch {
+                text: checked ? qsTr("En service") : qsTr("Hors service")
+                Layout.leftMargin: 10
+                font.pixelSize: 14
+                onCheckedChanged: {
+                    examManager.structureActive = checked
+                }
+                Component.onCompleted: {
+                    checked = examManager.structureActive
+                }
+            }
         }
 
         RowLayout {
@@ -130,6 +202,10 @@ Rectangle {
                     function onControlTypeChanged() {idBtCtl2.checked = (examManager.controlType === 2)}
                 }
             }
+        }
+
+        FormSection {
+            text: qsTr("Plan de contrôle")
         }
 
         StackLayout {
@@ -241,64 +317,61 @@ Rectangle {
                     Layout.fillWidth: true
 
                     Text {
-                        text: qsTr("Site :")
-                        font.pixelSize: 14
-                    }
-
-                    TextField {
-                        text: qsTr("")
-                        selectByMouse: true
-                        Layout.fillWidth: true;
-                        Layout.preferredHeight: 30
-                        //onTextChanged: {examManager.structName = text}
-                    }
-
-                    Text {
-                        text: qsTr("Secteur :")
-                        Layout.leftMargin: 10
-                        font.pixelSize: 14
-                    }
-
-                    TextField {
-                        text: qsTr("")
-                        selectByMouse: true
-                        Layout.fillWidth: true;
-                        Layout.preferredHeight: 30
-                        //onTextChanged: {examManager.structName = text}
-                    }
-
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-
-                    Text {
-                        text: qsTr("Origine :")
-                        font.pixelSize: 14
-                    }
-
-                    TextField {
-                        text: qsTr("")
-                        selectByMouse: true
-                        Layout.fillWidth: true;
-                        Layout.preferredHeight: 30
-                        //onTextChanged: {examManager.structName = text}
-                    }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-
-                    Text {
-                        text: qsTr("Activité :")
-                        Layout.leftMargin: 10
+                        text: qsTr("Découper en viroles :")
                         font.pixelSize: 14
                     }
 
                     Switch {
-                        text: checked ? qsTr("Actif") : qsTr("Inactif")
+                        id: idEnableViroles
+                        text: checked ? qsTr("Oui") : qsTr("Non")
                         Layout.leftMargin: 10
                         font.pixelSize: 14
+                        onCheckedChanged: {
+                            examManager.virolesEnabled = checked
+                        }
+                        Component.onCompleted: {
+                            checked = examManager.virolesEnabled
+                        }
+                    }
+                }
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    visible: examManager.virolesEnabled
+
+                    Text {
+                        text: qsTr("Nombre de mesures par virole :")
+                        Layout.leftMargin: 10
+                        font.pixelSize: 14
+                    }
+
+                    RpSpinBox {
+                        id: idPerVirole
+                        from: 1
+                        to: 1000
+                        value: examManager.measuresPerVirole
+                        onValueChanged: {
+                            examManager.measuresPerVirole = idPerVirole.value
+                        }
+                    }
+
+                    Text {
+                        text: qsTr("Nombre de viroles par génératrice :")
+                        Layout.leftMargin: 10
+                        font.pixelSize: 14
+                    }
+
+                    RpSpinBox {
+                        id: idNbViroles
+                        from: 1
+                        to: 1000
+                        Component.onCompleted: {
+                            idNbViroles.value = examManager.mepNbRow / examManager.measuresPerVirole
+                        }
+                        onVisibleChanged: {
+                            if(!idNbViroles.visible) return
+                            idNbViroles.value = examManager.mepNbRow / examManager.measuresPerVirole
+                        }
                     }
                 }
 
@@ -393,10 +466,13 @@ Rectangle {
                     }
                     RpSpinBox {
                         id: idSbNbMesH
+                        enabled: !examManager.virolesEnabled
                         from: 1
                         to: 1000
-                        value: examManager.mepNbRow
-                        onValueChanged: { examManager.mepNbRow = idSbNbMesH.value; }
+                        value: (!idNbViroles.visible) ? examManager.mepNbRow : examManager.measuresPerVirole * idNbViroles.value
+                        onValueChanged: {
+                            examManager.mepNbRow = idSbNbMesH.value
+                        }
                     }
 
                     Item {

@@ -269,6 +269,10 @@ Rectangle {
                             horizontalAlignment: Text.AlignHCenter
                             font.pointSize: 12
                         }
+
+                        onTextChanged: {
+                            examManager.examComment = text
+                        }
                     }
                 }
 
@@ -299,6 +303,10 @@ Rectangle {
                             verticalAlignment: Text.AlignVCenter
                             horizontalAlignment: Text.AlignHCenter
                             font.pointSize: 12
+                        }
+
+                        onTextChanged: {
+                            examManager.cellsAnnotations = text
                         }
                     }
                 }
