@@ -35,7 +35,7 @@ Rectangle {
 
             Text {
                 id: idRemainingLicenceLabel
-                text: currentVector.funcLicence().paramDStatusLicenceP
+                text: currentVector.funcLicence().hasReceivedMessage ? currentVector.funcLicence().paramDStatusLicenceP : ""
                 font.pixelSize: 14
             }
 
