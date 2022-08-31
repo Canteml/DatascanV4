@@ -119,7 +119,7 @@ QString MepExporter::startExport(const QString &p_fileName)
                     if(nullptr == cellAScan) {
                         doc.write(rowY, colX, "-", cellFormat);
                     } else {
-                        doc.write(rowY, colX, cellAScan->getAScanMeasure()->m_thicknessMm1Echo, cellFormat);
+                        doc.write(rowY, colX, QString::number(cellAScan->getAScanMeasure()->m_thicknessMmMultiEcho,'f',1), cellFormat);
                     }
 
                 }
