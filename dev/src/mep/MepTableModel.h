@@ -26,6 +26,8 @@ public:
 
     QHash<int, QByteArray> roleNames() const override;
 
+    static QString getColumnLabel(const quint32 p_i32Section);
+
 public slots:
 
     void onLayoutChanged();
@@ -39,4 +41,21 @@ protected:
     quint32 m_u32NbCol;
     quint32 m_u32NbRow;
 
+};
+
+class MepVirolesHeaderModel : public MepTableModel
+{
+    Q_OBJECT
+    QML_ELEMENT
+
+public:
+
+    explicit MepVirolesHeaderModel(QObject *parent = nullptr);
+    ~MepVirolesHeaderModel();
+
+    QVariant headerData(int p_i32Section, Qt::Orientation p_eOrientation, int p_i32Role = Qt::DisplayRole) const override;
+
+public slots:
+
+    void onHeaderDataChanged();
 };

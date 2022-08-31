@@ -20,7 +20,9 @@
 #include "xlsxworkbook.h"
 #include "xlsxcell.h"
 
-#define U32_MEP_TABLE_BEGIN_ROW ((quint32) 31)
+#include "mep/MepTableModel.h"
+
+#define U32_MEP_TABLE_BEGIN_ROW ((quint32) 48)
 #define U32_MEP_TABLE_BEGIN_COL ((quint32) 1)
 
 MepExporter::MepExporter() : Loggable("MepExporter")
@@ -57,22 +59,61 @@ QString MepExporter::startExport(const QString &p_fileName)
             fLogError("Fail to open template : " + fileTemplate);
             sRet = tr("Erreur à l'ouverture de la base de données.");
         } else {
+
             // -- General Info
-            doc.write("C3", pExam->getStructName());
-            doc.write("C11", pExam->getMepBegin().toString("dd.MM.yyyy hh:mm:ss"));
-            doc.write("C6", QString::number(pExam->getMepHeight()) + "m");
-            doc.write("C5", QString::number(pExam->getMepDiameter()) + "m");
+            doc.write("C14", pExam->getSiteName());
+            doc.write("C15", pExam->getSectorName());
+            doc.write("C16", pExam->getStructName());
+            doc.write("C16", pExam->getStructName());
+            doc.write("C28", pExam->getMepBegin().toString("dd.MM.yyyy hh:mm:ss"));
+            doc.write("C20", QString::number(pExam->getMepHeight()) + "m");
+            doc.write("C18", QString::number(pExam->getMepDiameter()) + "m");
+            doc.write("C17", pExam->isStructureActive() ? "En service" : "Hors service");
+            doc.write("C29", pExam->getExamComment());
+
+            if(pExam->getMepVirolesEnabled()) {
+                doc.write("C21", QString::number(pExam->getMepNbRow() / pExam->getMeasuresPerVirole()));
+                doc.write("C46", QString::number(pExam->getMeasuresPerVirole()) + tr(" points par virole"));
+            } else {
+                doc.write("C46", QString::number(pExam->getMepNbRow()) + tr(" points par génératrice"));
+            }
+
             QString prodName = ProtMsg::prodName(VectorManager::getInstance()->getVectorStd()->getProdId());
-            doc.write("I16", prodName);
-            doc.write(U32_MEP_TABLE_BEGIN_ROW, U32_MEP_TABLE_BEGIN_COL, "", headerFormat);
+            doc.write("I32", prodName);
+            doc.write("C45", pExam->getExamOrigin());
+
+            // -- Table
+            quint32 virolePadding = 0;
+            if(pExam->getMepVirolesEnabled()) {
+                virolePadding = 1;
+                doc.write(U32_MEP_TABLE_BEGIN_ROW, U32_MEP_TABLE_BEGIN_COL, "Virole", headerFormat);
+                qint32 i32BottomCellY = mepSize.rows + U32_MEP_TABLE_BEGIN_ROW;
+                quint32 viroleIndex = 1;
+                while(i32BottomCellY > U32_MEP_TABLE_BEGIN_ROW + 1) {
+                    qint32 i32TopCellY = i32BottomCellY - pExam->getMeasuresPerVirole() + 1;
+                    QXlsx::CellReference refTop(i32TopCellY, U32_MEP_TABLE_BEGIN_COL);
+                    QXlsx::CellReference refBottom(i32BottomCellY, U32_MEP_TABLE_BEGIN_COL);
+                    QXlsx::CellRange mergeRange(refTop, refBottom);
+                    doc.mergeCells(mergeRange);
+                    doc.write(refTop, tr("Virole ") + QString::number(viroleIndex));
+                    i32BottomCellY = i32TopCellY - 1;
+                    viroleIndex++;
+                }
+            }
+
+            doc.write(U32_MEP_TABLE_BEGIN_ROW, U32_MEP_TABLE_BEGIN_COL + virolePadding, "Indice", headerFormat);
+            doc.write(U32_MEP_TABLE_BEGIN_ROW, U32_MEP_TABLE_BEGIN_COL + virolePadding + 1, "Distance", headerFormat);
+
             for(quint32 u32Row = 0 ; u32Row < mepSize.rows ; u32Row++) {
-                QString rowDistance = QString::number(abs((pExam->getMepHeight() - (u32Row) * pExam->getMepIntervalY()))) + tr("m");
+                QString rowDistance = QString::number(abs((pExam->getMepHeight() - (u32Row) * pExam->getMepIntervalY())),'f',2) + tr("m");
                 quint32 rowY = U32_MEP_TABLE_BEGIN_ROW + u32Row + 1;
-                doc.write(rowY, U32_MEP_TABLE_BEGIN_COL, rowDistance, headerFormat);
+                doc.write(rowY, U32_MEP_TABLE_BEGIN_COL + virolePadding, pExam->getMepNbRow() - u32Row, headerFormat);
+                doc.write(rowY, U32_MEP_TABLE_BEGIN_COL + virolePadding + 1, rowDistance, headerFormat);
                 for(quint32 u32Col = 0 ; u32Col < mepSize.columns ; u32Col++) {
-                    quint32 colX = U32_MEP_TABLE_BEGIN_COL + u32Col + 1;
+
+                    quint32 colX = U32_MEP_TABLE_BEGIN_COL + u32Col + virolePadding + 2;
                     if(0 == u32Row) { // Write header for first line
-                        doc.write(U32_MEP_TABLE_BEGIN_ROW, colX, u32Col + 1, headerFormat);
+                        doc.write(U32_MEP_TABLE_BEGIN_ROW, colX, MepTableModel::getColumnLabel(u32Col), headerFormat);
                     }
                     AScan* cellAScan = pMatrix->getAScanAt(u32Row, u32Col);
                     if(nullptr == cellAScan) {
@@ -80,8 +121,11 @@ QString MepExporter::startExport(const QString &p_fileName)
                     } else {
                         doc.write(rowY, colX, cellAScan->getAScanMeasure()->m_thicknessMm1Echo, cellFormat);
                     }
+
                 }
             }
+
+            doc.write(U32_MEP_TABLE_BEGIN_ROW + mepSize.rows + 2, 1, pExam->getCellsAnnotations());
 
             // -- Write file :
             QString fileName = p_fileName.right(p_fileName.length()-8); // remove "file:///" append by qml

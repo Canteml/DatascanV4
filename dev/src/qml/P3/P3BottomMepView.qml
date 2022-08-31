@@ -17,11 +17,14 @@ Item {
         property int scrollWith: 15 * examManager.mepZoom
         property int headerVWidth: 100 * examManager.mepZoom
         property int headerHHeight: 35 * examManager.mepZoom
+        property int headerVirolesWidth: (examManager.virolesEnabled) ? 50 * examManager.mepZoom : 0
 
         /*anchors.topMargin: 35 + ((contentHeight < height) ? (height-contentHeight) / 2.0 : 0);
         anchors.leftMargin: 100 + ((contentWidth < width) ? (width-contentWidth) / 2.0 : 0);*/
         anchors.topMargin: ((contentHeight + headerHHeight < parent.height) ? (headerHHeight + parent.height - contentHeight) / 2.0 : headerHHeight);
-        anchors.leftMargin: ((contentWidth + headerVWidth < parent.width) ? (headerVWidth + parent.width - contentWidth) / 2.0 : headerVWidth);
+        anchors.leftMargin: ((contentWidth + headerVWidth + headerVirolesWidth < parent.width) ?
+                                 (headerVWidth + headerVirolesWidth + parent.width - contentWidth) / 2.0 :
+                                 headerVWidth + headerVirolesWidth);
         clip: true
         boundsBehavior: Flickable.StopAtBounds
         contentHeight: rows * cellHeight
@@ -42,7 +45,7 @@ Item {
         }
         ScrollBar.horizontal: ScrollBar {
             id: horizontalScrollbar
-            visible: (idMepTable.contentWidth + idMepTable.headerVWidth > idMepView.width)
+            visible: (idMepTable.contentWidth + idMepTable.headerVWidth + idMepTable.headerVirolesWidth > idMepView.width)
             height: 15
             policy: ScrollBar.AlwaysOn
             contentItem: Rectangle {
@@ -118,12 +121,56 @@ Item {
             implicitWidth: idMepTable.headerVWidth
             implicitHeight: idMepTable.cellHeight
             border.width: 1
-            color: examManager.mepRow === row ? "#243178" : "#333333"
+            color: examManager.mepRow === row ? "#243178" : examManager.virolesEnabled ?
+                   Math.floor(((examManager.mepNbRow - 1 - row) / examManager.measuresPerVirole) + 1) % 2 === 0 ? "#333333" : "#666666"
+                     : "#333333"
             Text {
                 text: display
                 anchors.centerIn: parent
                 font.pointSize: 10 * examManager.mepZoom
                 color: "white"
+            }
+        }
+    }
+
+    VerticalHeaderView {
+        id: verticalViroleHeader
+        visible: examManager.virolesEnabled
+        clip: true
+        syncView: idMepTable
+        anchors.top: idMepTable.top
+        anchors.right: verticalHeader.left
+        width: idMepTable.headerVirolesWidth
+        model: MepVirolesHeaderModel { }
+        delegate: Rectangle {
+            implicitWidth: (examManager.virolesEnabled) ? idMepTable.headerVirolesWidth : 1
+            implicitHeight: idMepTable.cellHeight
+            color: examManager.mepRow === row ? "#243178" : examManager.virolesEnabled ?
+                   Math.floor(((examManager.mepNbRow - 1 - row) / examManager.measuresPerVirole) + 1) % 2 === 0 ? "#333333" : "#666666"
+                     : "#333333"
+            Text {
+                text: display
+                verticalAlignment: Text.AlignVCenter
+                horizontalAlignment: Text.AlignHCenter
+                anchors.centerIn: parent
+                font.pointSize: 10 * examManager.mepZoom
+                color: "white"
+            }
+            Rectangle {
+                visible: (examManager.mepNbRow - row - 1) % examManager.measuresPerVirole === 0
+                color: "black"
+                height: 1
+                anchors.bottom: parent.bottom
+                anchors.right: parent.right
+                anchors.left: parent.left
+            }
+            Rectangle {
+                visible: (examManager.mepNbRow - row - 1) % examManager.measuresPerVirole === examManager.measuresPerVirole - 1
+                color: "black"
+                height: 1
+                anchors.top: parent.top
+                anchors.right: parent.right
+                anchors.left: parent.left
             }
         }
     }
