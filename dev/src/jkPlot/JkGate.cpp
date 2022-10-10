@@ -37,12 +37,12 @@ JkGate::JkGate(MyJkQtPlotter* p_pPlot, qint32 p_gateIndex) :
 
     if( 0 == m_gateIndex ) {
         // RED GATE
-        m_brushNotHovered.setColor(QColor("#DD2222"));
-        m_brushHovered.setColor(QColor("#FF6060"));
-    } else {
-        // GREEN GATE
         m_brushNotHovered.setColor(QColor("#22B022"));
         m_brushHovered.setColor(QColor("#40D040"));
+    } else {
+        // GREEN GATE
+        m_brushNotHovered.setColor(QColor("#DD2222"));
+        m_brushHovered.setColor(QColor("#FF6060"));
     }
 
     m_pLine = new JKQTPGeoLine(p_pPlot, 30, 30, 40, 40);
