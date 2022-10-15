@@ -5,6 +5,8 @@ import QtMultimedia 5.15
 import "rp_components"
 import Design 1.0
 
+import VLCQt 1.1
+
 Rectangle {
     width: 600
     height: 400
@@ -209,6 +211,21 @@ Rectangle {
                         onCurrentIndexChanged: {
                             cameraManager.setPreviewCameraIndex(idCbSelectCameraPreview.currentIndex)
                         }
+                    }
+                }
+            }
+
+            ColumnLayout {
+                Layout.fillHeight: true
+                Layout.fillWidth: true
+                Rectangle {
+                    color: "black"
+                    width: 640
+                    height: 480
+                    VlcVideoPlayer {
+                        anchors.fill: parent
+                        //url: "rtsp://10.0.0.26:5540/ch0"
+                        url: "https://www.enib.fr/~devillers/MalDeMer/Movies/MalDeMer1.mp4"
                     }
                 }
             }

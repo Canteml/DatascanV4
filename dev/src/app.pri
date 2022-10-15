@@ -95,3 +95,6 @@ CONFIG(debug, debug|release) {
 } else {
     LIBS += -lQXlsx
 }
+
+LIBS += -Llib/vlcqt/bin -llibvlc -llibvlccore -llibVLCQtQml -llibVLCQtWidgets
+INCLUDEPATH += lib/vlcqt/include
