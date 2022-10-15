@@ -44,6 +44,9 @@
 #include "exam/MepExporter.h"
 #include "adapter/ClipboardAdapter.h"
 
+#include <VLCQtCore/Common.h>
+#include <VLCQtQml/Qml.h>
+
 // -- Qt Includes
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -230,6 +233,8 @@ bool CoreApp::initQmlType()
     // exemple : qmlRegisterType<AScan>("ascan", 1, 0, "AScanItem");
     qmlRegisterType<AScanGraph>("AScanGraph", 1, 0, "AScanGraph");
     qmlRegisterType<BScanGraph>("BScanGraph", 1, 0, "BScanGraph");
+
+    VlcQml::registerTypes();
 
     return true;
 }
