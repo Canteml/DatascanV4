@@ -222,9 +222,10 @@ Rectangle {
                     color: "black"
                     width: 640
                     height: 480
-                    VlcVideoPlayer {
+                    VlcVideoOutput {
+                        id: videoOutput
                         anchors.fill: parent
-                        url: "rtsp://rtsp.stream/movie"
+                        source: mediaSource
                     }
                 }
             }
