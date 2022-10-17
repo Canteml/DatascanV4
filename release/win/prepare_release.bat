@@ -40,6 +40,12 @@ xcopy "%~dp0\..\..\dev\lib\jkqtplotter\bin\jkqtpcommonlib.dll" "%~dp0\app\bin"
 rem SDL2 :
 xcopy "%~dp0\..\..\dev\lib\SDL2\bin\SDL2.dll" "%~dp0\app\bin"
 
+xcopy "%~dp0\..\..\dev\lib\vlcqt\bin\libvlc.dll" "%~dp0\app\bin"
+xcopy "%~dp0\..\..\dev\lib\vlcqt\bin\libvlccore.dll" "%~dp0\app\bin"
+xcopy "%~dp0\..\..\dev\lib\vlcqt\bin\libVLCQtCore.dll" "%~dp0\app\bin"
+xcopy "%~dp0\..\..\dev\lib\vlcqt\bin\libVLCQtQml.dll" "%~dp0\app\bin"
+xcopy "%~dp0\..\..\dev\lib\vlcqt\bin\libVLCQtWidgets.dll" "%~dp0\app\bin"
+
 rem build depencendies
 call %PATH_QT%\mingw81_32\bin\windeployqt.exe --qmldir "%~dp0\..\..\dev\src\qml"  "%~dp0\app\bin\%APPLICATION_NAME%.exe" --opengl --printsupport
 rem copy app resources

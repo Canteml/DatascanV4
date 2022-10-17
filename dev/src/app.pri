@@ -96,5 +96,12 @@ CONFIG(debug, debug|release) {
     LIBS += -lQXlsx
 }
 
-LIBS += -Llib/vlcqt/bin -llibvlc -llibvlccore -llibVLCQtQml -llibVLCQtWidgets
+LIBS += -Llib/vlcqt/bin
+
+CONFIG(debug, debug|release) {
+    LIBS += -llibVLCQtCored -llibVLCQtQmld -llibVLCQtWidgetsd
+} else {
+    LIBS += -llibVLCQtCore -llibVLCQtQml -llibVLCQtWidgets
+}
+
 INCLUDEPATH += lib/vlcqt/include
