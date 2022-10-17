@@ -224,8 +224,7 @@ Rectangle {
                     height: 480
                     VlcVideoPlayer {
                         anchors.fill: parent
-                        //url: "rtsp://10.0.0.26:5540/ch0"
-                        url: "https://www.enib.fr/~devillers/MalDeMer/Movies/MalDeMer1.mp4"
+                        url: "rtsp://rtsp.stream/movie"
                     }
                 }
             }
