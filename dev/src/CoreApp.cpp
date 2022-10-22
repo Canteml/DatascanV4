@@ -51,6 +51,8 @@
 #include <VLCQtQml/Qml.h>
 #include <VLCQtQml/QmlSource.h>
 
+#include <v2/camera/IpCamera.h>
+
 // -- Qt Includes
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
@@ -196,6 +198,7 @@ void CoreApp::deleteApp()
     delete m_pPlayer;
     delete m_pMedia;
     delete m_pInstance;
+    delete m_camera;
 
     // -- core delete
     CoreUiQml::deleteApp();
@@ -266,6 +269,9 @@ bool CoreApp::initQmlContext()
     m_pSource = new VlcQmlSource(this);
     m_pSource->setPlayer(m_pPlayer);
     m_pPlayer->play();
+
+    m_camera = new IpCamera(QString("192.168.1.66"), m_pInstance);
+    m_camera->startRefreshing();
 
     m_pQmlApplicationEngine->rootContext()->setContextProperty("vectorManager", m_pVectorManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("currentVector", m_pVectorStd);
