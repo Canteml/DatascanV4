@@ -29,6 +29,7 @@ class VlcMedia;
 class VlcMediaPlayer;
 class VlcInstance;
 class VlcQmlSource;
+class IpCamera;
 
 class CoreApp : public CoreUiQml
 {
@@ -79,5 +80,6 @@ private :
     VlcInstance* m_pInstance;
     VlcMedia* m_pMedia;
     VlcQmlSource* m_pSource;
+    IpCamera* m_camera;
 };
 
