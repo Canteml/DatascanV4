@@ -246,8 +246,10 @@ Rectangle {
                         idCameraPreview.stop()
                     } else {
                         if( 1 === globalManager.guiPage ) {
-                            idCameraPreview.deviceId = QtMultimedia.availableCameras[p_index].deviceId;
-                            idCameraPreview.start()
+                            if(!cameraManager.isPreviewCameraIp()) {
+                                idCameraPreview.deviceId = QtMultimedia.availableCameras[p_index].deviceId;
+                                idCameraPreview.start()
+                            }
                         }
                     }
                 }

@@ -11,13 +11,13 @@
 # ==========================================================================*/
 
 // -- Internal includes
-#include "camera/CameraManager.h"
+#include "CameraManager.h"
+#include "GlobalManager.h"
+#include "CoreApp.h"
 #include <v2/vector/VectorManager.h>
 #include <v2/vector/VectorStd.h>
 #include <v2/prot/ProtMsg.h>
 #include <v2/com/ComDeviceManager.h>
-#include "CoreApp.h"
-#include "GlobalManager.h"
 #include <v2/exam/ExamManager.h>
 
 // -- Qt includes
@@ -27,6 +27,12 @@
 #include <QQmlContext>
 #include <QCamera>
 #include <QThread>
+
+#include <VLCQtCore/Common.h>
+#include <VLCQtQml/Qml.h>
+#include <VLCQtCore/Instance.h>
+#include <VLCQtCore/MediaPlayer.h>
+#include <VLCQtQml/QmlSource.h>
 
 CameraManager* CameraManager::m_pMyInstance = nullptr;
 
@@ -45,6 +51,24 @@ CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
     m_slCameraRole.append(tr("Capteur 4"));
     m_slCameraRole.append(tr("Avant"));
     m_slCameraRole.append(tr("Arrière"));
+
+    QStringList vlcArgs = QStringList(QString("--network-caching=200"));
+    vlcArgs.append("--clock-synchro=0");
+    vlcArgs.append("--clock-jitter=500");
+    vlcArgs.append("--rtsp-tcp");
+    m_pInstance = new VlcInstance(vlcArgs, this);
+    m_pMainPlayer = new VlcMediaPlayer(m_pInstance);
+    m_pPreviewPlayer = new VlcMediaPlayer(m_pInstance);
+    m_pMainSource = new VlcQmlSource(this);
+    m_pMainSource->setPlayer(m_pMainPlayer);
+    m_pMainSource = new VlcQmlSource(this);
+    m_pMainSource->setPlayer(m_pPreviewPlayer);
+
+    for(int i = IP_CAMERA_MIN ; i < IP_CAMERA_MAX ; i++) {
+        QString sSuffix = QString::number(i);
+        QString sAddress = QString("192.168.0.") + sSuffix;
+        m_lIpCamera.append(new IpCamera(QString("IP Camera ." + sSuffix), sAddress, m_pInstance));
+    }
 
     m_indexPreviewCamera = CAMERA_PREVIEW_UNDEF;
     m_roleMainCamera = 0;
@@ -79,6 +103,17 @@ CameraManager::~CameraManager()
         delete i;
     }
     m_lCameraVideo.clear();
+
+    for(auto i : qAsConst(m_lIpCamera)) {
+        delete i;
+    }
+    m_lIpCamera.clear();
+
+    delete m_pInstance;
+    delete m_pMainPlayer;
+    delete m_pPreviewPlayer;
+    delete m_pMainSource;
+    delete m_pPreviewSource;
 }
 
 CameraManager* CameraManager::makeInstance()
@@ -105,6 +140,8 @@ void CameraManager::initQmlObject(QObject *p_pQmlTopLevel)
     m_pCameraPreview = qvariant_cast<QCamera*>(qmlCamera->property("mediaObject"));
     qmlCamera = p_pQmlTopLevel->findChild<QObject*>("cameraMain");
     m_pCameraMain = qvariant_cast<QCamera*>(qmlCamera->property("mediaObject"));
+
+    VlcQml::registerTypes();
 
     onGuiPageChanged(m_pGlobalManager->getGuiPage());
 }
@@ -493,12 +530,41 @@ void CameraManager::onUpdateCameraList()
         index++;
     }
 
+    for (IpCamera* pIpCam : m_lIpCamera) {
+        pIpCam->refreshStatus();
+        if(pIpCam->isOnline()) {
+            bool bFound = false;
+            for(auto i : qAsConst(m_lCameraVideo)) {
+                if(i->getCameraId() == pIpCam->getCameraId()) {
+                    bFound = true;
+                    // update index if needed
+                    if( i->getCameraIndex() != index ) {
+                        i->setCameraIndex(index);
+                    }
+                    break;
+                }
+            }
+            if(!bFound) {
+                IpCamera* pCamToAdd = new IpCamera(pIpCam->getCameraId(), pIpCam->ipAddress(), m_pInstance);
+                pCamToAdd->setCameraIndex(index);
+                m_lCameraVideo.append(pCamToAdd);
+            }
+            index++;
+        }
+    }
+
     // -- remove camera no more connected
     QList<CameraVideo* > camToDelete;
     for(auto i : qAsConst(m_lCameraVideo) ) {
         bool bFound = false;
         for (const QCameraInfo &cameraInfo : cameras) {
             if( i->getCameraId() == cameraInfo.deviceName() ) {
+                bFound = true;
+                break;
+            }
+        }
+        for (IpCamera* pIpCam : m_lIpCamera) {
+            if(pIpCam->isOnline() && pIpCam->getCameraId() == i->getCameraId()) {
                 bFound = true;
                 break;
             }
@@ -645,4 +711,28 @@ void CameraManager::setMainCameraIsAlarm(bool p_value)
     }
 }
 
+VlcQmlSource* CameraManager::getPreviewCameraSource()
+{
+    return m_pPreviewSource;
+}
 
+VlcQmlSource* CameraManager::getMainCameraSource()
+{
+    return m_pMainSource;
+}
+
+bool CameraManager::isMainCameraIp()
+{
+    if(getMainCameraIndex() == CameraVideo::CAMERA_INDEX_UNDEF) {
+        return false;
+    }
+    return m_lCameraVideo[getMainCameraIndex()]->isIpCamera();
+}
+
+bool CameraManager::isPreviewCameraIp()
+{
+    if(CAMERA_PREVIEW_UNDEF == m_indexPreviewCamera) {
+        return false;
+    }
+    return m_lCameraVideo[m_indexPreviewCamera]->isIpCamera();
+}

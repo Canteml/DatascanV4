@@ -15,7 +15,8 @@
 
 // -- Internal includes
 #include <xml/XmlSettingsLoggable.h>
-#include <camera/Camera.h>
+#include <v2/camera/Camera.h>
+#include <v2/camera/IpCamera.h>
 class VectorStd;
 class GlobalManager;
 class ExamManager;
@@ -26,9 +27,16 @@ class ExamManager;
 class QTimer;
 class QCamera;
 
+class VlcInstance;
+class VlcMediaPlayer;
+class VlcQmlSource;
+
 /**
  * @brief The CameraManager class
  */
+
+#define IP_CAMERA_MIN 54
+#define IP_CAMERA_MAX 57
 
 class CameraManager : public QObject, public XmlSettingsLoggable
 {
@@ -78,6 +86,11 @@ public:
     Q_INVOKABLE QString captureMainCamera(const QString& p_prefix = "");
     Q_INVOKABLE void signalMainCameraCaptureSaved(QString p_fileName);
 
+    Q_INVOKABLE VlcQmlSource* getPreviewCameraSource();
+    Q_INVOKABLE VlcQmlSource* getMainCameraSource();
+    Q_INVOKABLE bool isMainCameraIp();
+    Q_INVOKABLE bool isPreviewCameraIp();
+
 signals :
     // -- Properties
     void previewCameraIndexChanged(qint32 p_index);
@@ -117,7 +130,15 @@ private:
     static CameraManager* m_pMyInstance;
 
     // -- Behaviour
-    QList<CameraVideo* > m_lCameraVideo;            ///< list of available cameras, updated by timer
+    QList<CameraVideo* > m_lCameraVideo;             ///< list of available cameras, updated by timer
+    QList<IpCamera*> m_lIpCamera;                    ///< list of available ip cameras, updated by timer
+
+    VlcInstance* m_pInstance;
+    VlcMediaPlayer* m_pMainPlayer;
+    VlcMediaPlayer* m_pPreviewPlayer;
+    VlcQmlSource* m_pMainSource;
+    VlcQmlSource* m_pPreviewSource;
+
     CameraRole* m_aCameraRole[CameraRole::ROLE_MAX]; ///< list of camera by role
     QStringList m_slCameraRole;
     QList<CameraDatabase* > m_lCameraDatabase;

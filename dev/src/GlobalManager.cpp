@@ -17,7 +17,6 @@
 #include <v2/vector/VectorStd.h>
 #include "CoreApp.h"
 #include "camera/CameraManager.h"
-#include "camera/Camera.h"
 
 // -- Qt includes
 #include <QQmlApplicationEngine>

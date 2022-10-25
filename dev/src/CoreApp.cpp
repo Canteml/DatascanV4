@@ -39,7 +39,6 @@
 #include "control/JoystickManager.h"
 #include <v2/vector/VectorFuncMove.h>
 #include "camera/CameraManager.h"
-#include "camera/Camera.h"
 #include "exam/ExamPipeManager.h"
 #include "exam/MepExporter.h"
 #include "adapter/ClipboardAdapter.h"
@@ -270,7 +269,7 @@ bool CoreApp::initQmlContext()
     m_pSource->setPlayer(m_pPlayer);
     m_pPlayer->play();
 
-    m_camera = new IpCamera(QString("192.168.1.114"), m_pInstance);
+    //m_camera = new IpCamera(QString("192.168.1.114"), m_pInstance);
     m_camera->startRefreshing();
 
     m_pQmlApplicationEngine->rootContext()->setContextProperty("vectorManager", m_pVectorManager);
