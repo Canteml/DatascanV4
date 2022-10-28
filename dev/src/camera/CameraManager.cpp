@@ -547,7 +547,9 @@ void CameraManager::onUpdateCameraList()
             if(!bFound) {
                 IpCamera* pCamToAdd = new IpCamera(pIpCam->getCameraId(), pIpCam->ipAddress(), m_pInstance);
                 pCamToAdd->setCameraIndex(index);
+                bListCameraChanged = true;
                 m_lCameraVideo.append(pCamToAdd);
+                qDebug() << m_lCameraVideo;
             }
             index++;
         }
@@ -570,6 +572,7 @@ void CameraManager::onUpdateCameraList()
             }
         }
         if( !bFound ) {
+            qDebug() << "DELETING";
             for(int r=0; r<CameraRole::ROLE_MAX; r++) {
                 if( m_aCameraRole[r]->getCameraVideo() == i ) {
                     m_aCameraRole[r]->setCamera(nullptr);

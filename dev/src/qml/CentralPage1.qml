@@ -176,6 +176,7 @@ Rectangle {
                         border.width: 1
                         Layout.preferredHeight: idVideo.height+2
                         Layout.preferredWidth: idVideo.width+2
+                        visible: !cameraManager.isPreviewCameraIp()
                         VideoOutput {
                             id: idVideo
                             // Keept aspect ration of camera frame
@@ -189,6 +190,12 @@ Rectangle {
                             //source: cameraManager.previewCamera
                             source: idCameraPreview
                         }
+                        /*VlcVideoOutput {
+                            width: 640
+                            height: 300
+                            visible: cameraManager.isPreviewCameraIp()
+                            source: cameraManager.getPreviewCameraSource()
+                        }*/
                     }
 
                     Item {
