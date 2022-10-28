@@ -36,7 +36,7 @@ class VlcQmlSource;
  */
 
 #define IP_CAMERA_MIN 54
-#define IP_CAMERA_MAX 57
+#define IP_CAMERA_MAX 58
 
 class CameraManager : public QObject, public XmlSettingsLoggable
 {
@@ -45,6 +45,8 @@ class CameraManager : public QObject, public XmlSettingsLoggable
     Q_PROPERTY(qint32 mainCameraIndex READ getMainCameraIndex NOTIFY mainCameraIndexChanged)
     Q_PROPERTY(bool selectMainCameraAuto READ getMainCameraSelectAuto NOTIFY selectMainCameraAutoChanged)
     Q_PROPERTY(bool mainCameraIsAlarm READ getMainCameraIsAlarm NOTIFY mainCameraIsAlarmChanged)
+    Q_PROPERTY(type isPreviewCameraIp READ isPreviewCameraIp NOTIFY IsPreviewCameraIpChanged)
+    Q_PROPERTY(type isMainCameraIp READ isMainCameraIp NOTIFY IsMainCameraIpChanged)
 
 
 public:
@@ -104,6 +106,9 @@ signals :
     void evAlarmCameraReady();
     void evRequestMainCameraCapture(QString p_fileName);
     void evMainCameraCaptureSaved(QString);
+
+    void isPreviewCameraIpChanegd(bool);
+    void isMainCameraIpChanged(bool);
 
 private slots :
     void onVectorProductIdChanged(qint32);

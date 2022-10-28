@@ -269,9 +269,6 @@ bool CoreApp::initQmlContext()
     m_pSource->setPlayer(m_pPlayer);
     m_pPlayer->play();
 
-    //m_camera = new IpCamera(QString("192.168.1.114"), m_pInstance);
-    m_camera->startRefreshing();
-
     m_pQmlApplicationEngine->rootContext()->setContextProperty("vectorManager", m_pVectorManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("currentVector", m_pVectorStd);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("scanManager", m_pScanManager);
