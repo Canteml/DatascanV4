@@ -45,8 +45,9 @@ class CameraManager : public QObject, public XmlSettingsLoggable
     Q_PROPERTY(qint32 mainCameraIndex READ getMainCameraIndex NOTIFY mainCameraIndexChanged)
     Q_PROPERTY(bool selectMainCameraAuto READ getMainCameraSelectAuto NOTIFY selectMainCameraAutoChanged)
     Q_PROPERTY(bool mainCameraIsAlarm READ getMainCameraIsAlarm NOTIFY mainCameraIsAlarmChanged)
-    Q_PROPERTY(type isPreviewCameraIp READ isPreviewCameraIp NOTIFY IsPreviewCameraIpChanged)
-    Q_PROPERTY(type isMainCameraIp READ isMainCameraIp NOTIFY IsMainCameraIpChanged)
+    Q_PROPERTY(bool isPreviewCameraIp READ isPreviewCameraIp NOTIFY isPreviewCameraIpChanged)
+    Q_PROPERTY(bool isMainCameraIp READ isMainCameraIp NOTIFY isMainCameraIpChanged)
+    //Q_PROPERTY(VlcQmlSource* previewCameraSource READ getPreviewCameraSource WRITE setPreviewCameraSource NOTIFY previewCameraSourceChanged)
 
 
 public:
@@ -107,7 +108,7 @@ signals :
     void evRequestMainCameraCapture(QString p_fileName);
     void evMainCameraCaptureSaved(QString);
 
-    void isPreviewCameraIpChanegd(bool);
+    void isPreviewCameraIpChanged(bool);
     void isMainCameraIpChanged(bool);
 
 private slots :

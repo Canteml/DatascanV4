@@ -3,6 +3,9 @@ import QtMultimedia 5.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
 import Design 1.0
+
+import VLCQt 1.1
+
 Rectangle {
     id: idRectTopCam
 
@@ -35,7 +38,7 @@ Rectangle {
             if( cameraManager.getMainCameraIndex() !== -1 ) {
                 idMainVideo.visible = true;
                 idCameraMain.deviceId = cameraManager.getMainCameraId()
-                if( globalManager.guiPage !== 1 ) { // page Config
+                if( globalManager.guiPage !== 1 && !cameraManager.isMainCameraIp ) { // page Config
                     idCameraMain.start()
                 }
             } else {
@@ -50,7 +53,7 @@ Rectangle {
             if( cameraManager.getMainCameraIndex() !== -1  ) {
                 idMainVideo.visible = true;
                 idCameraMain.deviceId = cameraManager.getMainCameraId()
-                if( globalManager.guiPage !== 1 ) { // page Config
+                if( globalManager.guiPage !== 1 && !cameraManager.isMainCameraIp ) { // page Config
                     idCameraMain.start()
                 }
             } else {
@@ -66,14 +69,24 @@ Rectangle {
         }
     }
 
-    VideoOutput {
+    Rectangle {
         id: idMainVideo
-        visible : false;
-        source: idCameraMain
-        fillMode: VideoOutput.PreserveAspectCrop
         anchors.margins: 1
         anchors.fill: parent
-        focus : visible // to receive focus and capture key events when visible
+        visible: false
+        VideoOutput {
+            visible: !cameraManager.isMainCameraIp
+            source: idCameraMain
+            fillMode: VideoOutput.PreserveAspectCrop
+            anchors.fill: parent
+            focus : visible // to receive focus and capture key events when visible
+        }
+        VlcVideoOutput {
+            visible : cameraManager.isMainCameraIp
+            source: cameraManager.getMainCameraSource()
+            anchors.fill: parent
+            focus : visible // to receive focus and capture key events when visible
+        }
     }
 
     ComboBox {

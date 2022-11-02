@@ -176,7 +176,7 @@ Rectangle {
                         border.width: 1
                         Layout.preferredHeight: idVideo.height+2
                         Layout.preferredWidth: idVideo.width+2
-                        visible: !cameraManager.isPreviewCameraIp()
+                        visible: !cameraManager.isPreviewCameraIp
                         VideoOutput {
                             id: idVideo
                             // Keept aspect ration of camera frame
@@ -190,12 +190,18 @@ Rectangle {
                             //source: cameraManager.previewCamera
                             source: idCameraPreview
                         }
-                        /*VlcVideoOutput {
-                            width: 640
-                            height: 300
-                            visible: cameraManager.isPreviewCameraIp()
+                    }
+
+                    Rectangle {
+                        border.color: Design.colFrameBorder
+                        border.width: 1
+                        Layout.preferredHeight: 400
+                        Layout.preferredWidth: 640
+                        visible: cameraManager.isPreviewCameraIp
+                        VlcVideoOutput {
+                            anchors.fill: parent
                             source: cameraManager.getPreviewCameraSource()
-                        }*/
+                        }
                     }
 
                     Item {
@@ -222,21 +228,6 @@ Rectangle {
                 }
             }
 
-            ColumnLayout {
-                Layout.fillHeight: true
-                Layout.fillWidth: true
-                Rectangle {
-                    color: "black"
-                    width: 640
-                    height: 480
-                    VlcVideoOutput {
-                        id: videoOutput
-                        anchors.fill: parent
-                        source: mediaSource
-                    }
-                }
-            }
-
             // -- SPACER
             Item {
                 // Spacer
@@ -253,7 +244,7 @@ Rectangle {
                         idCameraPreview.stop()
                     } else {
                         if( 1 === globalManager.guiPage ) {
-                            if(!cameraManager.isPreviewCameraIp()) {
+                            if(!cameraManager.isPreviewCameraIp) {
                                 idCameraPreview.deviceId = QtMultimedia.availableCameras[p_index].deviceId;
                                 idCameraPreview.start()
                             }
