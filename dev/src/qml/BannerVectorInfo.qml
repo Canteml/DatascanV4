@@ -324,7 +324,7 @@ Rectangle {
 
                 Rectangle {
                     // seaparator
-                    visible: currentVector.funcPressureSensor0().hasReceivedMessage
+                    visible: currentVector.funcPressureSensor0().isEnabled && currentVector.funcPressureSensor0().hasReceivedMessage
                     width: 5
                     Layout.fillHeight: true
                     color: "#9C9B9B"
@@ -333,7 +333,7 @@ Rectangle {
                 }
 
                 ColumnLayout {
-                    visible: currentVector.funcPressureSensor0().hasReceivedMessage
+                    visible: currentVector.funcPressureSensor0().isEnabled && currentVector.funcPressureSensor0().hasReceivedMessage
                     Layout.fillHeight: true
                     Layout.fillWidth: true
                     Layout.leftMargin: 20

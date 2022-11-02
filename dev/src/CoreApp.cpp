@@ -261,7 +261,7 @@ bool CoreApp::initQmlContext()
     args.append("--clock-jitter=500");
     args.append("--rtsp-tcp");
     m_pInstance = new VlcInstance(args, this);
-    m_pMedia = new VlcMedia(QString("rtsp://admin:RPje2022@192.168.0.54:554"), m_pInstance);
+    m_pMedia = new VlcMedia(QString("rtsp://192.168.1.114:5540/"), m_pInstance);
     //m_pMedia->setOption(QString("network-caching=50"));
     m_pPlayer = new VlcMediaPlayer(m_pInstance);
     m_pPlayer->open(m_pMedia);
