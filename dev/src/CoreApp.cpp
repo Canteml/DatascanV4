@@ -193,12 +193,6 @@ void CoreApp::deleteApp()
     delete m_pClipboardAdapter;
     m_pClipboardAdapter = nullptr;
 
-    delete m_pSource;
-    delete m_pPlayer;
-    delete m_pMedia;
-    delete m_pInstance;
-    delete m_camera;
-
     // -- core delete
     CoreUiQml::deleteApp();
 }
@@ -256,19 +250,6 @@ bool CoreApp::initQmlContext()
     // -- register my managers for QML use :
     // example : m_pQmlApplicationEngine->rootContext()->setContextProperty("vectorManager", m_vectorManager);
 
-    QStringList args = QStringList(QString("--network-caching=200"));
-    args.append("--clock-synchro=0");
-    args.append("--clock-jitter=500");
-    args.append("--rtsp-tcp");
-    m_pInstance = new VlcInstance(args, this);
-    m_pMedia = new VlcMedia(QString("rtsp://192.168.1.114:5540/"), m_pInstance);
-    //m_pMedia->setOption(QString("network-caching=50"));
-    m_pPlayer = new VlcMediaPlayer(m_pInstance);
-    m_pPlayer->open(m_pMedia);
-    m_pSource = new VlcQmlSource(this);
-    m_pSource->setPlayer(m_pPlayer);
-    m_pPlayer->play();
-
     m_pQmlApplicationEngine->rootContext()->setContextProperty("vectorManager", m_pVectorManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("currentVector", m_pVectorStd);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("scanManager", m_pScanManager);
@@ -279,7 +260,6 @@ bool CoreApp::initQmlContext()
     m_pQmlApplicationEngine->rootContext()->setContextProperty("examPipeManager", m_pExamPipeManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("mepExporter", m_pMepExporter);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("clipboard", m_pClipboardAdapter);
-    m_pQmlApplicationEngine->rootContext()->setContextProperty("mediaSource", m_pSource);
 
     return true;
 }

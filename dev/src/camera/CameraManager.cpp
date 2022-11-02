@@ -32,6 +32,7 @@
 #include <VLCQtQml/Qml.h>
 #include <VLCQtCore/Instance.h>
 #include <VLCQtCore/MediaPlayer.h>
+#include <VLCQtCore/Video.h>
 #include <VLCQtQml/QmlSource.h>
 
 CameraManager* CameraManager::m_pMyInstance = nullptr;
@@ -52,7 +53,7 @@ CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
     m_slCameraRole.append(tr("Avant"));
     m_slCameraRole.append(tr("Arrière"));
 
-    QStringList vlcArgs = QStringList(QString("--network-caching=200"));
+    QStringList vlcArgs = QStringList(QString("--network-caching=500"));
     vlcArgs.append("--clock-synchro=0");
     vlcArgs.append("--clock-jitter=500");
     vlcArgs.append("--rtsp-tcp");
@@ -151,16 +152,20 @@ void CameraManager::onGuiPageChanged(quint32 p_page)
 {
     if( 1 == p_page ) {
         // -- Configure : display on Preview video
+        m_pMainPlayer->stop();
         m_pCameraAlarm->stop();
         m_pCameraMain->stop();
         QThread::msleep(100);   ///< wait camera stop
         m_pCameraPreview->start();
+        m_pPreviewPlayer->play();
         emit previewCameraIndexChanged(getPreviewCameraIndex());
     } else {
         // -- display on Alarm + Main video
         m_pCameraPreview->stop();
+        m_pPreviewPlayer->stop();
         QThread::msleep(100);   ///< wait camera stop
         m_pCameraMain->start();
+        m_pMainPlayer->play();
         emit mainCameraIndexChanged(getMainCameraIndex());
         if( getMainCameraIndex() != getPreviewCameraIndex() ) {
             m_pCameraAlarm->start();
@@ -385,6 +390,7 @@ void CameraManager::setRoleMainCamera(qint32 p_role)
         }
         if(isIp) {
             IpCamera* ipCam = (IpCamera*) m_lCameraVideo.at(getMainCameraIndex());
+            ipCam->openMedia();
             m_pMainPlayer->open(ipCam->getMedia());
             m_pMainPlayer->play();
         }
@@ -430,7 +436,11 @@ QString CameraManager::captureMainCamera(const QString& p_prefix)
                                     .arg(m_slCameraRole[m_roleMainCamera])
                                     .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH-mm-ss.zzz"));
         fileName.replace("/", "\\\\");
-        emit evRequestMainCameraCapture(fileName);
+        if(isMainCameraIp()) {
+            m_pMainPlayer->video()->takeSnapshot(fileName);
+        } else {
+            emit evRequestMainCameraCapture(fileName);
+        }
     }
     return fileName;
 }
@@ -573,6 +583,13 @@ void CameraManager::onUpdateCameraList()
                 pCamToAdd->setCameraIndex(index);
                 bListCameraChanged = true;
                 m_lCameraVideo.append(pCamToAdd);
+                qDebug() << "APPENDING : " << pCamToAdd->getCameraId();
+                for(auto db : qAsConst(m_lCameraDatabase) ) {
+                    if( db->getCameraId() == pCamToAdd->getCameraId() &&
+                        db->getProductUid() == m_pVectorStd->getFuncGeneralParam().m_paramDProdUid ) {
+                        m_aCameraRole[db->getCameraRole()]->setCamera(pCamToAdd);
+                    }
+                }
             }
             index++;
         }
@@ -600,6 +617,7 @@ void CameraManager::onUpdateCameraList()
                     m_aCameraRole[r]->setCamera(nullptr);
                 }
             }
+            qDebug() << "DELETING " << i->getCameraId();
             camToDelete.append(i);
             bListCameraChanged = true;
         }

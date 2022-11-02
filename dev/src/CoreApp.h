@@ -25,11 +25,6 @@ class CameraManager;
 class ExamPipeManager;
 class ClipboardAdapter;
 class MepExporter;
-class VlcMedia;
-class VlcMediaPlayer;
-class VlcInstance;
-class VlcQmlSource;
-class IpCamera;
 
 class CoreApp : public CoreUiQml
 {
@@ -75,11 +70,5 @@ private :
     MepExporter* m_pMepExporter;
 
     ClipboardAdapter* m_pClipboardAdapter;
-
-    VlcMediaPlayer* m_pPlayer;
-    VlcInstance* m_pInstance;
-    VlcMedia* m_pMedia;
-    VlcQmlSource* m_pSource;
-    IpCamera* m_camera;
 };
 
