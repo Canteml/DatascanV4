@@ -35,8 +35,8 @@ class VlcQmlSource;
  * @brief The CameraManager class
  */
 
-#define IP_CAMERA_MIN 54
-#define IP_CAMERA_MAX 58
+#define IP_CAMERA_MIN 113
+#define IP_CAMERA_MAX 115
 
 class CameraManager : public QObject, public XmlSettingsLoggable
 {
@@ -93,6 +93,8 @@ public:
     Q_INVOKABLE VlcQmlSource* getMainCameraSource();
     Q_INVOKABLE bool isMainCameraIp();
     Q_INVOKABLE bool isPreviewCameraIp();
+    Q_INVOKABLE void openMainIpMedia();
+    Q_INVOKABLE void openPreviewIpMedia();
 
 signals :
     // -- Properties
@@ -120,6 +122,7 @@ private slots :
 
     void onCameraIsReadyChanged(CameraRole*,bool);
     void onExamControlTypeChanged(quint32);
+    void onMainCameraIndexChanged(quint32);
 
 protected :
     // -- Settings
