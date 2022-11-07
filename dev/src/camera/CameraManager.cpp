@@ -53,10 +53,10 @@ CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
     m_slCameraRole.append(tr("Avant"));
     m_slCameraRole.append(tr("Arrière"));
 
-    QStringList vlcArgs = QStringList(QString("--network-caching=250"));
-    //vlcArgs.append("--clock-synchro=0");
-    //vlcArgs.append("--clock-jitter=500");
-    //vlcArgs.append("--rtsp-tcp");
+    QStringList vlcArgs = QStringList(QString("--network-caching=500"));
+    /*vlcArgs.append("--clock-synchro=0");
+    vlcArgs.append("--clock-jitter=500");
+    vlcArgs.append("--rtsp-tcp");*/
     vlcArgs.append("--quiet");
     m_pInstance = new VlcInstance(vlcArgs, this);
     m_pMainPlayer = new VlcMediaPlayer(m_pInstance);
@@ -68,7 +68,7 @@ CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
 
     for(int i = IP_CAMERA_MIN ; i < IP_CAMERA_MAX ; i++) {
         QString sSuffix = QString::number(i);
-        QString sAddress = QString("192.168.1.") + sSuffix;
+        QString sAddress = QString("192.168.0.") + sSuffix;
         m_lIpCamera.append(new IpCamera(QString("IP Camera ." + sSuffix), sAddress, m_pInstance));
     }
 
@@ -158,7 +158,9 @@ void CameraManager::onGuiPageChanged(quint32 p_page)
         m_pCameraAlarm->stop();
         m_pCameraMain->stop();
         QThread::msleep(100);   ///< wait camera stop
-        openPreviewIpMedia();
+        if(isPreviewCameraIp()) {
+            openPreviewIpMedia();
+        }
         emit previewCameraIndexChanged(getPreviewCameraIndex());
     } else {
         // -- display on Alarm + Main video
@@ -166,7 +168,9 @@ void CameraManager::onGuiPageChanged(quint32 p_page)
         m_pPreviewPlayer->stop();
         m_pMainPlayer->stop();
         QThread::msleep(100);   ///< wait camera stop
-        openMainIpMedia();
+        if(isMainCameraIp()) {
+            openMainIpMedia();
+        }
         emit mainCameraIndexChanged(getMainCameraIndex());
         if( getMainCameraIndex() != getPreviewCameraIndex() ) {
             m_pCameraAlarm->start();
@@ -784,11 +788,9 @@ bool CameraManager::isPreviewCameraIp()
 void CameraManager::openMainIpMedia()
 {
     int i32MainIndex = getMainCameraIndex();
-    qDebug() << "CALLING";
     if(CameraVideo::CAMERA_INDEX_UNDEF == i32MainIndex) {
         return;
     }
-    qDebug() << "OK";
     m_pMainPlayer->stop();
     QThread::msleep(100);
     IpCamera* pIpCam = (IpCamera*) m_lCameraVideo.at(getMainCameraIndex());
