@@ -53,10 +53,11 @@ CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
     m_slCameraRole.append(tr("Avant"));
     m_slCameraRole.append(tr("Arrière"));
 
-    QStringList vlcArgs = QStringList(QString("--network-caching=500"));
-    vlcArgs.append("--clock-synchro=0");
-    vlcArgs.append("--clock-jitter=500");
-    vlcArgs.append("--rtsp-tcp");
+    QStringList vlcArgs = QStringList(QString("--network-caching=250"));
+    //vlcArgs.append("--clock-synchro=0");
+    //vlcArgs.append("--clock-jitter=500");
+    //vlcArgs.append("--rtsp-tcp");
+    vlcArgs.append("--quiet");
     m_pInstance = new VlcInstance(vlcArgs, this);
     m_pMainPlayer = new VlcMediaPlayer(m_pInstance);
     m_pPreviewPlayer = new VlcMediaPlayer(m_pInstance);
@@ -67,7 +68,7 @@ CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
 
     for(int i = IP_CAMERA_MIN ; i < IP_CAMERA_MAX ; i++) {
         QString sSuffix = QString::number(i);
-        QString sAddress = QString("192.168.0.") + sSuffix;
+        QString sAddress = QString("192.168.1.") + sSuffix;
         m_lIpCamera.append(new IpCamera(QString("IP Camera ." + sSuffix), sAddress, m_pInstance));
     }
 
@@ -81,6 +82,7 @@ CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
     m_pTimer->setSingleShot(false);
     m_pTimer->setInterval(500);
     connect(m_pTimer, &QTimer::timeout, this, &CameraManager::onUpdateCameraList);
+    connect(this, &CameraManager::mainCameraIndexChanged, this, &CameraManager::onMainCameraIndexChanged);
 
 }
 
@@ -156,16 +158,15 @@ void CameraManager::onGuiPageChanged(quint32 p_page)
         m_pCameraAlarm->stop();
         m_pCameraMain->stop();
         QThread::msleep(100);   ///< wait camera stop
-        m_pCameraPreview->start();
-        m_pPreviewPlayer->play();
+        openPreviewIpMedia();
         emit previewCameraIndexChanged(getPreviewCameraIndex());
     } else {
         // -- display on Alarm + Main video
         m_pCameraPreview->stop();
         m_pPreviewPlayer->stop();
+        m_pMainPlayer->stop();
         QThread::msleep(100);   ///< wait camera stop
-        m_pCameraMain->start();
-        m_pMainPlayer->play();
+        openMainIpMedia();
         emit mainCameraIndexChanged(getMainCameraIndex());
         if( getMainCameraIndex() != getPreviewCameraIndex() ) {
             m_pCameraAlarm->start();
@@ -177,6 +178,10 @@ void CameraManager::onGuiPageChanged(quint32 p_page)
 void CameraManager::onCameraIsReadyChanged(CameraRole *p_pCameraRole, bool p_enable)
 {
     if( p_enable ) {
+        openMainIpMedia();
+        if(isMainCameraIp()) {
+            emit isMainCameraIpChanged(true);
+        }
         if( -1 != m_roleMainCamera && p_pCameraRole == m_aCameraRole[m_roleMainCamera] ) {
             emit evMainCameraReady();
         }
@@ -196,6 +201,13 @@ void CameraManager::onCameraIsReadyChanged(CameraRole *p_pCameraRole, bool p_ena
 void CameraManager::onExamControlTypeChanged(quint32 p_type)
 {
     setMainCameraSelectAuto(p_type == ExamManager::CONTROL_PIPE);
+}
+
+void CameraManager::onMainCameraIndexChanged(quint32 p_index)
+{
+    if(isMainCameraIp()) {
+        openMainIpMedia();
+    }
 }
 
 void CameraManager::start()
@@ -378,7 +390,6 @@ qint32 CameraManager::getProductRoleMainCamera()
 void CameraManager::setRoleMainCamera(qint32 p_role)
 {
     if( m_roleMainCamera != p_role ) {
-        m_pMainPlayer->stop();
         bool wasIp = isMainCameraIp();
         m_roleMainCamera = p_role;
         bool isIp = isMainCameraIp();
@@ -387,12 +398,6 @@ void CameraManager::setRoleMainCamera(qint32 p_role)
 
         if(wasIp != isIp) {
             emit isMainCameraIpChanged(isIp);
-        }
-        if(isIp) {
-            IpCamera* ipCam = (IpCamera*) m_lCameraVideo.at(getMainCameraIndex());
-            ipCam->openMedia();
-            m_pMainPlayer->open(ipCam->getMedia());
-            m_pMainPlayer->play();
         }
 
         if( m_aCameraRole[CameraRole::ROLE_ALARM]->getIsEnabled() && m_aCameraRole[CameraRole::ROLE_ALARM]->getCameraVideo() ) {
@@ -409,7 +414,6 @@ void CameraManager::setRoleMainCamera(qint32 p_role)
 void CameraManager::setPreviewCameraIndex(qint32 p_index)
 {
     if( m_indexPreviewCamera != p_index ) {
-        m_pPreviewPlayer->stop();
         bool bWasIp = isPreviewCameraIp();
         m_indexPreviewCamera = p_index;
         bool isIp = isPreviewCameraIp();
@@ -417,10 +421,7 @@ void CameraManager::setPreviewCameraIndex(qint32 p_index)
             emit isPreviewCameraIpChanged(isIp);
         }
         if(isIp) {
-            IpCamera* ipCam = (IpCamera*) m_lCameraVideo.at(m_indexPreviewCamera);
-            ipCam->openMedia();
-            m_pPreviewPlayer->open(ipCam->getMedia());
-            m_pPreviewPlayer->play();
+            openPreviewIpMedia();
         }
         //m_lCameraVideo.at(m_indexPreviewCamera)->capture("CAM");
         emit previewCameraIndexChanged(m_indexPreviewCamera);
@@ -778,4 +779,31 @@ bool CameraManager::isPreviewCameraIp()
         return false;
     }
     return m_lCameraVideo[m_indexPreviewCamera]->isIpCamera();
+}
+
+void CameraManager::openMainIpMedia()
+{
+    int i32MainIndex = getMainCameraIndex();
+    qDebug() << "CALLING";
+    if(CameraVideo::CAMERA_INDEX_UNDEF == i32MainIndex) {
+        return;
+    }
+    qDebug() << "OK";
+    m_pMainPlayer->stop();
+    QThread::msleep(100);
+    IpCamera* pIpCam = (IpCamera*) m_lCameraVideo.at(getMainCameraIndex());
+    pIpCam->openMedia();
+    m_pMainPlayer->open(pIpCam->getMedia());
+}
+
+void CameraManager::openPreviewIpMedia()
+{
+    if(CAMERA_PREVIEW_UNDEF == m_indexPreviewCamera || m_indexPreviewCamera >= m_lCameraVideo.length()) {
+        return;
+    }
+    m_pPreviewPlayer->stop();
+    QThread::msleep(100);
+    IpCamera* pIpCam = (IpCamera*) m_lCameraVideo.at(m_indexPreviewCamera);
+    pIpCam->openMedia();
+    m_pPreviewPlayer->open(pIpCam->getMedia());
 }
