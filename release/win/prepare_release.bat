@@ -45,6 +45,7 @@ xcopy "%~dp0\..\..\dev\lib\vlcqt\bin\libvlccore.dll" "%~dp0\app\bin"
 xcopy "%~dp0\..\..\dev\lib\vlcqt\bin\libVLCQtCore.dll" "%~dp0\app\bin"
 xcopy "%~dp0\..\..\dev\lib\vlcqt\bin\libVLCQtQml.dll" "%~dp0\app\bin"
 xcopy "%~dp0\..\..\dev\lib\vlcqt\bin\libVLCQtWidgets.dll" "%~dp0\app\bin"
+xcopy /E /H /C /I "%~dp0\..\..\dev\lib\vlcqt\bin\plugins" "%~dp0\app\bin\plugins"
 
 rem build depencendies
 call %PATH_QT%\mingw81_32\bin\windeployqt.exe --qmldir "%~dp0\..\..\dev\src\qml"  "%~dp0\app\bin\%APPLICATION_NAME%.exe" --opengl --printsupport
