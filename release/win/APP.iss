@@ -1,5 +1,5 @@
 #define MyAppName "DatascanV2"
-#define MyAppVersion "1.0.5-FR"
+#define MyAppVersion "1.0.6-BETA-FR"
 #define MyAppPublisher "Roboplanet"
 #define MyAppURL "http://www.roboplanet.fr"
 #define MyAppExeName "DatascanV2.exe"
