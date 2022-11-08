@@ -588,7 +588,6 @@ void CameraManager::onUpdateCameraList()
                 pCamToAdd->setCameraIndex(index);
                 bListCameraChanged = true;
                 m_lCameraVideo.append(pCamToAdd);
-                qDebug() << "APPENDING : " << pCamToAdd->getCameraId();
                 for(auto db : qAsConst(m_lCameraDatabase) ) {
                     if( db->getCameraId() == pCamToAdd->getCameraId() &&
                         db->getProductUid() == m_pVectorStd->getFuncGeneralParam().m_paramDProdUid ) {
@@ -622,7 +621,6 @@ void CameraManager::onUpdateCameraList()
                     m_aCameraRole[r]->setCamera(nullptr);
                 }
             }
-            qDebug() << "DELETING " << i->getCameraId();
             camToDelete.append(i);
             bListCameraChanged = true;
         }
