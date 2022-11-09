@@ -61,7 +61,7 @@ Rectangle {
                     if( ready ) {
                         var computedIndex = currentIndex + 1;
                         if( computedIndex >= 5 ) {
-                            computedIndex += 2; // Rover cleaner and panda v1 have been removed from datascan but its product id still exists !
+                            computedIndex += 2; // Rover cleaner and panda v1 have been removed from datascan but their product ids still exists !
                         }
                         if( currentVector.prodId !== (computedIndex) ) {
                             currentVector.setProdIdDeviceAd(computedIndex, 0 /*MPC*/); /// value in PROD_ID, start at 1 (0 = invalid)
