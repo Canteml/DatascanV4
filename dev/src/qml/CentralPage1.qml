@@ -53,26 +53,17 @@ Rectangle {
                 id: idCbProduct
                 Layout.preferredHeight: 30
                 Layout.preferredWidth: 200
-                model: [qsTr("UT POLE"), qsTr("ALTISCAN"), qsTr("ROVER"), qsTr("ROVER IP68"), //qsTr("ROVER CLEANER"),
-                    qsTr("PANDA Vol.3"), qsTr("MULTISCAN")]
+                model: products.enabledProducts //[qsTr("UT POLE"), qsTr("ALTISCAN"), qsTr("ROVER"), qsTr("ROVER IP68"), //qsTr("ROVER CLEANER"),
+                    //qsTr("PANDA Vol.3"), qsTr("MULTISCAN")]
                 property var ready : false
 
                 onCurrentIndexChanged: {
                     if( ready ) {
-                        var computedIndex = currentIndex + 1;
-                        if( computedIndex >= 5 ) {
-                            computedIndex += 2; // Rover cleaner and panda v1 have been removed from datascan but their product ids still exists !
-                        }
-                        if( currentVector.prodId !== (computedIndex) ) {
-                            currentVector.setProdIdDeviceAd(computedIndex, 0 /*MPC*/); /// value in PROD_ID, start at 1 (0 = invalid)
-                        }
+                        products.setProdIndex(currentIndex)
                     }
                 }
                 Component.onCompleted: {
-                    currentIndex = currentVector.prodId - 1; /// value in PROD_ID, start at 1 (0 = invalid)
-                    if(currentIndex >= 5) {
-                        currentIndex -= 2
-                    }
+                    currentIndex = products.getCurrentIndex()
                     ready = true;
                 }
             }
