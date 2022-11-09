@@ -8,8 +8,7 @@ ColumnLayout {
     id: idWarningBox
     Layout.fillHeight: false
     Layout.fillWidth: true
-    Layout.rowSpan: 0
-    Layout.columnSpan: 0
+    spacing: 0
     //Layout.preferredHeight: 70
 
     Rectangle {
@@ -108,15 +107,15 @@ ColumnLayout {
         function onAlertChanged(alertLevel) {
             switch(alertLevel) {
             case 0:
-                idAlertLevel0.visible = !currentVector.getAlertMsg(alertLevel).length > 0
+                idAlertLevel0.visible = currentVector.getAlertMsg(alertLevel).length > 0
                 idTextAlert0.text = currentVector.getAlertMsg(alertLevel)
                 break
             case 1:
-                idAlertLevel1.visible = !currentVector.getAlertMsg(alertLevel).length > 0
+                idAlertLevel1.visible = currentVector.getAlertMsg(alertLevel).length > 0
                 idTextAlert1.text = currentVector.getAlertMsg(alertLevel)
                 break
             case 2:
-                idAlertLevel2.visible = !currentVector.getAlertMsg(alertLevel).length > 0
+                idAlertLevel2.visible = currentVector.getAlertMsg(alertLevel).length > 0
                 idTextAlert2.text = currentVector.getAlertMsg(alertLevel)
                 break
             default:

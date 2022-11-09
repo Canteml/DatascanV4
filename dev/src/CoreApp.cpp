@@ -42,6 +42,7 @@
 #include "exam/ExamPipeManager.h"
 #include "exam/MepExporter.h"
 #include "adapter/ClipboardAdapter.h"
+#include "limit/ProductLimiter.h"
 
 #include <VLCQtCore/Common.h>
 #include <VLCQtCore/Instance.h>
@@ -70,6 +71,7 @@ CoreApp::CoreApp() : CoreUiQml("CoreApp")
     m_pCameraManager = nullptr;
     m_pExamPipeManager = nullptr;
     m_pMepExporter = nullptr;
+    m_pProductLimiter = nullptr;
 }
 
 
@@ -124,6 +126,9 @@ bool CoreApp::initApp()
 
     m_pMepExporter = new MepExporter();
     m_pClipboardAdapter = new ClipboardAdapter(this);
+
+    m_pProductLimiter = new ProductLimiter();
+    m_pProductLimiter->loadLimitations();
 
     return bRet;
 }
@@ -193,6 +198,9 @@ void CoreApp::deleteApp()
     delete m_pClipboardAdapter;
     m_pClipboardAdapter = nullptr;
 
+    delete m_pProductLimiter;
+    m_pProductLimiter = nullptr;
+
     // -- core delete
     CoreUiQml::deleteApp();
 }
@@ -233,6 +241,7 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<ExamPipeManager*>("ExamPipeManager*");
     qRegisterMetaType<MepExporter*>("MepExporter*");
     qRegisterMetaType<ClipboardAdapter*>("ClipboardAdapter*");
+    qRegisterMetaType<ProductLimiter*>("ProductLimiter*");
 
     // -- declare C++ components instanciated from QML
     // exemple : qmlRegisterType<AScan>("ascan", 1, 0, "AScanItem");
@@ -260,6 +269,7 @@ bool CoreApp::initQmlContext()
     m_pQmlApplicationEngine->rootContext()->setContextProperty("examPipeManager", m_pExamPipeManager);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("mepExporter", m_pMepExporter);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("clipboard", m_pClipboardAdapter);
+    m_pQmlApplicationEngine->rootContext()->setContextProperty("products", m_pProductLimiter);
 
     return true;
 }

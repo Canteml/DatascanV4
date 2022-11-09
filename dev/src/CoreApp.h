@@ -25,6 +25,7 @@ class CameraManager;
 class ExamPipeManager;
 class ClipboardAdapter;
 class MepExporter;
+class ProductLimiter;
 
 class CoreApp : public CoreUiQml
 {
@@ -70,5 +71,7 @@ private :
     MepExporter* m_pMepExporter;
 
     ClipboardAdapter* m_pClipboardAdapter;
+
+    ProductLimiter* m_pProductLimiter;
 };
 
