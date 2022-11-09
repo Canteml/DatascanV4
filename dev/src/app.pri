@@ -40,6 +40,9 @@ HEADERS += $$files($$PWD/mep/*.h)
 SOURCES += $$files($$PWD/adapter/*.cpp)
 HEADERS += $$files($$PWD/adapter/*.h)
 
+SOURCES += $$files($$PWD/limit/*.cpp)
+HEADERS += $$files($$PWD/limit/*.h)
+
 # JK PLOTTER COMPONENTS
 SOURCES += $$files($$PWD/jkPlot/*.cpp)
 HEADERS += $$files($$PWD/jkPlot/*.h)
