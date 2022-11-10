@@ -193,6 +193,7 @@ Rectangle {
             Button {
                 id: idBtCtl2
                 Layout.preferredHeight: 50
+                visible: products.hasPipeEnabled
                 text: qsTr("TUYAU\n4 POINTS")
                 checked: examManager.controlType === 2
                 onClicked: {examManager.controlType = 2}
