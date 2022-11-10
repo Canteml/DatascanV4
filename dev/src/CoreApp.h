@@ -50,6 +50,8 @@ public:
     virtual bool initQmlPath() override;
     virtual void initCppFromQml() override;
 
+    virtual QString getWindowTitle(void) const override;
+
 protected :
     bool eventFilter(QObject*, QEvent*) override;   ///< key catcher
 

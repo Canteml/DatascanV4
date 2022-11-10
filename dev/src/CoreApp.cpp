@@ -155,6 +155,10 @@ bool CoreApp::startApp()
 //    StatisticApp::incAppStart();
 //    StatisticApp::startAppExecution();
 
+    if(1 == m_pProductLimiter->getEnabledProductsNames().size()) {
+        QQmlProperty(m_pQmlTopLevel, "title").write(getWindowTitle() + m_pProductLimiter->getEnabledProductsNames().first());
+    }
+
     return bRet;
 }
 
@@ -290,6 +294,15 @@ void CoreApp::initCppFromQml()
 
     // load graphical settings (wait QML instanciated)
     m_pScanManager->loadSettings();
+}
+
+QString CoreApp::getWindowTitle() const
+{
+    QString title = QString("%1 %2").arg(getApplicationName()).arg(getVersion());
+    if(1 == m_pProductLimiter->getEnabledProductsNames().size()) {
+        title += QString(" [%1]").arg(m_pProductLimiter->getEnabledProductsNames().first());
+    }
+    return title;
 }
 
 bool CoreApp::useOpenGlRender() const

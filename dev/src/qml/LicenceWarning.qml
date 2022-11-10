@@ -15,7 +15,7 @@ ColumnLayout {
         id: idAlertLevel0
         Layout.preferredHeight: 70
         Layout.fillWidth: true
-        color: "green"
+        color: "grey"
         border.width: 1
         border.color: "black"
         visible: false

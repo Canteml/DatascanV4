@@ -37,10 +37,15 @@ QStringList ProductLimiter::getEnabledProductsNames()
 void ProductLimiter::setProdIndex(qint32 p_u32Index)
 {
     ProtMsg::PROD_ID prodId = getProductIdFromIndex(p_u32Index);
+    bool hadPipe = isPipeEnabled();
     qint32 intProdId = static_cast<qint32>(prodId);
     VectorStd* currentVector = VectorManager::getInstance()->getVectorStd();
     if(currentVector->getProdId() != intProdId) {
         currentVector->setProdIdDeviceAd(intProdId, 0);
+        bool hasPipe = isPipeEnabled();
+        if(hasPipe != hadPipe) {
+            emit pipeEnabledChanged(hasPipe);
+        }
     }
 }
 
@@ -49,6 +54,13 @@ qint32 ProductLimiter::getCurrentIndex()
     VectorStd* currentVector = VectorManager::getInstance()->getVectorStd();
     ProtMsg::PROD_ID currentId = static_cast<ProtMsg::PROD_ID>(currentVector->getProdId());
     return m_aEnabledProducts.indexOf(currentId);
+}
+
+bool ProductLimiter::isPipeEnabled()
+{
+    VectorStd* currentVector = VectorManager::getInstance()->getVectorStd();
+    ProtMsg::PROD_ID currentId = static_cast<ProtMsg::PROD_ID>(currentVector->getProdId());
+    return currentId == ProtMsg::PROD_PANDA_VOL3;
 }
 
 QString ProductLimiter::getEquipmentFilePath()

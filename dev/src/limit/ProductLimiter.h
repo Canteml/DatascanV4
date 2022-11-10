@@ -9,6 +9,7 @@ class ProductLimiter : public QObject
     Q_OBJECT
 
     Q_PROPERTY(QStringList enabledProducts READ getEnabledProductsNames NOTIFY enabledProductsChanged)
+    Q_PROPERTY(bool hasPipeEnabled READ isPipeEnabled NOTIFY pipeEnabledChanged)
 
 public:
 
@@ -22,6 +23,8 @@ public:
     Q_INVOKABLE void setProdIndex(qint32 p_u32Index);
     Q_INVOKABLE qint32 getCurrentIndex();
 
+    bool isPipeEnabled();
+
     QString getEquipmentFilePath();
 
 public slots:
@@ -32,6 +35,7 @@ public slots:
 signals:
 
     void enabledProductsChanged(QStringList);
+    void pipeEnabledChanged(bool);
 
 private:
 

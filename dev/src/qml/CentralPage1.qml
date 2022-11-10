@@ -186,8 +186,8 @@ Rectangle {
                     Rectangle {
                         border.color: Design.colFrameBorder
                         border.width: 1
-                        Layout.preferredHeight: 400
-                        Layout.preferredWidth: 640
+                        Layout.preferredHeight: 200
+                        Layout.preferredWidth: 420
                         visible: cameraManager.isPreviewCameraIp
                         VlcVideoOutput {
                             anchors.fill: parent
