@@ -335,7 +335,6 @@ Rectangle {
                 ColumnLayout {
                     visible: currentVector.funcPressureSensor0().isEnabled && currentVector.funcPressureSensor0().hasReceivedMessage
                     Layout.fillHeight: true
-                    Layout.fillWidth: true
                     Layout.leftMargin: 20
                     spacing: 0
 
@@ -348,6 +347,38 @@ Rectangle {
                         text: currentVector.funcPressureSensor0().depthStrValue
                         font.pointSize: 30
                     }
+                }
+
+                Rectangle {
+                    // seaparator
+                    visible: currentVector.funcInertialSensor().isEnabled && currentVector.funcInertialSensor().hasReceivedMessage
+                    width: 5
+                    Layout.fillHeight: true
+                    color: "#9C9B9B"
+                    Layout.topMargin: 5
+                    Layout.bottomMargin: 5
+                }
+
+                RowLayout {
+                    visible: currentVector.funcInertialSensor().isEnabled && currentVector.funcInertialSensor().hasReceivedMessage
+                    Layout.fillHeight: true
+                    Layout.leftMargin: 20
+                    spacing: 0
+
+                    Image {
+                        Layout.topMargin: 10
+                        Layout.bottomMargin: 10
+                        Layout.fillHeight: true
+                        rotation: currentVector.funcInertialSensor().paramLDirection
+                        source: "qrc:///img/icons/directionArrow.png"
+                        fillMode: Image.PreserveAspectFit
+                    }
+
+                    Text {
+                        text: currentVector.funcInertialSensor().paramLDirection + "°"
+                        font.pointSize: 30
+                    }
+
                 }
 
                 Item {

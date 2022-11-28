@@ -101,5 +101,8 @@
         <file>icons/schPipeAngle1.png</file>
         <file>icons/schPipeAngle2.png</file>
         <file>icons/schPipeAngle3.png</file>
+        <file>icons/directionArrow.png</file>
+        <file>icons/on_ground.png</file>
+        <file>icons/on_wall.png</file>
     </qresource>
 </RCC>

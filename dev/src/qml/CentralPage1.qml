@@ -245,6 +245,50 @@ Rectangle {
             }
         }
 
+        ColumnLayout {
+            id: idP1Inclo
+            Layout.fillWidth: true
+            visible: currentVector.funcInertialSensor().isEnabled && currentVector.funcInertialSensor().hasReceivedMessage
+
+            FormSection {
+                text: qsTr("Inclinomètre")
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                Button {
+                    icon.source: "qrc:///img/icons/on_ground.png"
+                    icon.width: 50
+                    icon.height: 50
+                    icon.color: "transparent"
+
+                    antialiasing: true
+                    enabled: currentVector.funcInertialSensor().paramLHorizontal == 1
+                    onClicked: currentVector.funcInertialSensor().paramLHorizontal = 0
+                    background: Rectangle {
+                        color: parent.enabled ? "white" : "#DDDDDD"
+                        border.color: Design.colButtonBorder
+                        radius: 10
+                    }
+                }
+                Button {
+                    icon.source: "qrc:///img/icons/on_wall.png"
+                    icon.width: 50
+                    icon.height: 50
+                    icon.color: "transparent"
+
+                    antialiasing: true
+                    enabled: currentVector.funcInertialSensor().paramLHorizontal == 0
+                    onClicked: currentVector.funcInertialSensor().paramLHorizontal = 1
+                    background: Rectangle {
+                        color: parent.enabled ? "white" : "#DDDDDD"
+                        border.color: Design.colButtonBorder
+                        radius: 10
+                    }
+                }
+            }
+        }
+
 
 
 
