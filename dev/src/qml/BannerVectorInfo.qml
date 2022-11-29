@@ -372,6 +372,7 @@ Rectangle {
                         rotation: currentVector.funcInertialSensor().paramLDirection
                         source: "qrc:///img/icons/directionArrow.png"
                         fillMode: Image.PreserveAspectFit
+                        antialiasing: true
                     }
 
                     Text {

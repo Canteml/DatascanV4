@@ -331,7 +331,7 @@ Rectangle {
                     ColumnLayout {
                         Text {
                             text: qsTr("Porte 1er écho :")
-                            color: Design.colRed
+                            color: Design.colGreen
                             font.pointSize: 12
                         }
 
@@ -341,7 +341,7 @@ Rectangle {
                             Image {
                                 Layout.maximumHeight: 40
                                 Layout.maximumWidth: 60
-                                source: "qrc:///img/icons/iconGateRedStart.png"
+                                source: "qrc:///img/icons/iconGateGreenStart.png"
                                 fillMode: Image.PreserveAspectFit
                             }
 
@@ -369,7 +369,7 @@ Rectangle {
                             Image {
                                 Layout.maximumHeight: 40
                                 Layout.maximumWidth: 60
-                                source: "qrc:///img/icons/iconGateRedWidth.png"
+                                source: "qrc:///img/icons/iconGateGreenWidth.png"
                                 fillMode: Image.PreserveAspectFit
                             }
 
@@ -397,7 +397,7 @@ Rectangle {
                             Image {
                                 Layout.maximumHeight: 40
                                 Layout.maximumWidth: 60
-                                source: "qrc:///img/icons/iconGateRedHeight.png"
+                                source: "qrc:///img/icons/iconGateGreenHeight.png"
                                 fillMode: Image.PreserveAspectFit
                             }
 
@@ -429,7 +429,7 @@ Rectangle {
                     ColumnLayout {
                         Text {
                             text: qsTr("Porte 2nd écho :")
-                            color: Design.colGreen
+                            color: Design.colRed
                             font.pointSize: 12
                         }
 
@@ -439,7 +439,7 @@ Rectangle {
                             Image {
                                 Layout.maximumHeight: 40
                                 Layout.maximumWidth: 60
-                                source: "qrc:///img/icons/iconGateGreenStart.png"
+                                source: "qrc:///img/icons/iconGateRedStart.png"
                                 fillMode: Image.PreserveAspectFit
                             }
 
@@ -467,7 +467,7 @@ Rectangle {
                             Image {
                                 Layout.maximumHeight: 40
                                 Layout.maximumWidth: 60
-                                source: "qrc:///img/icons/iconGateGreenWidth.png"
+                                source: "qrc:///img/icons/iconGateRedWidth.png"
                                 fillMode: Image.PreserveAspectFit
                             }
 
@@ -496,7 +496,7 @@ Rectangle {
                             Image {
                                 Layout.maximumHeight: 40
                                 Layout.maximumWidth: 60
-                                source: "qrc:///img/icons/iconGateGreenHeight.png"
+                                source: "qrc:///img/icons/iconGateRedHeight.png"
                                 fillMode: Image.PreserveAspectFit
                             }
 
