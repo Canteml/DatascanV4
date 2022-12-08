@@ -107,16 +107,19 @@ CameraManager::~CameraManager()
     }
     m_lCameraVideo.clear();
 
+    m_pMainPlayer->stop();
+    m_pPreviewPlayer->stop();
+
     for(auto i : qAsConst(m_lIpCamera)) {
         delete i;
     }
     m_lIpCamera.clear();
 
-    delete m_pInstance;
-    delete m_pMainPlayer;
-    delete m_pPreviewPlayer;
     delete m_pMainSource;
     delete m_pPreviewSource;
+    delete m_pMainPlayer;
+    delete m_pPreviewPlayer;
+    delete m_pInstance;
 }
 
 CameraManager* CameraManager::makeInstance()
@@ -182,8 +185,8 @@ void CameraManager::onGuiPageChanged(quint32 p_page)
 void CameraManager::onCameraIsReadyChanged(CameraRole *p_pCameraRole, bool p_enable)
 {
     if( p_enable ) {
-        openMainIpMedia();
         if(isMainCameraIp()) {
+            openMainIpMedia();
             emit isMainCameraIpChanged(true);
         }
         if( -1 != m_roleMainCamera && p_pCameraRole == m_aCameraRole[m_roleMainCamera] ) {
@@ -443,6 +446,7 @@ QString CameraManager::captureMainCamera(const QString& p_prefix)
         fileName.replace("/", "\\\\");
         if(isMainCameraIp()) {
             m_pMainPlayer->video()->takeSnapshot(fileName);
+            emit evMainCameraCaptureSaved(fileName);
         } else {
             emit evRequestMainCameraCapture(fileName);
         }

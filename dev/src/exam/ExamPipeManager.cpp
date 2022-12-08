@@ -225,13 +225,6 @@ QString ExamPipeManager::exportExam(const QString& p_fileName)
             doc.write("C13", m_pExamManager->getStructName());
             doc.write("I13", m_pExamManager->getPieceName());
 
-            qreal colWidth6 = 0;
-            for(int i=2; i<8; i++) {
-                colWidth6 += doc.columnWidth(i);
-            }
-            fLogDebug1(QString("ColWidth = %1").arg(colWidth6));
-
-
             // -- Vector Info
             doc.write("E17", VectorManager::getInstance()->getVectorStd()->getFuncGeneralParam().m_paramDProdUid);
 
