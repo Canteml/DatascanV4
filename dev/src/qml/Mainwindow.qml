@@ -6,7 +6,8 @@ import Design 1.0
 Item {
     id: itemMain
 
-    anchors.fill: parent
+    Layout.fillHeight: true
+    Layout.fillWidth: true
     focus: enabled
 //    property alias btBannerTitle: btBannerTitle
 //    property alias slCentral: slCentral

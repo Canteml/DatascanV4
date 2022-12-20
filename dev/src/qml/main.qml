@@ -36,10 +36,51 @@ Window  {
             source: "qrc:///img/logo.png"
         }
 
-        Mainwindow {
-            Component.onCompleted: focus = true
+        StackLayout {
+            id: idWindowStackLayout
+
+            anchors.fill: parent
+
+            currentIndex: 0
+
+            Mainwindow {
+                Component.onCompleted: focus = true
+            }
+
+            Rectangle {
+                id: idAlert4Gas
+                Layout.preferredHeight: 70
+                Layout.fillWidth: true
+                color: "red"
+                border.width: 1
+                border.color: "black"
+
+                Text {
+                    id: idText4Gas
+                    text: "4-GAS ALERT DETECTED!"
+                    font.bold: true
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                    anchors.fill: parent
+                    wrapMode: Text.WordWrap
+                    font.pixelSize: 35
+                    color: "white"
+                }
+            }
+
         }
 
+        // -- 4-GAS blocking
+        Connections {
+            target: currentVector
+            function onAlertChanged(alertLevel) {
+                if(alertLevel === 2 && currentVector.getAlertMsg(alertLevel) === "4-GAS ALERT DETECTED!") {
+                    idWindowStackLayout.currentIndex = 1
+                } else {
+                    idWindowStackLayout.currentIndex = 0
+                }
+            }
+        }
 
         // -- KEYBOARD ACTIONS
         property var actMoveUp : false;
