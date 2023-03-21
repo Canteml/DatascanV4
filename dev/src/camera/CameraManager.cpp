@@ -53,11 +53,11 @@ CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
     m_slCameraRole.append(tr("Avant"));
     m_slCameraRole.append(tr("Arrière"));
 
-    QStringList vlcArgs = QStringList(QString("--network-caching=500"));
-    /*vlcArgs.append("--clock-synchro=0");
-    vlcArgs.append("--clock-jitter=500");
-    vlcArgs.append("--rtsp-tcp");*/
-    vlcArgs.append("--quiet");
+    QStringList vlcArgs = QStringList(QString("--network-caching=300"));
+    vlcArgs.append("--clock-synchro=0");
+    //vlcArgs.append("--clock-jitter=500");
+    //vlcArgs.append("--rtsp-tcp");
+    //vlcArgs.append("--quiet");
     m_pInstance = new VlcInstance(vlcArgs, this);
     m_pMainPlayer = new VlcMediaPlayer(m_pInstance);
     m_pPreviewPlayer = new VlcMediaPlayer(m_pInstance);
