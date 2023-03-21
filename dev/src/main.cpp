@@ -1,5 +1,7 @@
 #include "CoreApp.h"
 
+#include <QMessageBox>
+
 int main(int argc, char *argv[])
 {
     CoreApp app;

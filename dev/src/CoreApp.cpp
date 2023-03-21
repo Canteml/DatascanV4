@@ -57,6 +57,8 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
+#include "SoftwareLicenceChecker.h"
+
 Q_DECLARE_METATYPE(VectorFuncAScan*)
 
 CoreApp::CoreApp() : CoreUiQml("CoreApp")
@@ -107,6 +109,8 @@ bool CoreApp::initApp()
     m_pExamManager = ExamManager::makeInstance();
     m_pGlobalManager = GlobalManager::makeInstance();
 
+
+
     // -- init my managers
     // example : m_pStatisticApp->initManager();
     m_pVectorManager->init();
@@ -129,6 +133,9 @@ bool CoreApp::initApp()
 
     m_pProductLimiter = new ProductLimiter();
     m_pProductLimiter->loadLimitations();
+
+    m_licence.init();
+    bRet &= m_licence.checkValidity();
 
     return bRet;
 }
@@ -179,30 +186,41 @@ void CoreApp::stopApp()
 void CoreApp::deleteApp()
 {
     // delete managers
-    delete m_pScanManager;
+    if(nullptr != m_pScanManager)
+        delete m_pScanManager;
     m_pScanManager = nullptr;
-    delete m_pExamManager;
+    if(nullptr != m_pExamManager)
+        delete m_pExamManager;
     m_pExamManager = nullptr;
-    delete m_pGlobalManager;
+    if(nullptr != m_pGlobalManager)
+        delete m_pGlobalManager;
     m_pGlobalManager = nullptr;
 
-    m_pVectorManager->quit();
-    delete m_pVectorManager;
+    if(nullptr != m_pVectorManager) {
+        m_pVectorManager->quit();
+        delete m_pVectorManager;
+    }
     m_pVectorManager = nullptr;
-    delete m_pJoystickManager;
+    if(nullptr != m_pJoystickManager)
+        delete m_pJoystickManager;
     m_pJoystickManager = nullptr;
-    delete m_pCameraManager;
+    if(nullptr != m_pCameraManager)
+        delete m_pCameraManager;
     m_pCameraManager = nullptr;
-    delete m_pExamPipeManager;
+    if(nullptr != m_pExamPipeManager)
+        delete m_pExamPipeManager;
     m_pExamPipeManager = nullptr;
 
-    delete m_pMepExporter;
+    if(nullptr != m_pMepExporter)
+        delete m_pMepExporter;
     m_pMepExporter = nullptr;
 
-    delete m_pClipboardAdapter;
+    if(nullptr != m_pClipboardAdapter)
+        delete m_pClipboardAdapter;
     m_pClipboardAdapter = nullptr;
 
-    delete m_pProductLimiter;
+    if(nullptr != m_pProductLimiter)
+        delete m_pProductLimiter;
     m_pProductLimiter = nullptr;
 
     // -- core delete
@@ -301,6 +319,10 @@ QString CoreApp::getWindowTitle() const
     QString title = QString("%1 %2").arg(getApplicationName()).arg(getVersion());
     if(1 == m_pProductLimiter->getEnabledProductsNames().size()) {
         title += QString(" [%1]").arg(m_pProductLimiter->getEnabledProductsNames().first());
+    }
+    QString licenceMessage = m_licence.getTitleMessage();
+    if(!licenceMessage.isEmpty()) {
+        title += QString(" - %1").arg(licenceMessage);
     }
     return title;
 }

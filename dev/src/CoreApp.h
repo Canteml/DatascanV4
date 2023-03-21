@@ -14,6 +14,7 @@
 
 // Internal includes
 #include <coreUi/CoreUiQml.h>
+#include "SoftwareLicenceChecker.h"
 class StatisticApp;
 class VectorManager;
 class VectorStd;
@@ -75,5 +76,7 @@ private :
     ClipboardAdapter* m_pClipboardAdapter;
 
     ProductLimiter* m_pProductLimiter;
+
+    SoftwareLicenceChecker m_licence;
 };
 
