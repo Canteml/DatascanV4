@@ -27,6 +27,7 @@
 #include <QQmlContext>
 #include <QCamera>
 #include <QThread>
+#include <QFile>
 
 #include <VLCQtCore/Common.h>
 #include <VLCQtQml/Qml.h>
@@ -34,6 +35,7 @@
 #include <VLCQtCore/MediaPlayer.h>
 #include <VLCQtCore/Video.h>
 #include <VLCQtQml/QmlSource.h>
+
 
 CameraManager* CameraManager::m_pMyInstance = nullptr;
 
@@ -54,15 +56,26 @@ CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
     m_slCameraRole.append(tr("Arrière"));
 
     QStringList vlcArgs = QStringList(QString("--network-caching=300"));
-    vlcArgs.append("--clock-synchro=0");
-    //vlcArgs.append("--clock-jitter=500");
-    //vlcArgs.append("--rtsp-tcp");
-    //vlcArgs.append("--quiet");
+    vlcArgs.append("--clock-synchro=0");        // Clock synchronisation  It is possible to disable the input clock synchronisation for  real-time sources. Use this if you experience jerky playback of network streams.
+    //vlcArgs.append("--clock-jitter=100");     // This defines the maximum input delay jitter that the synchronization  algorithms should try to compensate (in milliseconds).
+    //vlcArgs.append("--live-caching=300");       // Live capture caching (ms)  Caching value for cameras and microphones, in milliseconds.
+    //vlcArgs.append("--no-avcodec-fast");        // --avcodec-fast, --no-avcodec-fast
+                                                // Allow speed tricks
+                                                // (default disabled)
+                                                // Allow non specification compliant speedup tricks. Faster but
+                                                // error-prone.
+    //vlcArgs.append("-vvv");
+    vlcArgs.append("--quiet");                  // Console logger : (console) -q, --quiet, --no-quiet        Be quiet(default disabled)
+
+
     m_pInstance = new VlcInstance(vlcArgs, this);
+
     m_pMainPlayer = new VlcMediaPlayer(m_pInstance);
     m_pPreviewPlayer = new VlcMediaPlayer(m_pInstance);
-    m_pMainSource = new VlcQmlSource(this);
+
+    m_pMainSource = new VlcQmlSource(this);    
     m_pMainSource->setPlayer(m_pMainPlayer);
+
     m_pPreviewSource = new VlcQmlSource(this);
     m_pPreviewSource->setPlayer(m_pPreviewPlayer);
 
@@ -79,10 +92,17 @@ CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
     m_mainCameraIsAlarm = false;
 
     m_pTimer = new QTimer();
-    m_pTimer->setSingleShot(false);
-    m_pTimer->setInterval(500);
+    m_pTimer->setSingleShot(false); // You can set a timer to time out only once by calling setSingleShot(true). You can also use the static QTimer::singleShot() function to call a slot after a specified interval:
+    m_pTimer->setInterval(500);     // replace by m_pTimer->start(500) ? (TD)
     connect(m_pTimer, &QTimer::timeout, this, &CameraManager::onUpdateCameraList);
     connect(this, &CameraManager::mainCameraIndexChanged, this, &CameraManager::onMainCameraIndexChanged);
+
+    m_pTimerRefreshMainCam =  new QTimer();
+    m_pTimerRefreshMainCam->setSingleShot(false); // You can set a timer to time out only once by calling setSingleShot(true). You can also use the static QTimer::singleShot() function to call a slot after a specified interval:
+    m_pTimerRefreshMainCam->setInterval(1000);     // replace by m_pTimer->start(500) ? (TD)
+    connect(m_pTimerRefreshMainCam, &QTimer::timeout, this, &CameraManager::onRefreshCameraAutoReco);
+
+
 
 }
 
@@ -91,6 +111,7 @@ CameraManager::~CameraManager()
     stop();
 
     delete m_pTimer;
+    delete m_pTimerRefreshMainCam;
 
     for(int i=0; i<CameraRole::ROLE_MAX; i++) {
         delete m_aCameraRole[i];
@@ -155,30 +176,47 @@ void CameraManager::initQmlObject(QObject *p_pQmlTopLevel)
 
 void CameraManager::onGuiPageChanged(quint32 p_page)
 {
-    if( 1 == p_page ) {
+    if( 1 == p_page ) { // page Prepare
         // -- Configure : display on Preview video
-        m_pMainPlayer->stop();
+
         m_pCameraAlarm->stop();
         m_pCameraMain->stop();
-        QThread::msleep(100);   ///< wait camera stop
+
+        //QThread::msleep(300);   ///< wait camera stop
+        /*
         if(isPreviewCameraIp()) {
             openPreviewIpMedia();
         }
+        */
         emit previewCameraIndexChanged(getPreviewCameraIndex());
-    } else {
-        // -- display on Alarm + Main video
+
+
+    }
+    else if( 3 == p_page ) // page Scan
+    {
+
         m_pCameraPreview->stop();
-        m_pPreviewPlayer->stop();
-        m_pMainPlayer->stop();
-        QThread::msleep(100);   ///< wait camera stop
+
+        //QThread::msleep(500);   ///< wait camera stop
+        /*
         if(isMainCameraIp()) {
             openMainIpMedia();
         }
+        */
+
         emit mainCameraIndexChanged(getMainCameraIndex());
-        if( getMainCameraIndex() != getPreviewCameraIndex() ) {
-            m_pCameraAlarm->start();
-            emit mainCameraIndexChanged(getMainCameraIndex());
-        }
+
+    }
+    else {
+
+        m_pCameraAlarm->stop();
+        m_pCameraMain->stop();
+        m_pCameraPreview->stop();
+
+        m_pPreviewPlayer->stop();
+        m_pMainPlayer->stop();
+
+        QThread::msleep(300);
     }
 }
 
@@ -217,6 +255,72 @@ void CameraManager::onMainCameraIndexChanged(quint32 p_index)
     }
 }
 
+
+void CameraManager::onRefreshCameraAutoReco()
+{
+QString     strFilePath = CoreApp::getDirDataLog() + QString("/") + "log.txt";
+QFile       logFile(strFilePath);
+QStringList stringList;
+QByteArray  qbaContent;
+int         s16LineMax=0;
+int         s16LineStart=0;
+int         s16Idx;
+bool        bFoundVLClibError=false;
+
+    if(logFile.open(QIODevice::ReadOnly | QIODevice::Text))//if there is a log
+    {
+        QTextStream textStream(&logFile);
+        while (true)
+        {
+            QString line = textStream.readLine();
+            if (line.isNull())
+                break;
+            else
+                stringList.append(line);
+        }
+        s16LineMax = stringList.size();
+
+        if(0> (s16LineMax-4))
+        {
+            s16LineStart = 0;
+        }
+        else
+        {
+            s16LineStart = s16LineMax-4;
+        }
+
+        //read the 4last line
+        for(s16Idx = s16LineStart;s16Idx< s16LineMax ; s16Idx++   )
+        {
+            //qDebug() << stringList[s16Idx];
+            bFoundVLClibError |= stringList[s16Idx].contains("- Qt : libvlc: more than 5 seconds of late video -> dropping frame (computer too slow ?)");
+            bFoundVLClibError |= stringList[s16Idx].contains("- Qt : libvlc: ES_OUT_SET_(GROUP_)PCR  is called too late");
+        }
+    }
+
+    if(true== bFoundVLClibError)
+    {
+        qDebug("Freez Camera detected find ");
+
+
+        m_pCameraAlarm->stop();
+        m_pCameraMain->stop();
+        m_pCameraPreview->stop();
+
+        //QThread::msleep(300);   ///< wait camera stop
+
+        //m_pPreviewPlayer->stop();
+        //m_pMainPlayer->stop();
+
+
+        emit previewCameraIndexChanged(getMainCameraIndex());
+        emit mainCameraIndexChanged(getMainCameraIndex());
+    }
+
+
+
+}
+
 void CameraManager::start()
 {
     m_pGlobalManager = GlobalManager::getInstance();
@@ -230,6 +334,7 @@ void CameraManager::start()
     connect(m_pVectorStd, &VectorStd::evFuncStateConnectionChanged, this, &CameraManager::onUpdateCameraDatabase);
     connect(m_pVectorStd->getDeviceManager(), &ComDeviceManager::evDeviceListChanged, this, &CameraManager::onVectorDeviceListChanged);
     m_pTimer->start();
+    m_pTimerRefreshMainCam->start();
 }
 
 void CameraManager::stop()
@@ -761,6 +866,8 @@ void CameraManager::setMainCameraIsAlarm(bool p_value)
     }
 }
 
+
+
 VlcQmlSource* CameraManager::getPreviewCameraSource()
 {
     return m_pPreviewSource;
@@ -794,7 +901,7 @@ void CameraManager::openMainIpMedia()
         return;
     }
     m_pMainPlayer->stop();
-    QThread::msleep(100);
+    QThread::msleep(200);   //Forces the current thread to sleep for msecs milliseconds. (TD)
     IpCamera* pIpCam = (IpCamera*) m_lCameraVideo.at(getMainCameraIndex());
     pIpCam->openMedia();
     m_pMainPlayer->open(pIpCam->getMedia());
@@ -806,7 +913,7 @@ void CameraManager::openPreviewIpMedia()
         return;
     }
     m_pPreviewPlayer->stop();
-    QThread::msleep(100);
+    QThread::msleep(200);   //Forces the current thread to sleep for msecs milliseconds. (TD)
     IpCamera* pIpCam = (IpCamera*) m_lCameraVideo.at(m_indexPreviewCamera);
     pIpCam->openMedia();
     m_pPreviewPlayer->open(pIpCam->getMedia());

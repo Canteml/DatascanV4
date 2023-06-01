@@ -20,7 +20,7 @@ Rectangle {
             Layout.fillWidth: true
 
             FormSection {
-                text: qsTr("Licence actuelle")
+                text: qsTr("Licence équipement actuelle")
             }
         }
 
@@ -67,7 +67,7 @@ Rectangle {
             Layout.fillWidth: true
 
             Text {
-                text: qsTr("Pour demander une nouvelle licence, merci de contacter Roboplanet muni d'une clé d'équipement générée ci-dessous")
+                text: qsTr("Pour demander une nouvelle licence équipement, merci de contacter Roboplanet muni d'une clé d'équipement générée ci-dessous")
                 font.pixelSize: 14
             }
 
@@ -127,7 +127,7 @@ Rectangle {
             Layout.fillWidth: true
 
             FormSection {
-                text: qsTr("Activation d'une nouvelle licence")
+                text: qsTr("Activation d'une nouvelle licence équipement")
             }
         }
 

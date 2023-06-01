@@ -805,6 +805,8 @@ Rectangle {
         }
 
         Rectangle {
+            visible: false //put to true to set visible the button
+
             // seaparator
             width: 5
             Layout.fillHeight: true
@@ -817,6 +819,9 @@ Rectangle {
         // Peripherals
         Button {
             id: icJoystick
+
+            visible: false //put to true to set visible the button
+
             Layout.fillHeight: true
             Layout.topMargin: 5
             Layout.bottomMargin: 5           
@@ -882,6 +887,8 @@ Rectangle {
         }
 
         Rectangle {
+            visible: true //put to true to set visible the button
+
             // seaparator
             width: 5
             Layout.fillHeight: true
@@ -918,6 +925,7 @@ Rectangle {
 
         Button {
             id: btVectorEmergencyStop
+            visible: false //put to true to set visible the button
 
             Layout.preferredWidth: idBannerVectorInfo.height
             Layout.preferredHeight: idBannerVectorInfo.height
@@ -966,6 +974,8 @@ Rectangle {
             ToolTip.timeout: 5000
             ToolTip.visible: hovered
             ToolTip.text: qsTr("Arrêt d'urgence");
+
+
         }
     }
 

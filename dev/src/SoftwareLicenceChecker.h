@@ -16,12 +16,18 @@ public:
         LICENCE_EXPIRED,
         APP_SOON_DEPRECATED,
         APP_DEPRECATED,
+        PC_NOT_COMPATIBLE,
         LICENCE_INVALID
     };
 
+    enum SOFTWARE_APP {
+        APP_DATASCAN_SELECTED=1,
+    };
+
+
     explicit SoftwareLicenceChecker(QObject *parent = nullptr);
 
-    void init();
+    bool bInit();
 
     bool checkValidity();
 
@@ -31,13 +37,20 @@ private:
 
     void updateLicenceFile();
 
+
     SOFTWARE_LICENCE_STATE getLicenceState();
 
     QString m_strFilePath;
     QString m_strLicence;
+    QByteArray m_baLicence;
+    uint8_t m_au8Lic_soft_Crypted[88];
+    uint8_t m_u8CodeError;
+    SOFTWARE_LICENCE_STATE m_LicenceState;
 
     QDate m_dLicenceExpiration;
     QDate m_dApplicationExpiration;
+    QDate m_dApplicationlastLaunch;
+
 
 signals:
 

@@ -197,7 +197,7 @@ Item {
                     id: btCentralPage4
                     Layout.preferredWidth: 140
                     Layout.preferredHeight: 60
-                    text: qsTr("LICENCE")
+                    text: qsTr("EQUIP.LICENCE")
                     font.pointSize: 12
                     background: Rectangle {
                         color: Design.colButtonDarkBackground
@@ -215,6 +215,7 @@ Item {
                 }
 
                 Button {
+
                     id: btCentralPage5
                     Layout.preferredWidth: 140
                     Layout.preferredHeight: 60
@@ -230,6 +231,7 @@ Item {
                         verticalAlignment: Text.AlignVCenter
                         color: btCentralPage5.hovered ? Design.colButtonDarkHoveredText : slCentral.currentIndex === 5 ? Design.colButtonDarkSelectedText : Design.colButtonDarkText
                     }
+
 
                     onHoveredChanged: checkMainMenuHovered();
                     onPressed: {globalManager.guiPage = page5_help; displayMenu = false;}
@@ -253,7 +255,7 @@ Item {
         btCentralPage2.visible = displayMenu;
         btCentralPage3.visible = displayMenu;
         btCentralPage4.visible = displayMenu;
-        btCentralPage5.visible = displayMenu;
+        btCentralPage5.visible = false;
     }
 
     Connections {

@@ -29,6 +29,8 @@ const qreal BScanGraph::SCALE_X_M_MIN = 1;
 const qreal BScanGraph::SCALE_X_M_MAX = 10;
 const qreal BScanGraph::SCALE_Y_MM_MAX = 200;
 
+#define FREQ_REFRESH_BSCAN_ON_IHM   20
+
 // RENDER MULTI THREAD
 
 BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSettingsLoggable("BScanGraph")
@@ -428,14 +430,14 @@ void BScanGraph::needRefresh(bool p_force)
     // timer active => already an update programmed
     if( !m_timeRefresh->isActive() || p_force) {
         qint64 dTime = curEpoc - m_lastRequestEpoc;
-        if( (dTime >= 50 || p_force) && !m_updateInProgress ) {
+        if( (dTime >= (1000/FREQ_REFRESH_BSCAN_ON_IHM) || p_force) && !m_updateInProgress ) {
             m_lastRequestEpoc = curEpoc;
             m_updateInProgress = true;
             draw();
             update();
         } else if( !m_timeRefresh->isActive() ){
             // start timer with remaining time
-            m_timeRefresh->start(qMax<qint32>(10, 50 - (dTime)));
+            m_timeRefresh->start(qMax<qint32>(10, (1000/FREQ_REFRESH_BSCAN_ON_IHM) - (dTime)));
         }
     }
 

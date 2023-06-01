@@ -123,6 +123,7 @@ private slots :
     void onCameraIsReadyChanged(CameraRole*,bool);
     void onExamControlTypeChanged(quint32);
     void onMainCameraIndexChanged(quint32);
+    void onRefreshCameraAutoReco();
 
 protected :
     // -- Settings
@@ -139,6 +140,7 @@ private:
     static CameraManager* m_pMyInstance;
 
     // -- Behaviour
+
     QList<CameraVideo* > m_lCameraVideo;             ///< list of available cameras, updated by timer
     QList<IpCamera*> m_lIpCamera;                    ///< list of available ip cameras, updated by timer
 
@@ -153,6 +155,7 @@ private:
     QList<CameraDatabase* > m_lCameraDatabase;
 
     QTimer* m_pTimer;
+    QTimer* m_pTimerRefreshMainCam;
 
     qint32 m_indexPreviewCamera;
     qint32 m_roleMainCamera;
@@ -168,4 +171,5 @@ private:
     QCamera* m_pCameraPreview;
     QCamera* m_pCameraAlarm;
     QCamera* m_pCameraMain;
+
 };

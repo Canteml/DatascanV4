@@ -13,8 +13,8 @@
 
 ## -- VERSION
 
-//DEF_VERSION = 1.0.4-ENG
-DEF_VERSION = 1.0.72-BETA-FR
+DEF_VERSION = rev_1.1.0-ENG
+//DEF_VERSION = rev_1.1.0-FR
 CONFIG(debug, debug|release) {
     DEF_VERSION = $$DEF_VERSION"-DEV"
 }

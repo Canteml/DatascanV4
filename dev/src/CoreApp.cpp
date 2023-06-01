@@ -57,6 +57,7 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
+
 #include "SoftwareLicenceChecker.h"
 
 Q_DECLARE_METATYPE(VectorFuncAScan*)
@@ -84,7 +85,7 @@ CoreApp::~CoreApp()
 
 QString CoreApp::getApplicationName() const
 {
-    return "DataScanV2";
+    return "DatascanV2";
 }
 
 QString CoreApp::getVersion() const
@@ -97,6 +98,9 @@ QString CoreApp::getVersion() const
 bool CoreApp::initApp()
 {
     bool bRet = CoreUiQml::initApp();
+
+
+
 
     // -- make my managers
     // example : m_pStatisticApp = StatisticApp::makeInstance();    
@@ -134,8 +138,9 @@ bool CoreApp::initApp()
     m_pProductLimiter = new ProductLimiter();
     m_pProductLimiter->loadLimitations();
 
-    m_licence.init();
-    bRet &= m_licence.checkValidity();
+    bRet &= m_licence.bInit();
+
+
 
     return bRet;
 }

@@ -4,44 +4,70 @@
 <context>
     <name>BannerVectorInfo</name>
     <message>
-        <location filename="src/qml/BannerVectorInfo.qml" line="148"/>
+        <location filename="src/qml/BannerVectorInfo.qml" line="153"/>
         <source>Démarrer ou mettre en pause une acquisition.</source>
         <translation>Start or pause an acquisition.</translation>
     </message>
     <message>
-        <location filename="src/qml/BannerVectorInfo.qml" line="181"/>
+        <location filename="src/qml/BannerVectorInfo.qml" line="186"/>
         <source>Générer un rapport BSCAN.</source>
         <translation>Generate a B-Scan report.</translation>
     </message>
     <message>
-        <location filename="src/qml/BannerVectorInfo.qml" line="208"/>
+        <location filename="src/qml/BannerVectorInfo.qml" line="213"/>
+        <location filename="src/qml/BannerVectorInfo.qml" line="473"/>
         <source>Direction du porteur, permet d&apos;inverser son sens de progression.</source>
         <translation>Direction of the carrier, allows to reverse its direction of progression.</translation>
     </message>
     <message>
-        <location filename="src/qml/BannerVectorInfo.qml" line="410"/>
+        <location filename="src/qml/BannerVectorInfo.qml" line="406"/>
+        <source>Mesure manuelle</source>
+        <translation>Manual Mode</translation>
+    </message>
+    <message>
+        <location filename="src/qml/BannerVectorInfo.qml" line="422"/>
+        <source>Mode automatique</source>
+        <translation>Auto Mode</translation>
+    </message>
+    <message>
+        <location filename="src/qml/BannerVectorInfo.qml" line="608"/>
+        <source>Sauvegarder l&apos;examen en cours.</source>
+        <translation>Save Work In Progress</translation>
+    </message>
+    <message>
+        <location filename="src/qml/BannerVectorInfo.qml" line="613"/>
+        <source>Enregistrement de l&apos;examen ...</source>
+        <translation>Save Work In Progress ...</translation>
+    </message>
+    <message>
+        <location filename="src/qml/BannerVectorInfo.qml" line="630"/>
+        <source>Erreur</source>
+        <translation>Error</translation>
+    </message>
+    <message>
+        <location filename="src/qml/BannerVectorInfo.qml" line="711"/>
         <source>Commentaire sur les acquisitions en cours.</source>
         <translation>Comment on current acquisitions.</translation>
     </message>
     <message>
-        <location filename="src/qml/BannerVectorInfo.qml" line="541"/>
-        <location filename="src/qml/BannerVectorInfo.qml" line="615"/>
+        <location filename="src/qml/BannerVectorInfo.qml" line="847"/>
+        <location filename="src/qml/BannerVectorInfo.qml" line="923"/>
         <source>Connecté</source>
         <translation>Connected</translation>
     </message>
     <message>
-        <location filename="src/qml/BannerVectorInfo.qml" line="541"/>
-        <location filename="src/qml/BannerVectorInfo.qml" line="615"/>
+        <location filename="src/qml/BannerVectorInfo.qml" line="847"/>
+        <location filename="src/qml/BannerVectorInfo.qml" line="923"/>
         <source>Déconnecté</source>
         <translation>Disconnected</translation>
     </message>
     <message>
-        <location filename="src/qml/BannerVectorInfo.qml" line="615"/>
+        <location filename="src/qml/BannerVectorInfo.qml" line="923"/>
         <source>Partiellement connecté</source>
         <translation>Partially connected</translation>
     </message>
     <message>
-        <location filename="src/qml/BannerVectorInfo.qml" line="667"/>
+        <location filename="src/qml/BannerVectorInfo.qml" line="976"/>
         <source>Arrêt d&apos;urgence</source>
         <translation>Emergency stop</translation>
     </message>
@@ -49,44 +75,44 @@
 <context>
     <name>CameraManager</name>
     <message>
-        <location filename="src/camera/CameraManager.cpp" line="41"/>
-        <location filename="src/camera/CameraManager.cpp" line="401"/>
+        <location filename="src/camera/CameraManager.cpp" line="50"/>
+        <location filename="src/camera/CameraManager.cpp" line="585"/>
         <source>Alarme</source>
         <translation>Alarm</translation>
     </message>
     <message>
-        <location filename="src/camera/CameraManager.cpp" line="42"/>
-        <location filename="src/camera/CameraManager.cpp" line="426"/>
+        <location filename="src/camera/CameraManager.cpp" line="51"/>
+        <location filename="src/camera/CameraManager.cpp" line="610"/>
         <source>Capteur 1</source>
         <translation>Probe 1</translation>
     </message>
     <message>
-        <location filename="src/camera/CameraManager.cpp" line="43"/>
-        <location filename="src/camera/CameraManager.cpp" line="427"/>
+        <location filename="src/camera/CameraManager.cpp" line="52"/>
+        <location filename="src/camera/CameraManager.cpp" line="611"/>
         <source>Capteur 2</source>
         <translation>Probe 2</translation>
     </message>
     <message>
-        <location filename="src/camera/CameraManager.cpp" line="44"/>
-        <location filename="src/camera/CameraManager.cpp" line="428"/>
+        <location filename="src/camera/CameraManager.cpp" line="53"/>
+        <location filename="src/camera/CameraManager.cpp" line="612"/>
         <source>Capteur 3</source>
         <translation>Probe 3</translation>
     </message>
     <message>
-        <location filename="src/camera/CameraManager.cpp" line="45"/>
-        <location filename="src/camera/CameraManager.cpp" line="429"/>
+        <location filename="src/camera/CameraManager.cpp" line="54"/>
+        <location filename="src/camera/CameraManager.cpp" line="613"/>
         <source>Capteur 4</source>
         <translation>Probe 4</translation>
     </message>
     <message>
-        <location filename="src/camera/CameraManager.cpp" line="46"/>
-        <location filename="src/camera/CameraManager.cpp" line="410"/>
+        <location filename="src/camera/CameraManager.cpp" line="55"/>
+        <location filename="src/camera/CameraManager.cpp" line="594"/>
         <source>Avant</source>
         <translation>Front</translation>
     </message>
     <message>
-        <location filename="src/camera/CameraManager.cpp" line="47"/>
-        <location filename="src/camera/CameraManager.cpp" line="416"/>
+        <location filename="src/camera/CameraManager.cpp" line="56"/>
+        <location filename="src/camera/CameraManager.cpp" line="600"/>
         <source>Arrière</source>
         <translation>Rear</translation>
     </message>
@@ -107,104 +133,176 @@
 <context>
     <name>CentralPage0</name>
     <message>
-        <location filename="src/qml/CentralPage0.qml" line="16"/>
         <source>Information sur l&apos;ouvrage</source>
-        <translation>Work information</translation>
+        <translation type="vanished">Work information</translation>
     </message>
     <message>
         <location filename="src/qml/CentralPage0.qml" line="24"/>
         <source>Nom de la structure :</source>
-        <translation>Name of the work :</translation>
+        <translation>Asset Name :</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage0.qml" line="38"/>
+        <location filename="src/qml/CentralPage0.qml" line="41"/>
         <source>Nom de la Pièce :</source>
-        <translation>Name of the item :</translation>
+        <translation>Name of the Item :</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage0.qml" line="56"/>
+        <location filename="src/qml/CentralPage0.qml" line="61"/>
         <source>Dossier exports :</source>
-        <translation>Export folder :</translation>
+        <translation>Save to Folder :</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage0.qml" line="88"/>
+        <location filename="src/qml/CentralPage0.qml" line="209"/>
         <source>Plan de contrôle</source>
-        <translation>Control plan</translation>
+        <translation>Control Plan</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage0.qml" line="98"/>
         <source>GENERATRICE
 BSCAN</source>
-        <translation>BSCAN
+        <translation type="vanished">BSCAN
 LINE</translation>
+    </message>
+    <message>
+        <source>GENERATRICE
+MEP</source>
+        <translation type="vanished">MEP
+LINE</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage0.qml" line="16"/>
+        <source>Caractéristiques de la structure</source>
+        <translation>Structure Features</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage0.qml" line="97"/>
+        <source>Site :</source>
+        <translation>Asset Location :</translation>
     </message>
     <message>
         <location filename="src/qml/CentralPage0.qml" line="110"/>
-        <source>GENERATRICE
-MEP</source>
-        <translation>MEP
-LINE</translation>
+        <source>Secteur :</source>
+        <translation>Location Comments :</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage0.qml" line="122"/>
+        <location filename="src/qml/CentralPage0.qml" line="130"/>
+        <source>Origine :</source>
+        <translation>First Line Origin :</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage0.qml" line="148"/>
+        <source>Activité :</source>
+        <translation>Activity :</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage0.qml" line="153"/>
+        <source>En service</source>
+        <translation>In Service</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage0.qml" line="153"/>
+        <source>Hors service</source>
+        <translation>Out of Service</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage0.qml" line="172"/>
+        <source>CONTROLE
+BSCAN</source>
+        <translation>B-SCAN MODE</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage0.qml" line="184"/>
+        <source>CONTROLE
+MEP</source>
+        <translation>PONCTUAL UTM</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage0.qml" line="197"/>
         <source>TUYAU
 4 POINTS</source>
         <translation>PIPE
 4 POINTS</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage0.qml" line="147"/>
+        <location filename="src/qml/CentralPage0.qml" line="226"/>
+        <location filename="src/qml/CentralPage0.qml" line="382"/>
         <source>■  Nombre de génératrices :</source>
-        <translation>■  Number of line :</translation>
+        <translation>■  Number of lines :</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage0.qml" line="166"/>
+        <location filename="src/qml/CentralPage0.qml" line="245"/>
         <source>Intervalle (m) : </source>
         <translation>Interval (m) : </translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage0.qml" line="178"/>
-        <location filename="src/qml/CentralPage0.qml" line="269"/>
+        <location filename="src/qml/CentralPage0.qml" line="257"/>
+        <location filename="src/qml/CentralPage0.qml" line="411"/>
         <source>Périmètre (m) : </source>
-        <translation>Perimeter (m) : </translation>
+        <translation>Tank Perimeter (m) : </translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage0.qml" line="204"/>
+        <location filename="src/qml/CentralPage0.qml" line="283"/>
         <source>Diametre (m) : </source>
-        <translation>Diameter (m) : </translation>
+        <translation>Tank Diameter (m) : </translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage0.qml" line="240"/>
+        <location filename="src/qml/CentralPage0.qml" line="321"/>
+        <source>Découper en viroles :</source>
+        <translation>Divide Plates :</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage0.qml" line="327"/>
+        <source>Oui</source>
+        <translation>Yes</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage0.qml" line="327"/>
+        <source>Non</source>
+        <translation>No</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage0.qml" line="344"/>
+        <source>Nombre de mesures par virole :</source>
+        <translation>Number of Measures by Plate :</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage0.qml" line="360"/>
+        <source>Nombre de viroles par génératrice :</source>
+        <translation>Number of plates by Line :</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage0.qml" line="466"/>
+        <source>■  Nombre de mesures par génératrice :</source>
+        <translation>■  Number of Measures by Line :</translation>
+    </message>
+    <message>
         <source>■  Nombre de mesures sur la largeur :</source>
-        <translation>■  Number of measurements on the width :</translation>
+        <translation type="vanished">■  Number of measurements on the width :</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage0.qml" line="259"/>
         <source>Intervalle X (m) : </source>
-        <translation>X Interval (m) : </translation>
+        <translation type="vanished">X Interval (m) : </translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage0.qml" line="295"/>
+        <location filename="src/qml/CentralPage0.qml" line="437"/>
         <source>Diamètre (m) : </source>
-        <translation>Diameter (m) : </translation>
+        <translation>Tank Diameter (m) : </translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage0.qml" line="324"/>
         <source>■  Nombre de mesures sur la hauteur :</source>
-        <translation>■  Number of measurements on the height :</translation>
+        <translation type="vanished">■  Number of measurements on the height :</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage0.qml" line="343"/>
+        <location filename="src/qml/CentralPage0.qml" line="488"/>
         <source>Intervalle Y (m) : </source>
         <translation>Y Interval (m) : </translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage0.qml" line="353"/>
+        <location filename="src/qml/CentralPage0.qml" line="519"/>
         <source>Hauteur (m) : </source>
         <translation>Height (m) : </translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage0.qml" line="392"/>
+        <location filename="src/qml/CentralPage0.qml" line="558"/>
         <source>PREPARER</source>
         <translation>PREPARE</translation>
     </message>
@@ -212,54 +310,46 @@ LINE</translation>
 <context>
     <name>CentralPage1</name>
     <message>
-        <location filename="src/qml/CentralPage1.qml" line="30"/>
+        <location filename="src/qml/CentralPage1.qml" line="32"/>
         <source>Equipement</source>
         <translation>Equipment</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage1.qml" line="41"/>
+        <location filename="src/qml/CentralPage1.qml" line="43"/>
         <source>Appareil :</source>
         <translation>Device :</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage1.qml" line="54"/>
         <source>PERCHE IP68</source>
-        <translation>UT POLE IP68</translation>
+        <translation type="vanished">UT POLE IP68</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage1.qml" line="54"/>
         <source>ALTISCAN</source>
-        <translation>ALTISCAN</translation>
+        <translation type="vanished">ALTISCAN</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage1.qml" line="54"/>
         <source>ROVER</source>
-        <translation>ROVER</translation>
+        <translation type="vanished">ROVER</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage1.qml" line="54"/>
         <source>ROVER SCANNER</source>
-        <translation>ROVER SCANNER</translation>
+        <translation type="vanished">ROVER SCANNER</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage1.qml" line="54"/>
         <source>ROVER CLEANER</source>
-        <translation>ROVER CLEANER</translation>
+        <translation type="vanished">ROVER CLEANER</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage1.qml" line="55"/>
         <source>UT POLE</source>
-        <translation>UT POLE</translation>
+        <translation type="vanished">UT POLE</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage1.qml" line="55"/>
         <source>PANDA Vol.3</source>
-        <translation>PANDA Vol.3</translation>
+        <translation type="vanished">PANDA Vol.3</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage1.qml" line="55"/>
         <source>MULTISCAN</source>
-        <translation>MULTISCAN</translation>
+        <translation type="vanished">MULTISCAN</translation>
     </message>
     <message>
         <location filename="src/qml/CentralPage1.qml" line="103"/>
@@ -302,17 +392,22 @@ LINE</translation>
         <translation>Rear :</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage1.qml" line="193"/>
+        <location filename="src/qml/CentralPage1.qml" line="206"/>
         <source>Camera : </source>
         <translation>Camera : </translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage1.qml" line="305"/>
+        <location filename="src/qml/CentralPage1.qml" line="254"/>
+        <source>Inclinomètre</source>
+        <translation>Inclinometer</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage1.qml" line="364"/>
         <source>PROJET</source>
         <translation>PROJECT</translation>
     </message>
     <message>
-        <location filename="src/qml/CentralPage1.qml" line="306"/>
+        <location filename="src/qml/CentralPage1.qml" line="365"/>
         <source>SUPERVISER</source>
         <translation>SUPERVISER</translation>
     </message>
@@ -338,6 +433,82 @@ LINE</translation>
         <location filename="src/qml/CentralPage2.qml" line="78"/>
         <source>SCANNER</source>
         <translation>SCAN</translation>
+    </message>
+</context>
+<context>
+    <name>CentralPage4</name>
+    <message>
+        <location filename="src/qml/CentralPage4.qml" line="23"/>
+        <source>Licence équipement actuelle</source>
+        <oldsource>Licence actuelle</oldsource>
+        <translation>Current Equipment Licence</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage4.qml" line="32"/>
+        <source>Utilisation restante : </source>
+        <translation>Remaining Use : </translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage4.qml" line="43"/>
+        <source>%</source>
+        <translation>%</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage4.qml" line="61"/>
+        <source>Demande de nouvelle licence</source>
+        <translation>Request for a New Equipment Licence</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage4.qml" line="70"/>
+        <source>Pour demander une nouvelle licence équipement, merci de contacter Roboplanet muni d&apos;une clé d&apos;équipement générée ci-dessous</source>
+        <oldsource>Pour demander une nouvelle licence, merci de contacter Roboplanet muni d&apos;une clé d&apos;équipement générée ci-dessous</oldsource>
+        <translation>For a new equipment licence, please contact Roboplanet with the generated key below</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage4.qml" line="81"/>
+        <source>Clé d&apos;équipement :</source>
+        <translation>Equipement Key :</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage4.qml" line="97"/>
+        <source>Générer une clé d&apos;équipement</source>
+        <translation>Create an equipment key</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage4.qml" line="105"/>
+        <source>Copier la clé d&apos;équipement</source>
+        <translation>Copy the equipment key</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage4.qml" line="130"/>
+        <source>Activation d&apos;une nouvelle licence équipement</source>
+        <oldsource>Activation d&apos;une nouvelle licence</oldsource>
+        <translation>Activate a new licence</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage4.qml" line="139"/>
+        <source>Clé de licence :</source>
+        <translation>Licence Key :</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage4.qml" line="152"/>
+        <source>Utiliser la clé</source>
+        <translation>Use the key</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage4.qml" line="171"/>
+        <source>Ne pas éteindre l&apos;équipement pendant tout le processus de mise à jour de la licence !</source>
+        <translation>Do not turn off the equipment during the update process !</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage4.qml" line="191"/>
+        <source>SCANNER</source>
+        <translation>SCAN</translation>
+    </message>
+    <message>
+        <location filename="src/qml/CentralPage4.qml" line="192"/>
+        <source>AIDE</source>
+        <translation>HELP</translation>
     </message>
 </context>
 <context>
@@ -410,7 +581,7 @@ LINE</translation>
         <translation>Error when opening the database.</translation>
     </message>
     <message>
-        <location filename="src/exam/ExamPipeManager.cpp" line="272"/>
+        <location filename="src/exam/ExamPipeManager.cpp" line="265"/>
         <source>Impossible d&apos;écrire le fichier.</source>
         <translation>Unable to write the file.</translation>
     </message>
@@ -424,31 +595,100 @@ LINE</translation>
     </message>
 </context>
 <context>
+    <name>LicenceWarning</name>
+    <message>
+        <location filename="src/qml/LicenceWarning.qml" line="92"/>
+        <source>Votre licence équipement d&apos;utilisation épuisée ! L&apos;export de CSV est désactivé. Merci de contacter ROBOPLANET pour la renouveller</source>
+        <translation>Your equipment licence is expired ! The export CSV file is deactivated. Please contact ROBOPLANET to renew your equipement licence.</translation>
+    </message>
+    <message>
+        <location filename="src/qml/LicenceWarning.qml" line="93"/>
+        <source>Votre licence équipement d&apos;utilisation est bientôt épuisée ! Merci de contacter ROBOPLANET pour la renouveller</source>
+        <translation>Your equipment licence will soon expire ! Please contact ROBOPLANET to renew your equipement licence.</translation>
+    </message>
+</context>
+<context>
     <name>Mainwindow</name>
     <message>
-        <location filename="src/qml/Mainwindow.qml" line="111"/>
+        <location filename="src/qml/Mainwindow.qml" line="116"/>
         <source>PROJET</source>
         <translation>PROJECT</translation>
     </message>
     <message>
-        <location filename="src/qml/Mainwindow.qml" line="132"/>
+        <location filename="src/qml/Mainwindow.qml" line="137"/>
         <source>PREPARER</source>
         <translation>PREPARE</translation>
     </message>
     <message>
-        <location filename="src/qml/Mainwindow.qml" line="153"/>
+        <location filename="src/qml/Mainwindow.qml" line="158"/>
         <source>SUPERVISER</source>
         <translation>SUPERVISE</translation>
     </message>
     <message>
-        <location filename="src/qml/Mainwindow.qml" line="174"/>
+        <location filename="src/qml/Mainwindow.qml" line="179"/>
         <source>SCANNER</source>
         <translation>SCAN</translation>
     </message>
     <message>
-        <location filename="src/qml/Mainwindow.qml" line="195"/>
+        <location filename="src/qml/Mainwindow.qml" line="200"/>
+        <source>EQUIP.LICENCE</source>
+        <oldsource>LICENCE</oldsource>
+        <translation>EQUIP LICENCE</translation>
+    </message>
+    <message>
+        <location filename="src/qml/Mainwindow.qml" line="222"/>
         <source>AIDE</source>
         <translation>HELP</translation>
+    </message>
+</context>
+<context>
+    <name>MepExporter</name>
+    <message>
+        <location filename="src/exam/MepExporter.cpp" line="55"/>
+        <source>Base de données corrompue.</source>
+        <translation>Corrupted database.</translation>
+    </message>
+    <message>
+        <location filename="src/exam/MepExporter.cpp" line="60"/>
+        <source>Erreur à l&apos;ouverture de la base de données.</source>
+        <translation>Error during the opening of the database.</translation>
+    </message>
+    <message>
+        <location filename="src/exam/MepExporter.cpp" line="76"/>
+        <source> points par virole</source>
+        <translation>Number of measure by plate</translation>
+    </message>
+    <message>
+        <location filename="src/exam/MepExporter.cpp" line="78"/>
+        <source> points par génératrice</source>
+        <translation>Number of measure by line</translation>
+    </message>
+    <message>
+        <location filename="src/exam/MepExporter.cpp" line="98"/>
+        <source>Virole </source>
+        <translation>Plate </translation>
+    </message>
+    <message>
+        <location filename="src/exam/MepExporter.cpp" line="137"/>
+        <source>Impossible d&apos;écrire le fichier.</source>
+        <translation>Unable to write the file.</translation>
+    </message>
+</context>
+<context>
+    <name>MepMatrix</name>
+    <message>
+        <location filename="ext/fw_common/dev/src/v2/scan/MepMatrix.cpp" line="112"/>
+        <location filename="ext/fw_common/dev/src/v2/scan/MepMatrix.cpp" line="122"/>
+        <source>Index out of range : (%1;%2) in [%3;%4]</source>
+        <translation>Index out of range : (%1;%2) in [%3;%4]</translation>
+    </message>
+</context>
+<context>
+    <name>MepVirolesHeaderModel</name>
+    <message>
+        <location filename="src/mep/MepTableModel.cpp" line="130"/>
+        <source>Virole</source>
+        <translation>Plate</translation>
     </message>
 </context>
 <context>
@@ -534,17 +774,22 @@ Do you still want to start a new inspection ?</translation>
     <message>
         <location filename="src/qml/P3/P3BottomVectorIO.qml" line="32"/>
         <location filename="src/qml/P3/P3BottomVectorIO.qml" line="135"/>
+        <location filename="src/qml/P3/P3BottomVectorIO.qml" line="214"/>
+        <location filename="src/qml/P3/P3BottomVectorIO.qml" line="280"/>
         <source>-</source>
         <translation>-</translation>
     </message>
     <message>
         <location filename="src/qml/P3/P3BottomVectorIO.qml" line="58"/>
+        <location filename="src/qml/P3/P3BottomVectorIO.qml" line="295"/>
         <source>POMPE </source>
         <translation>PUMP </translation>
     </message>
     <message>
         <location filename="src/qml/P3/P3BottomVectorIO.qml" line="98"/>
         <location filename="src/qml/P3/P3BottomVectorIO.qml" line="176"/>
+        <location filename="src/qml/P3/P3BottomVectorIO.qml" line="255"/>
+        <location filename="src/qml/P3/P3BottomVectorIO.qml" line="321"/>
         <source>+</source>
         <translation>+</translation>
     </message>
@@ -552,6 +797,16 @@ Do you still want to start a new inspection ?</translation>
         <location filename="src/qml/P3/P3BottomVectorIO.qml" line="150"/>
         <source>LED </source>
         <translation>LED </translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3BottomVectorIO.qml" line="194"/>
+        <source>Nettoyage</source>
+        <translation>Cleaning</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3BottomVectorIO.qml" line="229"/>
+        <source>BROSSE </source>
+        <translation>BRUSH </translation>
     </message>
 </context>
 <context>
@@ -562,6 +817,11 @@ Do you still want to start a new inspection ?</translation>
         <translation>Gain</translation>
     </message>
     <message>
+        <location filename="src/qml/P3/P3TopAscanCtrl.qml" line="108"/>
+        <source>Zoom</source>
+        <translation>Scale </translation>
+    </message>
+    <message>
         <location filename="src/qml/P3/P3TopAscanCtrl.qml" line="166"/>
         <source>2nd Echo</source>
         <translation>2nd Echo</translation>
@@ -570,7 +830,7 @@ Do you still want to start a new inspection ?</translation>
 <context>
     <name>P3TopCam</name>
     <message>
-        <location filename="src/qml/P3/P3TopCam.qml" line="157"/>
+        <location filename="src/qml/P3/P3TopCam.qml" line="170"/>
         <source>Photo</source>
         <translation>Picture</translation>
     </message>
@@ -578,19 +838,29 @@ Do you still want to start a new inspection ?</translation>
 <context>
     <name>P3TopCamSettings</name>
     <message>
-        <location filename="src/qml/P3/P3TopCamSettings.qml" line="63"/>
+        <location filename="src/qml/P3/P3TopCamSettings.qml" line="66"/>
         <source>CAMERA</source>
         <translation>CAMERA</translation>
     </message>
     <message>
-        <location filename="src/qml/P3/P3TopCamSettings.qml" line="92"/>
+        <location filename="src/qml/P3/P3TopCamSettings.qml" line="95"/>
         <source>ASCAN</source>
         <translation>ASCAN</translation>
     </message>
     <message>
-        <location filename="src/qml/P3/P3TopCamSettings.qml" line="122"/>
+        <location filename="src/qml/P3/P3TopCamSettings.qml" line="125"/>
         <source>BSCAN</source>
         <translation>BSCAN</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopCamSettings.qml" line="155"/>
+        <source>MEP</source>
+        <translation>UTM</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopCamSettings.qml" line="185"/>
+        <source>ETAT</source>
+        <translation>STATUS</translation>
     </message>
 </context>
 <context>
@@ -668,6 +938,54 @@ Do you still want to start a new inspection ?</translation>
         <location filename="src/qml/P3/P3TopExportBscan.qml" line="420"/>
         <source>Choix de la prochaine génératrice :</source>
         <translation>Choice of the next line :</translation>
+    </message>
+</context>
+<context>
+    <name>P3TopSensorsDisplay</name>
+    <message>
+        <location filename="src/qml/P3/P3TopSensorsDisplay.qml" line="21"/>
+        <source>Température (°C) : </source>
+        <translation>Temperature (°C) : </translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSensorsDisplay.qml" line="59"/>
+        <source>Humidité (%) : </source>
+        <translation>Humidity (%) : </translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSensorsDisplay.qml" line="98"/>
+        <source>Reserve d&apos;eau scan (%) : </source>
+        <translation>Water level for UT (%) : </translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSensorsDisplay.qml" line="158"/>
+        <source>Remet le niveau du réservoir à 100%</source>
+        <translation>Reset Water Level at 100%</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSensorsDisplay.qml" line="162"/>
+        <source>Reserve d&apos;eau brossage (%) : </source>
+        <translation>Water level for cleaning (%) : </translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSensorsDisplay.qml" line="220"/>
+        <source>Pression (bar) : </source>
+        <translation>Pressure (bar) : </translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSensorsDisplay.qml" line="277"/>
+        <source>Tare</source>
+        <translation>Tare</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSensorsDisplay.qml" line="298"/>
+        <source>Boussole (degr) : </source>
+        <translation>Compass (degr) : </translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSensorsDisplay.qml" line="328"/>
+        <source>Nord = 0° ; Est = 90° ; Sud = 180° ; Ouest = 270°</source>
+        <translation>North = 0° ; East = 90° ; South = 180° ; West = 270°</translation>
     </message>
 </context>
 <context>
@@ -752,11 +1070,194 @@ Do you still want to start a new inspection ?</translation>
     </message>
 </context>
 <context>
+    <name>P3TopSettingsMep</name>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="42"/>
+        <source>VUE TABLEUR</source>
+        <translation>TABLE VIEW</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="67"/>
+        <source>ANNOTATIONS</source>
+        <translation>ANNOTATIONS</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="94"/>
+        <source>Ajouter une ligne :</source>
+        <translation>Add a line :</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="99"/>
+        <source>Au dessus</source>
+        <translation>Above</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="107"/>
+        <source>En dessous</source>
+        <translation>Below</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="119"/>
+        <source>Ajouter une colonne :</source>
+        <translation>Add a row :</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="125"/>
+        <source>A gauche</source>
+        <translation>To the left</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="133"/>
+        <source>A droite</source>
+        <translation>To the right</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="141"/>
+        <source>Ligne actuelle :</source>
+        <translation>Current line :</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="148"/>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="182"/>
+        <source>Annuler</source>
+        <translation>Cancel</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="148"/>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="182"/>
+        <source>Supprimer</source>
+        <translation>Delete</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="159"/>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="193"/>
+        <source>Valider ?</source>
+        <translation>Confirm ?</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="175"/>
+        <source>Colonne actuelle :</source>
+        <translation>Current row :</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="209"/>
+        <source>Zoom :</source>
+        <translation>Range :</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="215"/>
+        <source>+</source>
+        <translation>+</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="223"/>
+        <source>-</source>
+        <translation>-</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="245"/>
+        <source>Commentaire global sur l&apos;acquisition :</source>
+        <translation>Comment about the acquisition :</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="265"/>
+        <source>Commentaire global sur l&apos;acquisition</source>
+        <translation>Comment about the acquisition :</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="280"/>
+        <source>Annotations de cellules :</source>
+        <translation>Cells note :</translation>
+    </message>
+    <message>
+        <location filename="src/qml/P3/P3TopSettingsMep.qml" line="300"/>
+        <source>B,5cm : Mesure impossible...</source>
+        <translation>B,5cm : Impossible Measurement...</translation>
+    </message>
+</context>
+<context>
     <name>ProbeCalibrateUsKey</name>
     <message>
         <location filename="ext/fw_common/dev/src/scan/probe/ProbeUsKey.cpp" line="249"/>
         <source>Cale à gradins</source>
         <translation>Stepped wedge</translation>
+    </message>
+</context>
+<context>
+    <name>SoftwareLicenceChecker</name>
+    <message>
+        <location filename="src/SoftwareLicenceChecker.cpp" line="51"/>
+        <source>Licence Alert</source>
+        <translation>Software Licence Alert</translation>
+    </message>
+    <message>
+        <location filename="src/SoftwareLicenceChecker.cpp" line="61"/>
+        <source>Aucune licence n&apos;a été enregistrée
+Veuillez contacter votre fournisseur pour une nouvelle clef
+e-mail: contact@roboplanet.fr</source>
+        <translation>No software licence has been registered
+Please contact your supplier for a new software licence key
+e-mail: contact@roboplanet.fr</translation>
+    </message>
+    <message>
+        <location filename="src/SoftwareLicenceChecker.cpp" line="67"/>
+        <source>Votre licence va bientôt s&apos;expirer : %1 jours restant
+Veuillez contacter votre fournisseur pour renouveler votre abonnement
+e-mail: contact@roboplanet.fr</source>
+        <translation>Your software licence will soon expire : %1 remaining days
+Please contact your supplier to renew your software subscription
+e-mail: contact@roboplanet.fr</translation>
+    </message>
+    <message>
+        <location filename="src/SoftwareLicenceChecker.cpp" line="72"/>
+        <source>Votre abonnement pour ce programme a expiré le %1. Si vous souhaitez continuer à utiliser ce programme,
+Veuillez contacter votre fournisseur pour renouveler votre abonnement</source>
+        <translation>Your software subscription has expired the %1. To continue using the software,
+Please contact your supplier to renew your software subscription
+e-mail: contact@roboplanet.fr</translation>
+    </message>
+    <message>
+        <location filename="src/SoftwareLicenceChecker.cpp" line="77"/>
+        <source>Votre application va bientôt être obsolète : %1 jours restant
+Veuillez contacter votre fournisseur pour renouveler le programme
+e-mail: contact@roboplanet.fr</source>
+        <translation>Your software will soon be outdated : %1 remaining days
+Please contact your supplier to renew your software
+e-mail: contact@roboplanet.fr</translation>
+    </message>
+    <message>
+        <location filename="src/SoftwareLicenceChecker.cpp" line="82"/>
+        <source>Votre application est devenue obsolète
+Veuillez contacter votre fournisseur pour renouveler le programme
+e-mail: contact@roboplanet.fr</source>
+        <translation>Your software is outdated
+Please contact your supplier to renew your software
+e-mail: contact@roboplanet.fr</translation>
+    </message>
+    <message>
+        <location filename="src/SoftwareLicenceChecker.cpp" line="86"/>
+        <source>Votre licence est invalide: 
+Code erreur : 0x0%1
+Veuillez contacter votre fournisseur pour acquérir une nouvelle licence
+e-mail: contact@roboplanet.fr</source>
+        <translation>Your software licence is unvalid
+Error code : 0x0%1
+Please contact your supplier to renew your software licence
+e-mail: contact@roboplanet.fr</translation>
+    </message>
+    <message>
+        <location filename="src/SoftwareLicenceChecker.cpp" line="92"/>
+        <source>Un problème de compatibilité à été détecté
+Veuillez contacter votre fournisseur pour une nouvelle clef
+e-mail: contact@roboplanet.fr</source>
+        <translation>A compatibility issue has been detected
+Please contact your supplier for a new licence key
+e-mail: contact@roboplanet.fr</translation>
+    </message>
+    <message>
+        <location filename="src/SoftwareLicenceChecker.cpp" line="112"/>
+        <source>Licence : %1 jours restants</source>
+        <translation>Software Licence : %1 days remaining</translation>
     </message>
 </context>
 <context>
@@ -831,6 +1332,19 @@ Do you still want to start a new inspection ?</translation>
         <location filename="ext/fw_common/dev/src/scan/vector/Vector.cpp" line="160"/>
         <source>UNDEFINED</source>
         <translation>UNDEFINED</translation>
+    </message>
+</context>
+<context>
+    <name>VectorFuncPressureSensor</name>
+    <message>
+        <location filename="ext/fw_common/dev/src/v2/vector/VectorFuncPressureSensor.cpp" line="84"/>
+        <source>Profondeur</source>
+        <translation>Depth</translation>
+    </message>
+    <message>
+        <location filename="ext/fw_common/dev/src/v2/vector/VectorFuncPressureSensor.cpp" line="86"/>
+        <source>Altitude</source>
+        <translation>Altitude</translation>
     </message>
 </context>
 <context>

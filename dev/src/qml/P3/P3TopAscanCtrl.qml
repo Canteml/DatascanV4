@@ -105,7 +105,7 @@ Rectangle {
 
         Text {
             Layout.alignment: Qt.AlignCenter
-            text: "Zoom"
+            text: qsTr("Zoom")
             font.pixelSize: 16
         }
 
@@ -173,7 +173,7 @@ Rectangle {
 
             from: 0
             to: 80
-            stepSize: 5
+            stepSize: 1
             editable: true
 
             value: scanManager.SelectedFuncAScan.paramLGate1Start

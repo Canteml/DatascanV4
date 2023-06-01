@@ -18,6 +18,9 @@
 
 #include <QtGlobal>
 
+#define FREQ_REFRESH_ASCAN_ON_IHM  20
+
+
 AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSettingsLoggable("AScanGraph")
 { 
     setAcceptHoverEvents(true);
@@ -274,11 +277,13 @@ void AScanGraph::routeMouseEvents(QMouseEvent *event)
 
 void AScanGraph::needRefresh(bool p_force)
 {
+
+
     qint64 curEpoc = QDateTime::currentMSecsSinceEpoch();
     // timer active => already an update programmed
     if( !m_timeRefresh->isActive() || p_force) {
         qint64 dTime = curEpoc - m_lastUpdateEpoc;
-        if( (dTime >= 60 || p_force) && !m_updateInProgress ) {
+        if( (dTime >= (1000/FREQ_REFRESH_ASCAN_ON_IHM) || p_force) && !m_updateInProgress ) {
             m_updateInProgress = true;
             m_lastUpdateEpoc = curEpoc;
             //update();
@@ -287,7 +292,7 @@ void AScanGraph::needRefresh(bool p_force)
             }
         } else if( !m_timeRefresh->isActive() ){
             // start timer with remaining time
-            m_timeRefresh->start(qMax<qint64>(5, 60 - (dTime)));
+            m_timeRefresh->start(qMax<qint64>(5, (1000/FREQ_REFRESH_ASCAN_ON_IHM) - (dTime)));
         }
     }
 }
