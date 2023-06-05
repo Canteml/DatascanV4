@@ -228,6 +228,8 @@ void CoreApp::deleteApp()
         delete m_pProductLimiter;
     m_pProductLimiter = nullptr;
 
+
+
     // -- core delete
     CoreUiQml::deleteApp();
 }
