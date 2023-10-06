@@ -213,7 +213,7 @@ BSCAN</source>
         <location filename="src/qml/CentralPage0.qml" line="184"/>
         <source>CONTROLE
 MEP</source>
-        <translation>PONCTUAL UTM</translation>
+        <translation type="unfinished">PONCTUAL UTM</translation>
     </message>
     <message>
         <location filename="src/qml/CentralPage0.qml" line="197"/>

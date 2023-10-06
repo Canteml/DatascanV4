@@ -20,8 +20,15 @@ int main(int argc, char *argv[])
     }
 
 
+    if(QString(APP_VERSION).contains("ENG"))
+    {
+        return app.execUiQml_EnglishLanguage(argc, argv);
+    }
+    else
+    {
+         return app.execUiQml(argc, argv);
+    }
 
-    //return app.execUiQml(argc, argv);
-    return app.execUiQml_EnglishLanguage(argc, argv);
+
     //return app.execUiQml_withSelectLanguage(argc, argv);
 }
