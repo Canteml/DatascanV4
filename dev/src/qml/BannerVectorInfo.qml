@@ -921,6 +921,13 @@ Rectangle {
             ToolTip.timeout: 5000
             ToolTip.visible: hovered
             ToolTip.text: qsTr("Etat de la connection avec le porteur : " + (2 === currentVector.FuncStateConnection ? qsTr("Connecté") : 1 === currentVector.FuncStateConnection ? qsTr("Partiellement connecté") : qsTr("Déconnecté")));
+
+            Timer {
+                id: btVectorConnectionTimer
+                interval: 3000
+                running: false
+                repeat: false
+            }
         }
 
         Button {
@@ -1017,6 +1024,18 @@ Rectangle {
     Connections {
         target : currentVector
         function onEvFuncStateConnectionChanged() {
+            if( 2 === currentVector.FuncStateConnection ) {
+                btVectorConnectionTimer.stop()
+                btVectorConnection.icon.source = "qrc:///img/icons/iconConnected.png"
+            } else {
+                btVectorConnectionTimer.start()
+            }
+        }
+    }
+
+    Connections {
+        target: btVectorConnectionTimer
+        function onTriggered() {
             if( 2 === currentVector.FuncStateConnection ) {
                 btVectorConnection.icon.source = "qrc:///img/icons/iconConnected.png"
             } else if( 1 === currentVector.FuncStateConnection ) {

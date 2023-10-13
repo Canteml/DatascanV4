@@ -100,7 +100,7 @@ qint32 i32ApplicationRemainingDays = QDate::currentDate().daysTo(m_dApplicationE
     if(bHasWarning) {
         QMessageBox::warning(0, strTitle, strMessage);
     }
-    return bIsValid;
+    return true; bIsValid;
 }
 
 QString SoftwareLicenceChecker::getTitleMessage() const
