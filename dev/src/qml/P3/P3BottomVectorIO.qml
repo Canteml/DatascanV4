@@ -367,16 +367,12 @@ Rectangle {
                     }
 
                     onPressed: {
-                       currentVector.funcMove().moveKeyUp();
+                       currentVector.funcMove().moveKeyUpState(true);
                     }
                     onReleased: {
-                       currentVector.funcMove().moveStopY();
+                       currentVector.funcMove().moveKeyUpState(false);
                     }
-                    onHoveredChanged: {
-                        if( !arrow_up.hovered && (currentVector.funcMove().moveDir & 0b0100) ) {
-                            onReleased();
-                        }
-                    }
+
                 }
 
                 Item{
@@ -410,15 +406,10 @@ Rectangle {
                    }
 
                    onPressed: {
-                       currentVector.funcMove().moveKeyLeft();
+                       currentVector.funcMove().moveKeyLeftState(true);
                    }
                    onReleased: {
-                       currentVector.funcMove().moveStopX();
-                   }
-                   onHoveredChanged: {
-                       if( !arrow_left.hovered && (currentVector.funcMove().moveDir & 0b0001) ) {
-                           onReleased();
-                       }
+                       currentVector.funcMove().moveKeyLeftState(false);
                    }
                }
 
@@ -439,15 +430,10 @@ Rectangle {
                    }
 
                    onPressed: {
-                       currentVector.funcMove().moveKeyDown();
+                       currentVector.funcMove().moveKeyDownState(true);
                    }
                    onReleased: {
-                       currentVector.funcMove().moveStopY();
-                   }
-                   onHoveredChanged: {
-                       if( !arrow_down.hovered && (currentVector.funcMove().moveDir & 0b1000) ) {
-                           onReleased();
-                       }
+                       currentVector.funcMove().moveKeyDownState(false);
                    }
                 }
 
@@ -470,15 +456,10 @@ Rectangle {
                    }
 
                    onPressed: {
-                       currentVector.funcMove().moveKeyRight();
+                       currentVector.funcMove().moveKeyRightState(true);
                    }
                    onReleased: {
-                       currentVector.funcMove().moveStopX();
-                   }
-                   onHoveredChanged: {
-                       if( !arrow_right.hovered && (currentVector.funcMove().moveDir & 0b0010) ) {
-                           onReleased();
-                       }
+                       currentVector.funcMove().moveKeyRightState(false);
                    }
                }
 

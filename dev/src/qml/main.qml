@@ -155,35 +155,19 @@ Window  {
         }
 
         onActMoveUpChanged: {
-            if( actMoveUp ) {
-                currentVector.funcMove().moveKeyUp();
-            } else {
-                currentVector.funcMove().moveStopY();
-            }
+            currentVector.funcMove().moveKeyUpState(actMoveUp);
         }
 
         onActMoveDownChanged: {
-            if( actMoveDown ) {
-                currentVector.funcMove().moveKeyDown();
-            } else {
-                currentVector.funcMove().moveStopY();
-            }
+            currentVector.funcMove().moveKeyDownState(actMoveDown);
         }
 
         onActMoveLeftChanged: {
-            if( actMoveLeft ) {
-                currentVector.funcMove().moveKeyLeft();
-            } else {
-                currentVector.funcMove().moveStopX();
-            }
+            currentVector.funcMove().moveKeyLeftState(actMoveLeft);
         }
 
         onActMoveRightChanged: {
-            if( actMoveRight ) {
-                currentVector.funcMove().moveKeyRight();
-            } else {
-                currentVector.funcMove().moveStopX();
-            }
+            currentVector.funcMove().moveKeyRightState(actMoveRight);
         }
 
         onActMoveBoostChanged: {

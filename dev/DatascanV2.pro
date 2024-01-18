@@ -14,7 +14,7 @@
 ## -- VERSION
 
 //DEF_VERSION = rev_1.1.0-ENG
-DEF_VERSION = rev_2.0.0-FR-RC1
+DEF_VERSION = rev_2.0.1-FR-RC1
 CONFIG(debug, debug|release) {
     DEF_VERSION = $$DEF_VERSION"-DEV"
 }
