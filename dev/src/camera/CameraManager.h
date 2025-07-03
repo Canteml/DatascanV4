@@ -36,7 +36,7 @@ class VlcQmlSource;
  */
 
 #define IP_CAMERA_MIN 54
-#define IP_CAMERA_MAX 58
+#define IP_CAMERA_MAX 54
 
 class CameraManager : public QObject, public XmlSettingsLoggable
 {

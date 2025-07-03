@@ -59,12 +59,14 @@ CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
     vlcArgs.append("--clock-synchro=0");        // Clock synchronisation  It is possible to disable the input clock synchronisation for  real-time sources. Use this if you experience jerky playback of network streams.
     //vlcArgs.append("--clock-jitter=100");     // This defines the maximum input delay jitter that the synchronization  algorithms should try to compensate (in milliseconds).
     //vlcArgs.append("--live-caching=300");       // Live capture caching (ms)  Caching value for cameras and microphones, in milliseconds.
+    //vlcArgs.append("--no-ts-trust-pcr");      //
     //vlcArgs.append("--no-avcodec-fast");        // --avcodec-fast, --no-avcodec-fast
                                                 // Allow speed tricks
                                                 // (default disabled)
                                                 // Allow non specification compliant speedup tricks. Faster but
                                                 // error-prone.
     //vlcArgs.append("-vvv");
+    //vlcArgs.append("--sout-transcode-venc=x265");
     vlcArgs.append("--quiet");                  // Console logger : (console) -q, --quiet, --no-quiet        Be quiet(default disabled)
 
 
@@ -79,7 +81,7 @@ CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
     m_pPreviewSource = new VlcQmlSource(this);
     m_pPreviewSource->setPlayer(m_pPreviewPlayer);
 
-    for(int i = IP_CAMERA_MIN ; i < IP_CAMERA_MAX ; i++) {
+    for(int i = IP_CAMERA_MIN ; i <= IP_CAMERA_MAX ; i++) {
         QString sSuffix = QString::number(i);
         QString sAddress = QString("192.168.0.") + sSuffix;
         m_lIpCamera.append(new IpCamera(QString("IP Camera ." + sSuffix), sAddress, m_pInstance));
@@ -594,7 +596,7 @@ void CameraManager::onVectorProductIdChanged(qint32 p_pid)
         slRoles.append(tr("Avant"));
     }
 
-    if(p_pid == ProtMsg::PROD_ALTISCAN || p_pid == ProtMsg::PROD_ROVER
+    if(/*p_pid == ProtMsg::PROD_ALTISCAN_V2 ||*/ p_pid == ProtMsg::PROD_ROVER
             || p_pid == ProtMsg::PROD_ROVER_IP68 || p_pid == ProtMsg::PROD_MULTISCAN) {
         m_aCameraRole[CameraRole::ROLE_REAR]->setIsEnabled(true);
         slRoles.append(tr("Arrière"));
