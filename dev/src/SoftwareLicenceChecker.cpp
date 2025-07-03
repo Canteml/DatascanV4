@@ -30,6 +30,7 @@ bool SoftwareLicenceChecker::bInit()
 m_strFilePath = CoreApp::getDirDataLicence() + QString("/") + STR_LICENCE_FILE_NAME;
 QFile licenceFile(m_strFilePath);
 
+    /*
     if(licenceFile.open(QIODevice::ReadOnly | QIODevice::Text)) { //if there is a file licence
         QByteArray baContent = licenceFile.readAll();
         m_strLicence = baContent;
@@ -43,6 +44,8 @@ QFile licenceFile(m_strFilePath);
     }
 
     m_LicenceState= LICENCE_NONE;
+    */
+    m_LicenceState = LICENCE_OK;
     return this->checkValidity();
 }
 
