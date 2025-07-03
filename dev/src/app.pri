@@ -54,6 +54,7 @@ INCLUDEPATH += $$PWD/../ext/fw_common/dev/src/v2/vector
 
 ## -- RESOURCES
 TRANSLATIONS += $$PWD/res/languages/Datascan_en_GB.ts
+TRANSLATIONS += $$PWD/res/languages/Datascan_en_ES.ts
 RESOURCES += $$PWD/qml/qml.qrc
 
 # Additional import path used to resolve QML modules in Qt Creator's code model

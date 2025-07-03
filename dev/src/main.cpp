@@ -16,13 +16,17 @@ int main(int argc, char *argv[])
     // Check when creating this memory zone if it exists
     if(false==sharedMemory.create(sizeof(int)))
     {
-        return 1; // Close the reduncy application
+        return 55; // Close the reduncy application
     }
 
 
     if(QString(APP_VERSION).contains("ENG"))
     {
         return app.execUiQml_EnglishLanguage(argc, argv);
+    }
+    else if(QString(APP_VERSION).contains("ES"))
+    {
+        return app.execUiQml_EspanolLanguage(argc, argv);
     }
     else
     {
