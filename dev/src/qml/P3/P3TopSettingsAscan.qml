@@ -95,7 +95,7 @@ Rectangle {
 
                 // --
                 Text {
-                    text: "Gain (dB) :"
+                    text: qsTr("Gain (dB) :")
                     font.pointSize: 12
                 }
 

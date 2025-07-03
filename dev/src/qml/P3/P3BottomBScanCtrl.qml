@@ -115,11 +115,13 @@ Rectangle {
                 Layout.alignment: Qt.AlignCenter
                 text: "Zones"
                 font.pixelSize: 16
+                visible: false
             }
 
             RowLayout {
                 spacing: 5
                 Layout.leftMargin: 5
+                visible: false
 
                 Button {
                     id: idBtBScanZoneRemove
@@ -203,6 +205,7 @@ Rectangle {
                 font.pointSize: 8
                 Layout.leftMargin: 5
                 Layout.rightMargin: 5
+                visible: false
 
                 background: Rectangle {
                     color: (idBtZoneAuto.pressed || examManager.zoneAuto === true) ? Design.colOrange : idBtZoneAuto.hovered ? Design.colOrangeHovered : Design.colButtonBackground

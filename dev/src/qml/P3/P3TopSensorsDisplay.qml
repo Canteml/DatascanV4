@@ -97,12 +97,14 @@ Rectangle {
             Text {
                 text: qsTr("Reserve d'eau scan (%) : ")
                 Layout.row: 3
-                visible: currentVector.funcPump().isEnabled
+                //visible: currentVector.funcPump().isEnabled
+                visible: false
                 font.pointSize: 12
             }
 
             Rectangle {
-                visible: currentVector.funcPump().isEnabled
+                //visible: currentVector.funcPump().isEnabled
+                visible: false
                 border.color: "#E5E5E5"
                 border.width: 1
 
@@ -123,7 +125,8 @@ Rectangle {
 
             Rectangle {
                 id: idPumpColorIndicator
-                visible: currentVector.funcPump().isEnabled
+                //visible: currentVector.funcPump().isEnabled
+                visible: false
                 color: currentVector.funcPump().hasReceivedMessage ?
                            currentVector.funcPump().paramDTankLevel > 15 ?
                                "blue" : "#A0A0FF" : "#E5E5E5"
@@ -135,7 +138,8 @@ Rectangle {
 
             Button {
                 id: idPumpTankButton
-                visible: currentVector.funcPump().isEnabled
+                //visible: currentVector.funcPump().isEnabled
+                visible: false
                 enabled: currentVector.funcPump().hasReceivedMessage
                 text: "↑"
                 font.pointSize: 14
@@ -161,12 +165,14 @@ Rectangle {
             Text {
                 text: qsTr("Reserve d'eau brossage (%) : ")
                 Layout.row: 4
-                visible: currentVector.funcCleaning().isEnabled
+                //visible: currentVector.funcCleaning().isEnabled
+                visible: false
                 font.pointSize: 12
             }
 
             Rectangle {
-                visible: currentVector.funcCleaning().isEnabled
+                //visible: currentVector.funcCleaning().isEnabled
+                visible: false
                 border.color: "#E5E5E5"
                 border.width: 1
 
@@ -187,7 +193,8 @@ Rectangle {
 
             Rectangle {
                 id: idCleaningColorIndicator
-                visible: currentVector.funcCleaning().isEnabled
+                //visible: currentVector.funcCleaning().isEnabled
+                visible: false
                 color: currentVector.funcCleaning().hasReceivedMessage ?
                            currentVector.funcCleaning().paramDTankLevel > 15 ?
                                "blue" : "#A0A0FF" : "#E5E5E5"
@@ -199,7 +206,8 @@ Rectangle {
 
             Button {
                 id: idCleaningTankButton
-                visible: currentVector.funcCleaning().isEnabled
+                //visible: currentVector.funcCleaning().isEnabled
+                visible: false
                 text: "↑"
                 font.pointSize: 14
                 Layout.preferredHeight: 30
@@ -218,13 +226,15 @@ Rectangle {
 
             Text {
                 text: qsTr("Pression (bar) : ")
-                visible: currentVector.funcPressureSensor0().isEnabled
+                //visible: currentVector.funcPressureSensor0().isEnabled
+                visible: false
                 font.pointSize: 12
                 Layout.row: 5
             }
 
             Rectangle {
-                visible: currentVector.funcPressureSensor0().isEnabled
+                //visible: currentVector.funcPressureSensor0().isEnabled
+                visible: false
                 border.color: "#E5E5E5"
                 border.width: 1
 
@@ -245,14 +255,16 @@ Rectangle {
             Text {
                 id: idDepthType
                 text: "↳ " + currentVector.funcPressureSensor0().depthType + " : "
-                visible: currentVector.funcPressureSensor0().isEnabled
+                //visible: currentVector.funcPressureSensor0().isEnabled
+                visible: false
                 color: "#555555"
                 font.pointSize: 12
                 Layout.row: 6
             }
 
             Rectangle {
-                visible: currentVector.funcPressureSensor0().isEnabled
+                //visible: currentVector.funcPressureSensor0().isEnabled
+                visible: false
                 border.color: "#E5E5E5"
                 border.width: 1
 
@@ -272,7 +284,8 @@ Rectangle {
 
             Button {
                 id: idButtonTare
-                visible: currentVector.funcPressureSensor0().isEnabled
+                //visible: currentVector.funcPressureSensor0().isEnabled
+                visible: false
                 enabled: currentVector.funcPressureSensor0().hasReceivedMessage
                 text: qsTr("Tare")
                 font.pointSize: 12

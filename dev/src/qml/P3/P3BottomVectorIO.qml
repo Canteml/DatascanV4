@@ -17,7 +17,8 @@ Rectangle {
         anchors.margins: 5
 
         RowLayout {
-            visible: currentVector.funcPump().isEnabled
+            //visible: currentVector.funcPump().isEnabled
+            visible:false
             Layout.preferredHeight: 30
             Layout.fillWidth: true
             Button {
@@ -120,9 +121,10 @@ Rectangle {
         }
 
         RowLayout {
-            visible: currentVector.funcLight().isEnabled
+            //visible: currentVector.funcLight().isEnabled
             Layout.preferredHeight: 30
             Layout.fillWidth: true
+            visible:false
             Button {
                 id: btLightMinus
                 Layout.preferredWidth: 30
@@ -341,6 +343,63 @@ Rectangle {
             id: keyLayout
             visible : currentVector.funcMove().isEnabled
             spacing: 5
+
+            RowLayout {
+                focus: true
+
+                Button {
+                    id: idBtMoveAuto
+                    icon.source: "qrc:///img/icons/on_wall.png"
+                    icon.width: 50
+                    icon.height: 50
+                    icon.color: "transparent"
+
+                    antialiasing: true
+
+                    onClicked: {
+                        if( currentVector.funcMove().IsManualMode !== false ) {
+                            currentVector.funcMove().setManualMode(false); // SEMI AUTO
+                        } else {
+                            currentVector.funcMove().setManualMode(true); // MANUAL
+                        }
+                    }
+
+                    background: Rectangle {
+                        color: (currentVector.funcMove().IsManualMode === false) ?
+                                   Design.colGreen : Design.colButtonBackground
+                        border.color: Design.colFrameBorder
+                        radius: 10
+                    }
+
+
+                }
+
+                Item {
+                    // Spacer
+                    Layout.fillWidth: true
+                }
+
+                /*
+                Button {
+                    icon.source: "qrc:///img/icons/btAutoMove.png"
+                    icon.width: 50
+                    icon.height: 50
+                    icon.color: "transparent"
+
+                    antialiasing: true
+                    enabled: currentVector.funcMove().IsManualMode == true
+                    onClicked: {
+                      currentVector.funcMove().setManualMode(false);
+                    }
+                    //onClicked: currentVector.funcMove().IsmanualMode = 0
+                    background: Rectangle {
+                        color: parent.enabled ? "white" : "#00FF00"
+                        border.color: Design.colFrameBorder
+                        radius: 10
+                    }
+                }
+                */
+            }
 
             // -- LINE UP
             RowLayout {

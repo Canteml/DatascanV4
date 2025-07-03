@@ -135,7 +135,7 @@ ColumnLayout {
                         } else if( 1 === err ) {
                             idTxtFileName.checkFileName();
                         } else {
-                            dialogFileExists.text = qsTr("Voulez-vous ecraser le fichier suitvant : \n")+examManager.makeExamFullFileName(idTxtFileName.text)
+                            dialogFileExists.text = qsTr("Voulez-vous ecraser le fichier suivant? : \n")+examManager.makeExamFullFileName(idTxtFileName.text)
                             dialogFileExists.visible = true
                         }
                     }

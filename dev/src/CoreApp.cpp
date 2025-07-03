@@ -153,7 +153,7 @@ bool CoreApp::startApp()
 
     if( ProtMsg::PROD_UNDEF == m_pVectorStd->getProdId() ) {
         fLogInfo("Make default Product : ALTISCAN");
-        m_pVectorStd->setProdIdDeviceAd(ProtMsg::PROD_ALTISCAN, ProtMsg::DEVICE_AD_MPC);
+        m_pVectorStd->setProdIdDeviceAd(ProtMsg::PROD_ALTISCAN_V2, ProtMsg::DEVICE_AD_MPC);
     }
 //    ComDevice * pComp = m_pVectorStd->getDeviceManager()->getComp(0);
 //    pComp->setLink()
@@ -327,10 +327,12 @@ QString CoreApp::getWindowTitle() const
     if(1 == m_pProductLimiter->getEnabledProductsNames().size()) {
         title += QString(" [%1]").arg(m_pProductLimiter->getEnabledProductsNames().first());
     }
+    /*
     QString licenceMessage = m_licence.getTitleMessage();
     if(!licenceMessage.isEmpty()) {
         title += QString(" - %1").arg(licenceMessage);
     }
+    */
     return title;
 }
 

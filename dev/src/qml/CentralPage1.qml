@@ -203,7 +203,7 @@ Rectangle {
                 RowLayout {
                     Layout.maximumWidth: idFrameCamPreview.width
                     Text {
-                        text: qsTr("Camera : ")
+                        text: qsTr("Caméra : ")
                         font.pixelSize: 14
                     }
 
@@ -218,7 +218,6 @@ Rectangle {
                     }
                 }
             }
-
             // -- SPACER
             Item {
                 // Spacer
@@ -245,6 +244,7 @@ Rectangle {
             }
         }
 
+        /*
         ColumnLayout {
             id: idP1Inclo
             Layout.fillWidth: true
@@ -288,7 +288,7 @@ Rectangle {
                 }
             }
         }
-
+        */
 
 
 

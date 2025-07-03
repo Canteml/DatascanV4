@@ -366,6 +366,7 @@ Rectangle {
                     spacing: 0
 
                     Image {
+                        visible: false
                         Layout.topMargin: 10
                         Layout.bottomMargin: 10
                         Layout.fillHeight: true
@@ -376,6 +377,7 @@ Rectangle {
                     }
 
                     Text {
+                        visible: false
                         text: currentVector.funcInertialSensor().paramLDirection + "°"
                         font.pointSize: 30
                     }
@@ -849,7 +851,8 @@ Rectangle {
 
         ColumnLayout {
             id: idLyBattery
-            visible: currentVector.funcBattery().paramDBatteryLvlP !== 255
+            //visible: currentVector.funcBattery().paramDBatteryLvlP !== 255
+            visible: false
             Layout.fillHeight: true
             spacing : 0
             Layout.topMargin: 5
