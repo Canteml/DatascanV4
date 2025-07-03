@@ -1,0 +1,136 @@
+/*============================================================================
+#
+#   Copyright Roboplanet 2021
+#
+# ----------------------------------------------------------------------------
+#
+# File name   : ComLinkManager.h
+# Author      : Thierry Lechevallier
+# Date        : 24/05/2021
+#
+# ==========================================================================*/
+
+#pragma once
+
+// -- Internal includes
+#include <xml/XmlSettingsLoggable.h>
+#include <v2/com/ComLinkTcpConfig.h>
+#include <v2/com/ComLinkUdpConfig.h>
+class GenComLink;
+class ComLinkManager;
+class ComLinkModel;
+class IntComMsg;
+class ComLinkTcpServer;
+class ComLinkUdpServer;
+
+// -- Qt includes
+#include <QObject>
+#include <QAbstractListModel>
+#include "qqml.h"
+#include <QTimer>
+
+/**
+ * @brief The ComLinkManager class
+ *
+ *  This class manage a link discover in the case of MPC use.
+ *  The discovery is done over availabel TCP ports and TCP clients.
+ *  Valid TCP clients are :
+ *      - distant clients on the available IP address plan from 192.168.44.1 to 192.168.44.10, with port 2110 (192.168.44.0 reserved to the AP)
+ *      - local client (127.0.0.1) with port plan from 2110 to 2119
+
+ *
+ */
+
+class ComLinkManager : public QObject, public Loggable, public XmlProject {
+    Q_OBJECT
+
+    QML_ELEMENT
+
+    Q_PROPERTY(QStringList comPortList READ comPortList NOTIFY comPortListChanged)
+
+public :
+
+    ComLinkManager(IntComMsg* p_pIntComMsg);
+    ~ComLinkManager();
+
+    // -- Direct link instantiation
+    // Serial Link
+    GenComLink *addSerial(quint32 p_port, quint32 p_bauds, const QString & p_name);
+//    GenComLink *addSerialIfNeed(quint32 p_port, quint32 p_bauds, const QString & p_name);
+
+    // -- Behaviour
+    void deleteLinks();
+    void deleteLink(GenComLink* p_link);
+    void keepLinks(const QList<GenComLink *>& p_lLinks);
+    GenComLink* getLinkName(const QString p_name) const;
+
+    QStringList comPortList() const;
+    quint16 getTcpServerPort() const;
+    bool startTcpServer(quint16 p_port);
+    void stopTcpServer();
+    bool startUdpServer();
+    void stopUdpServer();
+    void startDiscover();
+    void stopDiscover();
+
+    bool isAnyLinkReconnecting();
+
+    // -- QML Properties
+    Q_INVOKABLE QAbstractListModel* getLinkModel() const;
+
+    // inputs for QML
+    Q_INVOKABLE void disconnectLink(const QString & p_linkName);
+    Q_INVOKABLE void setComPort(const QString & p_linkName, QString p_portName /*integer, not 'COMx'*/);
+    Q_INVOKABLE QString getComPort(const QString & p_linkName);
+
+private :
+    GenComLink * findLinkFromName(const QString & p_linkName);
+
+    // -- Link
+    QList<GenComLink *> m_lLink;
+    ComLinkModel * m_pComLinkModel; ///< QML : list of links
+    void addLink(GenComLink*);
+
+private slots :
+    void onLinkStateChanged(GenComLink*, quint32 p_old, qint32 p_new);
+    void onRefreshComPortList();
+    void onIntComMsgDeviceAdChanged(qint32 p_deviceAd);    ///< IntComMsg, my owner, can be a MPC or a Device
+    void onRetryDiscoverSerial();
+
+signals :
+    void evNewLink(GenComLink*);
+    void evNewLinkAuthentified(GenComLink*);
+    void evLinkDisconnected(GenComLink*);
+    void comPortListChanged();
+    void tcpSeverPortChanged(quint16);
+
+protected :       
+    // -- Inherited from XmlProject
+    virtual bool customLoadParam(QDomElement * p_pParent) override;
+    virtual bool customLoadDefaultParam() override;
+    virtual bool customApplyParam() override;
+    virtual bool customSaveParam(QDomDocument * p_pDoc, QDomElement * p_pParent) override;
+
+    bool tryConnectTcpCli(ComLinkTcpCli* p_pCli);
+    bool tryConnectUdpCli(ComLinkUdpCli* p_pCli);
+
+private :
+
+    // -- Behaviour
+    IntComMsg* m_pIntComMsg;    ///< My owner
+
+    static const qint32 DISCOVER_INTERVAL_MS = 500;
+    QTimer * m_tRefreshProtCom; ///< Used by human to know available serial com port. Used if vector is Device
+    bool m_discoverDevice;      ///< Used if Vector is MPC
+    QTimer * m_tDiscoverSerial; ///< Used if Vector is MPC
+    ComLinkTcpServer * m_pComLinkTcpServer; ///< Used if Vector id Devices & simu
+    ComLinkUdpServer * m_pUdpServer;
+    ComLinkTcpConfig m_tcpServeurConfig;
+    QList<GenComLink*> m_lDiscoverLinkTcp;    
+    QList<ComLinkSerial*> m_lDiscoverLinkSerial;
+
+
+    // -- Properties
+    QStringList m_comPortList;
+    QString m_tcpDiscoverIpBase;    ///< Base of the Ip range used to find devices over network. Example: "192.168.1."
+};

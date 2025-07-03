@@ -1,0 +1,86 @@
+#pragma once
+
+#include <v2/com/GenComLink.h>
+#include <v2/com/ComLinkUdpConfig.h>
+
+#include <QUdpSocket>
+
+#include <qqml.h>
+
+class ComLinkUdpServer;
+
+class BufferedReadUdpSocket : public QUdpSocket {
+
+public:
+   void bufferData(QByteArray& p_baData);
+   qint64 bytesAvailable() const override;
+
+protected:
+   qint64 readData(char* data, qint64 maxSize) override;
+
+private:
+   QByteArray m_baBufferedData;
+
+};
+
+class ComLinkUdpCli : public GenComLink {
+
+   Q_OBJECT
+
+   QML_ELEMENT
+
+public :
+
+   const int UDP_TIMEOUT_MS = 1000;
+   const int UDP_HEARTBEAT_DELAY_MS = 40;
+
+   ComLinkUdpCli(IntComMsg* p_pIntComMsg);
+   ~ComLinkUdpCli();
+
+   void getConfig(ComLinkUdpConfig& p_valueInOut) const;
+   void getConfig2(ComLinkUdpConfig& p_valueInOut) const;
+
+   virtual QString getConfigHelp() const override;
+
+   void setLinkUdpConfig(ComLinkUdpConfig * p_conf) override;
+
+   void receivedRawData(QByteArray p_baData);
+
+   void setReceptionServer(ComLinkUdpServer* p_pServer);
+
+   virtual int getLinkTypeTimeout() override;
+   virtual int getLinkTypeHeartBeatDelay() override;
+
+public slots :
+
+   virtual quint32 getType() const override;    ///< value in LINK_TYPE
+   virtual ComLinkUdpCli * getLinkUdpCli() override;
+
+protected :
+
+   // -- Inherited behaviour
+   virtual bool customLoadSettings(QDomElement * p_pParent) override;
+   virtual bool customLoadDefaultSettings() override;
+   virtual bool customApplySettings() override;
+   virtual bool customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pParent) override;
+
+   virtual bool tryOpen() override;
+   virtual void removeLink() override;
+
+protected :
+
+   // -- vecLink
+   QString interfaceName() const override;
+   QIODevice * makeInterface() override;
+
+private :
+
+   ComLinkUdpConfig m_config;
+   BufferedReadUdpSocket* m_pUdpSocket;
+   ComLinkUdpServer *m_pReceptionServer;
+
+   ComLinkUdpConfig m_config2;
+   BufferedReadUdpSocket* m_pUdpSocket2;
+   ComLinkUdpServer *m_pReceptionServer2;
+
+};
