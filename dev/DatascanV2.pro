@@ -13,8 +13,11 @@
 
 ## -- VERSION
 
-//DEF_VERSION = rev_1.1.0-ENG
-DEF_VERSION = rev_2.0.1-FR-RC1
+//DEF_VERSION = rev_2.0.3-FR
+DEF_VERSION = rev_2.0.3-ENG
+//DEF_VERSION = rev_2.0.3-ES
+//DEF_VERSION = rev_2.0.3-EDF-LIMULE-BUGGY
+
 CONFIG(debug, debug|release) {
     DEF_VERSION = $$DEF_VERSION"-DEV"
 }
