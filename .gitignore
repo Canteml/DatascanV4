@@ -1,6 +1,7 @@
 dev/.qtc_clangd
 dev/lib/vlcqt/bin/plugins/plugins.dat
-build-DatascanV3-Desktop_Qt_5_15_2_MinGW_64_bit-Release
+build-DatascanV3-*
+dev/build/
 
 # Vendor library source clones (built locally, not part of this repo's history)
 dev/JKQtPlotter/
