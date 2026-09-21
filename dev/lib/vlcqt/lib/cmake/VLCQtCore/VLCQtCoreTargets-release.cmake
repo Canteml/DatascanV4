@@ -9,11 +9,12 @@ set(CMAKE_IMPORT_FILE_VERSION 1)
 set_property(TARGET VLCQt::Core APPEND PROPERTY IMPORTED_CONFIGURATIONS RELEASE)
 set_target_properties(VLCQt::Core PROPERTIES
   IMPORTED_IMPLIB_RELEASE "${_IMPORT_PREFIX}/lib/libVLCQtCore.dll.a"
+  IMPORTED_LINK_DEPENDENT_LIBRARIES_RELEASE "Qt6::Core"
   IMPORTED_LOCATION_RELEASE "${_IMPORT_PREFIX}/bin/libVLCQtCore.dll"
   )
 
-list(APPEND _IMPORT_CHECK_TARGETS VLCQt::Core )
-list(APPEND _IMPORT_CHECK_FILES_FOR_VLCQt::Core "${_IMPORT_PREFIX}/lib/libVLCQtCore.dll.a" "${_IMPORT_PREFIX}/bin/libVLCQtCore.dll" )
+list(APPEND _cmake_import_check_targets VLCQt::Core )
+list(APPEND _cmake_import_check_files_for_VLCQt::Core "${_IMPORT_PREFIX}/lib/libVLCQtCore.dll.a" "${_IMPORT_PREFIX}/bin/libVLCQtCore.dll" )
 
 # Commands beyond this point should not need to know the version.
 set(CMAKE_IMPORT_FILE_VERSION)

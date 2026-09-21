@@ -43,13 +43,15 @@
 #include "exam/MepExporter.h"
 #include "adapter/ClipboardAdapter.h"
 #include "limit/ProductLimiter.h"
+#include "camera/VlcQmlVideoSink.h"
 
-#include <VLCQtCore/Common.h>
-#include <VLCQtCore/Instance.h>
-#include <VLCQtCore/Media.h>
-#include <VLCQtCore/MediaPlayer.h>
-#include <VLCQtQml/Qml.h>
-#include <VLCQtQml/QmlSource.h>
+// -- TEMPORANEAMENTE DISABILITATO Qt6 migration
+//#include <VLCQtCore/Common.h>
+//#include <VLCQtCore/Instance.h>
+//#include <VLCQtCore/Media.h>
+//#include <VLCQtCore/MediaPlayer.h>
+//#include <VLCQtQml/Qml.h>
+//#include <VLCQtQml/QmlSource.h>
 
 #include <v2/camera/IpCamera.h>
 
@@ -57,10 +59,10 @@
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 
+#include <QMediaDevices>
+#include <QCameraDevice>
 
 #include "SoftwareLicenceChecker.h"
-
-Q_DECLARE_METATYPE(VectorFuncAScan*)
 
 CoreApp::CoreApp() : CoreUiQml("CoreApp")
 {
@@ -99,9 +101,6 @@ bool CoreApp::initApp()
 {
     bool bRet = CoreUiQml::initApp();
 
-
-
-
     // -- make my managers
     // example : m_pStatisticApp = StatisticApp::makeInstance();    
     m_pJoystickManager = JoystickManager::makeInstance();
@@ -109,17 +108,14 @@ bool CoreApp::initApp()
     m_pScanManager = ScanManager::makeInstance();
     m_pCameraManager = CameraManager::makeInstance();
     m_pExamPipeManager = ExamPipeManager::makeInstance();
-
     m_pExamManager = ExamManager::makeInstance();
     m_pGlobalManager = GlobalManager::makeInstance();
-
-
 
     // -- init my managers
     // example : m_pStatisticApp->initManager();
     m_pVectorManager->init();
     m_pVectorStd = m_pVectorManager->getVectorStd();
-    m_pScanManager->init();    
+    m_pScanManager->init();
     m_pGlobalManager->initManager();
     m_pExamManager->initManager();
     m_pJoystickManager->start();
@@ -132,6 +128,15 @@ bool CoreApp::initApp()
     bRet &= m_pExamManager->loadSettings();
     bRet &= m_pCameraManager->loadSettings();
 
+    // ===== TEST CAMERA - da rimuovere dopo diagnosi =====
+    {
+        const QList<QCameraDevice> testDevices = QMediaDevices::videoInputs();
+        fLogInfo(QString("CAMERA TEST: dispositivi trovati: %1").arg(testDevices.size()));
+        for (const QCameraDevice& d : testDevices) {
+            fLogInfo(QString("CAMERA TEST:  - %1").arg(d.description()));
+        }
+    }
+
     m_pMepExporter = new MepExporter();
     m_pClipboardAdapter = new ClipboardAdapter(this);
 
@@ -140,13 +145,12 @@ bool CoreApp::initApp()
 
     bRet &= m_licence.bInit();
 
-
-
     return bRet;
 }
 
 bool CoreApp::startApp()
 {
+
     bool bRet = true;
 
     // -- start my managers
@@ -155,12 +159,34 @@ bool CoreApp::startApp()
         fLogInfo("Make default Product : ALTISCAN");
         m_pVectorStd->setProdIdDeviceAd(ProtMsg::PROD_ALTISCAN_V2, ProtMsg::DEVICE_AD_MPC);
     }
+
 //    ComDevice * pComp = m_pVectorStd->getDeviceManager()->getComp(0);
 //    pComp->setLink()
 
-
+    qInstallMessageHandler([](QtMsgType type, const QMessageLogContext& ctx, const QString& msg) {
+        static QFile logFile("C:/ProgramData/Roboplanet/DatascanV2/conf/qml_debug.txt");
+        // if (!logFile.isOpen()) logFile.open(QIODevice::Append | QIODevice::Text);
+        if (!logFile.isOpen()) {
+            if (!logFile.open(QIODevice::Append | QIODevice::Text)) {
+                qWarning() << "Failed to open log file";
+            }
+        }
+        QString prefix;
+        switch(type) {
+        case QtDebugMsg:    prefix = "D"; break;
+        case QtWarningMsg:  prefix = "W"; break;
+        case QtCriticalMsg: prefix = "C"; break;
+        case QtFatalMsg:    prefix = "F"; break;
+        default:            prefix = "I"; break;
+        }
+        QTextStream(&logFile) << "[" << prefix << "] " << msg << "\n";
+        logFile.flush();
+    });
 
     // -- core start => open main.qml
+    qputenv("QT_LOGGING_RULES", "qml=true;qt.qml.binding.removal.info=true");
+    qputenv("QML_IMPORT_TRACE", "1");
+    QLoggingCategory::setFilterRules("qml.debug=true");
     bRet &= CoreUiQml::startApp();
 
     // -- Updates statistics :
@@ -278,7 +304,9 @@ bool CoreApp::initQmlType()
     qmlRegisterType<BScanGraph>("BScanGraph", 1, 0, "BScanGraph");
 
     //qRegisterMetaType<VlcMediaPlayer*>("MediaPlayer*");
-    VlcQml::registerTypes();
+    //VlcQml::registerTypes();
+
+    qmlRegisterType<VlcQmlVideoSink>("Camera", 1, 0, "VlcQmlVideoSink");
 
     return true;
 }
@@ -299,6 +327,9 @@ bool CoreApp::initQmlContext()
     m_pQmlApplicationEngine->rootContext()->setContextProperty("mepExporter", m_pMepExporter);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("clipboard", m_pClipboardAdapter);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("products", m_pProductLimiter);
+
+    m_pQmlApplicationEngine->rootContext()->setContextProperty(
+        "modelCameraList", QVariant::fromValue(QStringList()));
 
     return true;
 }

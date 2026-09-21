@@ -229,7 +229,7 @@ void JoystickManager::update()
                 }
                 break;
             default:
-                fLogWarning("Joystick event not handeld : "+ QString(event.type));
+                fLogWarning("Joystick event not handeld : " + QString::number(event.type));
                 break;
         }
     }

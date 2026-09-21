@@ -85,3 +85,9 @@ private :
     bool m_firstConnected;
 
 };
+
+Q_DECLARE_OPAQUE_POINTER(VectorFuncPosition*)
+#ifndef METATYPE_VECTORFUNCPRESSURESENSOR
+#define METATYPE_VECTORFUNCPRESSURESENSOR
+Q_DECLARE_METATYPE(VectorFuncPosition*)
+#endif

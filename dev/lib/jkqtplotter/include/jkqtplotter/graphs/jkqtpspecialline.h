@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -17,6 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef jkqtpgraphsspecialline_H
+#define jkqtpgraphsspecialline_H
+
 
 #include <QString>
 #include <QPainter>
@@ -30,9 +33,6 @@
 #include "jkqtplotter/graphs/jkqtprange.h"
 #include "jkqtplotter/jkqtpgraphsbasestylingmixins.h"
 
-#ifndef jkqtpgraphsspecialline_H
-#define jkqtpgraphsspecialline_H
-
 // forward declarations
 class JKQTBasePlotter;
 class JKQTPlotter;
@@ -44,13 +44,13 @@ class JKQTPDatastore;
 
 
 /** \brief a Base class for special line graphs (steps ...) like e.g. JKQTPSpecialLineHorizontalGraph
- *  \ingroup jkqtplotter_linesymbolgraphs_simple
+ *  \ingroup jkqtplotter_linesymbolgraphs_line
  *
  *  \image html stepplots.png
  *
  *  \see JKQTPSpecialLineHorizontalGraph, JKQTPSpecialLineVerticalGraph
  */
-class JKQTPLOTTER_LIB_EXPORT JKQTPSpecialLineGraphBase: public JKQTPXYBaselineGraph, public JKQTPGraphLineAndFillStyleMixin, public JKQTPGraphSymbolStyleMixin {
+class JKQTPLOTTER_LIB_EXPORT JKQTPSpecialLineGraphBase: public JKQTPXYBaselineGraph, public JKQTPGraphLineAndFillStyleMixin, public JKQTPGraphSymbolStyleMixin, public JKQTPGraphLinesCompressionMixin {
     Q_OBJECT
 public:
     /** \brief class constructor */
@@ -59,7 +59,7 @@ public:
     /** \brief returns the color to be used for the key label */
     virtual QColor getKeyLabelColor() const override;
     /** \brief plots a key marker inside the specified rectangle \a rect */
-    virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+    virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
 
 
     /** \copydoc m_drawSymbols */
@@ -69,7 +69,7 @@ public:
 
     Q_PROPERTY(bool drawSymbols READ getDrawSymbols WRITE setDrawSymbols)
     Q_PROPERTY(JKQTPSpecialLineType specialLineType READ getSpecialLineType WRITE setSpecialLineType)
-public slots:
+public Q_SLOTS:
     /** \brief set line-color, fill color and symbol color */
     void setColor(QColor c);
     /** \copydoc m_drawSymbols */
@@ -88,7 +88,7 @@ protected:
 
 
 /** \brief This implements a step plot with values \f$ \left(x, f(x) \right) \f$
- *  \ingroup jkqtplotter_linesymbolgraphs_simple
+ *  \ingroup jkqtplotter_linesymbolgraphs_line
  *
  *  \image html stepplots.png
  *
@@ -112,7 +112,7 @@ protected:
 
 
 /*! \brief This implements a step plot with values \f$ \left(f(y), y \right) \f$
-    \ingroup jkqtplotter_linesymbolgraphs_simple
+    \ingroup jkqtplotter_linesymbolgraphs_line
 
     \image html stepplots_vertical.png
 
@@ -128,6 +128,15 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPSpecialLineVerticalGraph: public JKQTPSpecialL
 
         /** \brief plots the graph to the plotter object specified as parent */
         virtual void draw(JKQTPEnhancedPainter& painter) override;
+        /** \brief returns the column used as "key" for the current graph (typically this call getXColumn(), but for horizontal graphs like filled curves or barcharts it may call getYColumn() ) */
+        virtual int getKeyColumn() const override;
+        /** \brief returns the column used as "value" for the current graph (typically this call getXColumn(), but for horizontal graphs like filled curves or barcharts it may call getYColumn() ) */
+        virtual int getValueColumn() const override;
+    public Q_SLOTS:
+        /** \brief sets the column used as "key" for the current graph (typically this call setXColumn(), but for horizontal graphs like filled curves or barcharts it may call setYColumn() ) */
+        virtual void setKeyColumn(int __value) override;
+        /** \brief sets the column used as "value" for the current graph (typically this call setXColumn(), but for horizontal graphs like filled curves or barcharts it may call setYColumn() ) */
+        virtual void setValueColumn(int __value) override;
 };
 
 

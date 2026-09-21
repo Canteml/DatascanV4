@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -16,6 +16,8 @@
     You should have received a copy of the GNU Lesser General Public License (LGPL)
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
+#ifndef jkqtpgraphsrange_H
+#define jkqtpgraphsrange_H
 
 
 #include <QString>
@@ -28,8 +30,6 @@
 #include "jkqtcommon/jkqtpenhancedpainter.h"
 #include "jkqtplotter/jkqtpgraphsbaseerrors.h"
 #include "jkqtplotter/jkqtpgraphsbasestylingmixins.h"
-#ifndef jkqtpgraphsrange_H
-#define jkqtpgraphsrange_H
 
 // forward declarations
 class JKQTBasePlotter;
@@ -98,7 +98,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPRangeBase: public JKQTPPlotElement, public JKQ
         bool getFillRange() const;
         /** \copydoc plotRangeLines */
         bool getPlotRangeLines() const;
-    public slots:
+    public Q_SLOTS:
         /** \brief set the color of the graph (all lines and filling)  */
         virtual void setColor(QColor c);
 
@@ -226,7 +226,7 @@ public:
     /** \brief plots the graph to the plotter object specified as parent */
     virtual void draw(JKQTPEnhancedPainter& painter) override;
     /** \brief plots a key marker inside the specified rectangle \a rect */
-    virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+    virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
 
     /** \brief get the maximum and minimum x-value of the graph
          *
@@ -266,7 +266,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPVerticalRange: public JKQTPRangeBase {
         /** \brief plots the graph to the plotter object specified as parent */
         virtual void draw(JKQTPEnhancedPainter& painter) override;
         /** \brief plots a key marker inside the specified rectangle \a rect */
-        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
 
         /** \brief get the maximum and minimum x-value of the graph
          *

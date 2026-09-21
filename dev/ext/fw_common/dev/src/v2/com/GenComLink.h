@@ -22,6 +22,8 @@ class IntComMsg;
 #include <QObject>
 #include <qqml.h>
 
+#include "../prot/ProtMsg.h"
+
 class QThread;
 class QMutex;
 class QTimer;
@@ -32,6 +34,17 @@ class ComLinkUdpCli;
 class ComLinkTcpConfig;
 class ComLinkUdpConfig;
 class ComDevice;
+
+// Qt6 meta-type fix
+Q_DECLARE_OPAQUE_POINTER(ComLinkSerial*)
+Q_DECLARE_OPAQUE_POINTER(ComLinkTcpCli*)
+Q_DECLARE_OPAQUE_POINTER(ComLinkUdpCli*)
+Q_DECLARE_OPAQUE_POINTER(ProtMsg*)
+
+Q_DECLARE_METATYPE(ComLinkSerial*)
+Q_DECLARE_METATYPE(ComLinkTcpCli*)
+Q_DECLARE_METATYPE(ComLinkUdpCli*)
+Q_DECLARE_METATYPE(ProtMsg*)
 
 // ----------------------------------------------------------------------------
 // -- GenComLink
@@ -219,14 +232,14 @@ protected :
     volatile bool m_isWriting;
     QByteArray m_bufferRead;
     QIODevice * m_pInterface;
-    QMutex * m_mInterface;
+    QRecursiveMutex * m_mInterface;
     char m_buffSend[ProtMsg::COM_MSG_SIZE];
 
     // Data as Msg
     QList<ProtMsg *> m_bufferWriteMsg;
     QList<ProtMsg *> m_bufferReadMsg;
-    QMutex * m_mBufferWriteMsg;
-    QMutex * m_mBufferReadMsg;
+    QRecursiveMutex * m_mBufferWriteMsg;
+    QRecursiveMutex * m_mBufferReadMsg;
     quint32 m_msgDecodeStep;        ///< value in MSG_DECODE_STEP
     ProtMsg * m_pNewMsg;            ///< msg received (decoding)
     ComDevice * m_pMappedDevice;    ///< Device mapped after authentification

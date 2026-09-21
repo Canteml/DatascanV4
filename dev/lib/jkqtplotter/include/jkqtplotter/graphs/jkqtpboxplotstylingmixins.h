@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -18,22 +18,23 @@
 */
 
 
+#ifndef jkqtpgraphsboxplotstylingmixins_H
+#define jkqtpgraphsboxplotstylingmixins_H
+
 #include <QString>
 #include <QPainter>
 #include "jkqtplotter/jkqtptools.h"
 #include "jkqtplotter/jkqtplotter_imexport.h"
+#include "jkqtplotter/jkqtplotter_configmacros.h"
 #include "jkqtplotter/jkqtpgraphsbase.h"
 #include "jkqtplotter/jkqtpgraphsbasestylingmixins.h"
-
-#ifndef jkqtpgraphsboxplotstylingmixins_H
-#define jkqtpgraphsboxplotstylingmixins_H
 
 
 
 
 
 /*! \brief Styling Mix-In for Boxplots
-    \ingroup jkqtplotter_basegraphs_stylemixins
+    \ingroup jkqtplotter_specialgraphs_stylemixins
 
 
     \image html plot_boxplothorizontalelement.png
@@ -43,7 +44,9 @@
     \image html test_styledboxplot.png
  */
 class JKQTPLOTTER_LIB_EXPORT JKQTPGraphBoxplotStyleMixin: public JKQTPGraphLineStyleMixin, public JKQTPGraphFillStyleMixin {
-        Q_GADGET
+#ifndef JKQTPLOTTER_WORKAROUND_QGADGET_BUG
+      Q_GADGET
+#endif
     public:
         /** \brief class constructor */
         JKQTPGraphBoxplotStyleMixin();
@@ -315,6 +318,13 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPGraphBoxplotStyleMixin: public JKQTPGraphLineS
         void setMeanLineWidth(double __value);
         /** \brief get the line width of the symbol for the mean outline, or mean line (in pt) */
         double getMeanLineWidth() const;
+        /** \brief set the font to be used for mean character symbols \c JKQTPCharacterSymbol+QChar('').unicode() */
+        void setMeanSymbolFontName(const QString& __value);
+        /** \brief get the font to be used for mean character symbols \c JKQTPCharacterSymbol+QChar('').unicode() */
+        QString getMeanSymbolFontName() const;
+
+        /** \brief generate a QFont for darwing symbols */
+        QFont getMeanSymbolFont() const;
 
         /** \brief constructs a QPen from the line styling properties to draw the mean line */
         QPen getMeanLinePen(JKQTPEnhancedPainter &painter, JKQTBasePlotter* parent) const;
@@ -395,6 +405,8 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPGraphBoxplotStyleMixin: public JKQTPGraphLineS
         QColor m_meanSymbolFillColor;
         /** \brief width (in pt) of the lines used to plot the symbol for the data points, given in pt */
         double m_meanSymbolLineWidth;
+        /** \brief font to be used for character mean symbols \c JKQTPCharacterSymbol+QChar('').unicode() */
+        QString m_meanSymbolFontName;
         /** \brief line style of the whisker lines */
         QPen m_whiskerLinePen;
         /** \brief line width (in pt) of the whisker lines */

@@ -15,6 +15,9 @@
 // -- Internal includes
 #include <v2/vector/VectorFunc.h>
 #include <v2/scan/AScan.h>
+#include <QMetaType>
+#include <QObject>
+
 class AScanWorker;
 
 // ----------------------------------------------------------------------------
@@ -104,3 +107,9 @@ private :
     AScanWorker * m_pAScanWorker;
     bool m_clearPipe;   ///< if true, we have clean pending ASCAN. remove next ASCAN to be sure
 };
+
+Q_DECLARE_OPAQUE_POINTER(VectorFuncAScan*)
+#ifndef METATYPE_VECTORFUNCASCAN
+#define METATYPE_VECTORFUNCASCAN
+Q_DECLARE_METATYPE(VectorFuncAScan*)
+#endif

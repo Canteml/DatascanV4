@@ -16,7 +16,7 @@ isEmpty(BASEDIR_FW_UI) {
     BASEDIR_FW_UI = ext/fw_ui/dev/src
 }
 
-QT       += core gui quick qml
+QT       += core gui quick qml xml
 
 SOURCES += $$PWD/coreUi/CoreUiQml.cpp  \
            $$PWD/window/WinLog.cpp

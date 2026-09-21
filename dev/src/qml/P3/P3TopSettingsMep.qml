@@ -2,7 +2,6 @@ import QtQuick 2.4
 import QtQuick.Controls 2.5
 import QtQuick.Layouts 1.11
 import Design 1.0
-import QtGraphicalEffects 1.0
 import "../rp_components"
 
 Rectangle {

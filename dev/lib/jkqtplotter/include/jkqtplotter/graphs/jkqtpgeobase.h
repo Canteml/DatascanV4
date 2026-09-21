@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -17,6 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef jkqtpgeobase_H_INCLUDED
+#define jkqtpgeobase_H_INCLUDED
+
 
 #include <QString>
 #include <QPainter>
@@ -26,9 +29,6 @@
 #include "jkqtplotter/jkqtptools.h"
 #include "jkqtplotter/jkqtplotter_imexport.h"
 #include "jkqtmathtext/jkqtmathtext.h"
-
-#ifndef jkqtpgeobase_H_INCLUDED
-#define jkqtpgeobase_H_INCLUDED
 
 
 /*! \brief This JKQTPGeometricPlotElement is used as base class for geometric drawing
@@ -62,7 +62,7 @@ public:
     virtual void setColor(QColor c);
 
     /** \brief plots a key marker inside the specified rectangle \a rect */
-    virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+    virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
     /** \brief returns the color to be used for the key label */
     virtual QColor getKeyLabelColor() const override;
 
@@ -111,7 +111,7 @@ public:
     virtual void setColor(QColor c);
 
     /** \brief plots a key marker inside the specified rectangle \a rect */
-    virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+    virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
     /** \brief returns the color to be used for the key label */
     virtual QColor getKeyLabelColor() const override;
 
@@ -160,7 +160,7 @@ public:
     virtual void setColor(QColor c);
 
     /** \brief plots a key marker inside the specified rectangle \a rect */
-    virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+    virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
     /** \brief returns the color to be used for the key label */
     virtual QColor getKeyLabelColor() const override;
 
@@ -193,6 +193,8 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPGeoBaseFilled: public JKQTPGeoBaseLine, public
         /** \brief set several of the style properties with one call */
         virtual void setStyle(QColor color, double lineWidth, Qt::PenStyle style, QColor fillColor, Qt::BrushStyle fillStyle) ;
         /** \brief set several of the style properties with one call */
+        virtual void setStyle(QColor color, double lineWidth, Qt::PenStyle style, QColor fillColor, const JKQTFillStyleSummmary& fillStyle) ;
+        /** \brief set several of the style properties with one call */
         virtual void setStyle(QColor color, double lineWidth, Qt::PenStyle style) override;
         /** \brief set several of the style properties with one call */
         virtual void setStyle(QColor color, Qt::PenStyle style) override;
@@ -210,7 +212,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPGeoBaseFilled: public JKQTPGeoBaseLine, public
         void setStyleTransparentFill(QColor color);
 
         /** \brief plots a key marker inside the specified rectangle \a rect */
-        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
     protected:
 
 

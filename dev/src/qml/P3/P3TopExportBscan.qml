@@ -1,7 +1,7 @@
 import QtQuick 2.4
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
-import QtQuick.Dialogs 1.1
+import QtQuick.Dialogs
 import Design 1.0
 
 ColumnLayout {
@@ -118,7 +118,7 @@ ColumnLayout {
                     MessageDialog {
                         id: dialogFileExists
                         title: qsTr("Fichier CSV existant")
-                        standardButtons: Dialog.Yes | Dialog.Cancel
+                        buttons: MessageDialog.Yes | MessageDialog.Cancel
                         onAccepted: {
                             examManager.startExamWrite(idTxtFileName.text)
                             txtExamFileName.text = examManager.getExportFullFileName()

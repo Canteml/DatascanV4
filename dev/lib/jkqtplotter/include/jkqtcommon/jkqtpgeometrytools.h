@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2020-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2020-2022 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -33,6 +33,7 @@
 #include <forward_list>
 #include <cmath>
 #include <utility>
+#include <random>
 #include <QDebug>
 #include "jkqtcommon/jkqtpmathtools.h"
 #include "jkqtcommon/jkqtpcodestructuring.h"
@@ -44,34 +45,34 @@
 JKQTCOMMON_LIB_EXPORT QPolygonF jkqtpRotateRect(QRectF r, double angle);
 
 
-/** \brief adaptive drawing of a function graph, specified by two function \f$ f_x(t) \f$ and \f$ f_y(t) \f$ evaluated over a parameter range \f$ t\in\left[t_\text{min}..t_\text{max}\tight] \f$ */
+/** \brief adaptive drawing of a function graph, specified by two function \f$ f_x(t) \f$ and \f$ f_y(t) \f$ evaluated over a parameter range \f$ t\in\left[t_\text{min}..t_\text{max}\right] \f$ */
 class JKQTCOMMON_LIB_EXPORT JKQTPAdaptiveFunctionGraphEvaluator {
 public:
 
     /** \brief class constructor
      *
-     *  \param fx function \f$ f_x(t) \f$
-     *  \param fy function \f$ f_y(t) \f$
-     *  \param minSamples the minimum number of points to evaluate the function at
-     *  \param maxRefinementDegree the maximum number of recursive refinement steps
+     *  \param fx_ function \f$ f_x(t) \f$
+     *  \param fy_ function \f$ f_y(t) \f$
+     *  \param minSamples_ the minimum number of points to evaluate the function at
+     *  \param maxRefinementDegree_ the maximum number of recursive refinement steps
      *                             each step bisects the interval \f$ [a, b] \f$ into two halfes. So the maximum number
      *                             of points plotted at all are thus:
      *                               \f[ \mbox{minSamples} \cdot 2^{\mbox{maxRefinementDegree}} \f]
-     *  \param slopeTolerance the tolerance for the difference of two subsequent slopes
-     *  \param minPixelPerSample create one sample at least every \a minPixelPerSample pixels
+     *  \param slopeTolerance_ the tolerance for the difference of two subsequent slopes
+     *  \param minPixelPerSample_ create one sample at least every \a minPixelPerSample pixels
      */
     JKQTPAdaptiveFunctionGraphEvaluator(const std::function<double(double)>& fx_, const std::function<double(double)>& fy_, unsigned int minSamples_=10, unsigned int maxRefinementDegree_=5, double slopeTolerance_=0.005, double minPixelPerSample_=32);
 
     /** \brief class constructor
      *
-     *  \param fxy function \f$ [x,y]=f_{xy}(t) \f$
-     *  \param minSamples the minimum number of points to evaluate the function at
-     *  \param maxRefinementDegree the maximum number of recursive refinement steps
+     *  \param fxy_ function \f$ [x,y]=f_{xy}(t) \f$
+     *  \param minSamples_ the minimum number of points to evaluate the function at
+     *  \param maxRefinementDegree_ the maximum number of recursive refinement steps
      *                             each step bisects the interval \f$ [a, b] \f$ into two halfes. So the maximum number
      *                             of points plotted at all are thus:
      *                               \f[ \mbox{minSamples} \cdot 2^{\mbox{maxRefinementDegree}} \f]
-     *  \param slopeTolerance the tolerance for the difference of two subsequent slopes
-     *  \param minPixelPerSample create one sample at least every \a minPixelPerSample pixels
+     *  \param slopeTolerance_ the tolerance for the difference of two subsequent slopes
+     *  \param minPixelPerSample_ create one sample at least every \a minPixelPerSample pixels
      */
     JKQTPAdaptiveFunctionGraphEvaluator(const std::function<QPointF(double)>& fxy_, unsigned int minSamples_=10, unsigned int maxRefinementDegree_=5, double slopeTolerance_=0.005, double minPixelPerSample_=32);
 
@@ -105,6 +106,13 @@ protected:
     double slopeTolerance;
     /** \brief create one sample at least every \a minPixelPerSample pixels */
     double minPixelPerSample;
+    /** \brief random number generation: device */
+    mutable std::random_device rd; // random number generators:
+    /** \brief random number generation: egenrator */
+    mutable std::mt19937 gen;
+    /** \brief random number generation: distribution */
+    mutable std::uniform_real_distribution<double> dist;
+
 };
 
 

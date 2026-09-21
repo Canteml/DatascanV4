@@ -19,10 +19,12 @@
 #include <v2/prot/ProtMsg.h>
 #include <v2/com/ComDeviceManager.h>
 #include <v2/exam/ExamManager.h>
+#include "camera/VlcQmlVideoSink.h"
 
 // -- Qt includes
 #include <QTimer>
-#include <QCameraInfo>
+#include <QMediaDevices>
+#include <QCameraDevice>
 #include <QQmlApplicationEngine>
 #include <QQmlContext>
 #include <QCamera>
@@ -30,17 +32,16 @@
 #include <QFile>
 
 #include <VLCQtCore/Common.h>
-#include <VLCQtQml/Qml.h>
 #include <VLCQtCore/Instance.h>
 #include <VLCQtCore/MediaPlayer.h>
 #include <VLCQtCore/Video.h>
-#include <VLCQtQml/QmlSource.h>
-
+#include <camera/VlcVideoSink.h>
 
 CameraManager* CameraManager::m_pMyInstance = nullptr;
 
 CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
 {
+
     for(int i=0; i<CameraRole::ROLE_MAX; i++) {
         m_aCameraRole[i] = new CameraRole(i);
         m_aCameraRole[i]->setParent(this);
@@ -61,25 +62,17 @@ CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
     //vlcArgs.append("--live-caching=300");       // Live capture caching (ms)  Caching value for cameras and microphones, in milliseconds.
     //vlcArgs.append("--no-ts-trust-pcr");      //
     //vlcArgs.append("--no-avcodec-fast");        // --avcodec-fast, --no-avcodec-fast
-                                                // Allow speed tricks
-                                                // (default disabled)
-                                                // Allow non specification compliant speedup tricks. Faster but
-                                                // error-prone.
+    // Allow speed tricks
+    // (default disabled)
+    // Allow non specification compliant speedup tricks. Faster but
+    // error-prone.
     //vlcArgs.append("-vvv");
     //vlcArgs.append("--sout-transcode-venc=x265");
     vlcArgs.append("--quiet");                  // Console logger : (console) -q, --quiet, --no-quiet        Be quiet(default disabled)
 
-
     m_pInstance = new VlcInstance(vlcArgs, this);
-
     m_pMainPlayer = new VlcMediaPlayer(m_pInstance);
     m_pPreviewPlayer = new VlcMediaPlayer(m_pInstance);
-
-    m_pMainSource = new VlcQmlSource(this);    
-    m_pMainSource->setPlayer(m_pMainPlayer);
-
-    m_pPreviewSource = new VlcQmlSource(this);
-    m_pPreviewSource->setPlayer(m_pPreviewPlayer);
 
     for(int i = IP_CAMERA_MIN ; i <= IP_CAMERA_MAX ; i++) {
         QString sSuffix = QString::number(i);
@@ -93,6 +86,10 @@ CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
     m_selectMainCameraAuto = false;
     m_mainCameraIsAlarm = false;
 
+    m_pMainSink    = new VlcVideoSink(m_pMainPlayer, this);
+    m_pPreviewSink = new VlcVideoSink(m_pPreviewPlayer, this);
+
+
     m_pTimer = new QTimer();
     m_pTimer->setSingleShot(false); // You can set a timer to time out only once by calling setSingleShot(true). You can also use the static QTimer::singleShot() function to call a slot after a specified interval:
     m_pTimer->setInterval(500);     // replace by m_pTimer->start(500) ? (TD)
@@ -104,13 +101,38 @@ CameraManager::CameraManager() : XmlSettingsLoggable("CameraManager")
     m_pTimerRefreshMainCam->setInterval(1000);     // replace by m_pTimer->start(500) ? (TD)
     connect(m_pTimerRefreshMainCam, &QTimer::timeout, this, &CameraManager::onRefreshCameraAutoReco);
 
+    m_pCameraAlarm   = new QCamera(this);
+    m_pCameraMain    = new QCamera(this);
+    m_pCameraPreview = new QCamera(this);
 
 
+    m_pSessionAlarm   = new QMediaCaptureSession(this);
+    m_pSessionMain    = new QMediaCaptureSession(this);
+    m_pSessionPreview = new QMediaCaptureSession(this);
+
+
+    m_pSessionAlarm->setCamera(m_pCameraAlarm);
+    m_pSessionMain->setCamera(m_pCameraMain);
+    m_pSessionPreview->setCamera(m_pCameraPreview);
+
+}
+
+QObject* CameraManager::getPreviewCameraSource() const {
+    return m_pPreviewPlayer;
 }
 
 CameraManager::~CameraManager()
 {
     stop();
+
+    // Prima disconnetti i sink per evitare callback su puntatori invalidi
+    if (m_pPreviewSink) m_pPreviewSink->setVideoSink(nullptr);
+    if (m_pMainSink) m_pMainSink->setVideoSink(nullptr);
+
+    // Poi ferma i player
+    if (m_pPreviewPlayer) m_pPreviewPlayer->stop();
+    if (m_pMainPlayer) m_pMainPlayer->stop();
+    QThread::msleep(300);
 
     delete m_pTimer;
     delete m_pTimerRefreshMainCam;
@@ -130,16 +152,15 @@ CameraManager::~CameraManager()
     }
     m_lCameraVideo.clear();
 
-    m_pMainPlayer->stop();
-    m_pPreviewPlayer->stop();
+    if (m_pMainPlayer) m_pMainPlayer->stop();
+    if (m_pPreviewPlayer) m_pPreviewPlayer->stop();
 
     for(auto i : qAsConst(m_lIpCamera)) {
         delete i;
     }
     m_lIpCamera.clear();
 
-    delete m_pMainSource;
-    delete m_pPreviewSource;
+
     delete m_pMainPlayer;
     delete m_pPreviewPlayer;
     delete m_pInstance;
@@ -163,41 +184,72 @@ CameraManager* CameraManager::getInstance()
 
 void CameraManager::initQmlObject(QObject *p_pQmlTopLevel)
 {
-    QObject* qmlCamera = p_pQmlTopLevel->findChild<QObject*>("cameraAlarm");
-    m_pCameraAlarm = qvariant_cast<QCamera*>(qmlCamera->property("mediaObject"));
-    qmlCamera = p_pQmlTopLevel->findChild<QObject*>("cameraPreview");
-    m_pCameraPreview = qvariant_cast<QCamera*>(qmlCamera->property("mediaObject"));
-    qmlCamera = p_pQmlTopLevel->findChild<QObject*>("cameraMain");
-    m_pCameraMain = qvariant_cast<QCamera*>(qmlCamera->property("mediaObject"));
-
-    VlcQml::registerTypes();
-
+    m_pQmlTopLevel = p_pQmlTopLevel;
+    QStringList cameraNames;
+    cameraNames.append(tr("Caméra 1 (USB)"));
+    CoreApp::getInstanceCoreUiQml()
+        ->getApplicationEngine()
+        ->rootContext()
+        ->setContextProperty("modelCameraList", QVariant::fromValue(cameraNames));
     onGuiPageChanged(m_pGlobalManager->getGuiPage());
 }
 
-
 void CameraManager::onGuiPageChanged(quint32 p_page)
 {
-    if( 1 == p_page ) { // page Prepare
-        // -- Configure : display on Preview video
 
-        m_pCameraAlarm->stop();
-        m_pCameraMain->stop();
+    /*
+    if( 1 == p_page ) {
+        if (m_pCameraAlarm) m_pCameraAlarm->stop();
+        if (m_pCameraMain) m_pCameraMain->stop();
 
-        //QThread::msleep(300);   ///< wait camera stop
-        /*
-        if(isPreviewCameraIp()) {
-            openPreviewIpMedia();
-        }
-        */
+        QTimer::singleShot(3000, this, [this]() {
+            QObject* vo = m_pQmlTopLevel->findChild<QObject*>(
+                "previewVideoOutput", Qt::FindChildrenRecursively);
+            FILE* f = fopen("C:/ProgramData/Roboplanet/DatascanV2/conf/camera_test.txt", "a");
+            if (f) { fprintf(f, "findChild previewVideoOutput: %s\n", vo ? "TROVATO" : "NON TROVATO"); fclose(f); }
+            if (vo) {
+                setPreviewVideoSink(vo);
+            } else {
+                // Riprova ogni secondo finché non trovato
+                QTimer::singleShot(1000, this, [this]() {
+                    QObject* vo2 = m_pQmlTopLevel->findChild<QObject*>(
+                        "previewVideoOutput", Qt::FindChildrenRecursively);
+                    FILE* f2 = fopen("C:/ProgramData/Roboplanet/DatascanV2/conf/camera_test.txt", "a");
+                    if (f2) { fprintf(f2, "retry findChild: %s\n", vo2 ? "TROVATO" : "NON TROVATO"); fclose(f2); }
+                    if (vo2) setPreviewVideoSink(vo2);
+                });
+            }
+        });
+
         emit previewCameraIndexChanged(getPreviewCameraIndex());
+    }*/
+    if( 1 == p_page ) {
+        if (m_pCameraAlarm) m_pCameraAlarm->stop();
+        if (m_pCameraMain) m_pCameraMain->stop();
 
+        // Solo se il sink non è già connesso
+        if (!m_pPreviewQVideoSink) {
+            QTimer::singleShot(3000, this, [this]() {
+                QObject* vo = m_pQmlTopLevel->findChild<QObject*>(
+                    "previewVideoOutput", Qt::FindChildrenRecursively);
+                if (vo) {
+                    setPreviewVideoSink(vo);
+                } else {
+                    QTimer::singleShot(1000, this, [this]() {
+                        QObject* vo2 = m_pQmlTopLevel->findChild<QObject*>(
+                            "previewVideoOutput", Qt::FindChildrenRecursively);
+                        if (vo2) setPreviewVideoSink(vo2);
+                    });
+                }
+            });
+        }
 
+        emit previewCameraIndexChanged(getPreviewCameraIndex());
     }
     else if( 3 == p_page ) // page Scan
     {
 
-        m_pCameraPreview->stop();
+        if (m_pCameraPreview) m_pCameraPreview->stop();
 
         //QThread::msleep(500);   ///< wait camera stop
         /*
@@ -211,12 +263,12 @@ void CameraManager::onGuiPageChanged(quint32 p_page)
     }
     else {
 
-        m_pCameraAlarm->stop();
-        m_pCameraMain->stop();
-        m_pCameraPreview->stop();
+        if (m_pCameraAlarm) m_pCameraAlarm->stop();
+        if (m_pCameraMain) m_pCameraMain->stop();
+        if (m_pCameraPreview) m_pCameraPreview->stop();
 
-        m_pPreviewPlayer->stop();
-        m_pMainPlayer->stop();
+        if (m_pPreviewPlayer) m_pPreviewPlayer->stop();
+        if (m_pMainPlayer) m_pMainPlayer->stop();
 
         QThread::msleep(300);
     }
@@ -236,7 +288,7 @@ void CameraManager::onCameraIsReadyChanged(CameraRole *p_pCameraRole, bool p_ena
             if( m_aCameraRole[CameraRole::ROLE_ALARM]->getIsEnabled() && m_aCameraRole[CameraRole::ROLE_ALARM]->getCameraVideo() ) {
                 if( getMainCameraId() != m_aCameraRole[CameraRole::ROLE_ALARM]->getCameraVideo()->getCameraId() ) {
                     if( 1 != m_pGlobalManager->getGuiPage() ) {
-                        m_pCameraAlarm->start();
+                        if (m_pCameraAlarm)  m_pCameraAlarm->start();
                     }
                 }
             }
@@ -257,17 +309,29 @@ void CameraManager::onMainCameraIndexChanged(quint32 p_index)
     }
 }
 
+void CameraManager::setPreviewVlcSink(QObject* vlcSinkObj)
+{
+
+    VlcQmlVideoSink* vlcSink = qobject_cast<VlcQmlVideoSink*>(vlcSinkObj);
+    if (vlcSink && vlcSink->videoSink()) {
+        m_pPreviewQVideoSink = vlcSink->videoSink();
+        m_pPreviewSink->setVideoSink(m_pPreviewQVideoSink);
+        if (isPreviewCameraIp() && m_indexPreviewCamera != CAMERA_PREVIEW_UNDEF) {
+            openPreviewIpMedia();
+        }
+    }
+}
 
 void CameraManager::onRefreshCameraAutoReco()
 {
-QString     strFilePath = CoreApp::getDirDataLog() + QString("/") + "log.txt";
-QFile       logFile(strFilePath);
-QStringList stringList;
-QByteArray  qbaContent;
-int         s16LineMax=0;
-int         s16LineStart=0;
-int         s16Idx;
-bool        bFoundVLClibError=false;
+    QString     strFilePath = CoreApp::getDirDataLog() + QString("/") + "log.txt";
+    QFile       logFile(strFilePath);
+    QStringList stringList;
+    QByteArray  qbaContent;
+    int         s16LineMax=0;
+    int         s16LineStart=0;
+    int         s16Idx;
+    bool        bFoundVLClibError=false;
 
     if(logFile.open(QIODevice::ReadOnly | QIODevice::Text))//if there is a log
     {
@@ -304,10 +368,9 @@ bool        bFoundVLClibError=false;
     {
         qDebug("Freez Camera detected find ");
 
-
-        m_pCameraAlarm->stop();
-        m_pCameraMain->stop();
-        m_pCameraPreview->stop();
+        if (m_pCameraAlarm) m_pCameraAlarm->stop();
+        if (m_pCameraMain) m_pCameraMain->stop();
+        if (m_pCameraPreview) m_pCameraPreview->stop();
 
         //QThread::msleep(300);   ///< wait camera stop
 
@@ -325,6 +388,16 @@ bool        bFoundVLClibError=false;
 
 void CameraManager::start()
 {
+    QStringList cameraNames;
+    cameraNames.append(tr("Caméra 1 (USB)"));
+    CoreApp::getInstanceCoreUiQml()
+        ->getApplicationEngine()
+        ->rootContext()
+        ->setContextProperty("modelCameraList", QVariant::fromValue(cameraNames));
+
+    m_pGlobalManager = GlobalManager::getInstance();
+
+    //const QList<QCameraDevice> devices = QMediaDevices::videoInputs();
     m_pGlobalManager = GlobalManager::getInstance();
     connect(m_pGlobalManager, &GlobalManager::evGuiPageChanged, this, &CameraManager::onGuiPageChanged);
 
@@ -337,6 +410,27 @@ void CameraManager::start()
     connect(m_pVectorStd->getDeviceManager(), &ComDeviceManager::evDeviceListChanged, this, &CameraManager::onVectorDeviceListChanged);
     m_pTimer->start();
     m_pTimerRefreshMainCam->start();
+}
+
+void CameraManager::connectPreviewSink(QObject* videoOutput)
+{
+
+    if (!videoOutput) return;
+    QVideoSink* sink = videoOutput->property("videoSink").value<QVideoSink*>();
+
+    if (sink) {
+        m_pPreviewSink->setVideoSink(sink);
+    }
+}
+
+void CameraManager::connectMainSink(QObject* videoOutput)
+{
+    if (!videoOutput) return;
+    QVideoSink* sink = videoOutput->property("videoSink").value<QVideoSink*>();
+    if (!sink || !m_pSessionMain) return;
+    if (sink) {
+        m_pSessionMain->setVideoSink(sink);
+    }
 }
 
 void CameraManager::stop()
@@ -407,19 +501,20 @@ bool CameraManager::getMainCameraIsAlarm() const
     return m_mainCameraIsAlarm;
 }
 
+/*
 void CameraManager::assignPreviewAs(qint32 p_role)
 {
     // Map current preview camera with the specified role
-//    if( -1 != m_indexPreviewCamera ) {
-//        m_aCameraRole[p_role]->setCamera(m_lCameraVideo.at(m_indexPreviewCamera));
-//    }
+    //    if( -1 != m_indexPreviewCamera ) {
+    //        m_aCameraRole[p_role]->setCamera(m_lCameraVideo.at(m_indexPreviewCamera));
+    //    }
     if( -1 != m_indexPreviewCamera ) {
         if(m_aCameraRole[p_role]->getCameraVideo() == m_lCameraVideo.at(m_indexPreviewCamera)) {
             // un-assign this camera => remove it from database
             for(auto db : qAsConst(m_lCameraDatabase) ) {
                 if( db->getCameraRole() == p_role &&
                     db->getProductUid() == m_pVectorStd->getFuncGeneralParam().m_paramDProdUid ) {
-                        m_lCameraDatabase.removeAll(db);
+                    m_lCameraDatabase.removeAll(db);
                 }
             }
             // camera already assigned for this role => remove assignation
@@ -428,6 +523,42 @@ void CameraManager::assignPreviewAs(qint32 p_role)
             // assign
             m_aCameraRole[p_role]->setCamera(m_lCameraVideo.at(m_indexPreviewCamera));
         }
+    }
+    onUpdateCameraDatabase();
+}
+*/
+
+void CameraManager::assignPreviewAs(qint32 p_role)
+{
+    // Trova la camera USB (indice 0) o IP (indice 1)
+    CameraVideo* pCamVideo = nullptr;
+    for (auto cam : qAsConst(m_lCameraVideo)) {
+        if (cam->getCameraIndex() == m_indexPreviewCamera) {
+            pCamVideo = cam;
+            break;
+        }
+    }
+    // Per indice 0 (USB), cerca la prima non-IP se non trovata per indice
+    if (!pCamVideo && m_indexPreviewCamera == 0) {
+        for (auto cam : qAsConst(m_lCameraVideo)) {
+            if (!cam->isIpCamera()) {
+                pCamVideo = cam;
+                break;
+            }
+        }
+    }
+    if (!pCamVideo) return;
+
+    if (m_aCameraRole[p_role]->getCameraVideo() == pCamVideo) {
+        for (auto db : qAsConst(m_lCameraDatabase)) {
+            if (db->getCameraRole() == p_role &&
+                db->getProductUid() == m_pVectorStd->getFuncGeneralParam().m_paramDProdUid) {
+                m_lCameraDatabase.removeAll(db);
+            }
+        }
+        m_aCameraRole[p_role]->setCamera(nullptr);
+    } else {
+        m_aCameraRole[p_role]->setCamera(pCamVideo);
     }
     onUpdateCameraDatabase();
 }
@@ -516,15 +647,142 @@ void CameraManager::setRoleMainCamera(qint32 p_role)
 
         if( m_aCameraRole[CameraRole::ROLE_ALARM]->getIsEnabled() && m_aCameraRole[CameraRole::ROLE_ALARM]->getCameraVideo() ) {
             if( getMainCameraId() == m_aCameraRole[CameraRole::ROLE_ALARM]->getCameraVideo()->getCameraId() ) {
-                m_pCameraAlarm->stop();
+                if (m_pCameraAlarm) m_pCameraAlarm->stop();
             } else {
-                m_pCameraAlarm->start();
+                if (m_pCameraAlarm)  m_pCameraAlarm->start();
             }
         }
         emit mainCameraIndexChanged(getMainCameraIndex());
     }
 }
 
+void CameraManager::setPreviewVideoSink(QObject* videoOutput)
+{
+    if (!videoOutput) return;
+    QVideoSink* sink = videoOutput->property("videoSink").value<QVideoSink*>();
+
+    if (!sink) {
+        QTimer::singleShot(100, this, [this, videoOutput]() {
+            setPreviewVideoSink(videoOutput);
+        });
+        return;
+    }
+
+    m_pPreviewQVideoSink = sink;
+    m_pSessionPreview->setVideoSink(sink);
+    m_pPreviewSink->setVideoSink(sink);
+
+    if (m_indexPreviewCamera == CAMERA_PREVIEW_UNDEF || m_indexPreviewCamera == 0) {
+        startUsbPreview(sink);
+        if (m_indexPreviewCamera == CAMERA_PREVIEW_UNDEF) {
+            m_indexPreviewCamera = 0;
+            emit previewCameraIndexChanged(0);
+        }
+    } else {
+        // Camera IP già selezionata — ricollegare il sink e riavviare VLC
+        openPreviewIpMedia();
+    }
+
+    /*
+    // Avvia sempre la camera USB (indice 0)
+    startUsbPreview(sink);
+
+    if (m_indexPreviewCamera == CAMERA_PREVIEW_UNDEF) {
+        m_indexPreviewCamera = 0;
+        emit previewCameraIndexChanged(0);
+    }
+*/
+}
+
+void CameraManager::startUsbPreview(QVideoSink* sink)
+{
+    if (!m_pCameraPreview) return;
+
+    const QList<QCameraDevice> devices = QMediaDevices::videoInputs();
+    if (devices.isEmpty()) return;
+
+    // Cerca il device USB nella lista m_lCameraVideo
+    // Se non c'è nessuna camera reale, usa il primo device disponibile (OBS)
+    QCameraDevice deviceToUse = devices.first();
+    for (auto cam : qAsConst(m_lCameraVideo)) {
+        if (!cam->isIpCamera()) {
+            for (const QCameraDevice& d : devices) {
+                if (d.id() == cam->getCameraId()) {
+                    deviceToUse = d;
+                    break;
+                }
+            }
+            break;
+        }
+    }
+
+    m_pPreviewPlayer->stop();  // ferma VLC se attivo
+    m_pCameraPreview->setCameraDevice(deviceToUse);
+    if (sink) m_pSessionPreview->setVideoSink(sink);
+    m_pCameraPreview->start();
+}
+
+//////////////////////////////////
+/*
+void CameraManager::setPreviewVideoSink(QObject* videoOutput)
+{
+    if (!videoOutput) return;
+    QVideoSink* sink = videoOutput->property("videoSink").value<QVideoSink*>();
+
+    if (!sink) {
+        // Il VideoOutput esiste ma il sink non è ancora pronto: riprova
+        QTimer::singleShot(100, this, [this, videoOutput]() {
+            setPreviewVideoSink(videoOutput);
+        });
+
+        return;
+    }
+
+    m_pPreviewQVideoSink = sink;
+
+    if (m_pSessionPreview) {
+        m_pSessionPreview->setVideoSink(sink);
+    }
+    if (m_pPreviewSink) {
+        m_pPreviewSink->setVideoSink(sink);
+    }
+
+    if (m_pCameraPreview) {
+        // Se non c'è un device specifico impostato, Qt usa il default (primo disponibile)
+        m_pSessionPreview->setVideoSink(sink);
+        m_pCameraPreview->start();
+        if (m_indexPreviewCamera == CAMERA_PREVIEW_UNDEF) {
+            m_indexPreviewCamera = 0;
+            emit previewCameraIndexChanged(0);
+        }
+    }
+}
+*/
+
+void CameraManager::setPreviewCameraIndex(qint32 p_index)
+{
+    if (m_indexPreviewCamera != p_index) {
+        m_indexPreviewCamera = p_index;
+
+        if (p_index == CAMERA_PREVIEW_UNDEF) {
+            m_pPreviewPlayer->stop();
+            if (m_pCameraPreview) m_pCameraPreview->stop();
+        } else if (p_index == 0) {
+            // SEMPRE USB — indipendentemente da cosa c'è nella lista
+            m_pPreviewPlayer->stop();
+            startUsbPreview(m_pPreviewQVideoSink);
+        } else {
+            // Indice 1+ → IP
+            if (m_pCameraPreview) m_pCameraPreview->stop();
+            openPreviewIpMedia();
+        }
+
+        emit isPreviewCameraIpChanged(p_index != 0 && p_index != CAMERA_PREVIEW_UNDEF);
+        emit previewCameraIndexChanged(m_indexPreviewCamera);
+    }
+}
+
+/*
 void CameraManager::setPreviewCameraIndex(qint32 p_index)
 {
     if( m_indexPreviewCamera != p_index ) {
@@ -534,22 +792,54 @@ void CameraManager::setPreviewCameraIndex(qint32 p_index)
         if(bWasIp != isIp) {
             emit isPreviewCameraIpChanged(isIp);
         }
-        if(isIp) {
+        if (p_index == CAMERA_PREVIEW_UNDEF) {
+            // Stoppa tutto
+            m_pPreviewPlayer->stop();
+            if (m_pCameraPreview) m_pCameraPreview->stop();
+        } else if (isIp) {
+            // Stoppa USB, avvia VLC
+            if (m_pCameraPreview) m_pCameraPreview->stop();
             openPreviewIpMedia();
+        } else {
+            // USB: stoppa VLC, imposta device, avvia
+            m_pPreviewPlayer->stop();
+            startUsbPreview(m_pPreviewQVideoSink);
+
+            if (m_pCameraPreview) {
+                // Trova il device USB corrispondente all'indice
+                const QList<QCameraDevice> devices = QMediaDevices::videoInputs();
+                for (auto cam : qAsConst(m_lCameraVideo)) {
+                    if (cam->getCameraIndex() == p_index && !cam->isIpCamera()) {
+                        // Cerca il QCameraDevice corrispondente
+                        for (const QCameraDevice& d : devices) {
+                            if (d.id() == cam->getCameraId()) {
+                                m_pCameraPreview->setCameraDevice(d);
+                                if (m_pPreviewQVideoSink) {
+                                    m_pSessionPreview->setVideoSink(m_pPreviewQVideoSink);
+                                }
+                                m_pCameraPreview->start();
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
         }
-        //m_lCameraVideo.at(m_indexPreviewCamera)->capture("CAM");
+
         emit previewCameraIndexChanged(m_indexPreviewCamera);
     }
 }
+*/
 
 QString CameraManager::captureMainCamera(const QString& p_prefix)
 {
     QString fileName;
     if( -1 != m_roleMainCamera && m_aCameraRole[m_roleMainCamera]->getIsReady() ) {
         fileName = QString("%1/%2%3 %4.jpg").arg(ExamManager::getInstance()->getExportFolder())
-                                    .arg(p_prefix)
-                                    .arg(m_slCameraRole[m_roleMainCamera])
-                                    .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH-mm-ss.zzz"));
+        .arg(p_prefix)
+            .arg(m_slCameraRole[m_roleMainCamera])
+            .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH-mm-ss.zzz"));
         fileName.replace("/", "\\\\");
         if(isMainCameraIp()) {
             m_pMainPlayer->video()->takeSnapshot(fileName);
@@ -597,7 +887,7 @@ void CameraManager::onVectorProductIdChanged(qint32 p_pid)
     }
 
     if(/*p_pid == ProtMsg::PROD_ALTISCAN_V2 ||*/ p_pid == ProtMsg::PROD_ROVER
-            || p_pid == ProtMsg::PROD_ROVER_IP68 || p_pid == ProtMsg::PROD_MULTISCAN) {
+        || p_pid == ProtMsg::PROD_ROVER_IP68 || p_pid == ProtMsg::PROD_MULTISCAN) {
         m_aCameraRole[CameraRole::ROLE_REAR]->setIsEnabled(true);
         slRoles.append(tr("Arrière"));
     } else {
@@ -643,19 +933,20 @@ void CameraManager::onVectorDeviceListChanged(qint32)
 
 }
 
+/*
 void CameraManager::onUpdateCameraList()
 {
     bool bListCameraChanged = false;
-    const QList<QCameraInfo> cameras = QCameraInfo::availableCameras();
+    const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
 
     // -- Add new cameras
     qint32 index=0;
     // Parse all camera connected
-    for (const QCameraInfo &cameraInfo : cameras) {
+    for (const QCameraDevice &cameraInfo : cameras) {
         bool bFound = false;
         // find if this camera is already instanciated
         for(auto i : qAsConst(m_lCameraVideo) ) {
-            if( i->getCameraId() == cameraInfo.deviceName() ) {
+            if( i->getCameraId() == cameraInfo.id() ) {
                 bFound = true;
                 // update index if needed
                 if( i->getCameraIndex() != index ) {
@@ -666,7 +957,7 @@ void CameraManager::onUpdateCameraList()
         }
         if( !bFound ) {
             // camera not found => instanciate it
-            CameraVideo * pCV = new CameraVideo(index, cameraInfo.deviceName());
+            CameraVideo * pCV = new CameraVideo(index, cameraInfo.id());
             m_lCameraVideo.append(pCV);
             bListCameraChanged = true;
             // try to auto assign this camera
@@ -678,6 +969,23 @@ void CameraManager::onUpdateCameraList()
             }
         }
         index++;
+
+        if (bListCameraChanged) {
+            // Costruisce la lista nomi per il ComboBox QML
+            QStringList cameraNames;
+            const QList<QCameraDevice> devices = QMediaDevices::videoInputs();
+            for (const QCameraDevice& d : devices) {
+                cameraNames.append(d.description());
+            }
+            fLogInfo(QString("Camera trovate: %1 -> %2").arg(devices.size()).arg(cameraNames.join(", ")));
+
+            CoreApp::getInstanceCoreUiQml()
+                ->getApplicationEngine()
+                ->rootContext()
+                ->setContextProperty("modelCameraList", QVariant::fromValue(cameraNames));
+
+            emit evCameraListChanged(m_lCameraVideo.size());
+        }
     }
 
     for (IpCamera* pIpCam : m_lIpCamera) {
@@ -714,8 +1022,8 @@ void CameraManager::onUpdateCameraList()
     QList<CameraVideo* > camToDelete;
     for(auto i : qAsConst(m_lCameraVideo) ) {
         bool bFound = false;
-        for (const QCameraInfo &cameraInfo : cameras) {
-            if( i->getCameraId() == cameraInfo.deviceName() ) {
+        for (const QCameraDevice &cameraInfo : cameras) {
+            if( i->getCameraId() == cameraInfo.id() ) {
                 bFound = true;
                 break;
             }
@@ -735,27 +1043,222 @@ void CameraManager::onUpdateCameraList()
             camToDelete.append(i);
             bListCameraChanged = true;
         }
-    }    
+    }
     for(auto i : qAsConst(camToDelete)) {
         m_lCameraVideo.removeAll(i);
         delete i;
     }
 
-    if( CAMERA_PREVIEW_UNDEF != m_indexPreviewCamera && m_lCameraVideo.isEmpty() ) {
-        setPreviewCameraIndex(CAMERA_PREVIEW_UNDEF);
+    if( m_lCameraVideo.isEmpty() ) {
+        if( CAMERA_PREVIEW_UNDEF != m_indexPreviewCamera ) {
+            setPreviewCameraIndex(CAMERA_PREVIEW_UNDEF);
+        }
     } else {
-        if( bListCameraChanged && 0 != m_indexPreviewCamera ) {
-            setPreviewCameraIndex(0);
+        if( bListCameraChanged ) {
+            // Aggiorna solo la lista nella ComboBox, NON avviare la camera
+            emit evCameraListChanged(m_lCameraVideo.size());
+        }
+    }
+}
+*/
+void CameraManager::onUpdateCameraList()
+{
+    bool bListCameraChanged = false;
+    const QList<QCameraDevice> cameras = QMediaDevices::videoInputs();
+
+    // Costruisci una nuova lista ordinata: indice 0 = USB, indice 1 = IP
+    QList<CameraVideo*> newList;
+
+    // --- INDICE 0: prima camera USB ---
+    if (!cameras.isEmpty()) {
+        const QCameraDevice& cam = cameras.first();
+        // cerca se esiste già
+        CameraVideo* pExisting = nullptr;
+        for (auto i : qAsConst(m_lCameraVideo)) {
+            if (!i->isIpCamera() && i->getCameraId() == cam.id()) {
+                pExisting = i;
+                break;
+            }
+        }
+        if (!pExisting) {
+            pExisting = new CameraVideo(0, cam.id());
+            bListCameraChanged = true;
+            for (auto db : qAsConst(m_lCameraDatabase)) {
+                if (db->getCameraId() == pExisting->getCameraId() &&
+                    db->getProductUid() == m_pVectorStd->getFuncGeneralParam().m_paramDProdUid) {
+                    m_aCameraRole[db->getCameraRole()]->setCamera(pExisting);
+                }
+            }
+        }
+        pExisting->setCameraIndex(0);
+        newList.append(pExisting);
+    }
+
+    // --- INDICE 1: prima IP online ---
+    bool ipOnline = false;
+    for (IpCamera* pIpCam : m_lIpCamera) {
+        pIpCam->refreshStatus();
+        if (pIpCam->isOnline()) {
+            ipOnline = true;
+            CameraVideo* pExisting = nullptr;
+            for (auto i : qAsConst(m_lCameraVideo)) {
+                if (i->isIpCamera() && i->getCameraId() == pIpCam->getCameraId()) {
+                    pExisting = i;
+                    break;
+                }
+            }
+            if (!pExisting) {
+                IpCamera* pNew = new IpCamera(pIpCam->getCameraId(), pIpCam->ipAddress(), m_pInstance);
+                pExisting = pNew;
+                bListCameraChanged = true;
+            }
+            // L'indice nella lista è la dimensione corrente di newList
+            pExisting->setCameraIndex(newList.size());
+            newList.append(pExisting);
+            break;
         }
     }
 
-    if( bListCameraChanged ) {
+    // --- Elimina le camera rimosse ---
+    for (auto i : qAsConst(m_lCameraVideo)) {
+        if (!newList.contains(i)) {
+            for (int r = 0; r < CameraRole::ROLE_MAX; r++) {
+                if (m_aCameraRole[r]->getCameraVideo() == i)
+                    m_aCameraRole[r]->setCamera(nullptr);
+            }
+            bListCameraChanged = true;
+            delete i;
+        }
+    }
+
+    /////////////////////////////////////////////
+    // Sostituisci la lista
+    m_lCameraVideo = newList;
+
+    // Aggiorna ComboBox SEMPRE
+    QStringList cameraNames;
+    cameraNames.append(tr("Caméra 1 (USB)"));
+    if (ipOnline)
+        cameraNames.append(tr("Caméra 2 (IP)"));
+    CoreApp::getInstanceCoreUiQml()
+        ->getApplicationEngine()
+        ->rootContext()
+        ->setContextProperty("modelCameraList", QVariant::fromValue(cameraNames));
+    emit evCameraListChanged(cameraNames.size());
+
+    // Avvio automatico USB solo se sink pronto e preview non ancora attivo
+    if (m_indexPreviewCamera == CAMERA_PREVIEW_UNDEF && m_pPreviewQVideoSink) {
+        startUsbPreview(m_pPreviewQVideoSink);
+        m_indexPreviewCamera = 0;
+        emit previewCameraIndexChanged(0);
+    }
+
+    // Reset se lista vuota
+    if (m_lCameraVideo.isEmpty()) {
+        if (CAMERA_PREVIEW_UNDEF != m_indexPreviewCamera)
+            setPreviewCameraIndex(CAMERA_PREVIEW_UNDEF);
+    }
+
+    /*
+    // Sostituisci la lista
+    if (m_lCameraVideo != newList) {
+        m_lCameraVideo = newList;
+        bListCameraChanged = true;
+    }
+
+    // --- Aggiorna ComboBox ---
+    if (bListCameraChanged) {
+        QStringList cameraNames;
+        cameraNames.append(tr("Caméra 1 (USB)"));
+        if (ipOnline)
+            cameraNames.append(tr("Caméra 2 (IP)"));
+
+        CoreApp::getInstanceCoreUiQml()
+            ->getApplicationEngine()
+            ->rootContext()
+            ->setContextProperty("modelCameraList", QVariant::fromValue(cameraNames));
+
         emit evCameraListChanged(m_lCameraVideo.size());
     }
+
+    // Avvio automatico — indice 0 sempre, camera reale o meno
+    if (m_indexPreviewCamera == CAMERA_PREVIEW_UNDEF) {
+        setPreviewCameraIndex(0);
+    }
+
+
+    // Se il preview non è ancora attivo e c'è almeno una camera USB, avviala
+    if (m_indexPreviewCamera == CAMERA_PREVIEW_UNDEF && !newList.isEmpty()) {
+        // Cerca la prima camera USB
+        for (auto cam : qAsConst(newList)) {
+            if (!cam->isIpCamera()) {
+                QTimer::singleShot(100, this, [this, cam]() {
+                    setPreviewCameraIndex(cam->getCameraIndex());
+                });
+                break;
+            }
+        }
+    }
+
+    // --- Reset preview se lista vuota ---
+    if (m_lCameraVideo.isEmpty()) {
+        if (CAMERA_PREVIEW_UNDEF != m_indexPreviewCamera)
+            setPreviewCameraIndex(CAMERA_PREVIEW_UNDEF);
+    }
+*/
 }
 
 void CameraManager::onUpdateCameraDatabase()
 {
+    if (!m_pVectorStd) return;
+
+    // Auto-assegnazione dalla lista video
+    for (auto c : qAsConst(m_lCameraVideo)) {
+        for (auto db : qAsConst(m_lCameraDatabase)) {
+            if (db->getCameraId() == c->getCameraId() &&
+                db->getProductUid() == m_pVectorStd->getFuncGeneralParam().m_paramDProdUid) {
+                if (!m_aCameraRole[db->getCameraRole()]->getIsReady()) {
+                    m_aCameraRole[db->getCameraRole()]->setCamera(c);
+                }
+            }
+        }
+    }
+
+    // Aggiorna il database per ogni ruolo pronto
+    for (int r = 0; r < CameraRole::ROLE_MAX; r++) {
+        if (!m_aCameraRole[r]->getIsReady()) continue;
+
+        CameraVideo* pCamVideo = m_aCameraRole[r]->getCameraVideo();
+        if (pCamVideo == nullptr) continue;  // GUARD fondamentale
+
+        CameraDatabase* pCamDb = nullptr;
+        for (auto i : qAsConst(m_lCameraDatabase)) {
+            if (i->getProductUid() == m_pVectorStd->getFuncGeneralParam().m_paramDProdUid &&
+                i->getCameraRole() == r) {
+                pCamDb = i;
+                break;
+            }
+        }
+
+        if (nullptr == pCamDb) {
+            // Nuova voce nel database — usa la camera del ruolo, MAI m_indexPreviewCamera
+            pCamDb = new CameraDatabase(
+                pCamVideo->getCameraId(),
+                m_pVectorStd->getFuncGeneralParam().m_paramDProdUid,
+                r);
+            m_lCameraDatabase.append(pCamDb);
+        } else {
+            // Aggiorna l'ID esistente
+            pCamDb->setCameraId(pCamVideo->getCameraId());
+        }
+    }
+}
+///////////////////////////////////////////////
+/*
+void CameraManager::onUpdateCameraDatabase()
+{
+    if (!m_pVectorStd) return;
+
     // try to auto assign this camera
     for(auto c : qAsConst(m_lCameraVideo) ) {
         for(auto db : qAsConst(m_lCameraDatabase) ) {
@@ -772,6 +1275,7 @@ void CameraManager::onUpdateCameraDatabase()
     for(int r=0; r<CameraRole::ROLE_MAX; r++) {
         // for all role
         if( m_aCameraRole[r]->getIsReady() ) {
+            if (m_aCameraRole[r]->getCameraVideo() == nullptr) continue;
             CameraDatabase* pCamDb = nullptr;
             for(auto i : qAsConst(m_lCameraDatabase)) {
                 if( i->getProductUid() == m_pVectorStd->getFuncGeneralParam().m_paramDProdUid &&
@@ -782,16 +1286,28 @@ void CameraManager::onUpdateCameraDatabase()
             }
             if( nullptr == pCamDb ) {
                 // new camera for product
+                if (m_indexPreviewCamera < 0 ||
+                    m_indexPreviewCamera >= m_lCameraVideo.size()) {
+                    continue; // salta se indice non valido
+                }
                 pCamDb = new CameraDatabase(m_lCameraVideo.at(m_indexPreviewCamera)->getCameraId(), m_pVectorStd->getFuncGeneralParam().m_paramDProdUid, r);
                 m_lCameraDatabase.append(pCamDb);
             } else {
                 // update product camera
-                pCamDb->setCameraId(m_aCameraRole[r]->getCameraVideo()->getCameraId());
+                if (nullptr == pCamDb) {
+                    // Usa il camera video del ruolo corrente, non l'indice preview
+                    if (m_aCameraRole[r]->getCameraVideo() == nullptr) continue;
+                    pCamDb = new CameraDatabase(
+                        m_aCameraRole[r]->getCameraVideo()->getCameraId(),
+                        m_pVectorStd->getFuncGeneralParam().m_paramDProdUid,
+                        r);
+                    m_lCameraDatabase.append(pCamDb);
+                }
             }
         }
     }
 }
-
+*/
 // -- Settings
 bool CameraManager::customLoadSettings(QDomElement * p_pParent)
 {
@@ -831,7 +1347,7 @@ bool CameraManager::customApplySettings()
 
 bool CameraManager::customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pParent)
 {
-    bool bRet = true;        
+    bool bRet = true;
 
     // save list CAmera Database
     QDomElement eList = p_pParent->firstChildElement("CameraDatabaseList");
@@ -868,55 +1384,146 @@ void CameraManager::setMainCameraIsAlarm(bool p_value)
     }
 }
 
-
-
-VlcQmlSource* CameraManager::getPreviewCameraSource()
-{
-    return m_pPreviewSource;
-}
-
-VlcQmlSource* CameraManager::getMainCameraSource()
-{
-    return m_pMainSource;
-}
-
 bool CameraManager::isMainCameraIp()
 {
-    if(getMainCameraIndex() == CameraVideo::CAMERA_INDEX_UNDEF) {
-        return false;
+    int idx = getMainCameraIndex();
+    if (idx == CameraVideo::CAMERA_INDEX_UNDEF) return false;
+    // Cerca nella lista per indice fisico
+    for (auto cam : qAsConst(m_lCameraVideo)) {
+        if (cam->getCameraIndex() == idx) {
+            return cam->isIpCamera();
+        }
     }
-    return m_lCameraVideo[getMainCameraIndex()]->isIpCamera();
+    return false;
 }
 
 bool CameraManager::isPreviewCameraIp()
 {
-    if(CAMERA_PREVIEW_UNDEF == m_indexPreviewCamera || m_indexPreviewCamera >= m_lCameraVideo.length()) {
-        return false;
+    // Indice 0 è sempre USB per definizione
+    if (m_indexPreviewCamera == 0) return false;
+    if (CAMERA_PREVIEW_UNDEF == m_indexPreviewCamera) return false;
+
+    // Indice 1+ cerca nella lista
+    for (auto cam : qAsConst(m_lCameraVideo)) {
+        if (cam->getCameraIndex() == m_indexPreviewCamera) {
+            return cam->isIpCamera();
+        }
     }
-    return m_lCameraVideo[m_indexPreviewCamera]->isIpCamera();
+    return false;
 }
 
+/*
+bool CameraManager::isPreviewCameraIp()
+{
+    if (CAMERA_PREVIEW_UNDEF == m_indexPreviewCamera) return false;
+    for (auto cam : qAsConst(m_lCameraVideo)) {
+        if (cam->getCameraIndex() == m_indexPreviewCamera) {
+            return cam->isIpCamera();
+        }
+    }
+    return false;
+}
+*/
+
+/*
 void CameraManager::openMainIpMedia()
 {
     int i32MainIndex = getMainCameraIndex();
     if(CameraVideo::CAMERA_INDEX_UNDEF == i32MainIndex) {
         return;
     }
-    m_pMainPlayer->stop();
+    CameraVideo* pFound = nullptr;
+    for (auto cam : qAsConst(m_lCameraVideo)) {
+        if (cam->getCameraIndex() == i32MainIndex) {
+            pFound = cam;
+            break;
+        }
+    }
+    if (!pFound || !pFound->isIpCamera()) return;
+    if (m_pMainPlayer) m_pMainPlayer->stop();
     QThread::msleep(200);   //Forces the current thread to sleep for msecs milliseconds. (TD)
-    IpCamera* pIpCam = (IpCamera*) m_lCameraVideo.at(getMainCameraIndex());
+
+    m_pMainSink->initCallbacks();
+
+    //IpCamera* pIpCam = (IpCamera*) m_lCameraVideo.at(getMainCameraIndex());
+    IpCamera* pIpCam = static_cast<IpCamera*>(pFound);
+    pIpCam->openMedia();
+    m_pMainPlayer->open(pIpCam->getMedia());
+}
+*/
+
+void CameraManager::openMainIpMedia()
+{
+    // Cerca la prima camera IP nella lista
+    IpCamera* pIpCam = nullptr;
+    for (auto cam : qAsConst(m_lCameraVideo)) {
+        if (cam->isIpCamera()) {
+            pIpCam = static_cast<IpCamera*>(cam);
+            break;
+        }
+    }
+    if (!pIpCam) return;
+
+    if (m_pMainPlayer) m_pMainPlayer->stop();
+    QThread::msleep(200);
+    m_pMainSink->initCallbacks();
     pIpCam->openMedia();
     m_pMainPlayer->open(pIpCam->getMedia());
 }
 
 void CameraManager::openPreviewIpMedia()
 {
+    // Cerca la prima camera IP nella lista, indipendentemente dall'indice
+    IpCamera* pIpCam = nullptr;
+    for (auto cam : qAsConst(m_lCameraVideo)) {
+        if (cam->isIpCamera()) {
+            pIpCam = static_cast<IpCamera*>(cam);
+            break;
+        }
+    }
+    if (!pIpCam) return;
+
+    if (m_pPreviewPlayer) m_pPreviewPlayer->stop();
+    m_pPreviewSink->initCallbacks();
+    pIpCam->openMedia();
+    m_pPreviewPlayer->open(pIpCam->getMedia());
+}
+
+/*
+void CameraManager::openPreviewIpMedia()
+{
+
     if(CAMERA_PREVIEW_UNDEF == m_indexPreviewCamera || m_indexPreviewCamera >= m_lCameraVideo.length()) {
         return;
     }
-    m_pPreviewPlayer->stop();
-    QThread::msleep(200);   //Forces the current thread to sleep for msecs milliseconds. (TD)
-    IpCamera* pIpCam = (IpCamera*) m_lCameraVideo.at(m_indexPreviewCamera);
+
+    CameraVideo* pFound = nullptr;
+    for (auto cam : qAsConst(m_lCameraVideo)) {
+        if (cam->getCameraIndex() == m_indexPreviewCamera) {
+            pFound = cam;
+            break;
+        }
+    }
+    if (!pFound || !pFound->isIpCamera()) return;
+
+    if (m_pPreviewPlayer) m_pPreviewPlayer->stop();
+
+    m_pPreviewSink->initCallbacks();
+
+    //IpCamera* pIpCam = (IpCamera*) m_lCameraVideo.at(m_indexPreviewCamera);
+    IpCamera* pIpCam = static_cast<IpCamera*>(pFound);
     pIpCam->openMedia();
     m_pPreviewPlayer->open(pIpCam->getMedia());
+}
+*/
+
+void CameraManager::connectMainIpSink(QObject* videoOutput)
+{
+    if (!videoOutput) return;
+    QVideoSink* sink = videoOutput->property("videoSink").value<QVideoSink*>();
+    if (!sink || !m_pMainSink) return;
+    if (sink) {
+        m_pMainSink->setVideoSink(sink);
+        fLogInfo("connectMainIpSink: sink connesso");
+    }
 }

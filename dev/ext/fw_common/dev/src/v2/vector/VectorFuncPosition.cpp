@@ -20,6 +20,7 @@
 
 VectorFuncPosition::VectorFuncPosition(VectorStd *p_pVectorStd) : GenVectorFunc("VectorFuncPosition", p_pVectorStd, ProtMsg::DEVICE_FUNC_POSITION)
 {
+    qRegisterMetaType<VectorFuncPosition*>();
     connect(this, &VectorFuncPosition::paramDOdoPosMmXChanged, this, &VectorFuncPosition::onDOdoPosMmXChanged);
     connect(this, &VectorFuncPosition::paramLBscanPosMmXChanged, this, &VectorFuncPosition::onLBscanPosMmXChanged);
     m_refOdoDone = false;

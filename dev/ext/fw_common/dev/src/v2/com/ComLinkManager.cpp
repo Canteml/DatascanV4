@@ -458,7 +458,7 @@ void ComLinkManager::onRefreshComPortList()
     bool bOk;
     foreach (const QSerialPortInfo &Port, QSerialPortInfo::availablePorts() )
     {
-        quint32 serialNum = Port.portName().midRef(3).toInt(&bOk);
+        quint32 serialNum = Port.portName().mid(3).toInt(&bOk);
         if( bOk ) {
             lAvailablePorts.append("COM"+QString::number(serialNum));
         }
@@ -485,7 +485,7 @@ void ComLinkManager::onRetryDiscoverSerial()
     bool bOk;
     foreach (const QSerialPortInfo &Port, QSerialPortInfo::availablePorts() )
     {
-        quint32 serialNum = Port.portName().midRef(3).toInt(&bOk);
+        quint32 serialNum = Port.portName().mid(3).toInt(&bOk);
         if( bOk ) {
             bool bFound = false;
             for(auto i : qAsConst(m_lDiscoverLinkSerial) ) {

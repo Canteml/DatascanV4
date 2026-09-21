@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -17,6 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef jkqtpgeolines_H_INCLUDED
+#define jkqtpgeolines_H_INCLUDED
+
 
 #include <QString>
 #include <QPainter>
@@ -26,9 +29,6 @@
 #include "jkqtplotter/jkqtptools.h"
 #include "jkqtplotter/jkqtplotter_imexport.h"
 #include "jkqtmathtext/jkqtmathtext.h"
-
-#ifndef jkqtpgeolines_H_INCLUDED
-#define jkqtpgeolines_H_INCLUDED
 
 
 
@@ -120,9 +120,9 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPGeoLine: public JKQTPGeoBaseDecoratedLine {
 
 
 
-        /** \copydoc JKQTPGeometricPlotElement::getXMinMax()        */
+        /** \copydoc JKQTPPlotElement::getXMinMax() */
         virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero) override;
-        /** \copydoc JKQTPGeometricPlotElement::getYMinMax()        */
+        /** \copydoc JKQTPPlotElement::getYMinMax() */
         virtual bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero) override;
 
         /** \brief plots the graph to the plotter object specified as parent
@@ -213,36 +213,43 @@ public:
       */
     JKQTPGeoArrow(JKQTPlotter* parent, double x1, double y1, double x2, double y2, JKQTPLineDecoratorStyle headStyle=JKQTPDefaultLineDecorator, JKQTPLineDecoratorStyle tailStyle=JKQTPNoDecorator);
     /** \brief class constructor
-         *
-         *  \param parent the parent plotter object
-         *  \param p1 first point of line (tail)
-         *  \param p2 second point of line (head)
-         *
-         */
+      *
+      *  \param parent the parent plotter object
+      *  \param p1 first point of line (tail)
+      *  \param p2 second point of line (head)
+      *  \param headStyle decorator/arrow style of the head
+      *  \param tailStyle decorator/arrow style of the tail
+      */
     JKQTPGeoArrow(JKQTBasePlotter* parent, const QPointF& p1, const QPointF& p2, JKQTPLineDecoratorStyle headStyle=JKQTPDefaultLineDecorator, JKQTPLineDecoratorStyle tailStyle=JKQTPNoDecorator);
     /** \brief class constructor
-         *
-         *  \param parent the parent plotter object
-         *  \param p1 first point of line (tail)
-         *  \param p2 second point of line (head)
-         */
+      *
+      *  \param parent the parent plotter object
+      *  \param p1 first point of line (tail)
+      *  \param p2 second point of line (head)
+      *  \param headStyle decorator/arrow style of the head
+      *  \param tailStyle decorator/arrow style of the tail
+      */
     JKQTPGeoArrow(JKQTPlotter* parent, const QPointF& p1, const QPointF& p2, JKQTPLineDecoratorStyle headStyle=JKQTPDefaultLineDecorator, JKQTPLineDecoratorStyle tailStyle=JKQTPNoDecorator);
 
 
 
 
     /** \brief class constructor
-         *
-         *  \param parent the parent plotter object
-         *  \param line the line
-         *
-         */
+      *
+      *  \param parent the parent plotter object
+      *  \param line the line
+      *  \param headStyle decorator/arrow style of the head
+      *  \param tailStyle decorator/arrow style of the tail
+      *
+      */
     JKQTPGeoArrow(JKQTBasePlotter* parent, const QLineF& line, JKQTPLineDecoratorStyle headStyle=JKQTPDefaultLineDecorator, JKQTPLineDecoratorStyle tailStyle=JKQTPNoDecorator);
     /** \brief class constructor
-         *
-         *  \param parent the parent plotter object
-         *  \param line the line
-         */
+      *
+      *  \param parent the parent plotter object
+      *  \param line the line
+      *  \param headStyle decorator/arrow style of the head
+      *  \param tailStyle decorator/arrow style of the tail
+      */
     JKQTPGeoArrow(JKQTPlotter* parent, const QLineF& line, JKQTPLineDecoratorStyle headStyle=JKQTPDefaultLineDecorator, JKQTPLineDecoratorStyle tailStyle=JKQTPNoDecorator);
 };
 
@@ -279,9 +286,6 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPGeoInfiniteLine: public JKQTPGeoBaseDecoratedH
          *  \param y y-coordinate of start point of line
          *  \param dx x-direction of the line
          *  \param dy y-direction of the line
-         *  \param color color of line
-         *  \param lineWidth width of line
-         *  \param style line style
          */
         JKQTPGeoInfiniteLine(JKQTBasePlotter* parent, double x, double y, double dx, double dy);
         /** \brief class constructor
@@ -291,16 +295,13 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPGeoInfiniteLine: public JKQTPGeoBaseDecoratedH
          *  \param y y-coordinate of start point of line
          *  \param dx x-direction of the line
          *  \param dy y-direction of the line
-         *  \param color color of line
-         *  \param lineWidth width of line
-         *  \param style line style
          */
         JKQTPGeoInfiniteLine(JKQTPlotter* parent, double x, double y, double dx, double dy);
 
 
-        /** \copydoc JKQTPGeometricPlotElement::getXMinMax()        */
+        /** \copydoc JKQTPPlotElement::getXMinMax() */
         virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero) override;
-        /** \copydoc JKQTPGeometricPlotElement::getYMinMax()        */
+        /** \copydoc JKQTPPlotElement::getYMinMax() */
         virtual bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero) override;
 
         /** \brief plots the graph to the plotter object specified as parent
@@ -381,41 +382,29 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPGeoPolyLines: public JKQTPGeoBaseDecoratedLine
          *
          *  \param parent the parent plotter object
          *  \param points points on the polygon
-         *  \param color color of line
-         *  \param lineWidth width of line
-         *  \param style line style
          */
         JKQTPGeoPolyLines(JKQTBasePlotter* parent, const QVector<QPointF>& points);
         /** \brief class constructor
          *
          *  \param parent the parent plotter object
          *  \param points points on the polygon
-         *  \param color color of line
-         *  \param lineWidth width of line
-         *  \param style line style
          */
         JKQTPGeoPolyLines(JKQTPlotter* parent, const QVector<QPointF>& points);
         /** \brief class constructor
          *
          *  \param parent the parent plotter object
-         *  \param color color of line
-         *  \param lineWidth width of line
-         *  \param style line style
          */
         JKQTPGeoPolyLines(JKQTBasePlotter* parent);
         /** \brief class constructor
          *
          *  \param parent the parent plotter object
-         *  \param color color of line
-         *  \param lineWidth width of line
-         *  \param style line style
          */
         JKQTPGeoPolyLines(JKQTPlotter* parent);
 
 
-        /** \copydoc JKQTPGeometricPlotElement::getXMinMax()        */
+        /** \copydoc JKQTPPlotElement::getXMinMax() */
         virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero) override;
-        /** \copydoc JKQTPGeometricPlotElement::getYMinMax()        */
+        /** \copydoc JKQTPPlotElement::getYMinMax() */
         virtual bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero) override;
 
         /** \brief plots the graph to the plotter object specified as parent
@@ -463,6 +452,137 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPGeoPolyLines: public JKQTPGeoBaseDecoratedLine
 };
 
 
+
+/** \brief This JKQTPGeometricPlotElement is used to draw a bezier curve
+ *  \ingroup jkqtplotter_geoplots
+ *
+ *  \image html JKQTPGeoBezierCurveGraphic.png "drawn with JKQTPGeometricPlotElement::DrawMode::DrawAsGraphicElement"
+ *
+ *  \see \ref JKQTPlotterGeometricBezier, JKQTPGeoBaseDecoratedLine
+ *
+ *  \section JKQTPGeoBezierCurveDrawMode DrawMode for JKQTPGeoBezierCurve
+ *  This class support JKQTPGeometricPlotElement::DrawMode::DrawAsMathematicalCurve , which will only have a significant effect with logarithmic axes.
+ *  THe image above is the default JKQTPGeometricPlotElement::DrawMode::DrawAsGraphicElement on a linear axis.
+ *
+ *  On logarithmic axes (x&y) the two modes draw very different shapes:
+ *
+ *  \image html JKQTPGeoBezierCurveLogMath.png "drawn with JKQTPGeometricPlotElement::DrawMode::DrawAsMathematicalCurve"
+ *  \image html JKQTPGeoBezierCurveLogGraphic.png "drawn with JKQTPGeometricPlotElement::DrawMode::DrawAsGraphicElement"
+ *
+ *  For DrawAsGraphicElement only the control points are converted to screen-coordinates, but drawing takes place in the (linear) screen-system.
+ *  For DrawAsMathematicalCurve drawing is done in the log-coordinate system.
+ *
+ *  \section JKQTPGeoBezierCurveDecorators Line-End Decorators for JKQTPGeoBezierCurve
+ *
+ *  You can also activate line-end decorators (aka arrows) for this poly-line, by using code like this:
+ *  \code
+ *      bezier->setHeadDecoratorStyle(JKQTPFilledDoubleArrow);
+ *      bezier->setTailDecoratorStyle(JKQTPCircleDecorator);
+ *  \endcode
+ *
+ *  \see \ref JKQTPlotterGeometricBezier
+ *
+ */
+class JKQTPLOTTER_LIB_EXPORT JKQTPGeoBezierCurve: public JKQTPGeoBaseDecoratedLine {
+    Q_OBJECT
+public:
+    /** \brief class constructor with start, end and one control point (i.e. a quadratic bezier curve)
+         *
+         *  \param parent the parent plotter object
+         *  \param start start point
+         *  \param control1 control-point in between start and end
+         *  \param end end point
+         */
+    JKQTPGeoBezierCurve(JKQTBasePlotter* parent, const QPointF& start, const QPointF& control1, const QPointF& end);
+    /** \brief class constructor with start, end and one control point (i.e. a quadratic bezier curve)
+         *
+         *  \param parent the parent plotter object
+         *  \param start start point
+         *  \param control1 control-point in between start and end
+         *  \param end end point
+         */
+    JKQTPGeoBezierCurve(JKQTPlotter* parent, const QPointF& start, const QPointF& control1, const QPointF& end);
+    /** \brief class constructor with start, end and two control points (i.e. a cubic bezier curve)
+         *
+         *  \param parent the parent plotter object
+         *  \param start start point
+         *  \param control1 1st control-point in between start and end
+         *  \param control2 2nd control-point in between start and end
+         *  \param end end point
+         */
+    JKQTPGeoBezierCurve(JKQTBasePlotter* parent, const QPointF& start, const QPointF& control1, const QPointF& control2, const QPointF& end);
+    /** \brief class constructor with start, end and two control points (i.e. a cubic bezier curve)
+         *
+         *  \param parent the parent plotter object
+         *  \param start start point
+         *  \param control1 1st control-point in between start and end
+         *  \param control2 2nd control-point in between start and end
+         *  \param end end point
+         */
+    JKQTPGeoBezierCurve(JKQTPlotter* parent, const QPointF& start, const QPointF& control1, const QPointF& control2, const QPointF& end);
+    /** \brief class constructor
+         *
+         *  \param parent the parent plotter object
+         */
+    JKQTPGeoBezierCurve(JKQTBasePlotter* parent);
+    /** \brief class constructor
+         *
+         *  \param parent the parent plotter object
+         */
+    JKQTPGeoBezierCurve(JKQTPlotter* parent);
+
+
+
+    /** \copydoc JKQTPPlotElement::getXMinMax() */
+    virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero) override;
+    /** \copydoc JKQTPPlotElement::getYMinMax() */
+    virtual bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero) override;
+
+    /** \brief plots the graph to the plotter object specified as parent
+         *
+         * \note This function support JKQTPGeometricPlotElement::DrawMode::DrawAsMathematicalCurve. If set,
+         *       and non-linear axes are chosen, the points of the poly-line will be possibly
+         *       connected by curves, instead of straight lines. In the mode
+         *       JKQTPGeometricPlotElement::DrawMode::DrawAsGraphicElement the points are connected by straight
+         *       lines, independent of the linearity or non-linearity of the coordinate axes.
+         */
+    virtual void draw(JKQTPEnhancedPainter& painter) override;
+
+    /** \copydoc points */
+    void setPoints(const QVector<QPointF> & __value);
+    /** \copydoc points */
+    QVector<QPointF> getPoints() const;
+
+    /** \brief get the start point of the curve */
+    QPointF getStart()const;
+    /** \brief get the end point of the curve */
+    QPointF getEnd()const;
+    /** \brief get the control point 1 of the curve */
+    QPointF getControl1()const;
+    /** \brief get the control point 2 of the curve */
+    QPointF getControl2()const;
+    /** \brief set a linear bezier curve (2 control points) */
+    void setLine(const QPointF& start, const QPointF& end);
+    /** \brief set a quadratic bezier curve (3 control points) */
+    void setQuad(const QPointF& start, const QPointF& control1, const QPointF& end);
+    /** \brief set a cubic bezier curve (4 control points) */
+    void setCubic(const QPointF& start, const QPointF& control1, const QPointF& control2, const QPointF& end);
+    /** \brief set a cubic bezier curve (5 control points) */
+    void setQuartic(const QPointF& start, const QPointF& control1, const QPointF& control2, const QPointF& control3, const QPointF& end);
+    /** \brief get the degree of the curve (number of points -1) */
+    int getDegree() const;
+    /** \brief get the number of control points (including start and end) */
+    int getNumberOfCOntrolPoints() const;
+
+protected:
+    /** \brief list with all control points of the bezier curve
+     *
+     *  \note This class supports at most 4 points are alllowed
+     */
+    QVector<QPointF> points;
+};
+
+
 /** \brief This JKQTPGeometricPlotElement is used to draw an arc
  *  \ingroup jkqtplotter_geoplots
  *
@@ -489,9 +609,6 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPGeoArc: public JKQTPGeoBaseLine {
          *  \param height of ellipse (2 * half axis)
          *  \param angleStart if we only draw an arc, this is the starting angle in degrees
          *  \param angleStop if we only draw an arc, this is the ending angle in degrees
-         *  \param color color of line
-         *  \param lineWidth width of line
-         *  \param style line style
 
          */
         JKQTPGeoArc(JKQTBasePlotter* parent, double x, double y, double width, double height, double angleStart, double angleStop);
@@ -504,16 +621,13 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPGeoArc: public JKQTPGeoBaseLine {
          *  \param height of ellipse (2 * half axis)
          *  \param angleStart if we only draw an arc, this is the starting angle in degrees
          *  \param angleStop if we only draw an arc, this is the ending angle in degrees
-         *  \param color color of line
-         *  \param lineWidth width of line
-         *  \param style line style
 
          */
         JKQTPGeoArc(JKQTPlotter* parent, double x, double y, double width, double height, double angleStart, double angleStop);
 
-        /** \copydoc JKQTPGeometricPlotElement::getXMinMax()        */
+        /** \copydoc JKQTPPlotElement::getXMinMax() */
         virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero) override;
-        /** \copydoc JKQTPGeometricPlotElement::getYMinMax()        */
+        /** \copydoc JKQTPPlotElement::getYMinMax() */
         virtual bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero) override;
 
 

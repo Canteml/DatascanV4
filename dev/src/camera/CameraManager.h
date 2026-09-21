@@ -17,6 +17,8 @@
 #include <xml/XmlSettingsLoggable.h>
 #include <v2/camera/Camera.h>
 #include <v2/camera/IpCamera.h>
+#include <QMediaCaptureSession>
+#include <VLCQtCore/Enums.h>
 class VectorStd;
 class GlobalManager;
 class ExamManager;
@@ -29,14 +31,14 @@ class QCamera;
 
 class VlcInstance;
 class VlcMediaPlayer;
-class VlcQmlSource;
+class VlcVideoSink;
 
 /**
  * @brief The CameraManager class
  */
 
 #define IP_CAMERA_MIN 54
-#define IP_CAMERA_MAX 54
+#define IP_CAMERA_MAX 59
 
 class CameraManager : public QObject, public XmlSettingsLoggable
 {
@@ -47,9 +49,9 @@ class CameraManager : public QObject, public XmlSettingsLoggable
     Q_PROPERTY(bool mainCameraIsAlarm READ getMainCameraIsAlarm NOTIFY mainCameraIsAlarmChanged)
     Q_PROPERTY(bool isPreviewCameraIp READ isPreviewCameraIp NOTIFY isPreviewCameraIpChanged)
     Q_PROPERTY(bool isMainCameraIp READ isMainCameraIp NOTIFY isMainCameraIpChanged)
-    //Q_PROPERTY(VlcQmlSource* previewCameraSource READ getPreviewCameraSource WRITE setPreviewCameraSource NOTIFY previewCameraSourceChanged)
+    //Q_PROPERTY(VlcQmlSource* previewCameraSource READ getPreviewCameraSource WRITE VCameraSource NOTIFY previewCameraSourceChanged)
 
-
+    Q_INVOKABLE void setPreviewVlcSink(QObject* sink);
 public:
     static CameraManager * makeInstance();
     static CameraManager * getInstance();
@@ -89,12 +91,19 @@ public:
     Q_INVOKABLE QString captureMainCamera(const QString& p_prefix = "");
     Q_INVOKABLE void signalMainCameraCaptureSaved(QString p_fileName);
 
-    Q_INVOKABLE VlcQmlSource* getPreviewCameraSource();
-    Q_INVOKABLE VlcQmlSource* getMainCameraSource();
+    Q_INVOKABLE void setPreviewVideoSink(QObject* videoOutput);
+
     Q_INVOKABLE bool isMainCameraIp();
     Q_INVOKABLE bool isPreviewCameraIp();
     Q_INVOKABLE void openMainIpMedia();
     Q_INVOKABLE void openPreviewIpMedia();
+
+    Q_INVOKABLE void connectPreviewSink(QObject* videoOutput);
+    Q_INVOKABLE void connectMainSink(QObject* videoOutput);
+
+    Q_INVOKABLE QObject* getPreviewCameraSource() const;
+
+    Q_INVOKABLE void connectMainIpSink(QObject* videoOutput);
 
 signals :
     // -- Properties
@@ -141,14 +150,15 @@ private:
 
     // -- Behaviour
 
+
     QList<CameraVideo* > m_lCameraVideo;             ///< list of available cameras, updated by timer
     QList<IpCamera*> m_lIpCamera;                    ///< list of available ip cameras, updated by timer
 
     VlcInstance* m_pInstance;
     VlcMediaPlayer* m_pMainPlayer;
     VlcMediaPlayer* m_pPreviewPlayer;
-    VlcQmlSource* m_pMainSource;
-    VlcQmlSource* m_pPreviewSource;
+    VlcVideoSink* m_pMainSink;
+    VlcVideoSink* m_pPreviewSink;
 
     CameraRole* m_aCameraRole[CameraRole::ROLE_MAX]; ///< list of camera by role
     QStringList m_slCameraRole;
@@ -167,9 +177,20 @@ private:
     GlobalManager* m_pGlobalManager;
     ExamManager* m_pExamManager;
 
+    QObject* m_pQmlTopLevel = nullptr;
+
     // -- QML components
     QCamera* m_pCameraPreview;
     QCamera* m_pCameraAlarm;
     QCamera* m_pCameraMain;
+    QMediaCaptureSession* m_pSessionAlarm   = nullptr;
+    QMediaCaptureSession* m_pSessionMain    = nullptr;
+    QMediaCaptureSession* m_pSessionPreview = nullptr;
 
+    QVideoSink* m_pPreviewQVideoSink = nullptr;
+
+    VlcVideoSink* m_pMainVlcSink = nullptr;
+    VlcVideoSink* m_pPreviewVlcSink = nullptr;
+
+    void startUsbPreview(QVideoSink* sink = nullptr);
 };

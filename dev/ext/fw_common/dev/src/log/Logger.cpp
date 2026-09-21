@@ -16,6 +16,7 @@
 #include <QDebug>
 #include <QDateTime>
 #include <QFileInfo>
+#include <QRecursiveMutex>
 
 #include <iostream>
 
@@ -109,8 +110,8 @@ Logger * Logger::m_pMyInstance = nullptr;
 
 QStringList Logger::m_lFatalErrors;
 QList<logMessage*> Logger::m_lLogs;
-QMutex Logger::m_mLogs(QMutex::Recursive);
-QMutex Logger::m_mLogFile(QMutex::Recursive);
+QRecursiveMutex Logger::m_mLogs;
+QRecursiveMutex Logger::m_mLogFile;
 volatile bool Logger::m_isProcessingLog = false;
 quint32 Logger::m_verbosity = logMessage::LOG_LEVEL_MAX;
 bool Logger::m_isFinished = false;

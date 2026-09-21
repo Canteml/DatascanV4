@@ -199,6 +199,6 @@ protected :
     QTimer * m_timEmitStatChanged;  ///< avoid emit too much signals
     qint64 m_epocLastEmitStatChanged;
 
-    QMutex * m_mStats;  ///< protect m_lStats
+    QRecursiveMutex* m_mStats;  ///< protect m_lStats
     QDateTime m_lastReset;
 };

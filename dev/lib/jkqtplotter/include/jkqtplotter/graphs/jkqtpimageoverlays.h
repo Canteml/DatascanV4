@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger & Sebastian Isbaner (contour plot)
+    Copyright (c) 2008-2024 Jan W. Krieger (jan@jkrieger.de)
 
     
 
@@ -60,7 +60,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPOverlayImage: public JKQTPImageBase {
         virtual QImage drawImage();
 
         /** \brief plots a key marker inside the specified rectangle \a rect */
-        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
         /** \brief returns the color to be used for the key label */
         virtual QColor getKeyLabelColor() const override;
 
@@ -118,7 +118,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPOverlayImage: public JKQTPImageBase {
         virtual void setTitle(const QString& title) override;
         /** \copydoc JKQTPImageBase::setParent() */
         virtual void setParent(JKQTBasePlotter* parent) override;
-    public slots:
+    public Q_SLOTS:
         /** \brief save the plotted image as a file with \a filename and format \a outputFormat */
         void saveImagePlotAsImage(const QString &filename=QString(""), const QByteArray &outputFormat=QByteArray());
         /** \brief copy the plotted image as an image into the clipboard */
@@ -155,7 +155,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPOverlayImageEnhanced: public JKQTPOverlayImage
         /** \brief plots the graph to the plotter object specified as parent */
         virtual void draw(JKQTPEnhancedPainter& painter) override;
         /** \brief plots a key marker inside the specified rectangle \a rect */
-        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
 
         /** \copydoc symbol */ 
         void setSymbolType(JKQTPGraphSymbols __value);
@@ -173,6 +173,10 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPOverlayImageEnhanced: public JKQTPOverlayImage
         void setSymbolSizeFactor(double __value);
         /** \copydoc symbolSizeFactor */ 
         double getSymbolSizeFactor() const;
+        /** \brief set the font to be used for character symbols \c JKQTPCharacterSymbol+QChar('').unicode() */
+        void setSymbolFontName(const QString& __value);
+        /** \brief get the font to be used for character symbols \c JKQTPCharacterSymbol+QChar('').unicode() */
+        QString getSymbolFontName() const;
 
     protected:
         /** \brief which symbol to use for the datapoints */
@@ -185,6 +189,8 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPOverlayImageEnhanced: public JKQTPOverlayImage
 
         /** \brief a rescaling factor  for the symbols */
         double symbolSizeFactor;
+        /** \brief font to be used for character symbols \c JKQTPCharacterSymbol+QChar('').unicode() */
+        QString m_symbolFontName;
 
 
 };

@@ -20,6 +20,7 @@ VectorManager * VectorManager::m_pMyInstance = nullptr;
 
 VectorManager::VectorManager(QObject *parent) : QObject(parent), XmlSettingsLoggable("VectorManager")
 {
+    qRegisterMetaType<VectorStd*>();
     m_pVectorStd = nullptr;
 
     makeVectorStd();

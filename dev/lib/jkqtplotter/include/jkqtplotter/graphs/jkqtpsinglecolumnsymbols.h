@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -18,6 +18,9 @@
 */
 
 
+#ifndef jkqtpgraphssinglecolumnsymbols_H_INCLUDED
+#define jkqtpgraphssinglecolumnsymbols_H_INCLUDED
+
 
 #include <QString>
 #include <QPainter>
@@ -25,14 +28,11 @@
 #include "jkqtplotter/jkqtpgraphsbase.h"
 #include "jkqtplotter/jkqtpgraphsbasestylingmixins.h"
 
-#ifndef jkqtpgraphssinglecolumnsymbols_H_INCLUDED
-#define jkqtpgraphssinglecolumnsymbols_H_INCLUDED
-
 
 
 /*! \brief plots a 1-column set of data-values with symbols onto a JKQtPlotter/JKQtBasePlotter. the data from the single column
            is either interpreted as x- or y-values and the missing coordinate is taken from a fixed value position.
-    \ingroup jkqtplotter_linesymbolgraphs_simple
+    \ingroup jkqtplotter_linesymbolgraphs_scatter
 
     The first coordinate of the data is taken from dataColumn i.e.
       - the x-values if dataDirection==DataDirection::X
@@ -65,22 +65,16 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPSingleColumnSymbolsGraph: public JKQTPSingleCo
         JKQTPSingleColumnSymbolsGraph(JKQTBasePlotter* parent=nullptr);
         JKQTPSingleColumnSymbolsGraph(JKQTPlotter* parent);
 
-        /** \brief get the maximum and minimum x-value of the graph
-         *
-         * The result is given in the two parameters which are call-by-reference parameters!
-         */
+        /** \copydoc JKQTPPlotElement::getXMinMax() */
         virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero) override;
-        /** \brief get the maximum and minimum y-value of the graph
-         *
-         * The result is given in the two parameters which are call-by-reference parameters!
-         */
+        /** \copydoc JKQTPPlotElement::getYMinMax() */
         virtual bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero) override;
 
 
         /** \brief plots the graph to the plotter object specified as parent */
         virtual void draw(JKQTPEnhancedPainter& painter) override;
         /** \brief plots a key marker inside the specified rectangle \a rect */
-        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
         /** \brief returns the color to be used for the key label */
         virtual QColor getKeyLabelColor() const override;
         /** \brief set symbol color and fill color at the same time */

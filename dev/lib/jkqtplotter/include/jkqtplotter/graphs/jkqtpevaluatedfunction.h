@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -17,6 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef jkqtpgraphsevaluatedfunction_H
+#define jkqtpgraphsevaluatedfunction_H
+
 
 
 #include <QString>
@@ -28,9 +31,6 @@
 #include "jkqtcommon/jkqtpgeometrytools.h"
 #include "jkqtplotter/graphs/jkqtpevaluatedfunctionbase.h"
 #include <functional>
-
-#ifndef jkqtpgraphsevaluatedfunction_H
-#define jkqtpgraphsevaluatedfunction_H
 
 
 /** \brief This class extends JKQTPEvaluatedFunctionWithErrorsGraphBase with functions to draw the graphs and
@@ -58,7 +58,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPEvaluatedFunctionWithErrorsGraphDrawingBase: p
         virtual ~JKQTPEvaluatedFunctionWithErrorsGraphDrawingBase() override;
 
         /** \brief plots a key marker inside the specified rectangle \a rect */
-        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
         /** \brief returns the color to be used for the key label */
         virtual QColor getKeyLabelColor() const override;
 
@@ -83,7 +83,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPEvaluatedFunctionWithErrorsGraphDrawingBase: p
 
 
 
-    public slots:
+    public Q_SLOTS:
         /** \brief set color, fill color and error color at the same time  */
         void setColor(QColor c);
 
@@ -281,6 +281,9 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPFunctorLineGraphBase: public JKQTPEvaluatedFun
 
     \image html plot_functionplots.png
 
+    \note Auto-scaling of the plot is deactivated (by overwriting getXMinMax() and getYMinMax() to return \c false ), as it depends on the axes (hen-egg-problem!)
+          Set the plot-ranges by hand!!!
+
     \see \ref JKQTPlotterFunctionPlots, JKQTPAdaptiveFunctionGraphEvaluator, JKQTPYFunctionLineGraph, JKQTPXYFunctionLineGraph, jkqtpstatAddPolyFit(), jkqtpstatAddWeightedRegression(), jkqtpstatAddRobustIRLSRegression(), jkqtpstatAddRegression(), jkqtpstatAddLinearWeightedRegression(), jkqtpstatAddRobustIRLSLinearRegression(), jkqtpstatAddLinearRegression()
  */
 class JKQTPLOTTER_LIB_EXPORT JKQTPXFunctionLineGraph: public JKQTPFunctorLineGraphBase {
@@ -320,6 +323,12 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPXFunctionLineGraph: public JKQTPFunctorLineGra
         /** \copydoc JKQTPEvaluatedFunctionWithErrorsGraphBase::buildPlotFunctorSpec() */
         virtual std::function<QPointF(double)> buildErrorFunctorSpec() override;
 
+        /** \copydoc JKQTPPlotElement::getXMinMax() */
+        virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero) override;
+        /** \copydoc JKQTPPlotElement::getYMinMax() */
+        virtual bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero) override;
+
+
 };
 
 /*! \brief This implements line plots where the data is taken from a user supplied function \f$ x=f(y) \f$
@@ -328,6 +337,9 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPXFunctionLineGraph: public JKQTPFunctorLineGra
     The following image shows some example graphs:
 
     \image html functionplot_fy.png
+
+    \note Auto-scaling of the plot is deactivated (by overwriting getXMinMax() and getYMinMax() to return \c false ), as it depends on the axes (hen-egg-problem!)
+          Set the plot-ranges by hand!!!
 
     \see \ref JKQTPlotterFunctionPlots , JKQTPXFunctionLineGraph, JKQTPXYFunctionLineGraph
  */
@@ -360,6 +372,13 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPYFunctionLineGraph: public JKQTPFunctorLineGra
 
         /** \copydoc JKQTPEvaluatedFunctionWithErrorsGraphBase::buildPlotFunctorSpec() */
         virtual std::function<QPointF(double)> buildErrorFunctorSpec() override;
+
+
+        /** \copydoc JKQTPPlotElement::getXMinMax() */
+        virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero) override;
+        /** \copydoc JKQTPPlotElement::getYMinMax() */
+        virtual bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero) override;
+
 
 };
 

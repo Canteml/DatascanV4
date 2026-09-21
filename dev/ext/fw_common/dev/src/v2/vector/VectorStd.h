@@ -16,22 +16,23 @@
 #include <v2/com/IntComMsg.h>
 #include <v2/vector/VectorFunc.h>
 #include <xml/XmlProject.h>
+#include "VectorFuncAScan.h"
+#include "VectorFuncPosition.h"
+#include "VectorFuncMove.h"
+#include "VectorFuncPump.h"
+#include "VectorFuncLight.h"
+#include "VectorFuncInertialSensor.h"
+#include "VectorFuncPressureSensor.h"
+#include "VectorFuncTemperatureSensor.h"
+#include "VectorFuncHumiditySensor.h"
+#include "VectorFuncBattery.h"
+#include "VectorFuncCleaning.h"
+#include "VectorFuncEndStop.h"
+#include "VectorFuncLicence.h"
+#include "VectorFuncCompass.h"
+#include <QMetaType>
 
 class GenVectorFunc;
-class VectorFuncAScan;
-class VectorFuncPosition;
-class VectorFuncMove;
-class VectorFuncPump;
-class VectorFuncLight;
-class VectorFuncInertialSensor;
-class VectorFuncPressureSensor;
-class VectorFuncTemperatureSensor;
-class VectorFuncHumiditySensor;
-class VectorFuncBattery;
-class VectorFuncCleaning;
-class VectorFuncEndStop;
-class VectorFuncLicence;
-class VectorFuncCompass;
 
 // -- Qt include
 #include <QMap>

@@ -75,7 +75,11 @@ void ProductLimiter::loadLimitations()
     if(!equipmentFile.exists()) {
         initDefaultEquipmentFile();
     }
-    equipmentFile.open(QIODevice::ReadOnly | QIODevice::Text);
+    if (!equipmentFile.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        qWarning() << "Failed to open equipment file for reading";
+        return;
+    }
+    //equipmentFile.open(QIODevice::ReadOnly | QIODevice::Text);
     QByteArray content = equipmentFile.readAll();
     equipmentFile.close();
     int prodId = 1;
@@ -103,7 +107,11 @@ void ProductLimiter::loadLimitations()
 void ProductLimiter::initDefaultEquipmentFile()
 {
     QFile equipmentFile(getEquipmentFilePath());
-    equipmentFile.open(QIODevice::WriteOnly | QIODevice::Text);
+    if (!equipmentFile.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        qWarning() << "Failed to open equipment file for writing";
+        return;
+    }
+    //equipmentFile.open(QIODevice::WriteOnly | QIODevice::Text);
     equipmentFile.write(DEFAULT_CONTENT);
     equipmentFile.close();
 }

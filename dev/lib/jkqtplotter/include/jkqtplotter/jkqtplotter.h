@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -17,6 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef JKQTPLOTTER_H
+#define JKQTPLOTTER_H
+
 
 #include <QWidget>
 #include <QVector>
@@ -33,21 +36,20 @@
 #include <QToolBar>
 #include <QPointer>
 #include <QTimer>
-
+#include <QHash>
 #include <vector>
 #include <cmath>
 #include <iostream>
+#include <atomic>
 
 #include "jkqtplotter/jkqtpbaseplotter.h"
 #include "jkqtplotter/jkqtplotterstyle.h"
 #include "jkqtplotter/jkqtpbaseplotterstyle.h"
 #include "jkqtplotter/jkqtptools.h"
+#include "jkqtplotter/jkqtpgraphsbase.h"
 #include "jkqtplotter/jkqtplotter_imexport.h"
 #include "jkqtplotter/gui/jkvanishqtoolbar.h"
 #include <QKeyEvent>
-
-#ifndef JKQTPLOTTER_H
-#define JKQTPLOTTER_H
 
 /** \brief initialized Qt-ressources necessary for JKQTPlotter
  *  \ingroup jkqtpplottersupprt
@@ -70,76 +72,26 @@ JKQTPLOTTER_LIB_EXPORT void initJKQTPlotterResources();
  * \tableofcontents
  *
  *
+ *
+ *
  * \section  JKQTPLOTTER_BASICUSAGE Basic Usage of JKQTPlotter
  *
- * JKQTPlotter is a plotter widget which wraps around a JKQTBasePlotter instanced that does the actual drawing.
- * A basic usage of JKQTPlotter looks like this:
+ * \copydetails jkqtplotter_general_usage_jkqtplotter
  *
- * \code{.cpp}
- *     // create a new JKQTPlotter instance
- *     JKQTPlotter* plot = new JKQTPlotter(parentWidget);
  *
- *     // fill two vectors with dtaa for a graph:
- *     QVector<double> X, Y;
- *     fillDataVectors(X, Y);
  *
- *     // make data available to the internal datastore of the plotter:
- *     size_t columnX=plot->getDatastore()->addCopiedColumn(X, "x");
- *     size_t columnY=plot->getDatastore()->addCopiedColumn(Y, "y");
  *
- *     // create a graph/curve, which displays the data
- *     JKQTPXYLineGraph* graph1=new JKQTPXYLineGraph(plot);
- *     graph1->setXColumn(columnX);
- *     graph1->setYColumn(columnY);
- *     graph1->setTitle(QObject::tr("graph title"));
- *     plot->addGraph(graph1);
+ * \section JKQTPLOTTER_PERFORMACEWHILESETUP Performance Considerations when Setting up Plots
  *
- *     // autoscale the plot
- *     plot->zoomToFit();
- *     // alternatively set the axis dimension by hand:
- *     plot->setXY(-10,10,-10,10);
- * \endcode
+ * \copydetails jkqtplotter_general_usage_speedplotsetup
  *
- * The result should look something like this:
  *
- * \image html jkqtplotter_simpletest1.png
- *
- * Starting from this basic example, you can observe several important principles:
- *   # Data is stored in an (internal) instance of JKQTPDatastore, which is accessible through
- *     JKQTPlotter::getDatastore().
- *     This datastore can either own its data (which is done here, as we copy the data into the store
- *     by calling JKQTPDatastore::addCopiedColumn(), or it can merely reference to the data (then
- *     data needs to be available as array of \c double values).
- *   # Naming conventions:
- *       - \b plot is the complete drawn image, including the axes, the graphs, the key and all other visual elements
- *       - <b>plot element</b> any sub element of the plot, e.g. a single coordinate axis, the key, but also any graph/curve
- *       - \b graph is a single curve/image/geometric element in the plot
- *       - <b>geometric element</b> is a special graph that does not represent a curve based on data from the JKQTPDatastore,
- *         but a single graphic element, like a rectangle/circle/line/..., some text, a single symbol
- *       - \b key is the legend of the plot
- *       - <b>coordinate axis</b> is each of the x- or y-axis (there might be addition axes, e.g. when showing a color-scale)
- *     .
- *   # Each graph is represented by a class derived from JKQTPPlotElement (in the example we instanciated a JKQTPXYLineGraph,
- *     which shows data as a scatter of symbols that may (or may not) be connected by a line).
- *     Creating the graph class does not yet add it to the plotter. To add it, call JKQTPlotter::addGraph(). Only
- *     after this sep, the graph is displayed. You can modify the apperance of the graph (e.g. colors,
- *     name in the key ...) by setting properties in the graph class instance.
- *   # You can auto-zoom the axis ranges of the plot by calling JKQTPlotter::zoomToFit(), or set them
- *     exlicitly by calling JKQTPlotter::setXY(). The user can later zoom in/out by the mouse (and other means).
- *     You can limit this zoom range by setting an absolute axis range, calling e.g. JKQTPlotter::setAbsoluteXY().
- *     The the user cannot zoom farther out than the given range(s).
- *   # If you want to style the plot itself, you need to set properties of the underlying JKQTBasePloter instance, which
- *     is accessible through JKQTPlotter::getPlotter(). If you want to style the coordinate axes, you can acces their
- *     representing objects by caling JKQTPlotter::getXAxis() or JKQTPlotter::getYAxis().
- * .
- *
- * \see \ref JKQTPlotterSimpleTest and \see JKQTPlotterQtCreator
  *
  * \section  JKQTPLOTTER_SYNCMULTIPLOT Synchronizing Several Plots
  *
  * Often a single plot is not sufficient, but several plots need to be aligned with respect to each other:
  *
- * \image html test_multiplot.png
+ * \image html multiplot.png
  *
  * In the Qt Window this is achieved by placing several JKQTPlotter objects into a <a href="http://doc.qt.io/qt-5/qgridlayout.html">QGridLayout</a>.
  * In order to support this alignment, also when exporting/printing a plot, and when the user interactions with the plot (e.g. zooming),
@@ -369,7 +321,7 @@ JKQTPLOTTER_LIB_EXPORT void initJKQTPlotterResources();
  * \image html contextmenu_graphvisibility.gif
  *
  * \subsubsection JKQTPLOTTER_USERMOUSEINTERACTION_MOUSEWHEEL Actions When a Mouse Wheel Event Occurs
- * The actions to be performed when the mouse hweel is operated are specified in JKQTPMouseWheelActions.
+ * The actions to be performed when the mouse wheel is operated are specified in JKQTPMouseWheelActions.
  * You can bind one of these actions to the mouse-wheel (under the condition that a specified Qt::KeyboardModifiers
  * is pressed) by using these functions:
  *   - registerMouseWheelAction() tells JKQTPlotter to perform a certain action (selected from JKQTPMouseWheelActions)
@@ -385,7 +337,7 @@ JKQTPLOTTER_LIB_EXPORT void initJKQTPlotterResources();
  * In addition the signal void plotMouseWheelOperated() is emitted whenever a mouse-wheel event occurs.
  *
  *
- * \subsubsection JKQTPLOTTER_USERMOUSEINTERACTION_MOUSEMOVE Signaling When Mouse Moves
+ * \subsubsection JKQTPLOTTER_USERMOUSEINTERACTION_MOUSEMOVE Mouse Move Signaling and Actions
  * In addition the signal plotMouseMove() is called whenever the mouse moves over the plot.
  * Additional signals may be emitted, depending on the currently active JKQTPlotter::MouseActionMode.
  *
@@ -394,6 +346,14 @@ JKQTPLOTTER_LIB_EXPORT void initJKQTPlotterResources();
  *
  * \image html mousepositiondisplay.gif
  *
+ * The actions to be performed when the mouse moves without a mouse-button pressed are specified in JKQTPMouseMoveActions.
+ * You can bind one of these actions to the mouse (under the condition that a specified Qt::KeyboardModifiers
+ * is pressed) by using these functions:
+ *   - registerMouseMoveAction() tells JKQTPlotter to perform a certain action (selected from JKQTPMouseMoveActions)
+ *     when a specified mouse button is pushed while a specified (or no) keyborad modifiers (e.g. CTRL,ALT,SHIFT...) is pressed.
+ *   - deregisterMouseMoveAction() deletes a previously defined user-interaction
+ *   - clearAllMouseMoveActions() deletes all previously specified user-actions
+ * .
  *
  * \subsubsection JKQTPLOTTER_USERMOUSEINTERACTION_FASTRESIZING Fast Resizing of a Plot Widget
  * When the user resized the widget, the graph would in principle have to be readrawn for every intermediate step.
@@ -409,29 +369,20 @@ JKQTPLOTTER_LIB_EXPORT void initJKQTPlotterResources();
  *
  * \section JKQTPLOTTER_USEQTCREATOR  How to use JKQTPlotter in the Qt Form Designer
  *
- * As JKQTPlotter is a standard Qt widget, you can also use it in Qt UI-files designed with the Qt From Designer (e.g. from within QTCreator).
- * For this to work you have to use the <a href="http://doc.qt.io/archives/qt-4.8/designer-using-custom-widgets.html">Promote QWidget"-feature</a> of the form designer. The steps you need to take are detailed below:
- * <ol>
- *   <li> add a new UI-file to your project and open it in the Form Editor. Then right-click the form and select `Promote Widgets ...`:
- *
- *        \image html uidesigner_step1.png
- *   </li>
- *   <li> In the dialog that opens, you have to define `JKQTPlotter` as a promotion to `QWidget` as shown below. Finally store the settings by clicking `Add` and closing the dialog with `Close`.
- *
- *        \image html uidesigner_step2.png
- *   </li>
- *   <li> Now you can add a `QWidget`from the side-bar to the form and then promote it to `JKQTPlotter`, by selecting and right-clicking the `QWidget` and then selecting `Promote To | JKQTPlotter`:
- *
- *        \image html uidesigner_step3.png
- *   </li>
- * </ol>
- *
- * \see \ref JKQTPlotterQtCreator <br> Also see \ref JKQTPlotterStyling for another example of using the Qt UI Designer with JKQTPlotter
- *
+ * \copydetails jkqtplotter_general_usage_qtcreator
  */
 class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
         Q_OBJECT
     public:
+        /** \brief sets the global resize delay in milliseconds \a delayMS. After calling this function all plots will use the new delay. Setting the the delay to 0 disables the delayed resize feature. This function is thread-safe!
+          *
+          * \see jkqtp_RESIZE_DELAY, setGlobalResizeDelay(), getGlobalResizeDelay(), resizeTimer */
+        static void setGlobalResizeDelay(int delayMS);
+        /** \brief returns the currently set global resize delay in milliseconds \a delayMS. This function is thread-safe!
+          *
+          * \see jkqtp_RESIZE_DELAY, setGlobalResizeDelay(), getGlobalResizeDelay(), resizeTimer */
+        static int getGlobalResizeDelay();
+
         /** \brief class constructor
          *
          * If \a datastore_internal \c ==false, you can supply an external JKQTPDatastore with the parameter \a datast
@@ -457,12 +408,27 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
         void setToolbarIconSize(int value);
 
         /** \brief get the width/height of the icons in the toolbar in pt */
-        int getToolbarIconSize();
+        int getToolbarIconSize() const;
 
-        /** \brief returns the class internally used for plotting */
-        JKQTBasePlotter* getPlotter() const { return plotter; }
-        /** \brief returns the class internally used for plotting */
+        /** \brief returns the JKQTBasePlotter object internally used for plotting */
+        JKQTBasePlotter* getPlotter()  { return plotter; }
+        /** \brief returns the JKQTBasePlotter object internally used for plotting */
+        const JKQTBasePlotter* getPlotter() const  { return plotter; }
+        /** \brief returns the JKQTBasePlotter object internally used for plotting */
         const JKQTBasePlotter* getConstplotter() const { return const_cast<const JKQTBasePlotter*>(plotter); }
+
+
+        /** \copydoc JKQTBasePlotter::getMainKey()  */
+        inline JKQTPBaseKey* getMainKey()
+        {
+            return plotter->getMainKey();
+        }
+
+        /** \copydoc JKQTBasePlotter::getMainKey()  */
+        inline const JKQTPBaseKey* getMainKey() const
+        {
+            return plotter->getMainKey();
+        }
 
         /** \brief returns whether the toolbar is enabled
          *
@@ -539,11 +505,15 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
         void saveSettings(QSettings& settings, const QString& group=QString("plots/")) const;
 
         /** \brief returns the minimum size of the widget */
-        QSize minimumSizeHint() const;
+        QSize minimumSizeHint() const override;
 
         /** \brief returns the size of the widget */
-        QSize sizeHint() const;
+        QSize sizeHint() const override;
 
+        /** \brief returns \c true, if the JKQTPlotter::resizeTimer is currently running and the widget is waiting for the resize-event to finish
+          *
+          * \see jkqtp_RESIZE_DELAY, setGlobalResizeDelay(), getGlobalResizeDelay(), resizeTimer */
+        bool isResizeTimerRunning() const;
 
 
 
@@ -647,18 +617,13 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
 
 
 
-        /** \brief returns a pointer to the datastore used by this object */
+        /** \copydoc JKQTBasePlotter::getDatastore()  */
         inline JKQTPDatastore* getDatastore() { return plotter->getDatastore(); }
 
-        /** \brief returns a pointer to the datastore used by this object */
+        /** \copydoc JKQTBasePlotter::getDatastore()  */
         inline const JKQTPDatastore* getDatastore() const { return plotter->getDatastore(); }
 
-        /** \brief tells the plotter object to use the given external datastore.
-         *
-         * If the current datastore is internally managed, this method will free that object and use the supplied datastore
-         * with external management. If the current datastore is already external, this method will simply replace it by the
-         * new one.
-         */
+        /** \copydoc JKQTBasePlotter::useExternalDatastore()  */
         inline void useExternalDatastore(JKQTPDatastore* newStore) { plotter->useExternalDatastore(newStore); }
 
         /** \copydoc JKQTBasePlotter::useAsInternalDatastore() */
@@ -673,7 +638,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
         /** \copydoc JKQTBasePlotter::setEmittingSignalsEnabled() */
         inline void setEmittingSignalsEnabled(bool sig) { plotter->setEmittingSignalsEnabled(sig); }
         /** \copydoc JKQTBasePlotter::isEmittingSignalsEnabled() */
-        inline bool isEmittingSignalsEnabled() { return plotter->isEmittingSignalsEnabled(); }
+        inline bool isEmittingSignalsEnabled() const { return plotter->isEmittingSignalsEnabled(); }
 
         /** \brief returns, whether automatic redrawing the plot is currently activated (e.g. you can deactivate this with setPlotUpdateEnabled() while performing major updates on the plot)
          *
@@ -682,7 +647,9 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
         bool isPlotUpdateEnabled() const;
         /** \brief sets whether automatic redrawing the plot is currently activated (e.g. you can sett his to \c false while performing major updates on the plot)
          *
-         * \see isPlotUpdateEnabled()
+         * \see JKQTPlotterUpdateGuard for a guard class coupling calls to setPlotUpdateEnabled() and redrawPlot() with the lifetime of a code block.
+         *      See \ref jkqtplotter_general_usage_speedplotsetup for a detailed description.
+         *      Also see isPlotUpdateEnabled().
          */
         void setPlotUpdateEnabled(bool enable);
 
@@ -710,6 +677,13 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
         void deregisterMouseWheelAction(Qt::KeyboardModifiers modifier);
         /** \brief deletes all mouse-wheel actions \see registerMouseWheelAction(), deregisterMouseWheelAction(), \ref JKQTPLOTTER_USERMOUSEINTERACTION */
         void clearAllMouseWheelActions();
+
+        /** \brief specifies the action to perform on a mouse move event when a given modifier is pressed \see deregisterMouseMoveAction(), clearAllMouseMoveActions(), \ref JKQTPLOTTER_USERMOUSEINTERACTION */
+        void registerMouseMoveAction(Qt::KeyboardModifiers modifier, JKQTPMouseMoveActions action);
+        /** \brief deletes all mouse-move actions registered for a given \a modifier \see registerMouseMoveAction(), clearAllMouseMoveActions(), \ref JKQTPLOTTER_USERMOUSEINTERACTION */
+        void deregisterMouseMoveAction(Qt::KeyboardModifiers modifier);
+        /** \brief deletes all mouse-move actions \see registerMouseMoveAction(), deregisterMouseMoveAction(), \ref JKQTPLOTTER_USERMOUSEINTERACTION */
+        void clearAllMouseMoveActions();
 
         /*! \brief returns the currently set special context menu object
          *
@@ -745,122 +719,146 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
          */
         int getMouseLastClickY() const;
 
-        /** \brief returns the coordinate axis object for the x-axis \see JKQTBasePlotter::getXAxis() */
-        inline JKQTPHorizontalAxis* getXAxis() { return plotter->getXAxis(); }
-        /** \brief returns the coordinate axis object for the y-axis \see JKQTBasePlotter::getYAxis()  */
-        inline JKQTPVerticalAxis* getYAxis() { return plotter->getYAxis(); }
-        /** \brief returns the coordinate axis object for the x-axis as a const pointer \see JKQTBasePlotter::getXAxis()  */
-        inline const JKQTPHorizontalAxis* getXAxis() const { return plotter->getXAxis(); }
-        /** \brief returns the coordinate axis object for the y-axis as a const pointer \see JKQTBasePlotter::getYAxis()  */
-        inline const JKQTPVerticalAxis* getYAxis() const { return plotter->getYAxis(); }
+        /** \copydoc JKQTBasePlotter::getXAxis()   */
+        inline JKQTPHorizontalAxisBase* getXAxis(JKQTPCoordinateAxisRef axis=JKQTPPrimaryAxis) { return plotter->getXAxis(axis); }
+        /** \copydoc JKQTBasePlotter::getYAxis()   */
+        inline JKQTPVerticalAxisBase* getYAxis(JKQTPCoordinateAxisRef axis=JKQTPPrimaryAxis) { return plotter->getYAxis(axis); }
+        /** \copydoc JKQTBasePlotter::getXAxis()   */
+        inline const JKQTPHorizontalAxisBase* getXAxis(JKQTPCoordinateAxisRef axis=JKQTPPrimaryAxis) const { return plotter->getXAxis(axis); }
+        /** \copydoc JKQTBasePlotter::getYAxis()   */
+        inline const JKQTPVerticalAxisBase* getYAxis(JKQTPCoordinateAxisRef axis=JKQTPPrimaryAxis) const { return plotter->getYAxis(axis); }
 
-       /** \brief returns the \a i -th graph (of type JKQTPPlotElement) in this plotter instance \see JKQTBasePlotter::getGraph() */
+
+
+
+        /** \copydoc JKQTBasePlotter::beginGraphs() */
+        inline typename JKQTBasePlotter::GraphsConstIterator cbeginGraphs() const  {
+            return plotter->cbeginGraphs();
+        }
+        /** \copydoc JKQTBasePlotter::endGraphs() */
+        inline typename JKQTBasePlotter::GraphsConstIterator cendGraphs() const {
+            return plotter->cendGraphs();
+        }
+
+        /** \copydoc JKQTBasePlotter::beginGraphs() */
+        inline typename JKQTBasePlotter::GraphsConstIterator beginGraphs() const  {
+            return plotter->beginGraphs();
+        }
+        /** \copydoc JKQTBasePlotter::endGraphs() */
+        inline typename JKQTBasePlotter::GraphsConstIterator endGraphs() const {
+            return plotter->endGraphs();
+        }
+        /** \copydoc JKQTBasePlotter::beginGraphs() */
+        inline typename JKQTBasePlotter::GraphsIterator beginGraphs()  {
+            return plotter->beginGraphs();
+        }
+        /** \copydoc JKQTBasePlotter::endGraphs() */
+        inline typename JKQTBasePlotter::GraphsIterator endGraphs()  {
+            return plotter->endGraphs();
+        }
+        /** \copydoc JKQTBasePlotter::modifyGraphs() */
+        inline void modifyGraphs(const std::function<void(JKQTPPlotElement*)>& func) {
+            plotter->modifyGraphs(func);
+        }
+        /** \copydoc JKQTBasePlotter::sortGraphs() */
+        inline void sortGraphs(const std::function<bool(const JKQTPPlotElement* , const JKQTPPlotElement* )>& compareLess) {
+            plotter->sortGraphs(compareLess);
+        }
+        /** \copydoc JKQTBasePlotter::getGraphs()   */
+        inline const typename JKQTBasePlotter::GraphsList& getGraphs() const {
+            return plotter->getGraphs();
+        }
+        /** \copydoc JKQTBasePlotter::getGraphs()   */
+        inline typename JKQTBasePlotter::GraphsList& getGraphs()  {
+            return plotter->getGraphs();
+        }
+        /** \copydoc JKQTBasePlotter::getGraph()   */
         inline JKQTPPlotElement* getGraph(size_t i) { return plotter->getGraph(i); }
+        /** \copydoc JKQTBasePlotter::getGraph()   */
+        inline const JKQTPPlotElement* getGraph(size_t i) const { return plotter->getGraph(i); }
 
-        /** \brief returns the number of graphs \see JKQTBasePlotter::getGraphCount() */
+        /** \copydoc JKQTBasePlotter::getGraphCount()   */
         inline size_t getGraphCount() { return plotter->getGraphCount(); }
 
-        /** \brief remove the i-th graph \see JKQTBasePlotter::deleteGraph() */
+        /** \copydoc JKQTBasePlotter::deleteGraph()   */
         inline void deleteGraph(size_t i, bool deletegraph=true) { plotter->deleteGraph(i, deletegraph); }
 
-        /** \brief returns \c true, if the given graph is present \see JKQTBasePlotter::containsGraph() */
+        /** \copydoc JKQTBasePlotter::containsGraph()   */
         inline bool containsGraph(JKQTPPlotElement* gr) { return plotter->containsGraph(gr); }
 
-        /** \brief remove the given graph, if it is contained \see JKQTBasePlotter::deleteGraph() */
+        /** \copydoc JKQTBasePlotter::deleteGraph()   */
         inline void deleteGraph(JKQTPPlotElement* gr, bool deletegraph=true) { plotter->deleteGraph(gr, deletegraph);  }
 
-        /** \brief remove all plots
-         *
-         *  \param deleteGraphs if set \c true (default) the graph objects will also be deleted
-         *
-         *  \see JKQTBasePlotter::clearGraphs()
-         */
+        /** \copydoc JKQTBasePlotter::clearGraphs()   */
         inline void clearGraphs(bool deleteGraphs=true) { plotter->clearGraphs(deleteGraphs); }
 
-        /** \brief add a new graph, returns it's position in the graphs list
-         *
-         * \param gr graph object (of type JKQTPPlotElement) to be added. \b Note: The JKQTPlotter takes ownership of graph \a gr .
-         * \return ID of the added graph object \a gr in the internal list of graphs
-         *
-         *  \see JKQTBasePlotter::addGraph()
-         */
+        /** \copydoc JKQTBasePlotter::addGraph()   */
         inline size_t addGraph(JKQTPPlotElement* gr) { return plotter->addGraph(gr); }
+        /** \copydoc JKQTBasePlotter::addGraphOnTop()   */
+        inline size_t addGraphOnTop(JKQTPPlotElement* gr) { return plotter->addGraphOnTop(gr); }
+        /** \copydoc JKQTBasePlotter::addGraphAtBottom()   */
+        inline size_t addGraphAtBottom(JKQTPPlotElement* gr) { return plotter->addGraphAtBottom(gr); }
 
-        /** \brief move the given graph to the top, or add it, if it is not yet contained
-         *
-         * \param gr graph object (of type JKQTPPlotElement) to be moved (needs to be containing to the JKQTPlotter already!)
-         * \return ID of the added graph object \a gr in the internal list of graphs
-         *
-         *  \see JKQTBasePlotter::moveGraphTop()
-         */
-        inline size_t moveGraphTop(JKQTPPlotElement* gr) { return plotter->moveGraphTop(gr); }
+        /** \copydoc JKQTBasePlotter::moveGraphTop()   */
+        inline void moveGraphTop(JKQTPPlotElement* gr) {  plotter->moveGraphTop(gr); }
 
-        /** \brief move the given graph to the top, or add it, if it is not yet contained
-         *
-         * \param gr graph object (of type JKQTPPlotElement) to be moved (needs to be containing to the JKQTPlotter already!)
-         * \return ID of the added graph object \a gr in the internal list of graphs
-         *
-         *  \see JKQTBasePlotter::moveGraphBottom()
-         */
-        inline size_t moveGraphBottom(JKQTPPlotElement* gr) { return plotter->moveGraphBottom(gr); }
+        /** \copydoc JKQTBasePlotter::moveGraphBottom()   */
+        inline void moveGraphBottom(JKQTPPlotElement* gr) {  plotter->moveGraphBottom(gr); }
 
-        /** \brief add a new graphs from a QVector<JKQTPPlotElement*>, QList<JKQTPPlotElement*>, std::vector<JKQTPPlotElement*> ... or any standard-iterateable container with JKQTPPlotElement*-items
-         *
-         *  \tparam TJKQTPGraphContainer a container type with default C++-sytle iterator interface
-         *                               (i.e. methods \c begin() and \c end() and an iterator, which may be
-         *                               moved to the next element with the operator \c ++ .
-         *  \param gr Container of type TJKQTPGraphContainer, which contains the graphs \b Note: The JKQTPlotter takes ownership of graphs in \a gr .
-         *  \param[out] graphIDsOut optional output parameter, the vector will contain the IDs of each graph added to theis plot
-         *
-         *  \see JKQTBasePlotter::addGraphs()
-         */
+        /** \copydoc JKQTBasePlotter::moveGraphUp()   */
+        inline void moveGraphUp(JKQTPPlotElement* gr) {  plotter->moveGraphUp(gr); }
+
+        /** \copydoc JKQTBasePlotter::moveGraphDown()   */
+        inline void moveGraphDown(JKQTPPlotElement* gr) {  plotter->moveGraphDown(gr); }
+
+        /** \copydoc JKQTBasePlotter::moveGraphTop()   */
+        inline void moveGraphTop(int idx) {  plotter->moveGraphTop(idx); }
+
+        /** \copydoc JKQTBasePlotter::moveGraphBottom()   */
+        inline void moveGraphBottom(int idx) {  plotter->moveGraphBottom(idx); }
+
+        /** \copydoc JKQTBasePlotter::moveGraphUp()   */
+        inline void moveGraphUp(int idx) {  plotter->moveGraphUp(idx); }
+
+        /** \copydoc JKQTBasePlotter::moveGraphDown()   */
+        inline void moveGraphDown(int idx) {  plotter->moveGraphDown(idx); }
+
+        /** \copydoc JKQTBasePlotter::addGraphs()   */
         template <class TJKQTPGraphContainer>
         inline void addGraphs(const TJKQTPGraphContainer& gr, QVector<size_t>* graphIDsOut=nullptr) { plotter->addGraphs(gr, graphIDsOut); }
 
 
-        /** \brief returns the current x-axis min  \see JKQTBasePlotter::getYAxis() */
+        /** \copydoc JKQTBasePlotter::getXMin()   */
         inline double getXMin() const {return plotter->getXMin(); }
-
-        /** \brief returns the current x-axis max  \see JKQTBasePlotter::getYAxis() */
+        /** \copydoc JKQTBasePlotter::getXMax()   */
         inline double getXMax() const {return plotter->getXMax(); }
-
-        /** \brief returns the current y-axis min  \see JKQTBasePlotter::getYAxis() */
+        /** \copydoc JKQTBasePlotter::getYMin()   */
         inline double getYMin() const {return plotter->getYMin(); }
-
-        /** \brief returns the current y-axis max  \see JKQTBasePlotter::getYAxis() */
+        /** \copydoc JKQTBasePlotter::getYMax()   */
         inline double getYMax() const {return plotter->getYMax(); }
-
-
-
-        /** \brief returns the absolute x-axis min */
+        /** \copydoc JKQTBasePlotter::getAbsoluteXMin()   */
         inline double getAbsoluteXMin() const {return plotter->getAbsoluteXMin(); }
-        /** \brief returns the absolute x-axis max */
+        /** \copydoc JKQTBasePlotter::getAbsoluteXMax()   */
         inline double getAbsoluteXMax() const {return plotter->getAbsoluteXMax(); }
-
-        /** \brief returns the absolute y-axis min */
+        /** \copydoc JKQTBasePlotter::getAbsoluteYMin()   */
         inline double getAbsoluteYMin() const {return plotter->getAbsoluteYMin(); }
-
-        /** \brief returns the absolute y-axis max */
+        /** \copydoc JKQTBasePlotter::getAbsoluteYMax()   */
         inline double getAbsoluteYMax() const {return plotter->getAbsoluteYMax(); }
 
         /** \brief returns the current magnification factor */
         inline double getMagnification() const { return magnification; }
 
-        /** \brief gets the next unused style id, i.e. the smalles number >=0 which is not contained in usedStyles */
+        /** \copydoc JKQTBasePlotter::getNextStyle()   */
         inline int getNextStyle() {
             return getPlotter()->getNextStyle();
         }
 
-        /** \brief returns a QPen object for the i-th plot style */
+        /** \copydoc JKQTBasePlotter::getPlotStyle()   */
         inline JKQTBasePlotter::JKQTPPen getPlotStyle(int i) const {
             return getConstplotter()->getPlotStyle(i);
         }
 
 
-        /** \brief font size for key labels [in points] */
-        inline double getKeyFontSize() const {
-            return getConstplotter()->getKeyFontSize();
-        }
 
         /** \brief returns the currently set mode for the context menu \see JKQTPContextMenuModes, \ref JKQTPLOTTER_CONTEXTMENU , \ref JKQTPLOTTER_SPECIALCONTEXTMENU , \ref JKQTPLOTTER_USERMOUSEINTERACTION */
         JKQTPContextMenuModes getContextMenuMode() const;
@@ -889,7 +887,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
          *
          * \see JKQTPSetSystemDefaultStyle(), JKQTPSetSystemDefaultStyle(), getCurrentPlotterStyle(), \ref jkqtpplotter_styling
          */
-        void loadCurrentPlotterStyle(const QSettings& settings, const QString& group="plot/", bool alsoLoadBaseStyle=true);
+        void loadCurrentPlotterStyle(const QSettings& settings, const QString& group="plots/", bool alsoLoadBaseStyle=true);
         /** \brief store the current style properties for this JKQTBasePlotter with properties loaded from \a settings
          *
          * \param settings the QSettings object to write to
@@ -898,41 +896,54 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
          *
          * \see JKQTPSetSystemDefaultStyle(), JKQTPSetSystemDefaultStyle(), getCurrentPlotterStyle(), \ref jkqtpplotter_styling
          */
-        void saveCurrentPlotterStyle(QSettings& settings, const QString& group="plot/", bool alsoSaveBaseStyle=true) const;
+        void saveCurrentPlotterStyle(QSettings& settings, const QString& group="plots/", bool alsoSaveBaseStyle=true) const;
 
-        /** \brief \copydoc actMouseLeftAsToolTip */
-        QAction *getActMouseLeftAsToolTip() const;
+        /** \brief \copydoc actMouseMoveToolTip */
+        QAction *getActMouseMoveToolTip();
         /** \brief \copydoc actMouseLeftAsRuler */
-        QAction *getActMouseLeftAsRuler() const;
+        QAction *getActMouseLeftAsRuler();
         /** \brief \copydoc actMouseLeftAsDefault */
-        QAction *getActMouseLeftAsDefault() const;
+        QAction *getActMouseLeftAsDefault();
         /** \brief \copydoc actMouseLeftAsZoomRect */
-        QAction *getActMouseLeftAsZoomRect() const;
+        QAction *getActMouseLeftAsZoomRect();
         /** \brief \copydoc actMouseLeftAsPanView */
-        QAction *getActMouseLeftAsPanView() const;
+        QAction *getActMouseLeftAsPanView();
+        /** \brief \copydoc actMouseMoveToolTip */
+        const QAction *getActMouseMoveToolTip() const;
+        /** \brief \copydoc actMouseLeftAsRuler */
+        const QAction *getActMouseLeftAsRuler() const;
+        /** \brief \copydoc actMouseLeftAsDefault */
+        const QAction *getActMouseLeftAsDefault() const;
+        /** \brief \copydoc actMouseLeftAsZoomRect */
+        const QAction *getActMouseLeftAsZoomRect() const;
+        /** \brief \copydoc actMouseLeftAsPanView */
+        const QAction *getActMouseLeftAsPanView() const;
 
-        QImage * getImage();
-
-
-    public slots:
-        /** \brief set the current plot magnification */
-        void setMagnification(double m);
-        /** \brief sets x/ymin and x/ymax to the supplied values and replots the graph (zoom operation!) */
-        inline void zoom(double nxmin, double nxmax, double nymin, double nymax) {
-            plotter->zoom(nxmin, nxmax, nymin, nymax);
+        /** \copydoc JKQTBasePlotter::grabPixelImage()   */
+        inline QImage grabPixelImage(QSize size=QSize(), bool showPreview=false) {
+            return plotter->grabPixelImage(size,showPreview);
+        }
+        /** \copydoc JKQTBasePlotter::copyPixelImage()   */
+        inline void copyPixelImage(bool showPreview=true) {
+            plotter->copyPixelImage(showPreview);
         }
 
-        /** \brief sets whether to plot grid lines or not
-         *
-         * \image html jkqtplotter_gridvisible.png "Grid visible"
-         * \image html jkqtplotter_gridinvisible.png "Grid invisible"
-         * */
-        inline void setGrid(bool val) {
+    public Q_SLOTS:
+        /** \brief set the current plot magnification */
+        void setMagnification(double m);
+        /** \copydoc JKQTBasePlotter::zoom()
+         *  \deprecated The function JKQTPlotter::zoom() is deprecated and will be removed in future version, use JKQTPlotter::setXY() instead!
+         */
+        inline void zoom(double xminn, double xmaxn, double yminn, double ymaxn, bool affectsSecondaryAxes=false) {
+            plotter->zoom(xminn, xmaxn, yminn, ymaxn, affectsSecondaryAxes);
+        }
+
+        /** \copydoc JKQTBasePlotter::setGrid()   */
+         inline void setGrid(bool val) {
             plotter->setGrid(val);
         }
 
-        /** \brief sets the color of all Major grid lines
-         * */
+        /** \copydoc JKQTBasePlotter::setGridColor()   */
         inline void setGridColor(QColor color) {
             plotter->setGridColor(color);
         }
@@ -975,65 +986,75 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
         inline void setShowZeroAxes(bool showX, bool showY) {
             plotter->setShowZeroAxes(showX, showY);
         }
-        /** \brief switches the visibility of the zero-axes associated with the x- and y-axis
-         *
-         * \param showXY indicates whether to show the zero-axis associated with the x- and y-axis
-         * */
+        /** \copydoc JKQTBasePlotter::setShowZeroAxes() */
         inline void setShowZeroAxes(bool showXY) {
             plotter->setShowZeroAxes(showXY);
         }
 
-        /** \brief save the current plot as an image file, with the current widget aspect ratio, if filename is empty a file selection dialog is displayed.
-        *          The image format is extracted from the file extension (jpeg, tiff, png, pdf, ...) */
-        inline void saveImage(const QString& filename=QString(""), bool displayPreview=true) {
-            plotter->saveImage(filename, displayPreview);
+        /** \copydoc JKQTBasePlotter::saveImage() */
+        inline bool saveImage(const QString& filename=QString(""), bool displayPreview=true) {
+            return plotter->saveImage(filename, displayPreview);
         }
 
-        /** \brief save the data used for the current plot. The file format is extracted from the file extension (csv, ...)
-         *
-         * The parameter \a format specifies the export format. if it is empty the format will be choosen according to the file extension, or
-         * if \a filename is also empty the format will be choosen according to what is selected in the file selection dialog.
-         *
-         * If \a format is \c "slk" the output will be in SYLK format, if \a format is \c "csv" or \a "dat" the output will be comma separated values
-         * and if \a format is \c "txt" the output will be tab separated values.
-         */
+        /** \copydoc JKQTBasePlotter::saveAsPixelImage() */
+        inline bool saveAsPixelImage(const QString& filename=QString(""), bool displayPreview=true, const QByteArray &outputFormat=QByteArray(), const QSize& outputSizeIncrease=QSize(0,0)) {
+            return plotter->saveAsPixelImage(filename, displayPreview, outputFormat, outputSizeIncrease);
+        }
+
+#ifndef JKQTPLOTTER_COMPILE_WITHOUT_PRINTSUPPORT
+        /** \copydoc JKQTBasePlotter::saveAsSVG() */
+        inline bool saveAsSVG(const QString& filename=QString(""), bool displayPreview=true) { return plotter->saveAsSVG(filename, displayPreview); }
+        /** \copydoc JKQTBasePlotter::saveAsPDF() */
+        inline bool saveAsPDF(const QString& filename=QString(""), bool displayPreview=true) { return plotter->saveAsPDF(filename, displayPreview); }
+#endif
+
+        /** \copydoc JKQTBasePlotter::saveAsCSV() */
+        inline void saveAsCSV(const QString& filename=QString("")) { plotter->saveAsCSV(filename); }
+        /** \copydoc JKQTBasePlotter::saveAsSemicolonSV() */
+        inline void saveAsSemicolonSV(const QString& filename=QString("")) { plotter->saveAsSemicolonSV(filename); }
+        /** \copydoc JKQTBasePlotter::saveAsTabSV() */
+        inline void saveAsTabSV(const QString& filename=QString("")) { plotter->saveAsTabSV(filename); }
+        /** \copydoc JKQTBasePlotter::saveAsDIF() */
+        inline void saveAsDIF(const QString& filename=QString("")) { plotter->saveAsDIF(filename); }
+        /** \copydoc JKQTBasePlotter::saveAsSYLK() */
+        inline void saveAsSYLK(const QString& filename=QString("")) { plotter->saveAsSYLK(filename); }
+        /** \copydoc JKQTBasePlotter::saveAsMatlab() */
+        inline void saveAsMatlab(const QString& filename=QString("")) { plotter->saveAsMatlab(filename); }
+        /** \copydoc JKQTBasePlotter::saveAsGerExcelCSV() */
+        inline void saveAsGerExcelCSV(const QString& filename=QString("")) { plotter->saveAsGerExcelCSV(filename); }
+
+
+        /** \copydoc JKQTBasePlotter::saveData() */
         inline void saveData(const QString& filename=QString(""), const QString& format=QString("")) {
             plotter->saveData(filename, format);
         }
 
-        /** \brief print the current plot, if printer is \c nullptr a printer selection dialog is displayed */
+#ifndef JKQTPLOTTER_COMPILE_WITHOUT_PRINTSUPPORT
+        /** \copydoc JKQTBasePlotter::print() */
         inline void print(QPrinter* printer=nullptr) {
             plotter->print(printer);
         }
+#endif
 
-        /** \brief copy displayed data to cpliboard */
+        /** \copydoc JKQTBasePlotter::copyData() */
         inline void copyData() {
             plotter->copyData();
         }
 
-        /** \brief copy displayed data to cpliboard in Matlab syntax */
+        /** \copydoc JKQTBasePlotter::copyDataMatlab() */
         inline void copyDataMatlab() {
             plotter->copyDataMatlab();
         }
-        /** \brief this method zooms the graph so that all plotted datapoints are visible.
-         *
-         * \param zoomX if set \c true (default) zooms the x axis
-         * \param zoomY if set \c true (default) zooms the y axis
-         * \param includeX0 if this is \c true zoomToFit() will ensure that \f$ x=0 \f$ is visible in the plot (only for non-logx plots, default: false)
-         * \param includeY0 if this is \c true zoomToFit() will ensure that \f$ y=0 \f$ is visible in the plot (only for non-logy plots, default: false)
-         * \param scaleX the plot will have a width of \f$ \mbox{Xscale}\cdot\Delta x \f$ where \f$ \Delta x \f$ is the actual x-axis data range
-         *               For logx plots we actually use this on the logarithmized data! (default: 1.05)
-         * \param scaleY the plot will have a height of \f$ \mbox{Yscale}\cdot\Delta < \f$ where \f$ \Delta < \f$ is the actual <-axis data range
-         *               For log< plots we actually use this on the logarithmized data! (default: 1.05)
-         *
-         */
+
+
+        /** \copydoc JKQTBasePlotter::zoomToFit() */
         inline void zoomToFit(bool zoomX=true, bool zoomY=true, bool includeX0=false, bool includeY0=false, double scaleX=1.05, double scaleY=1.05) {
             plotter->zoomToFit(zoomX, zoomY, includeX0, includeY0, scaleX, scaleY);
         }
 
-        /** \brief zooms into the graph (the same as turning the mouse wheel) by the given factor */
+        /** \copydoc JKQTBasePlotter::zoomIn() */
         inline void zoomIn(double factor=2.0) { plotter->zoomIn(factor); }
-        /** \brief zooms out of the graph (the same as turning the mouse wheel) by the given factor */
+        /** \copydoc JKQTBasePlotter::zoomOut() */
         inline void zoomOut(double factor=2.0) { plotter->zoomOut(factor); }
 
         /** \brief update the plot and the overlays */
@@ -1139,97 +1160,24 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
         /** \brief open the standard context menu with the special context menu integrated at the mouse position \a x and \a y \see \ref JKQTPLOTTER_CONTEXTMENU , \ref JKQTPLOTTER_SPECIALCONTEXTMENU, \ref JKQTPLOTTER_USERMOUSEINTERACTION */
         void openStandardAndSpecialContextMenu(int x, int y);
 
-        /** \brief sets absolutely limiting x-range of the plot
-         *
-         *  \param xminn absolute minimum of x-axis
-         *  \param xmaxx absolute maximum of x-axis
-         *
-         * \note if the aspect ratio of this does not fit into the widget, it is possible that you don't see the complete contents!
-         *
-         * \see setAbsoluteXY(), setAbsoluteY(), JKQTBasePlotter::setAbsoluteX()
-         */
+        /** \copydoc JKQTBasePlotter::setAbsoluteX()  */
         inline void setAbsoluteX(double xminn, double xmaxx) { plotter->setAbsoluteX(xminn, xmaxx); }
 
-        /** \brief sets absolute minimum and maximum y-value to plot
-         *
-         *  \param yminn absolute minimum of y-axis
-         *  \param ymaxx absolute maximum of y-axis
-         *
-         * \note if the aspect ratio of this does not fit into the widget, it is possible that you don't see the complete contents!
-         *
-         * \see setAbsoluteXY(), setAbsoluteX(), JKQTBasePlotter::setAbsoluteY()
-         */
+        /** \copydoc JKQTBasePlotter::setAbsoluteY()  */
         inline void setAbsoluteY(double yminn, double ymaxx) { plotter->setAbsoluteY(yminn, ymaxx); }
 
-        /** \brief sets absolutely limiting x- and y-range of the plot
-         *
-         * The user (or programmer) cannot zoom to a viewport that is larger than the range given to this function.
-         *
-         *  \param xminn absolute minimum of x-axis
-         *  \param xmaxx absolute maximum of x-axis
-         *  \param yminn absolute minimum of y-axis
-         *  \param ymaxx absolute maximum of y-axis
-         *
-         * \note if the aspect ratio of this does not fit into the widget, it is possible that you don't see the complete contents!
-         *
-         * \see setAbsoluteX(), setAbsoluteY(), zoomToFit(), JKQTBasePlotter::setAbsoluteXY()
-         */
+        /** \copydoc JKQTBasePlotter::setAbsoluteXY()  */
         inline void setAbsoluteXY(double xminn, double xmaxx, double yminn, double ymaxx) { plotter->setAbsoluteXY(xminn, xmaxx, yminn, ymaxx); }
 
-        /** \brief sets the x-range of the plot (minimum and maximum x-value on the x-axis)
-         *
-         *  \param xminn absolute minimum of x-axis
-         *  \param xmaxx absolute maximum of x-axis
-         *
-         * \note You cannot expand the x-range outside the absolute x-range set e.g. by setAbsoluteX()!
-         *       Also the range will be limited to possible values (e.g. to positive values if you use
-         *       logarithmic axes).
-         *
-         * Uppon setting, this function emits the signal zoomChangedLocally(), if emitting signals
-         * is activated at the moment (e.g. using JKQTBasePlotter::setEmittingSignalsEnabled() ).
-         *
-         * \see setY(), setXY(), zoomToFit(), setAbsoluteXY(), JKQTBasePlotter::setY()
-         */
+        /** \copydoc JKQTBasePlotter::setX()  */
         inline void setX(double xminn, double xmaxx) { plotter->setX(xminn, xmaxx); }
 
-        /** \brief sets the y-range of the plot (minimum and maximum y-value on the y-axis)
-         *
-         *  \param yminn absolute minimum of y-axis
-         *  \param ymaxx absolute maximum of y-axis
-         *
-         * \note You cannot expand the y-range outside the absolute y-range set e.g. by setAbsoluteY()!
-         *       Also the range will be limited to possible values (e.g. to positive values if you use
-         *       logarithmic axes).
-         *
-         * Uppon setting, this function emits the signal zoomChangedLocally(), if emitting signals
-         * is activated at the moment (e.g. using JKQTBasePlotter::setEmittingSignalsEnabled() ).
-         *
-         * \see setX(), setXY(), zoomToFit(), setAbsoluteXY(), JKQTBasePlotter::setX()
-         */
+        /** \copydoc JKQTBasePlotter::setY()  */
         inline void setY(double yminn, double ymaxx) { plotter->setY(yminn, ymaxx); }
 
-        /** \brief sets the x- and y-range of the plot (minimum and maximum values on the x-/y-axis)
-         *
-         *  \param xminn absolute minimum of x-axis
-         *  \param xmaxx absolute maximum of x-axis
-         *  \param yminn absolute minimum of y-axis
-         *  \param ymaxx absolute maximum of y-axis
-         *
-         * \note You cannot expand the ranges outside the absolute ranges set e.g. by setAbsoluteXY()!
-         *       Also the range will be limited to possible values (e.g. to positive values if you use
-         *       logarithmic axes).
-         *
-         * Uppon setting, this function emits the signal zoomChangedLocally(), if emitting signals
-         * is activated at the moment (e.g. using JKQTBasePlotter::setEmittingSignalsEnabled() ).
-         *
-         * \see setX(), setX(), zoomToFit(), setAbsoluteXY(), JKQTBasePlotter::setXY()
-         */
-         inline void setXY(double xminn, double xmaxx, double yminn, double ymaxx) { plotter->setXY(xminn, xmaxx, yminn, ymaxx); }
-
-    signals:
-         // -- TLE
-         void evRequestResize();
-
+        /** \copydoc JKQTBasePlotter::setXY()  */
+         inline void setXY(double xminn, double xmaxx, double yminn, double ymaxx, bool affectsSecondaryAxes=false) { plotter->setXY(xminn, xmaxx, yminn, ymaxx, affectsSecondaryAxes); }
+    Q_SIGNALS:
         /** \brief emitted whenever the mouse moves
          *
          * \param x x-position of the mouse (in plot coordinates)
@@ -1312,7 +1260,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
         void contextMenuOpened(double x, double y, QMenu* contextMenu);
 
 
-        /** \brief signal: emitted whenever the user selects a new x-y zoom range (by mouse)
+        /** \brief signal: emitted whenever the user selects a new x-y zoom range (in the major axes, e.g. by mouse, setX(), setY(), setXY(), zoomToFit()... )
          *
          * \param newxmin start of the selected x-range (in plot coordinates)
          * \param newxmax end of the selected x-range (in plot coordinates)
@@ -1320,7 +1268,9 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
          * \param newymax end of the selected x-range (in plot coordinates)
          * \param sender JKQTPlotter sending this event
          *
-         * This signal is designed to be connected to these slots: synchronizeXAxis(), synchronizeYAxis(), synchronizeXYAxis()
+         * This signal is designed to be connected to these Q_SLOTS: synchronizeXAxis(), synchronizeYAxis(), synchronizeXYAxis()
+         *
+         * \see JKQTBasePlotter::zoomChangedLocally()
          */
         void zoomChangedLocally(double newxmin, double newxmax, double newymin, double newymax, JKQTPlotter* sender);
 
@@ -1330,7 +1280,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
          * \param new_height new height of the widget (in pixels)
          * \param sender JKQTPlotter sending this event
          *
-         * This signal is designed to be connected to these slots: synchronizeXAxis(), synchronizeYAxis(), synchronizeXYAxis()
+         * This signal is designed to be connected to these Q_SLOTS: synchronizeXAxis(), synchronizeYAxis(), synchronizeXYAxis()
          */
         void widgetResized(int new_width, int new_height, JKQTPlotter* sender);
 
@@ -1420,14 +1370,35 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
         /** \brief the currently executed MouseDragAction */
         MouseDragAction currentMouseDragAction;
 
+
+        /** \brief the currently executed MouseMoveActions */
+        QSet<JKQTPMouseMoveActions> currentMouseMoveAction;
+
+        enum class WheelActionType {
+            Zoom,
+            ZoomFixedMouse,
+            Pan,
+            None
+        };
+
+        /** \brief storage for last WheelActionType (used in wheelAction() to distinguish trackpad-pan ations in mode jkqtpmwaZoomByWheelAndTrackpadPan) */
+        WheelActionType lastWheelActionType;
+        /** \brief storage for timestammp of the last QWheelEvent (used in wheelAction() to distinguish trackpad-pan ations in mode jkqtpmwaZoomByWheelAndTrackpadPan) */
+        quint64 lastWheelActionTimestamp;
+        /** \brief max. time between two QWheelEvents that are recognized as one series */
+        const quint64 maxWheelEventSeriesTimestampDifference;
+
         /** \brief searches JKQTPlotterStyle::registeredMouseActionModes for a matching action, returns in \a found whether an action was found */
         JKQTPMouseDragActionsHashMapIterator findMatchingMouseDragAction(Qt::MouseButton button, Qt::KeyboardModifiers modifiers, bool *found=nullptr) const;
 
+        /** \brief searches JKQTPlotterStyle::registeredMouseMoveActions for a matching action */
+        JKQTPMouseMoveActionsHashMapIterator findMatchingMouseMoveAction(Qt::KeyboardModifiers modifiers, bool *found=nullptr) const;
+
         /** \brief searches JKQTPlotterStyle::registeredMouseWheelActions for a matching action */
-        JKQTPMouseWheelActionsHashMapIterator findMatchingMouseWheelAction(Qt::KeyboardModifiers modifiers) const;
+        JKQTPMouseWheelActionsHashMapIterator findMatchingMouseWheelAction(Qt::KeyboardModifiers modifiers, bool *found=nullptr) const;
 
         /** \brief searches JKQTPlotterStyle::registeredMouseDoubleClickActions for a matching action */
-        JKQTPMouseDoubleClickActionsHashMapIterator findMatchingMouseDoubleClickAction(Qt::MouseButton button, Qt::KeyboardModifiers modifiers) const;
+        JKQTPMouseDoubleClickActionsHashMapIterator findMatchingMouseDoubleClickAction(Qt::MouseButton button, Qt::KeyboardModifiers modifiers, bool *found=nullptr) const;
 
         /** \brief you may overwrite this method to modify the given context menu before it is displayed.
          *
@@ -1439,7 +1410,9 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
 
         /** \brief indicates whether the plot is updated automatically at the moment
          *
-         * \see setPlotUpdateEnabled(), isPlotUpdateEnabled()
+         * \see setPlotUpdateEnabled(), isPlotUpdateEnabled(),
+         *      JKQTPlotterUpdateGuard for a guard class coupling calls to setPlotUpdateEnabled() and redrawPlot() with the lifetime of a code block.
+         *      See \ref jkqtplotter_general_usage_speedplotsetup for a detailed description.
          */
         bool doDrawing;
 
@@ -1504,14 +1477,25 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
         /** \brief internal list of markers to be drawn by paintUserAction() */
         QList<MouseDragMarker> mouseDragMarkers;
 
+        typedef QPixmap InternalBufferImageType;
 
         /** \brief this stores the currently displayed plot */
-        QImage image;
+        InternalBufferImageType image;
 
         /** \brief this can be used when drawing a zoom rectangle to store an unchanged
          *         copy of the currently displayed image.
          */
-        QImage oldImage;
+        InternalBufferImageType oldImage;
+
+        /** \brief constructs a new image for the internal double-buffering
+         *  \internal
+         */
+        InternalBufferImageType createImageBuffer() const;
+
+        /** \brief returns the required size of an image for the internal double-buffering
+         *  \internal
+         */
+        QSize getImageBufferSize(float* scale_out=nullptr) const;
 
 
         /** \brief use this QMenu instance instead of the standard context menu of this widget
@@ -1528,12 +1512,15 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
         /** \brief paint the user action (rectangle, ellipse, ... */
         void paintUserAction();
 
+        /** \brief tool function, which corrects the given rectangle (in pixels!) during a panning action. The correction is necesary towards getAbsoluteXY() to prevent an unwanted zooming in. */
+        void correctZoomRectForPanning(QRectF& rect) const;
+
 
         /** \brief event handler for a double click
          *
          * \see registerMouseDoubleClickAction(), deregisterMouseDoubleClickAction()
          */
-        void mouseDoubleClickEvent ( QMouseEvent * event );
+        void mouseDoubleClickEvent ( QMouseEvent * event ) override;
 
         /*! \brief react on key presses.
 
@@ -1541,7 +1528,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
               - ESC stops current zooming/drawing action
             .
          */
-        void keyReleaseEvent(QKeyEvent* event);
+        void keyReleaseEvent(QKeyEvent* event) override;
 
         /** \brief event handler for a mouse move
          *
@@ -1549,11 +1536,13 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
          *   - if displayMousePosition is \c true , stores the current mouse position in mousePosX, mousePosY
          *   - if necessary, contributes to user-actions started by mousePressEvent()
          *   - emits plotMouseMove() if the mouse is inside the plot rectangle .
+         *   - execute mouseMoveActions
          * .
          *
          * \see mousePosX, mousePosY
+         * \see registerMouseWheelAction(), deregisterMouseWheelAction(), registeredMouseWheelActions
          */
-        void mouseMoveEvent ( QMouseEvent * event );
+        void mouseMoveEvent ( QMouseEvent * event ) override;
 
         /** \brief event handler for a mouse down event
          *
@@ -1562,13 +1551,13 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
          *
          * \see registerMouseDragAction(), deregisterMouseDragAction(), registeredJKQTPMouseDragActions
          */
-        void mousePressEvent ( QMouseEvent * event );
+        void mousePressEvent ( QMouseEvent * event ) override;
 
         /** \brief event handler for a mouse release event
          *
          * this finishes the action, started by mousePressEvent()
          */
-        void mouseReleaseEvent ( QMouseEvent * event );
+        void mouseReleaseEvent ( QMouseEvent * event ) override;
 
         /** \brief event handler for a turn of the mouse wheel
          *
@@ -1576,16 +1565,16 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
          *
          * \see registerMouseWheelAction(), deregisterMouseWheelAction(), registeredMouseWheelActions
          */
-        void wheelEvent(QWheelEvent * event);
+        void wheelEvent(QWheelEvent * event) override;
 
         /** \brief this simply paints the stored image to the widget's surface */
-        void paintEvent(QPaintEvent *event);
+        void paintEvent(QPaintEvent *event) override;
 
         /** \brief resizes the internal representation (image) of the graphs */
-        void resizeEvent(QResizeEvent *event);
+        void resizeEvent(QResizeEvent *event) override;
 
         /** \brief called, when the mouse leaves the widget, hides the toolbar (if visible) */
-        void leaveEvent ( QEvent * event );
+        void leaveEvent ( QEvent * event ) override;
 
 
         /** \brief update settings of the toolbar */
@@ -1598,7 +1587,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
         QPointer<JKQTPlotter> masterPlotterY;
 
         /** \brief calculate the y-axis shift of the plot, so there is space for the potentially displayed mouse position label */
-        int getPlotYOffset();
+        int getPlotYOffset() const;
 
         /** \brief x-position of the mouse during the last mouseMoveEvent() calls (in plot coordinates) */
         double mousePosX;
@@ -1652,8 +1641,16 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
          * \see delayedResizeEvent()
          *
          * \image html jkqtplotter_fastresizing.gif
+         *
+         * \see jkqtp_RESIZE_DELAY, setGlobalResizeDelay(), getGlobalResizeDelay(), resizeTimer
          */
         QTimer resizeTimer;
+
+        /** \brief delay for resizing in milliseconds.  If set to 0, resize delay is disabled and resizeTimer is unused.
+         *
+         * \see jkqtp_RESIZE_DELAY, setGlobalResizeDelay(), getGlobalResizeDelay(), resizeTimer
+         */
+        static std::atomic<int> jkqtp_RESIZE_DELAY;
 
         /** \brief destroys the internal contextMenu and optionally creates a new one
          *
@@ -1687,13 +1684,14 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
         /** \brief action that activates the ruler tool (override!) */
         QAction* actMouseLeftAsRuler;
         /** \brief action that activates the tooltip tool (override!)  */
-        QAction* actMouseLeftAsToolTip;
+        QAction* actMouseMoveToolTip;
         /** \brief action that activates the zoom rectangle tool (override!) */
         QAction* actMouseLeftAsZoomRect;
         /** \brief action that activates the pan view tool (override!)  */
         QAction* actMouseLeftAsPanView;
 
-    protected slots:
+        virtual bool event(QEvent *event) override;
+    protected Q_SLOTS:
         /** \brief while the window is resized, the plot is only redrawn after a restartable delay, implemented by this function and resizeTimer
         * \internal
         * \see resizeTimer
@@ -1719,12 +1717,60 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPlotter: public QWidget {
         void setMouseLeftActionAsZoomRect();
         /** \brief action that activates the ruler tool \see resetMouseLeftAction(), setMouseLeftActionAsToolTip() */
         void setMouseLeftActionAsRuler();
-        /** \brief action that activates the tooltip tool \see setMouseLeftActionAsRuler(), resetMouseLeftAction() */
-        void setMouseLeftActionAsToolTip();
+        /** \brief action that activates the tooltip tool, when dragging the mouse with the left button pressed \see resetMouseLeftAction() */
+        void setMouseLeftDragActionAsToolTip();
         /** \brief resets any previously set override action for the left mouse-button, un-modified \see setMouseLeftActionAsRuler(), setMouseLeftActionAsToolTip() */
         void resetMouseLeftAction();
+        /** \brief action that (de)activates the tooltip tool, when moving the mouse without any button pressed \see setMouseLeftActionAsRuler(), resetMouseLeftAction() */
+        void setMouseMoveActionAsToolTip(bool enabled);
 
 };
+
+
+/** \brief Guard Class (RAII construct) for JKQTPlotter that disables replotting on construction and reenables it on destruction
+ * \ingroup jkqtpplotterclasses
+ *
+ * This class can be used to forbid replotting (to improve performance) while setting up a plot.
+ * The redraw is called on destruction of the guard,i.e. typically when leaving the block that
+ * encapsulates the plot construction.
+ *
+ * \code
+ *   {
+ *     JKQTPlotterUpdateGuard guard(plotter);
+ *
+ *     // set up plot here, e.g.
+ *     plotter->setX();
+ *     plotter->setY(); ...
+ *   } // Block ends and immediate plot updates are reenabled. Also JKQTPlotter::redrawPlot() is called.
+ * \endcode
+ *
+ * \see JKQTPlotter::setPlotUpdateEnabled(), JKQTPlotter::redrawPlot()
+ * \see JKQTPlotterUpdateGuard for a guard class coupling calls to setPlotUpdateEnabled() and redrawPlot() with the lifetime of a code block.
+ *      See \ref jkqtplotter_general_usage_speedplotsetup for a detailed description.
+ */
+class JKQTPLOTTER_LIB_EXPORT JKQTPlotterUpdateGuard {
+public:
+    JKQTPlotterUpdateGuard(JKQTPlotter* plot, bool forceRedraw=false);
+
+    ~JKQTPlotterUpdateGuard();
+
+    JKQTPlotterUpdateGuard(const JKQTPlotterUpdateGuard&)=delete;
+    JKQTPlotterUpdateGuard& operator=(const JKQTPlotterUpdateGuard&)=delete;
+    JKQTPlotterUpdateGuard(JKQTPlotterUpdateGuard&& other) noexcept;
+    JKQTPlotterUpdateGuard& operator=(JKQTPlotterUpdateGuard&& other) noexcept;
+
+    /** \brief release the lock, if \a forceRedraw equals \c true JKQTPlotter::redrawPlot() is called in any case,
+     *         if it is \c false, JKQTPlotter::redrawPlot() is called only if JKQTPlotter::isPlotUpdateEnabled() was \c true
+     *         on construction of the guard */
+    void release(bool forceRedraw=false);
+private:
+    JKQTPlotter* m_plot;
+    bool m_oldEnabled;
+    bool m_forceRedraw;
+};
+
+
+
 
 QT_BEGIN_NAMESPACE
 
@@ -1732,27 +1778,39 @@ QT_BEGIN_NAMESPACE
  *  \internal
  *  \ingroup jkqtpplottersupprt
 */
-template<>
-inline uint qHash(const QPair<Qt::MouseButton,Qt::KeyboardModifiers> &key, uint seed ) noexcept(noexcept(qHash(key.first, seed)) && noexcept(qHash(key.second, seed))) {
-    return static_cast<uint>(key.first)+static_cast<uint>(key.second);
+#if QT_VERSION >= QT_VERSION_CHECK(6,0,0)
+inline size_t qHash(const QPair<Qt::MouseButton,Qt::KeyboardModifiers> &key, size_t /*seed=0*/) {
+#else
+inline uint qHash(const QPair<Qt::MouseButton,Qt::KeyboardModifiers> &key, uint /*seed=0*/) {
+#endif
+    std::size_t seed=0;
+    jkqtp_hash_combine(seed, key.first);
+    jkqtp_hash_combine(seed, key.second);
+    return seed;
 }
 
 /** \brief qHash-variant used by JKQTPlotter
  *  \internal
  *  \ingroup jkqtpplottersupprt
 */
-template<>
-inline uint qHash(const Qt::MouseButton &key, uint /*seed*/ ) noexcept(noexcept(qHash(key)))  {
-    return static_cast<uint>(key);
+#if QT_VERSION >= QT_VERSION_CHECK(6,0,0)
+inline size_t qHash(const Qt::MouseButton &key, size_t /*seed=0*/) {
+#else
+inline uint qHash(const Qt::MouseButton &key, uint /*seed=0*/) {
+#endif
+    return qHash(static_cast<uint>(key),0);
 }
 
 /** \brief qHash-variant used by JKQTPlotter
  *  \internal
  *  \ingroup jkqtpplottersupprt
 */
-template<>
-inline uint qHash(const Qt::KeyboardModifiers &key, uint /*seed*/ ) noexcept(noexcept(qHash(key)))  {
-    return static_cast<uint>(key);
+#if QT_VERSION >= QT_VERSION_CHECK(6,0,0)
+inline size_t qHash(const Qt::KeyboardModifiers &key, size_t /*seed=0*/) {
+#else
+inline uint qHash(const Qt::KeyboardModifiers &key, uint /*seed=0*/) {
+#endif
+    return qHash(static_cast<uint>(key),0);
 }
 
 QT_END_NAMESPACE

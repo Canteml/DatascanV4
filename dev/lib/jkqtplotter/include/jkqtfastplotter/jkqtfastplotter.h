@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>) (DKFZ) & IWR, University of Heidelberg
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -34,7 +34,16 @@
 #include <cmath>
 #include <iostream>
 #include <QMutex>
+#include <QPen>
+#include <QPainter>
+#include <QBrush>
+#if (QT_VERSION>=QT_VERSION_CHECK(6, 0, 0))
+#include <QtOpenGLWidgets/QOpenGLWidget>
+#define JKQTFASTPLOTTER_BASE QOpenGLWidget
+#else
 #include <QGLWidget>
+#define JKQTFASTPLOTTER_BASE QGLWidget
+#endif
 #include "jkqtcommon/jkqtpmathtools.h"
 #ifdef DEBUG_TIMING
 #  include "jkqtcommon/jkqtphighrestimer.h"
@@ -45,10 +54,10 @@
 class JKQTFPPlot;
 
 
-
-
 /*! \brief a speed optimized plotter class
     \ingroup jkqtfastplotter
+
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
 
     This plotter class is (in contrast to JKQTPlotter) optimized for speed. It allows to plot function graphs/data in
     a simple manner. The focus of design was not on a nice output (athough this is not unimportant), but on the speed
@@ -82,8 +91,19 @@ class JKQTFPPlot;
         both in pixel and world coordinates by using plotterSizesChanged() and synchronizeX() / synchronizeY().
     .
 
+    \image html jkqtfastplotter_test.png
+
+    \see An example for the usage of this class can be found here: \ref JKQTFastPlotterTest
+
+
 */
-class JKQTFASTPLOTTER_LIB_EXPORT JKQTFastPlotter : public QGLWidget {
+class JKQTFASTPLOTTER_LIB_EXPORT JKQTFastPlotter :
+        #if (QT_VERSION>=QT_VERSION_CHECK(6, 0, 0))
+        public QOpenGLWidget
+        #else
+        public QGLWidget
+        #endif
+{
         Q_OBJECT
     public:
 
@@ -404,7 +424,7 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFastPlotter : public QGLWidget {
             }
         }
 
-        /** \brief return x coordinate coordinate from x-pixel */
+        /** \brief return x coordinate from x-pixel */
         inline double p2x(long x) {
             if (xAxisLog) {
                 return exp(JKQTPSTATISTICS_LN10*(static_cast<double>(x)-xOffset)/(xScale));
@@ -423,7 +443,7 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFastPlotter : public QGLWidget {
             }
         }
 
-        /** \brief return y coordinate coordinate from y-pixel */
+        /** \brief return y coordinate from y-pixel */
         inline double p2y(long y) {
             if (yAxisLog) {
                 return exp(JKQTPSTATISTICS_LN10*(static_cast<double>(y)-yOffset)/(-1.0*yScale));
@@ -928,7 +948,7 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFastPlotter : public QGLWidget {
         /** \brief draw the contents onto any <a href="http://doc.qt.io/qt-5/qpainter.html">QPainter</a>, starting at (0,0), returns the size of the whole plot in \a size, if supplied with the supplied\a background color */
         void draw(QPainter* painter, QColor background, QSize* size);
 
-    signals:
+    Q_SIGNALS:
         /** \brief emitted whenever the graph sizes (borders, plotWidth, plotHeight) change*/
         void plotterSizesChanged();
         /** \brief emitted whenever the graph is replotted */
@@ -947,7 +967,7 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFastPlotter : public QGLWidget {
         void mouseDragged(double x_start, double y_start, double x_end, double y_end, Qt::KeyboardModifiers modifiers);
         /** \brief emitted after the mouse has been dragged with the left button clicked */
         void mouseDragFinished(double x_start, double y_start, double x_end, double y_end, Qt::KeyboardModifiers modifiers);
-    public slots:
+    public Q_SLOTS:
         /** \brief copy the current plot image to the clipboard */
         void copyImage();
         /** \brief replot everything (slowest possible plotting) */
@@ -964,29 +984,13 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFastPlotter : public QGLWidget {
         void updateDataImmediate();
 
         /** \brief set xMin*/
-        void setXMin(double value){
-            setPlotUpdateEnabled(false);
-            setXRange(value,xMax,xAxisLog);
-            setPlotUpdateEnabled(true);
-        }
+        void setXMin(double value);
         /** \brief set xMax*/
-        void setXMax(double value){
-            setPlotUpdateEnabled(false);
-            setXRange(xMin,value,xAxisLog);
-            setPlotUpdateEnabled(true);
-        }
+        void setXMax(double value);
         /** \brief set yMin*/
-        void setYMin(double value){
-            setPlotUpdateEnabled(false);
-            setYRange(value,yMax,yAxisLog);
-            setPlotUpdateEnabled(true);
-        }
+        void setYMin(double value);
         /** \brief set yMax*/
-        void setYMax(double value){
-            setPlotUpdateEnabled(false);
-            setYRange(yMin,value,yAxisLog);
-            setPlotUpdateEnabled(true);
-        }
+        void setYMax(double value);
 
 
 };
@@ -996,7 +1000,8 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFastPlotter : public QGLWidget {
 
 
 /*! \brief base class for all plots that may be plotted by JKQTFastPlotter
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_PlotItems
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
 */
 class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPPlot: public QObject {
         Q_OBJECT
@@ -1027,7 +1032,7 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPPlot: public QObject {
 
         /** \brief start a replot of the parent widget */
         void replot();
-    public slots:
+    public Q_SLOTS:
         void setVisible(bool visible) { this->visible=visible; replot(); }
 
 };
@@ -1035,7 +1040,8 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPPlot: public QObject {
 
 
 /*! \brief a simple line plot for JKQTFastPlotter
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_PlotItems
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
 
     This class plots data as (x,y) points connected by straight lines. If errors for the y values are
     provided, also y+/-yerr errorlines are drawn.
@@ -1264,7 +1270,8 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPLinePlot: public JKQTFPPlot {
 
 
 /*! \brief a simple plot that draws a cross for every datapoint
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_PlotItems
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
 
     This class does not support y errors!
 */
@@ -1319,7 +1326,8 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPVCrossPlot: public JKQTFPLinePlot {
 
 
 /*! \brief a simple vertical bar plot for JKQTFastPlotter
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_PlotItems
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
 
     This class does not support y errors!
 */
@@ -1355,7 +1363,8 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPVBarPlot: public JKQTFPLinePlot {
 
 
 /*! \brief plot a range of x values
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_PlotItems
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
 
 */
 class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPXRangePlot: public JKQTFPPlot {
@@ -1483,7 +1492,7 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPXRangePlot: public JKQTFPPlot {
         {
             return this->showCenterline; 
         }
-    public slots:
+    public Q_SLOTS:
         void setCenterline(int centerline) {
             if (this->centerline!=centerline) {
                 this->centerline=centerline;
@@ -1519,7 +1528,8 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPXRangePlot: public JKQTFPPlot {
 
 
 /*! \brief plot a range of x values
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_PlotItems
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
 
 */
 class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPYRangePlot: public JKQTFPPlot {
@@ -1647,7 +1657,7 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPYRangePlot: public JKQTFPPlot {
         {
             return this->showCenterline; 
         }
-    public slots:
+    public Q_SLOTS:
         void setCenterline(int centerline) {
             if (this->centerline!=centerline) {
                 this->centerline=centerline;
@@ -1683,7 +1693,8 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPYRangePlot: public JKQTFPPlot {
 
 
 /*! \brief a plot of a QImage
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_PlotItems
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
 */
 class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPQImagePlot: public JKQTFPPlot {
         Q_OBJECT
@@ -1780,7 +1791,8 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPQImagePlot: public JKQTFPPlot {
 
 /*!
    \brief An enum for selecting the palette for coloring
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_tools
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
 
    Here, the color palettes are illustrated (left is the color for the minimum and right for the maximum).
  */
@@ -1807,7 +1819,8 @@ enum JKQTFPColorPalette {
 };
 
 /*! \brief datatype for an image plotpalette for coloring
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_tools
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
 
    Here, the color palettes are illustrated (left is the color for the minimum and right for the maximum).
  */
@@ -1823,7 +1836,8 @@ enum JKQTFPImageFormat {
 
 
 /*! \brief convert a 2D image (as 1D array) into a QImage with given palette (see JKQTFPColorPalette)
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_tools
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
 
     This method uses lookup tables which are saved as static variables to convert the 2D array into
     an image. The luts are only created once, and stored then, so mor CPU time is saved. The precompiler define
@@ -2343,24 +2357,28 @@ inline void JKQTFPimagePlot_array2image(T* dbl, int width, int height, QImage &i
 };
 
 /*! \brief get list with all available palettes
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_tools
     \see JKQTFPimagePlot_array2image()
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
  */
 JKQTFASTPLOTTER_LIB_EXPORT QStringList JKQTFPimagePlot_getPalettes();
 /*! \brief get QIcon representing the given palette
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_tools
     \see JKQTFPimagePlot_array2image()
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
 */
 JKQTFASTPLOTTER_LIB_EXPORT QIcon JKQTFPimagePlot_getPaletteIcon(int i);
 /*! \brief get QIcon representing the given palette
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_tools
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
     \see JKQTFPimagePlot_array2image()
 */
 JKQTFASTPLOTTER_LIB_EXPORT QIcon JKQTFPimagePlot_getPaletteIcon(JKQTFPColorPalette palette);
 
 
 /*! \brief plots a given grayscale image with a given color palette
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_PlotItems
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
 
       - This plot may plot any 2D array of data (8-, 16-, 32-bit integer images, float and double).
       - This class also draws a color bar in the right border of the plot
@@ -2566,7 +2584,7 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPimagePlot: public JKQTFPPlot {
             this->height=height;
             replot();
         }
-    public slots:
+    public Q_SLOTS:
         void setRotation(int rotation) {
             if (this->rotation!=rotation) {
                 this->rotation=rotation;
@@ -2629,7 +2647,8 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPimagePlot: public JKQTFPPlot {
 
 
 /*! \brief convert a 2D image (as 1D array) into a QImage and puts the image values into one color channel (set by \a channel).
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_tools
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
 
 */
 template <class T>
@@ -2731,7 +2750,8 @@ inline void JKQTFPRGBImageOverlayPlot_array2image(T* dbl, int width, int height,
 
 
 /*! \brief plots 1,2 or 3 given grayscale images as an overlay plot, where each channel is drawn as one color channel (e.g. red, green or blue).
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_PlotItems
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
 
       - This plot may plot any 2D array of data (8-, 16-, 32-bit integer images, float and double).
       - The images all have to have the same size
@@ -2785,7 +2805,7 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPRGBImageOverlayPlot: public JKQTFPPlot {
          */
         JKQTFPRGBImageOverlayPlot(JKQTFastPlotter* parent, void* imageRed, JKQTFPImageFormat imageFormat, int width, int height, double xmin, double xmax, double ymin, double ymax) ;
         JKQTFPRGBImageOverlayPlot(JKQTFastPlotter* parent, void* imageRed, JKQTFPImageFormat imageFormat, int width, int height);
-        JKQTFPRGBImageOverlayPlot(JKQTFastPlotter* parent);
+        explicit JKQTFPRGBImageOverlayPlot(JKQTFastPlotter* parent);
 
         /** \brief draw the graph */
         virtual void drawGraph(QPainter& painter) override;
@@ -2973,7 +2993,7 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPRGBImageOverlayPlot: public JKQTFPPlot {
         void setImage(void* imageRed, JKQTFPImageFormat imageFormatRed, int width, int height, double xmin, double xmax, double ymin, double ymax);
         void setImage(void* imageRed, JKQTFPImageFormat imageFormatRed, void* imageGreen, JKQTFPImageFormat imageFormatGreen, int width, int height, double xmin, double xmax, double ymin, double ymax);
         void setImage(void* imageRed, JKQTFPImageFormat imageFormatRed, void* imageGreen, JKQTFPImageFormat imageFormatGreen, void* imageBlue, JKQTFPImageFormat imageFormatBlue, int width, int height, double xmin, double xmax, double ymin, double ymax);
-    public slots:
+    public Q_SLOTS:
         inline void setRotation(int rotation) {
             if (this->rotation!=rotation) {
                 this->rotation=rotation;
@@ -3097,7 +3117,8 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPRGBImageOverlayPlot: public JKQTFPPlot {
 
 /*! \brief plots an image overlay, i.e. a boolean image where each \c true pixel is drawn with a given color
            and the \c false pixels are transparent
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_PlotItems
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
 
 */
 class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPimageOverlayPlot: public JKQTFPPlot {
@@ -3234,7 +3255,7 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPimageOverlayPlot: public JKQTFPPlot {
         inline QColor getColor() const { 
             return this->color; 
         }
-    public slots:
+    public Q_SLOTS:
         inline void setRotation(int rotation) {
             if (this->rotation!=rotation) {
                 this->rotation=rotation;
@@ -3252,7 +3273,8 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPimageOverlayPlot: public JKQTFPPlot {
 
 
 /*! \brief plot a horizontal scale bar
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_PlotItems
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
 
 */
 class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPQScaleBarXPlot: public JKQTFPPlot {
@@ -3366,7 +3388,7 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPQScaleBarXPlot: public JKQTFPPlot {
         {
             return this->position; 
         }
-    public slots:
+    public Q_SLOTS:
         void setPosition(int pos) {
             setPosition(static_cast<Position>(pos));
         }
@@ -3376,7 +3398,8 @@ class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPQScaleBarXPlot: public JKQTFPPlot {
 
 
 /*! \brief plot a horizontal scale bar
-    \ingroup jkqtfastplotter
+    \ingroup jkqtfastplotter_PlotItems
+    \deprecated The class JKQTFastPlotter and all its support classes are deprecated and will be removed in future versions.
 
 */
 class JKQTFASTPLOTTER_LIB_EXPORT JKQTFPQOverlayLinearGridPlot: public JKQTFPPlot {

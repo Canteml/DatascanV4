@@ -28,7 +28,8 @@
 // -- VectorFuncAScan
 
 VectorFuncAScan::VectorFuncAScan(VectorStd *p_pVectorStd, quint32 p_instance) : GenVectorFunc(QString("VectorFuncAScan%1").arg(p_instance), p_pVectorStd, ProtMsg::DEVICE_FUNC_ASCAN_0 + p_instance)
-{    
+{
+    qRegisterMetaType<VectorFuncAScan*>();
     m_pAScanWorker = new AScanWorker();
     m_ascan.m_source = p_instance;
     m_clearPipe = false;

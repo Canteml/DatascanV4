@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -17,6 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef jkqtpgraphsboxplotbase_H
+#define jkqtpgraphsboxplotbase_H
+
 
 #include <QString>
 #include <QPainter>
@@ -28,9 +31,6 @@
 #include "jkqtplotter/graphs/jkqtpboxplotstylingmixins.h"
 #include "jkqtplotter/jkqtpgraphsbasestylingmixins.h"
 
-#ifndef jkqtpgraphsboxplotbase_H
-#define jkqtpgraphsboxplotbase_H
-
 
 
 
@@ -38,7 +38,7 @@
 /** \brief Base class for graphs representing a series of <a href="http://en.wikipedia.org/wiki/Box_plot">boxplot</a>, elements
  *  \ingroup jkqtplotter_statgraphs
  *
- *  \image html plot_boxplotvertical.png
+ *  \image html JKQTPBoxplotVerticalGraph.png
  *
  *
  *  The different features of a boxplot are:
@@ -95,7 +95,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPBoxplotGraphBase: public JKQTPGraph, public JK
 
         /** \copydoc useRelativeBoxWidth */
         bool getUseRelativeBoxWidth() const;
-    public slots:
+    public Q_SLOTS:
         /** \brief set the color of the graph (colors all elements, based on the given color \a c ) */
         virtual void setColor(QColor c);
         /** \copydoc sortData */
@@ -181,7 +181,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPBoxplotGraphBase: public JKQTPGraph, public JK
 /** \brief Tbaseclass for a single <a href="http://en.wikipedia.org/wiki/Box_plot">(notched) boxplot</a> as a "geometric element",
  *         where the data is directly given to the object and not stored in a column, as in JKQTPBoxplotGraphBase
  *  \ingroup jkqtplotter_statgraphs
- *  \ingroup jkqtplotter_diverse
+ *  \ingroup jkqtplotter_statgraphs
  *
  *  The different features of a boxplot are:
  *
@@ -228,7 +228,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPBoxplotElementBase: public JKQTPPlotElement, p
 
         /** \copydoc medianConfidenceIntervalWidth */
         double getMedianConfidenceIntervalWidth() const;
-    public slots:
+    public Q_SLOTS:
         /** \brief set the color of the graph (colors all elements, based on the given color \a c ) */
         virtual void setColor(QColor c);
 

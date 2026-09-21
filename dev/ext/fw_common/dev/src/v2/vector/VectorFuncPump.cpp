@@ -23,6 +23,7 @@
 
 VectorFuncPump::VectorFuncPump(VectorStd *p_pVectorStd) : GenVectorFunc("VectorFuncPump", p_pVectorStd, ProtMsg::DEVICE_FUNC_PUMP)
 {
+    qRegisterMetaType<VectorFuncPump*>();
     connect(this, &VectorFuncPump::paramLPumpEnableChanged, this, &VectorFuncPump::onLPumpEnableChanged, Qt::DirectConnection);
     connect(this, &VectorFuncPump::paramLPumpLevelChanged, this, &VectorFuncPump::onLPumpLevelChanged, Qt::DirectConnection);
 }

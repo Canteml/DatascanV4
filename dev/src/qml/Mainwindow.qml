@@ -289,7 +289,10 @@ Item {
 
     Component.onCompleted: {
         checkMainMenuHovered();
-        updateCentralPage();
+        slCentral.currentIndex = 1;
+        Qt.callLater(function() {
+            updateCentralPage();
+        });
     }
 }
 

@@ -24,6 +24,7 @@
 VectorFuncInertialSensor::VectorFuncInertialSensor(VectorStd *p_pVectorStd) :
     GenVectorFunc("VectorFuncInertialSensor", p_pVectorStd, ProtMsg::DEVICE_FUNC_INERTIAL_SENSOR)
 {
+    qRegisterMetaType<VectorFuncInertialSensor*>();
     connect(this, &VectorFuncInertialSensor::paramDInertialSensorChanged, this, &VectorFuncInertialSensor::refreshDirection);
     connect(this, &VectorFuncInertialSensor::paramLHorizontalChanged, this, &VectorFuncInertialSensor::refreshDirection);
 }

@@ -15,11 +15,14 @@
 #include <v2/com/ComLinkManager.h>
 #include <v2/com/ComDeviceManager.h>
 #include <v2/prot/ProtMsg.h>
+#include <QMetaType>
 
 #define ALERT_TIMEOUT_MS 5000
 
 IntComMsg::IntComMsg(QObject *parent) :QObject(parent), Loggable("IntComMsg"), XmlProject("IntComMsg")
 {
+    qRegisterMetaType<ComDeviceManager*>("ComDeviceManager*");
+    qRegisterMetaType<ComLinkManager*>("ComLinkManager*");
     m_pComLinkManager = new ComLinkManager(this);
     m_pComDeviceManager = new ComDeviceManager(this, this);
 

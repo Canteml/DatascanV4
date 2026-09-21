@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger
+    Copyright (c) 2008-2024 Jan W. Krieger (jan@jkrieger.de)
 
 
 
@@ -71,17 +71,11 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPImageBase: public JKQTPGraph {
          */
         JKQTPImageBase(double x, double y, double width, double height, JKQTPlotter* parent);
         /** \brief plots a key marker inside the specified rectangle \a rect */
-        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
 
-        /** \brief get the maximum and minimum x-value of the graph
-         *
-         * The result is given in the two parameters which are call-by-reference parameters!
-         */
+        /** \copydoc JKQTPPlotElement::getXMinMax() */
         virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero) override;
-        /** \brief get the maximum and minimum y-value of the graph
-         *
-         * The result is given in the two parameters which are call-by-reference parameters!
-         */
+        /** \copydoc JKQTPPlotElement::getYMinMax() */
         virtual bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero) override;
         /** \brief returns the color to be used for the key label */
         virtual QColor getKeyLabelColor() const override;
@@ -94,7 +88,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPImageBase: public JKQTPGraph {
         double getWidth() const;
         /** \copydoc height */
         double getHeight() const;
-    public slots:
+    public Q_SLOTS:
 
         /** \copydoc x */
         void setX(double __value);
@@ -203,7 +197,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPMathImageBase: public JKQTPImageBase {
         JKQTPMathImageBase(double x, double y, double width, double height, JKQTPMathImageDataType datatype, const void* data, int Nx, int Ny, JKQTPlotter* parent);
 
         /** \brief plots a key marker inside the specified rectangle \a rect */
-        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
 
 		/** \copydoc Nx */
 		void setNx(int __value);
@@ -233,8 +227,6 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPMathImageBase: public JKQTPImageBase {
         virtual void setDatatypeModifier(JKQTPMathImageDataType __value);
         /** \copydoc datatypeModifier */
         virtual JKQTPMathImageDataType getDatatypeModifier() const;
-        /** \copydoc modifierMode */
-
         /** \brief sets dataModifier (\copybrief dataModifier ) and datatypeModifier (\copybrief datatypeModifier ) */
         virtual void setDataModifier(const void *data, JKQTPMathImageDataType datatype);
         /** \brief sets data (\copybrief data ) and datatype (\copybrief datatype ), as well as the size of data (Nx: \copybrief Nx and Ny: \copybrief Ny ) */
@@ -366,7 +358,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPImage: public JKQTPImageBase {
         virtual void draw(JKQTPEnhancedPainter& painter) override;
 
         /** \brief plots a key marker inside the specified rectangle \a rect */
-        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
 
         /** \brief copy an external image into an internally owned copy */
         virtual void setImage(const QImage& image);
@@ -409,7 +401,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPImage: public JKQTPImageBase {
         virtual void setParent(JKQTBasePlotter* parent) override;
         /** \copydoc JKQTPImageBase::setTitle() */
         virtual void setTitle(const QString& title) override;
-    public slots:
+    public Q_SLOTS:
         /** \brief saves the image (asking the user for a filename, if \a filename is empty)
          *
          * \param filename name of the file that should be create (if empty, a file save dialog is shown)
@@ -533,7 +525,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPMathImage: public JKQTPMathImageBase, public J
         inline double getModifierPixelValue(int xIdx, int yIdx) const;
 
         /** \brief plots a key marker inside the specified rectangle \a rect */
-        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
         /** \brief determine min/max data value of the image */
         virtual void cbGetDataMinMax(double& imin, double& imax) override;
         /** \brief determine min/max data value of the modifier image */
@@ -566,7 +558,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPMathImage: public JKQTPMathImageBase, public J
     public:
         /** \copydoc JKQTPImageBase::setTitle() */
         virtual void setTitle(const QString& title) override;
-    public slots:
+    public Q_SLOTS:
         /** \brief saves the image (asking the user for a filename, if \a filename is empty)
          *
          * \param filename name of the file that should be create (if empty, a file save dialog is shown)

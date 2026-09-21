@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger 
+    Copyright (c) 2008-2024 Jan W. Krieger (jan@jkrieger.de)
 
     
 
@@ -325,7 +325,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPRGBMathImage: public JKQTPMathImageBase {
         double getValueAt(double x, double y, int channel=0) ;
 
         /** \brief plots a key marker inside the specified rectangle \a rect */
-        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
 
     protected:
         void initObject();
@@ -466,7 +466,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPRGBMathImage: public JKQTPMathImageBase {
     public:
         /** \copydoc JKQTPImageBase::setTitle() */
         virtual void setTitle(const QString& title) override;
-    public slots:
+    public Q_SLOTS:
         /** \brief save the plotted image as a file with \a filename and format \a outputFormat */
         void saveImagePlotAsImage(const QString &filename=QString(""), const QByteArray &outputFormat=QByteArray());
         /** \brief copy the plotted image as an image into the clipboard */

@@ -2,7 +2,6 @@ import QtQuick 2.4
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
 import Design 1.0
-import QtGraphicalEffects 1.0
 import "../rp_components"
 
 Rectangle {
@@ -226,15 +225,13 @@ Rectangle {
 
             Text {
                 text: qsTr("Pression (bar) : ")
-                //visible: currentVector.funcPressureSensor0().isEnabled
-                visible: false
+                visible: currentVector.funcPressureSensor0().isEnabled
                 font.pointSize: 12
                 Layout.row: 5
             }
 
             Rectangle {
-                //visible: currentVector.funcPressureSensor0().isEnabled
-                visible: false
+                visible: currentVector.funcPressureSensor0().isEnabled
                 border.color: "#E5E5E5"
                 border.width: 1
 
@@ -255,16 +252,14 @@ Rectangle {
             Text {
                 id: idDepthType
                 text: "↳ " + currentVector.funcPressureSensor0().depthType + " : "
-                //visible: currentVector.funcPressureSensor0().isEnabled
-                visible: false
+                visible: currentVector.funcPressureSensor0().isEnabled
                 color: "#555555"
                 font.pointSize: 12
                 Layout.row: 6
             }
 
             Rectangle {
-                //visible: currentVector.funcPressureSensor0().isEnabled
-                visible: false
+                visible: currentVector.funcPressureSensor0().isEnabled
                 border.color: "#E5E5E5"
                 border.width: 1
 
@@ -284,8 +279,7 @@ Rectangle {
 
             Button {
                 id: idButtonTare
-                //visible: currentVector.funcPressureSensor0().isEnabled
-                visible: false
+                visible: currentVector.funcPressureSensor0().isEnabled
                 enabled: currentVector.funcPressureSensor0().hasReceivedMessage
                 text: qsTr("Tare")
                 font.pointSize: 12

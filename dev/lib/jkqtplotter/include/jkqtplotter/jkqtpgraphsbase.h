@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -18,6 +18,9 @@
 */
 
 
+#ifndef JKQTPGRAPHSBASE_H
+#define JKQTPGRAPHSBASE_H
+
 #include <QString>
 #include <QPainter>
 #include <QPair>
@@ -26,9 +29,6 @@
 #include "jkqtplotter/jkqtptools.h"
 #include "jkqtplotter/jkqtplotter_imexport.h"
 #include "jkqtplotter/jkqtpimagetools.h"
-
-#ifndef JKQTPGRAPHSBASE_H
-#define JKQTPGRAPHSBASE_H
 
 // forward declarations
 class JKQTPlotter;
@@ -42,7 +42,7 @@ class JKQTPGraphErrorStyleMixin;
  * Each possible graph is represented by a child of this class. So additional plots may be created by
  * deriving new JKQTPGraph classes. To do so implement/overwrite these functions:
  *   - void draw(JKQTPEnhancedPainter& painter);
- *   - void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect);
+ *   - void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect);
  *   - bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero);
  *   - bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero);
  *   - QColor getKeyLabelColor() const=0;
@@ -73,7 +73,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPPlotElement: public QObject {
         virtual void draw(JKQTPEnhancedPainter& painter)=0;
 
         /** \brief plots a key marker inside the specified rectangle \a rect */
-        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect)=0;
+        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect)=0;
 
         /** \brief returns an image with a key marker inside  */
         QImage generateKeyMarker(QSize size=QSize(16,16));
@@ -81,11 +81,21 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPPlotElement: public QObject {
         /** \brief get the maximum and minimum x-value of the graph
          *
          * The result is given in the two parameters which are call-by-reference parameters!
+         *
+         * \param[out] minx minimal x-value used in the graph
+         * \param[out] maxx maximal x-value used in the graph
+         * \param[out] smallestGreaterZero the smalles x-value in the graph, which is larger than 0 (this is used in auto-sizing for logarithmic axes)
+         * \return \c true on success, i.e. if there were datapoints in the plot, or \c false on failure (e.g. when the graph is empty)
          */
         virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero)=0;
         /** \brief get the maximum and minimum y-value of the graph
          *
          * The result is given in the two parameters which are call-by-reference parameters!
+         *
+         * \param[out] miny minimal y-value used in the graph
+         * \param[out] maxy maximal y-value used in the graph
+         * \param[out] smallestGreaterZero the smalles y-value in the graph, which is larger than 0 (this is used in auto-sizing for logarithmic axes)
+         * \return \c true on success, i.e. if there were datapoints in the plot, or \c false on failure (e.g. when the graph is empty)
          */
         virtual bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero)=0;
         /** \brief returns the color to be used for the key label */
@@ -110,7 +120,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPPlotElement: public QObject {
         Q_PROPERTY(bool visible READ isVisible WRITE setVisible)
         Q_PROPERTY(QString title READ getTitle WRITE setTitle)
         Q_PROPERTY(bool highlighted READ isHighlighted WRITE setHighlighted)
-    public slots:
+    public Q_SLOTS:
         /** \brief sets whether the graph is visible in the plot  */
         void setVisible(bool __value);
         /** \brief sets whether the graph is drawn in a highlighted style in the plot  */
@@ -165,22 +175,23 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPPlotElement: public QObject {
                     You can use JKQTPIsOKFloat() to check whether a valid distance was returned!
 
 
-            Since tha graph base class does not have any knowledge about how to perform a hit test on you specific graph, there is only a
+            Since the graph base class does not have any knowledge about how to perform a hit test on you specific graph, there is only a
             very general implementation in this class, which does not actually search through the graph itself, but searches through
             extra data that hs to be written during draw() and is stored in m_hitTestData. The implentation this base-class only searches this
             list of points+metadata to implement a basic hit-test. If the list is empty, of no close-by points are found (default), then
             hitTest() will simply return \a NAN.
 
             When writing a new graph, you can therefore implement hitTest() in one of these ways:
-               # You simply fill m_hitTestData with appropriate data and rely on the implementation in JKQTPPlotElement to do the work for you:
+            <ol>
+               <li> You simply fill m_hitTestData with appropriate data and rely on the implementation in JKQTPPlotElement to do the work for you:
                  You then need to call clearHitTestData() at the start of your draw() function and whenever you draw a datapoint, you add
                  its location and metadata to the internal storage with addHitTestData()
-               # You derive from a graph class that already has an implementation. JKQTPXYGraph is an example of this. That class searches
+               <li> You derive from a graph class that already has an implementation. JKQTPXYGraph is an example of this. That class searches
                  through all x-/y-coordinates in the internally known columns and even takes into account possible graph errors in the label,
                  when the graph is also derived from JKQTPXGraphErrorData or JKQTPYGraphErrorData. This implementation therefore covers
                  most graph types pre-packaged with JKQTPlotter
-               # You implement the function from scratch
-            .
+               <li> You implement the function from scratch
+            </ol>
 
             \see addHitTestData(), clearHitTestData(), m_hitTestData, HitTestLocation
 
@@ -207,16 +218,16 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPPlotElement: public QObject {
 
 
 
-        /** \brief tool routine that transforms an x-coordinate (plot coordinate --> pixels) for this plot element */
+        /** \brief tool routine that transforms an x-coordinate (plot coordinate --> pixels) for this plot element, uses the axis referenced in xAxisRef */
         double transformX(double x) const;
 
-        /** \brief tool routine that transforms a y-coordinate (plot coordinate --> pixels) for this plot element */
+        /** \brief tool routine that transforms a y-coordinate (plot coordinate --> pixels) for this plot element, uses the axis referenced in yAxisRef */
         double transformY(double y) const;
 
-        /** \brief tool routine that backtransforms an x-coordinate (pixels --> plot coordinate) for this plot element */
+        /** \brief tool routine that backtransforms an x-coordinate (pixels --> plot coordinate) for this plot element, uses the axis referenced in xAxisRef */
         double backtransformX(double x) const;
 
-        /** \brief tool routine that backtransforms a y-coordinate (pixels --> plot coordinate) for this plot element */
+        /** \brief tool routine that backtransforms a y-coordinate (pixels --> plot coordinate) for this plot element, uses the axis referenced in yAxisRef */
         double backtransformY(double y) const;
 
 
@@ -240,24 +251,44 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPPlotElement: public QObject {
         inline QPointF backTransform(double x, double y) const {
             return backTransform(QPointF(x,y));
         }
-        /** \brief tool routine that transforms a QVector<QPointF> according to the parent's transformation rules (plot coordinate --> pixels) */
-        QVector<QPointF> transform(const QVector<QPointF>& x) const;
+        /** \brief tool routine that transforms a QPolygonF according to the parent's transformation rules (plot coordinate --> pixels) */
+        QPolygonF transform(const QPolygonF& x) const;
 
-        /** \brief tool routine that transforms a QVector<QPointF> according to the parent's transformation rules
+        /** \brief tool routine that transforms a QPolygonF according to the parent's transformation rules
          *         and returns a (non-closed) path consisting of lines (plot coordinate --> pixels) */
-        QPainterPath transformToLinePath(const QVector<QPointF>& x) const;
+        QPainterPath transformToLinePath(const QPolygonF& x) const;
 
-        /** \brief tool routine that transforms a QVector<QPointF> according to the parent's transformation rules
-         *         and returns a polygon (plot coordinate --> pixels) */
-        inline QPolygonF transformToPolygon(const QVector<QPointF>& x) const {
-            return QPolygonF(transform(x));
-        }
 
         /** \brief transform all x-coordinates in a vector \a x */
         QVector<double> transformX(const QVector<double>& x) const;
         /** \brief transform all y-coordinates in a vector \a x */
         QVector<double> transformY(const QVector<double>& x) const;
 
+        /** \copydoc xAxisRef */
+        void setXAxis(JKQTPCoordinateAxisRef ref);
+        /** \copydoc xAxisRef */
+        JKQTPCoordinateAxisRef getXAxisRef() const;
+        /** \copydoc yAxisRef */
+        void setYAxis(JKQTPCoordinateAxisRef ref);
+        /** \copydoc yAxisRef */
+        JKQTPCoordinateAxisRef getYAxisRef() const;
+        /** \brief returns the actual x-Axis-object from the parent plotter, referenced in xAxisRef */
+        /** \brief returns the actual x-Axis-object from the parent plotter, referenced in xAxisRef */
+        inline const JKQTPCoordinateAxis* getXAxis() const {
+            return parent->getXAxis(xAxisRef);
+        }
+        /** \brief returns the actual y-Axis-object from the parent plotter, referenced in yAxisRef */
+        inline const JKQTPCoordinateAxis* getYAxis() const {
+            return parent->getYAxis(yAxisRef);
+        }
+        /** \brief set the coordinate axes to use for this plot element
+         *
+         *  \see xAxisRef, yAxisRef, transformX(), transformY()
+         */
+        void setAxes(JKQTPCoordinateAxisRef ref);
+
+        Q_PROPERTY(JKQTPCoordinateAxisRef xAxisRef READ getXAxisRef WRITE setXAxis)
+        Q_PROPERTY(JKQTPCoordinateAxisRef yAxisRef READ getYAxisRef WRITE setYAxis)
 
     protected:
 
@@ -306,7 +337,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPPlotElement: public QObject {
          *
          *  \see hitTest(), clearHitTestData(), m_hitTestData, HitTestLocation, reserveHitTestData()
          */
-        inline void addHitTestData(double x_, double y_, int index_=-1, JKQTPDatastore* datastore=nullptr) { addHitTestData(HitTestLocation(x_,y_,formatHitTestDefaultLabel(x_,y_, index_, datastore))); }
+        inline void addHitTestData(double x_, double y_, int index_=-1, const JKQTPDatastore* datastore=nullptr) { addHitTestData(HitTestLocation(x_,y_,formatHitTestDefaultLabel(x_,y_, index_, datastore))); }
         /** \brief clear the internal datastore for hitTest(),
          *         this variant uses formatHitTestDefaultLabel() to auto-generate the label
          *
@@ -316,7 +347,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPPlotElement: public QObject {
          *
          *  \see hitTest(), clearHitTestData(), m_hitTestData, HitTestLocation, reserveHitTestData()
          */
-        inline void addHitTestData(const QPointF& pos_, int index_=-1, JKQTPDatastore* datastore=nullptr) { addHitTestData(HitTestLocation(pos_,formatHitTestDefaultLabel(pos_.x(), pos_.y(), index_, datastore))); }
+        inline void addHitTestData(const QPointF& pos_, int index_=-1, const JKQTPDatastore* datastore=nullptr) { addHitTestData(HitTestLocation(pos_,formatHitTestDefaultLabel(pos_.x(), pos_.y(), index_, datastore))); }
         /** \brief clear the internal datastore for hitTest()
          *
          *  \param x_ x-position of the graph point in system coordinates
@@ -346,8 +377,11 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPPlotElement: public QObject {
          * \param datastore The datastore to read error data from (optional!)
          * \returns a LaTeX formatted label
          */
-        virtual QString formatHitTestDefaultLabel(double x, double y, int index=-1, JKQTPDatastore *datastore=nullptr) const;
-
+        virtual QString formatHitTestDefaultLabel(double x, double y, int index=-1, const JKQTPDatastore *datastore=nullptr) const;
+        /** \brief converts a x-value \a v into a string, taking into account the type of x-axis */
+        QString xFloatToString(double v, int past_comma=-1) const;
+        /** \brief converts a x-value \a v into a string, taking into account the type of x-axis */
+        QString yFloatToString(double v, int past_comma=-1) const;
         /** \brief the plotter object this object belongs to */
         JKQTBasePlotter* parent;
 
@@ -360,9 +394,14 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPPlotElement: public QObject {
         bool highlighted;
         /** \brief internal storage for the used parent plot style */
         int parentPlotStyle;
+        /** \brief indicates which coordinate axis to use for coordinate transforms in x-direction */
+        JKQTPCoordinateAxisRef xAxisRef;
+        /** \brief indicates which coordinate axis to use for coordinate transforms in y-direction */
+        JKQTPCoordinateAxisRef yAxisRef;
 
 
-        /** \brief dataset with graph-points and associated data fro the function hitTest()
+
+        /** \brief dataset with graph-points and associated data from the function hitTest()
          * \see hitTest(), HitTestLocation
          */
         QVector<HitTestLocation> m_hitTestData;
@@ -473,7 +512,7 @@ public:
     DrawMode getDrawMode() const;
 
     Q_PROPERTY(DrawMode drawMode READ getDrawMode WRITE setDrawMode)
-public slots:
+public Q_SLOTS:
     /** \copybrief m_drawMode
          *
          *  \param mode the DrawMode to use from now on
@@ -518,7 +557,7 @@ public:
     /** \brief default wirtual destructor */
     virtual ~JKQTPPlotAnnotationElement() ;
 
-public slots:
+public Q_SLOTS:
 
 protected:
 
@@ -564,15 +603,9 @@ public:
     /** \brief class constructor */
     JKQTPXYGraph(JKQTBasePlotter* parent=nullptr);
 
-    /** \brief get the maximum and minimum x-value of the graph
-     *
-     * The result is given in the two parameters which are call-by-reference parameters!
-     */
+    /** \copydoc JKQTPPlotElement::getXMinMax() */
     virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero) override;
-    /** \brief get the maximum and minimum y-value of the graph
-     *
-     * The result is given in the two parameters which are call-by-reference parameters!
-     */
+    /** \copydoc JKQTPPlotElement::getYMinMax() */
     virtual bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero) override;
 
     /** \copydoc JKQTPGraph::usesColumn() */
@@ -584,6 +617,10 @@ public:
     int getYColumn() const;
     /** \copydoc sortData */
     DataSortOrder getDataSortOrder() const;
+    /** \brief returns the column used as "key" for the current graph (typically this call getXColumn(), but for horizontal graphs like filled curves or barcharts it may call getYColumn() ) */
+    virtual int getKeyColumn() const;
+    /** \brief returns the column used as "value" for the current graph (typically this call getXColumn(), but for horizontal graphs like filled curves or barcharts it may call getYColumn() ) */
+    virtual int getValueColumn() const;
 
     Q_PROPERTY(DataSortOrder sortData READ getDataSortOrder WRITE setDataSortOrder)
     Q_PROPERTY(int xColumn READ getXColumn WRITE setXColumn)
@@ -600,15 +637,17 @@ public:
      * \see See JKQTPPlotElement::hitTest() for details on the function definition!
      */
     virtual double hitTest(const QPointF &posSystem, QPointF* closestSpotSystem=nullptr, QString* label=nullptr, HitTestMode mode=HitTestXY) const override;
-public slots:
+public Q_SLOTS:
     /** \brief sets xColumn and yColumn at the same time */
     void setXYColumns(size_t xCol, size_t yCol);
     /** \brief sets xColumn and yColumn at the same time */
     void setXYColumns(int xCol, int yCol);
+#if QT_VERSION<QT_VERSION_CHECK(6,0,0)
     /** \brief sets xColumn and yColumn at the same time */
     void setXYColumns(std::pair<int,int> xyColPair);
     /** \brief sets xColumn and yColumn at the same time */
     void setXYColumns(std::pair<size_t,size_t> xyColPair);
+#endif
     /** \brief sets xColumn and yColumn at the same time */
     void setXYColumns(QPair<int,int> xyColPair);
     /** \brief sets xColumn and yColumn at the same time */
@@ -625,6 +664,10 @@ public slots:
     void setYColumn(int __value);
     /** \copydoc yColumn */
     void setYColumn (size_t __value);
+    /** \brief sets the column used as "key" for the current graph (typically this call setXColumn(), but for horizontal graphs like filled curves or barcharts it may call setYColumn() ) */
+    virtual void setKeyColumn(int __value);
+    /** \brief sets the column used as "value" for the current graph (typically this call setXColumn(), but for horizontal graphs like filled curves or barcharts it may call setYColumn() ) */
+    virtual void setValueColumn(int __value);
 protected:
 
     /** \brief the column that contains the x-component of the datapoints */
@@ -677,17 +720,29 @@ public:
     double getBaseline() const;
 
     Q_PROPERTY(double baseline READ getBaseline WRITE setBaseline)
-public slots:
+public Q_SLOTS:
     /** \copydoc m_baseline */
     void setBaseline(double __value);
 
 protected:
+    /** \brief can be called by JKQTPGraph::getXMinMax() or JKQTPGraph::getYMinMax() calculates min/max/... for data from the given column, including the baseline */
+    bool getMinMaxWithBaseline(int dataColumn, double &minv, double &maxv, double &smallestGreaterZero);
+    /** \brief can be called by JKQTPGraph::getXMinMax() or JKQTPGraph::getYMinMax() calculates min/max/... for data from the given column, including the baseline and an optional error */
+    bool getMinMaxWithErrorsAndBaseline(int dataColumn, int errorColumn, int errorColumnLower, bool errorSymmetric, double &minv, double &maxv, double &smallestGreaterZero);
+
 
     /** \brief baseline of the plot (NOTE: 0 is interpreted as until plot border in log-mode!!!)
      *
      * \image html impulsesplot_baseline.png
      */
     double m_baseline;
+
+private:
+    /** \brief returns the upper error for the i-th datapoint, read from datastore \a ds */
+    double getErrorU(int i, const JKQTPDatastore* ds, int xErrorColumn) const;
+    /** \brief returns the lower error for the i-th datapoint, read from datastore \a ds */
+    double getErrorL(int i, const JKQTPDatastore *ds, int xErrorColumn, int xErrorColumnLower, bool xErrorSymmetric) const;
+
 };
 
 
@@ -704,10 +759,7 @@ public:
     JKQTPXYYGraph(JKQTBasePlotter* parent=nullptr);
 
 
-    /** \brief get the maximum and minimum y-value of the graph
-     *
-     * The result is given in the two parameters which are call-by-reference parameters!
-     */
+    /** \copydoc JKQTPPlotElement::getYMinMax() */
     virtual bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero) override;
 
     /** \copydoc JKQTPGraph::usesColumn() */
@@ -715,12 +767,14 @@ public:
 
     /** \copydoc yColumn2 */
     int getYColumn2() const;
+    /** \brief returns the column used as secondary "value" for the current graph (typically this call getXColumn(), but for horizontal graphs like filled curves or barcharts it may call getYColumn() ) */
+    virtual int getValue2Column() const;
 
     /** \copydoc JKQTPXYGraph::hitTest() */
     virtual double hitTest(const QPointF &posSystem, QPointF* closestSpotSystem=nullptr, QString* label=nullptr, HitTestMode mode=HitTestXY) const override;
 
     Q_PROPERTY(int yColumn2 READ getYColumn2 WRITE setYColumn2)
-public slots:
+public Q_SLOTS:
     /** \brief sets xColumn, yColumn and yColumn2 at the same time */
     void setXYYColumns(size_t xCol, size_t yCol, size_t y2Col);
     /** \brief sets xColumn, yColumn and yColumn2 at the same time */
@@ -731,6 +785,8 @@ public slots:
     void setYColumn2(int __value);
     /** \copydoc yColumn2 */
     void setYColumn2(size_t __value);
+    /** \brief sets the column used as secondary "value" for the current graph (typically this call setXColumn(), but for horizontal graphs like filled curves or barcharts it may call setYColumn() ) */
+    virtual void setValue2Column(int __value);
 protected:
 
     /** \brief the column that contains the second y-component of the datapoints */
@@ -761,10 +817,7 @@ public:
     JKQTPXXYGraph(JKQTBasePlotter* parent=nullptr);
 
 
-    /** \brief get the maximum and minimum x-value of the graph
-     *
-     * The result is given in the two parameters which are call-by-reference parameters!
-     */
+    /** \copydoc JKQTPPlotElement::getXMinMax() */
     virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero) override;
 
     /** \copydoc JKQTPGraph::usesColumn() */
@@ -772,22 +825,26 @@ public:
 
     /** \copydoc xColumn2 */
     int getXColumn2() const;
+    /** \brief returns the column used as "key" for the current graph (typically this call getXColumn(), but for horizontal graphs like filled curves or barcharts it may call getYColumn() ) */
+    virtual int getKey2Column() const;
 
     /** \copydoc JKQTPXYGraph::hitTest() */
     virtual double hitTest(const QPointF &posSystem, QPointF* closestSpotSystem=nullptr, QString* label=nullptr, HitTestMode mode=HitTestXY) const override;
 
     Q_PROPERTY(int xColumn2 READ getXColumn2 WRITE setXColumn2)
-public slots:
+public Q_SLOTS:
     /** \brief sets xColumn, yColumn and xColumn2 at the same time */
     void setXXYColumns(size_t xCol, size_t x2Col, size_t yCol);
     /** \brief sets xColumn, yColumn and xColumn2 at the same time */
     void setXXYColumns(int xCol, int x2Col, int yCol);
 
 
-    /** \copydoc yColumn2 */
+    /** \copydoc xColumn2 */
     void setXColumn2(int __value);
-    /** \copydoc yColumn2 */
+    /** \copydoc xColumn2 */
     void setXColumn2(size_t __value);
+    /** \brief sets the column used as "key" for the current graph (typically this call setXColumn(), but for horizontal graphs like filled curves or barcharts it may call setYColumn() ) */
+    virtual void setKey2Column(int __value);
 protected:
 
     /** \brief the column that contains the second y-component of the datapoints */
@@ -857,7 +914,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPSingleColumnGraph: public JKQTPGraph {
         Q_PROPERTY(int dataColumn READ getDataColumn WRITE setDataColumn)
         Q_PROPERTY(DataDirection dataDirection READ getDataDirection WRITE setDataDirection)
 
-    public slots:
+    public Q_SLOTS:
         /** \copydoc dataColumn */
         void setDataColumn(int __value);
         /** \copydoc dataColumn */
@@ -903,5 +960,239 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPSingleColumnGraph: public JKQTPGraph {
 
 
 
+/** \brief This virtual JKQTPGraph descendent extends JKQTPXYGraph with two additional columns that encode for a vector starting at (x,y), i.e. either two distances along the x- and y-axis (\f$ \Delta x, \Delta y \f$), or a rotation angle \f$ \alpha \f$ and a vector length \f$ \l \f$ .
+ *  \ingroup jkqtplotter_basegraphs
+ *
+ *  \see JKQTPVectorFieldGraph, JKQTPParametrizedVectorFieldGraph
+ */
+class JKQTPLOTTER_LIB_EXPORT JKQTPXYAndVectorGraph: public JKQTPXYGraph {
+    Q_OBJECT
+public:
+    /** \brief values from this enum indicates how to interpret the data columns provided to this graph */
+    enum VectorDataLayout {
+        DeltaXDeltaYLayout,   //!< \brief Data is given in the form of two vector components (along x- and y-axis)
+        AngleAndLengthLayout, //!< \brief Data is given in the form of an angle and a length that describe the vector together
+
+        DefaultVectorDataLayout=DeltaXDeltaYLayout,
+    };
+    Q_ENUM(VectorDataLayout)
+
+    /** \brief class constructor */
+    JKQTPXYAndVectorGraph(JKQTBasePlotter* parent=nullptr);
+
+
+    /** \copydoc JKQTPPlotElement::getXMinMax() */
+    virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero) override;
+    /** \copydoc JKQTPPlotElement::getYMinMax() */
+    virtual bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero) override;
+
+    /** \copydoc JKQTPGraph::usesColumn() */
+    virtual bool usesColumn(int column) const override;
+
+    /** \copydoc dxColumn */
+    int getDxColumn() const;
+    /** \copydoc dyColumn */
+    int getDyColumn() const;
+    /** \copydoc angleColumn */
+    int getAngleColumn() const;
+    /** \copydoc lengthColumn */
+    int getLengthColumn() const;
+    /** \copydoc vectorDataLayout */
+    VectorDataLayout getVectorDataLayout() const;
+
+    /** \copydoc JKQTPXYGraph::hitTest() */
+    virtual double hitTest(const QPointF &posSystem, QPointF* closestSpotSystem=nullptr, QString* label=nullptr, HitTestMode mode=HitTestXY) const override;
+    /** \copydoc JKQTPXYGraph::formatHitTestDefaultLabel() */
+    virtual QString formatHitTestDefaultLabel(double x, double y, int index=-1, const JKQTPDatastore *datastore=nullptr) const override;
+
+    Q_PROPERTY(VectorDataLayout vectorDataLayout READ getVectorDataLayout)
+    Q_PROPERTY(int dxColumn READ getDxColumn WRITE setDxColumn)
+    Q_PROPERTY(int dyColumn READ getDyColumn WRITE setDyColumn)
+    Q_PROPERTY(int angleColumn READ getAngleColumn WRITE setAngleColumn)
+    Q_PROPERTY(int lengthColumn READ getLengthColumn WRITE setLengthColumn)
+public Q_SLOTS:
+    /** \copydoc dxColumn */
+    void setDxColumn(int col);
+    /** \copydoc dyColumn */
+    void setDyColumn(int col) ;
+    /** \brief det dxColumn and dyColumn column at the same time! ALso ensures that vectorDataLayout is set accordingly.
+     *
+     *  \see dxColumn, dyColumn
+     */
+    void setDxDyColumn(int colDx, int colDy) ;
+    /** \copydoc angleColumn */
+    void setAngleColumn(int col) ;
+    /** \brief det angleColumn and lengthColumn column at the same time! ALso ensures that vectorDataLayout is set accordingly.
+     *
+     *  \see angleColumn, lengthColumn
+     */
+    void setAngleAndLengthColumn(int colAngle, int colLength) ;
+    /** \copydoc lengthColumn */
+    void setLengthColumn(int col) ;
+protected:
+    /** \brief calculates the magnitude/length of a vector \a v */
+    static inline double getVectorMagnitude(const QPointF& v) {
+        return sqrt(jkqtp_sqr(v.x())+jkqtp_sqr(v.y()));
+    }
+    inline double getVectorMagnitude(int i) const {
+        return getVectorMagnitude(getVectorDxDy(i));
+    }
+    /** \brief calculates the rotation angle (3 o'clock is 0) in radians \f$ [0...2\pi] \f$ of a vector \a v */
+    static inline double getVectorAngle(const QPointF& v) {
+        double colValue=atan2(v.y(),v.x());
+        if (colValue<0) colValue=2.0*JKQTPSTATISTICS_PI+colValue;
+        return colValue;
+    }
+    inline double getVectorAngle(int i) const {
+        return getVectorAngle(getVectorDxDy(i));
+    }
+    /** \brief this function interprets vectorDataLayout together with (dxColumn, dyColumn) or (angleColumn, lengthColumn) or ... and returns the \a i -th vectors \f$ \Delta x, \Delta y \f$ */
+    QPointF getVectorDxDy(int i) const;
+
+    /** \brief indicates, which column pairs to use (dxColumn, dyColumn), (angleColumn, lengthColumn), ... */
+    VectorDataLayout vectorDataLayout;
+    /** \brief the column that contains the delta along the x-axis.
+     *
+     *  \note Note that this column is only used, when vectorDataLayout is set accordingly to DeltaXDeltaYLayout!
+     *        Also note that Setter-functions (e.g. setDxColumn() ) will ensure that vectorDataLayout is set accordingly.
+     *
+     *  \see setDxColumn(), setDyColumn(), setDxDyColumn(), getDxColumn(), getDyColumn()
+     */
+    int dxColumn;
+    /** \brief the column that contains the delta along the y-axis.
+     *
+     *  \note Note that this column is only used, when vectorDataLayout is set accordingly to DeltaXDeltaYLayout!
+     *        Also note that Setter-functions (e.g. setDyColumn() ) will ensure that vectorDataLayout is set accordingly.
+     *
+     *  \see setDxColumn(), setDyColumn(), setDxDyColumn(), getDxColumn(), getDyColumn()
+     */
+    int dyColumn;
+    /** \brief the column that contains the rotation angle [in radian]
+     *
+     *  An angle of 0 means a right-pointing vector and angle is measured count-clockwise,
+     *  so angle \f$ \alpha \f$ and length \f$ l \f$ can be converted to \f$ \Delta x, \Delta y \f$ via:
+     *    \f[ \Delta x = l\cdot \cos\alpha \f]
+     *    \f[ \Delta y = l\cdot \sin\alpha \f]
+     *  Note that these calculations are performed in the coordinate-axis-space, NOT in screen pixel space!
+     *
+     *  \note Note that this column is only used, when vectorDataLayout is set accordingly to AngleAndLengthLayout!
+     *        Also note that Setter-functions (e.g. setAngleColumn() ) will ensure that vectorDataLayout is set accordingly.
+     *
+     *  \see setAngleColumn(), setLengthColumn(), getAngleColumn(), getLengthColumn()
+     */
+    int angleColumn;
+    /** \brief the column that contains the vector length
+     *
+     *  \copydetails angleColumn
+     */
+    int lengthColumn;
+
+
+    /** \brief determines the range of row indexes available in the data columns of this graph
+     *
+     * \param[out] imin first usable row-index
+     * \param[out] imax last usable row-index
+     *  \return \c true on success and \c false if the information is not available
+     */
+    virtual bool getIndexRange(int &imin, int &imax) const override;
+};
+
+
+
+/** \brief This virtual JKQTPGraph descendent may be used as base for all graphs that use at least one column
+ *         that specifies x coordinates for the single plot points.
+ *  \ingroup jkqtplotter_basegraphs
+ *
+ *  This class implements basic management facilities for the data columns:
+ *    - setXColumn() to set the columns to be used for the graph data
+ *    - setDataSortOrder() to specify whether and how the data should be sorted before drawing
+ *      \image html jkqtplotter_unsorted.png "Unsorted Data"
+ *      \image html jkqtplotter_sortedx.png "Data sorted along x-axis (DataSortOrder::SortedX)"
+ *  .
+ *
+ *  ... and overrides/implements the functions:
+ *    - getXMinMax()
+ *    - usesColumn()
+ *  .
+ *
+ */
+class JKQTPLOTTER_LIB_EXPORT JKQTPXGraph: public JKQTPGraph {
+    Q_OBJECT
+public:
+    /** \brief specifies how to sort the data in a JKQTPXGraph before drawing
+     *
+     * \image html jkqtplotter_unsorted.png "Unsorted Data"
+     *
+     * \image html jkqtplotter_sortedx.png "Data sorted along x-axis (DataSortOrder::SortedX)"
+     */
+    enum DataSortOrder {
+        Unsorted=0, /*!< \brief the data for a JKQTPXYGraph is not sorted before drawing */
+        SortedX=1, /*!< \brief the data for a JKQTPXYGraph is sorted so the x-values appear in ascending before drawing */
+    };
+    Q_ENUM(DataSortOrder)
+
+
+    /** \brief class constructor */
+    JKQTPXGraph(JKQTBasePlotter* parent=nullptr);
+
+    /** \copydoc JKQTPGraph::getXMinMax() */
+    virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero) override;
+
+    /** \copydoc JKQTPGraph::usesColumn() */
+    virtual bool usesColumn(int column) const override;
+
+    /** \copydoc xColumn */
+    int getXColumn() const;
+    /** \copydoc sortData */
+    DataSortOrder getDataSortOrder() const;
+    /** \brief returns the column used as "key" for the current graph (typically this call getXColumn(), but for horizontal graphs like filled curves or barcharts it may call getYColumn() ) */
+    virtual int getKeyColumn() const;
+
+    Q_PROPERTY(DataSortOrder sortData READ getDataSortOrder WRITE setDataSortOrder)
+    Q_PROPERTY(int xColumn READ getXColumn WRITE setXColumn)
+
+
+public Q_SLOTS:
+    /** \copydoc sortData */
+    void setDataSortOrder(int __value);
+    /** \copydoc sortData */
+    void setDataSortOrder(DataSortOrder  __value);
+    /** \copydoc xColumn */
+    void setXColumn(int __value);
+    /** \copydoc xColumn */
+    void setXColumn (size_t __value);
+    /** \brief sets the column used as "key" for the current graph (typically this call setXColumn(), but for horizontal graphs like filled curves or barcharts it may call setYColumn() ) */
+    virtual void setKeyColumn(int __value);
+protected:
+
+    /** \brief the column that contains the x-component of the datapoints */
+    int xColumn;
+
+    /** \brief if \c !=Unsorted, the data is sorted before plotting */
+    DataSortOrder sortData;
+    /** \brief this array contains the order of indices, in which to access the data in the data columns */
+    QVector<int> sortedIndices;
+    /** \brief sorts data according to the specified criterion in \a sortData ... The result is stored as a index-map in sorted Indices */
+    virtual void intSortData();
+    /** \brief returns the index of the i-th datapoint (where i is an index into the SORTED datapoints)
+     *
+     * This function can beu used to get the correct datapoint after sorting the datapoints,
+     * As sorting is done by sorting an index and not reordering the data in the columns themselves.
+     *
+     * \see setDataSortOrder(), getDataSortOrder()
+     * */
+    inline int getDataIndex(int i) const {
+        if (sortData==Unsorted) return i;
+        return sortedIndices.value(i,i);
+    }
+
+    /** \brief determines the range of row indexes available in the data columns of this graph
+     *
+     * \param[out] imin first usable row-index
+     * \param[out] imax last usable row-index
+     *  \return \c true on success and \c false if the information is not available
+     */
+    virtual bool getIndexRange(int &imin, int &imax) const;
+};
 
 #endif // JKQTPGRAPHSBASE_H

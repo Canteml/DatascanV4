@@ -15,10 +15,13 @@
 // -- Internal includes
 #include <v2/prot/ProtMsg.h>
 #include <xml/XmlProject.h>
-#include <v2/vector/VectorStd.h>
+#include "ComDevice.h"
 class VectorStd;
 class ComDevice;
 class GenComLink;
+
+Q_DECLARE_OPAQUE_POINTER(GenComLink*)
+Q_DECLARE_METATYPE(GenComLink*)
 
 // -- Qt includes
 #include <qqml.h>
@@ -83,6 +86,7 @@ protected :
 
     virtual void onDeviceConnected(); ///< read device parameters when a device is just connected (called only for Ground Station)
 
+    bool isVectorMpc() const;
 
     quint32 m_funcId;
     bool m_isEnabled;
@@ -127,7 +131,7 @@ protected :
             ProtMsg * pMsg = nullptr; \
             if( !p_isEcho ) { \
                 pMsg = newMsgParam(ProtMsg::MSG_TYPE_PARAM_SET, ProtMsg::MSG_PARAM); \
-            } else if( (!m_pVectorStd->isMpc()) && p_isEcho ) { \
+            } else if( (!isVectorMpc()) && p_isEcho ) { \
                 pMsg = newMsgParam(ProtMsg::MSG_TYPE_PARAM_VALUE, ProtMsg::MSG_PARAM); \
             } \
             if( nullptr != pMsg ) { \

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2020-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2020-2022 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -18,6 +18,9 @@
 */
 
 
+#ifndef jkqtpevaluatedparametriccurve_H
+#define jkqtpevaluatedparametriccurve_H
+
 
 #include <QString>
 #include <QPainter>
@@ -28,9 +31,6 @@
 #include "jkqtcommon/jkqtpgeometrytools.h"
 #include "jkqtplotter/graphs/jkqtpevaluatedfunctionbase.h"
 #include <functional>
-
-#ifndef jkqtpevaluatedparametriccurve_H
-#define jkqtpevaluatedparametriccurve_H
 
 
 /** \brief Base class for line plots where the data is taken from a user supplied function \f$ [x,y]=f(t) \f$
@@ -74,7 +74,7 @@ public:
     /** \brief plots the graph to the plotter object specified as parent */
     virtual void draw(JKQTPEnhancedPainter& painter) override;
     /** \brief plots a key marker inside the specified rectangle \a rect */
-    virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+    virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
     /** \brief returns the color to be used for the key label */
     virtual QColor getKeyLabelColor() const override;
 
@@ -86,7 +86,7 @@ public:
     /** \copydoc tmax */
     double getTMax() const;
 
-public slots:
+public Q_SLOTS:
     /** \copydoc tmin */
     void setTMin(double val);
     /** \copydoc tmax */
@@ -137,7 +137,7 @@ typedef std::function<QPointF(double)> jkqtpSimpleParametricCurveFunctionType;
   *
   * The following image shows a Lissajou's fugure drawn with this function
   *
-  * \image html plot_evalcurve.png
+  * \image html JKQTPXYFunctionLineGraph.png
   *
   * The source code for this example is:
   * \code

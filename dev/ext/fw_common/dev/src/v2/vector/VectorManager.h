@@ -16,6 +16,9 @@
 #include <xml/XmlSettingsLoggable.h>
 class VectorStd;
 
+Q_DECLARE_OPAQUE_POINTER(VectorStd*)
+Q_DECLARE_METATYPE(VectorStd*)
+
 // -- Qt includes
 #include <QObject>
 #include <qqml.h>

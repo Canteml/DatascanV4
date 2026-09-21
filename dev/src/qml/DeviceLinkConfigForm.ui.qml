@@ -75,9 +75,6 @@ Item {
             font.pixelSize: 14
             horizontalAlignment: Text.AlignRight
             visible: idCbLinkType.currentIndex === 1
-            validator: RegExpValidator {
-                regExp: /((25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)(\.|$)){4}/
-            }
         }
 
         Button {

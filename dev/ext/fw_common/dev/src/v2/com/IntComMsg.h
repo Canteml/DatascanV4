@@ -22,11 +22,16 @@ class ComDeviceManager;
 class ComLinkManager;
 class ComDevice;
 
+Q_DECLARE_OPAQUE_POINTER(ComDeviceManager*)
+Q_DECLARE_METATYPE(ComDeviceManager*)
+
 // -- Qt includes
 #include <QObject>
 #include <QTimer>
 #include <qqml.h>
 
+Q_DECLARE_OPAQUE_POINTER(ComLinkManager*)
+Q_DECLARE_METATYPE(ComLinkManager*)
 /**
  * @brief The IntComMsg class
  *

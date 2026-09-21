@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -17,9 +17,13 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef JKQTPGRAPHSSTATISTICSADAPTORS_H_INCLUDED
+#define JKQTPGRAPHSSTATISTICSADAPTORS_H_INCLUDED
+
+
 
 #include "jkqtplotter/jkqtplotter_imexport.h"
-#include "jkqtcommon/jkqtpstatisticstools.h"
+#include "jkqtmath/jkqtpstatisticstools.h"
 #include "jkqtcommon/jkqtpdebuggingtools.h"
 #include "jkqtplotter/jkqtpgraphsbase.h"
 #include "jkqtplotter/jkqtpgraphsbaseerrors.h"
@@ -33,10 +37,6 @@
 #include "jkqtplotter/graphs/jkqtpimpulses.h"
 #include "jkqtplotter/graphs/jkqtpfilledcurve.h"
 #include "jkqtplotter/graphs/jkqtpviolinplot.h"
-
-
-#ifndef JKQTPGRAPHSSTATISTICSADAPTORS_H_INCLUDED
-#define JKQTPGRAPHSSTATISTICSADAPTORS_H_INCLUDED
 
 /*! \brief add a JKQTPBoxplotHorizontalElement to the given plotter, where the boxplot values are calculated from the data range \a first ... \a last
     \ingroup jkqtptools_math_statistics_adaptors
@@ -1996,7 +1996,7 @@ JKQTPLOTTER_LIB_EXPORT JKQTPXFunctionLineGraph* jkqtpstatAddLinearWeightedRegres
         jkqtpstatRegression(plot1->getPlotter(), JKQTPStatRegressionModelType::Exponential, datastore1->begin(colLinX), datastore1->end(colLinX), datastore1->begin(colLinY), datastore1->end(colLinY));
     \endcode
 
-    \image html datastore_regression_nonlinreg.png
+    \image html datastore_regression_nonlinreg_exp.png
 
     \see \ref JKQTPlotterBasicJKQTPDatastoreRegression, jkqtpstatRegression()
 */
@@ -2038,7 +2038,7 @@ inline JKQTPXFunctionLineGraph* jkqtpstatAddRegression(JKQTBasePlotter* plotter,
         jkqtpstatRegression(graphD, JKQTPStatRegressionModelType::Exponential);
     \endcode
 
-    \image html datastore_regression_nonlinreg.png
+    \image html datastore_regression_nonlinreg_exp.png
 
     \note The line graph is added to the same plotter that is the parent of \a datagraph !
 
@@ -2227,7 +2227,6 @@ JKQTPLOTTER_LIB_EXPORT JKQTPXFunctionLineGraph* jkqtpstatAddWeightedRegression(J
     \tparam InputItY standard iterator type of \a firstY and \a lastY.
     \tparam OutputItP output iterator for the polynomial coefficients
     \param plotter the plotter to which to add the resulting graph
-    \param type model to be fitted
     \param firstX iterator pointing to the first item in the x-dataset to use \f$ x_1 \f$
     \param lastX iterator pointing behind the last item in the x-dataset to use \f$ x_N \f$
     \param firstY iterator pointing to the first item in the y-dataset to use \f$ y_1 \f$
@@ -2264,7 +2263,6 @@ inline JKQTPXFunctionLineGraph* jkqtpstatAddPolyFit(JKQTBasePlotter* plotter, In
     \tparam InputItX standard iterator type of \a firstX and \a lastX.
     \tparam InputItY standard iterator type of \a firstY and \a lastY.
     \param plotter the plotter to which to add the resulting graph
-    \param type model to be fitted
     \param firstX iterator pointing to the first item in the x-dataset to use \f$ x_1 \f$
     \param lastX iterator pointing behind the last item in the x-dataset to use \f$ x_N \f$
     \param firstY iterator pointing to the first item in the y-dataset to use \f$ y_1 \f$

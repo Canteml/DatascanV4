@@ -1,17 +1,32 @@
 import QtQuick 2.4
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
-import QtMultimedia 5.15
+import QtMultimedia
 import "rp_components"
 import Design 1.0
 
-import VLCQt 1.1
+import Camera 1.0
 
 Rectangle {
     width: 600
     height: 400
     Layout.fillWidth: true
     Layout.fillHeight: true
+
+    Connections {
+        target: globalManager
+        function onEvGuiPageChanged(page) {
+            if (page !== 1) {
+                cameraManager.setPreviewCameraIndex(-1)
+            } else {
+                // Riavvia il preview quando torni sulla pagina
+                if (modelCameraList !== undefined && modelCameraList.length > 0) {
+                    idCbSelectCameraPreview.currentIndex = 0
+                    cameraManager.setPreviewCameraIndex(0)
+                }
+            }
+        }
+    }
 
     color: "#ffffff"
     //property alias idLinkList: idLinkList
@@ -150,13 +165,6 @@ Rectangle {
             }
 
             ColumnLayout {
-                Camera {
-                    id: idCameraPreview
-                    objectName: "cameraPreview"
-
-                    Component.onCompleted: idCameraPreview.stop()
-                }
-
                 RowLayout {
                     id: idRwCamPreview
                     Layout.fillWidth: true
@@ -165,33 +173,38 @@ Rectangle {
                         id: idFrameCamPreview
                         border.color: Design.colFrameBorder
                         border.width: 1
-                        Layout.preferredHeight: idVideo.height+2
-                        Layout.preferredWidth: idVideo.width+2
-                        visible: !cameraManager.isPreviewCameraIp
-                        VideoOutput {
-                            id: idVideo
-                            // Keept aspect ration of camera frame
-                            height: 200
-                            width: sourceRect.width * 200 / sourceRect.height
-
-                            // Frame around the camera
-                            x:1
-                            y:1
-
-                            //source: cameraManager.previewCamera
-                            source: idCameraPreview
-                        }
-                    }
-
-                    Rectangle {
-                        border.color: Design.colFrameBorder
-                        border.width: 1
                         Layout.preferredHeight: 200
                         Layout.preferredWidth: 420
-                        visible: cameraManager.isPreviewCameraIp
-                        VlcVideoOutput {
+                        visible: true
+
+                        VideoOutput {
+                            id: idVideo
+                            objectName: "previewVideoOutput"
                             anchors.fill: parent
-                            source: cameraManager.getPreviewCameraSource()
+                            anchors.margins: 1
+
+                            Component.onCompleted: {
+                                cameraManager.setPreviewVideoSink(idVideo)
+                            }
+                        }
+
+                        Image {
+                            anchors.fill: parent
+                            anchors.margins: 1
+                            source: "qrc:///img/icons/no_camera.png"
+                            fillMode: Image.PreserveAspectFit
+                            visible: !idVideo.hasVideo && idCbSelectCameraPreview.currentIndex === 0
+                        }
+
+                        Component.onCompleted: {
+                            cameraManager.setPreviewVideoSink(idVideo)
+                        }
+
+                        Connections {
+                            target: cameraManager
+                            function onIsPreviewCameraIpChanged(isIp) {
+                                cameraManager.setPreviewVideoSink(idVideo)
+                            }
                         }
                     }
 
@@ -212,11 +225,23 @@ Rectangle {
                         model: modelCameraList
                         Layout.fillWidth: true
 
-                        onCurrentIndexChanged: {
-                            cameraManager.setPreviewCameraIndex(idCbSelectCameraPreview.currentIndex)
+                        onActivated: {
+                            cameraManager.setPreviewCameraIndex(currentIndex)
+                        }
+                    }
+
+                }
+
+                Connections {
+                    target: cameraManager
+                    function onEvCameraListChanged(size) {
+                        if (size > 0 && cameraManager.getPreviewCameraIndex() === -1) {
+                            idCbSelectCameraPreview.currentIndex = 0
+                            cameraManager.setPreviewCameraIndex(0)
                         }
                     }
                 }
+
             }
             // -- SPACER
             Item {
@@ -230,6 +255,7 @@ Rectangle {
                     if( idCbSelectCameraPreview.currentIndex !== p_index ) {
                         idCbSelectCameraPreview.currentIndex = p_index;
                     }
+                    /*
                     if( -1 === p_index ) {
                         idCameraPreview.stop()
                     } else {
@@ -240,11 +266,11 @@ Rectangle {
                             }
                         }
                     }
+                    */
                 }
             }
         }
 
-        /*
         ColumnLayout {
             id: idP1Inclo
             Layout.fillWidth: true
@@ -288,7 +314,7 @@ Rectangle {
                 }
             }
         }
-        */
+
 
 
 
@@ -356,7 +382,6 @@ Rectangle {
             // Spacer
             Layout.fillHeight: true
         }
-
         // -- Bottom Banner
 
         BannerBottomNavigate {

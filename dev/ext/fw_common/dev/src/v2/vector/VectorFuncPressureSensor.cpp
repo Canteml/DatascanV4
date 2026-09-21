@@ -26,6 +26,7 @@
 
 VectorFuncPressureSensor::VectorFuncPressureSensor(VectorStd *p_pVectorStd, quint32 p_instance) : GenVectorFunc(QString("VectorFuncPressureSensor%1").arg(p_instance), p_pVectorStd, ProtMsg::DEVICE_FUNC_PRESSURE_SENSOR_0 + p_instance)
 {
+    qRegisterMetaType<VectorFuncPressureSensor*>();
     connect(this, &VectorFuncPressureSensor::paramDPressureBChanged, this, &VectorFuncPressureSensor::onDPressureBChanged, Qt::DirectConnection);
     connect(this, &VectorFuncPressureSensor::paramLPressureOffsetChanged, this, &VectorFuncPressureSensor::onLPressureOffset, Qt::DirectConnection);
     connect(this, &VectorFuncPressureSensor::paramLDepthValueMChanged, this, &VectorFuncPressureSensor::onLDepthValueMChanged, Qt::DirectConnection);
@@ -142,7 +143,10 @@ bool VectorFuncPressureSensor::customSaveParam(QDomDocument * p_pDoc, QDomElemen
 
 void VectorFuncPressureSensor::onDeviceConnected()
 {
-
+   // request Params
+   if( m_pVectorStd->isMpc() ) {
+       sendMsg(newMsgParam(ProtMsg::MSG_TYPE_PARAM_GET, ProtMsg::FUNC_PRESSURE_SENSOR_PARAM_D_PRESSURE_B));
+   }
 }
 
 void VectorFuncPressureSensor::computeDepth()

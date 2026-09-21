@@ -1,8 +1,6 @@
 <RCC>
     <qresource prefix="/">
-        <file>english.ts</file>
         <file>english.qm</file>
-        <file>espanol.ts</file>
         <file>espanol.qm</file>
     </qresource>
 </RCC>

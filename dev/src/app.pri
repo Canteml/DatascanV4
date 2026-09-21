@@ -10,7 +10,7 @@
 #
 # ============================================================================
 
-QT       += core gui quick qml widgets serialport network printsupport multimedia opengl
+QT       += core gui quick qml xml widgets serialport network printsupport multimedia opengl
 
 CONFIG += c++11 network resources_big
 
@@ -72,35 +72,41 @@ USE_FW_COMMON_V2 = yes
 CONFIG += qmltypes
 QML_IMPORT_NAME = roboplanet.v2
 QML_IMPORT_MAJOR_VERSION = 1
-INCLUDEPATH += ext/fw_common/dev/src/v2/vector
 INCLUDEPATH += $$PWD/mep
 
 ## -- LIBRARIES
 
 ## JKQTPLOTTER
-
-INCLUDEPATH += lib\jkqtplotter\include
-LIBS += -Llib/jkqtplotter/bin
-LIBS += -ljkqtplotterlib -ljkqtpcommonlib
+INCLUDEPATH += $$PWD/../lib/jkqtplotter/include
+LIBS += -L$$PWD/../lib/jkqtplotter/lib
+CONFIG(debug, debug|release) {
+    LIBS += -lJKQTPlotter6_Debug -lJKQTCommon6_Debug
+} else {
+    LIBS += -lJKQTPlotter6_Release -lJKQTCommon6_Release
+}
 
 ## SDL2
-LIBS += -Llib/SDL2/bin
-INCLUDEPATH += lib/SDL2/include
-
+LIBS += -L$$PWD/../lib/SDL2/bin
+INCLUDEPATH += $$PWD/../lib/SDL2/include
 LIBS += -lSDL2
 DEFINES += SDL_MAIN_HANDLED
 
-## QXlsx : The MIT License - Copyright 2017 - https://github.com/j2doll/QXlsx
-LIBS += -Llib/QXlsx/bin
-INCLUDEPATH += lib/QXlsx/include
+## QXlsx
+LIBS += -L$$PWD/../lib/QXlsx/lib
+INCLUDEPATH += $$PWD/../lib/QXlsx/include
+LIBS += -lQXlsxQt6
 
+## VLCQt
+LIBS += -L$$PWD/../lib/vlcqt/lib
+INCLUDEPATH += $$PWD/../lib/vlcqt/include
 CONFIG(debug, debug|release) {
-    LIBS += -lQXlsxd
+    LIBS += -lVLCQtCored -lVLCQtWidgetsd
+    # RIMOSSO: -lVLCQtQmld
 } else {
-    LIBS += -lQXlsx
+    LIBS += -lVLCQtCore -lVLCQtWidgets
+    # RIMOSSO: -lVLCQtQml
 }
 
-LIBS += -Llib/vlcqt/bin
-LIBS += -llibVLCQtCore -llibVLCQtQml -llibVLCQtWidgets
-
-INCLUDEPATH += lib/vlcqt/include
+## VLC SDK (libvlc nativa per VlcVideoSink)
+INCLUDEPATH += $$PWD/../vlc-sdk/sdk/include
+LIBS += -L$$PWD/../vlc-sdk/sdk/lib -llibvlc -llibvlccore

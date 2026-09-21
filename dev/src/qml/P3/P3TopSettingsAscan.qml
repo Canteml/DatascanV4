@@ -214,16 +214,11 @@ Rectangle {
                     id: idSbFreq
                     from: 0
                     to: items.length - 1
-
                     stepSize: 1
                     editable: true
                     font.pointSize: 12
 
                     property var items: ["20", "40", "80"]
-
-                    validator: RegExpValidator {
-                        regExp: new RegExp("(20|40|80)", "i")
-                    }
 
                     textFromValue: function(value) {
                         return items[value];

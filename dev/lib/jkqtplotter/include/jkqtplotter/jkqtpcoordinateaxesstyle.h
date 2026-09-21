@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
 
 
@@ -25,12 +25,19 @@
 #include <QColor>
 #include "jkqtplotter/jkqtptools.h"
 #include "jkqtplotter/jkqtplotter_imexport.h"
+#include "jkqtplotter/jkqtplotter_configmacros.h"
+#if __cplusplus >= 202002L
+# include <version>
+# ifdef __cpp_lib_format
+#  include <format>
+# endif
+#endif
 
 class JKQTBasePlotterStyle; // forward
 
 
 /** \brief Support Class for JKQTPCoordinateAxis, and summarizes all properties that define the visual styling of a grid (minor or major), associated with a JKQTPCoordinateAxis
- *  \ingroup jkqtpplotter_styling
+ *  \ingroup jkqtpplotter_styling_classes
  *
  * \see JKQTPCoordinateAxis, \ref jkqtpplotter_styling
  *
@@ -70,9 +77,11 @@ public:
 
 
 /** \brief Support Class for JKQTPCoordinateAxis, which summarizes all properties that define the visual styling of a JKQTPCoordinateAxis
- *  \ingroup jkqtpplotter_styling
+ *  \ingroup jkqtpplotter_styling_classes
  *
- * \see JKQTPCoordinateAxis, \ref jkqtpplotter_styling
+ *  \image html jkqtpcoordinateaxis1.png
+ *
+ *  \see JKQTPCoordinateAxis, \ref jkqtpplotter_styling
  *
  */
 class JKQTPLOTTER_LIB_EXPORT JKQTPCoordinateAxisStyle {
@@ -80,7 +89,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPCoordinateAxisStyle {
     public:
         JKQTPCoordinateAxisStyle();
 
-        JKQTPCoordinateAxisStyle(const JKQTBasePlotterStyle& baseStyle);
+        explicit JKQTPCoordinateAxisStyle(const JKQTBasePlotterStyle& baseStyle);
 
 
         /** \brief loads the plot properties from a <a href="http://doc.qt.io/qt-5/qsettings.html")">QSettings</a> object
@@ -106,7 +115,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPCoordinateAxisStyle {
         /** \brief if \c true, the plotter displays minor axis labels as number between 1 and 10 in some cases */
         bool minorTickLabelsEnabled;
         /** \brief indicates how to draw the labels */
-        JKQTPCALabelType labelType;
+        JKQTPCALabelType tickLabelType;
 
         /** \brief mode of the major ticks */
         JKQTPLabelTickMode tickMode;
@@ -115,6 +124,8 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPCoordinateAxisStyle {
         JKQTPLabelPosition labelPosition;
         /** \brief fontsize of the axis labels */
         double labelFontSize;
+        /** \brief color of the axis label */
+        QColor labelColor;
         /** \brief fontsize of the axis tick labels */
         double tickLabelFontSize;
         /** \brief fontsize of the minor axis tick labels */
@@ -129,28 +140,54 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPCoordinateAxisStyle {
         JKQTPCADrawMode drawMode1;
         /** \brief draw mode of the secondary (right/top) axis */
         JKQTPCADrawMode drawMode2;
+        /** \brief draw mode of the zero axis
+         *
+         *  \image html JKQTPCoordinateAxisStyleDrawMode0.png
+         *
+         *  \see \ref JKQTPlotterGeometricCoordinateAxis0
+         */
+        JKQTPCADrawMode drawMode0;
+        /** \brief color of minor ticks */
+        QColor minorTickColor;
+        /** \brief color of minor tick labels */
+        QColor minorTickLabelColor;
         /** \brief line width of minor ticks in pt */
         double minorTickWidth;
+        /** \brief color of axis ticks */
+        QColor tickColor;
+        /** \brief color of axis tick labels */
+        QColor tickLabelColor;
         /** \brief line width of ticks in pt */
         double tickWidth;
         /** \brief line width of axis in pt */
         double lineWidth;
+        /** \brief factor used to calculate the size of line arrows */
+        double arrowSizeFactor;
         /** \brief line width of 0-line in pt */
         double lineWidthZeroAxis;
 
 
-        /** \brief format string for time tick labels, see see QDateTime::toString() documentation for details on format strings */
+        /** \brief format string for time tick labels, see  QDateTime::toString() documentation for details on format strings */
         QString tickTimeFormat;
-        /** \brief format string for date tick labels, see see QDateTime::toString() documentation for details on format strings */
+        /** \brief format string for date tick labels, see  QDateTime::toString() documentation for details on format strings */
         QString tickDateFormat;
-        /** \brief format string for datetime tick labels, see see QDateTime::toString() documentation for details on format strings */
+        /** \brief format string for datetime tick labels,  see QDateTime::toString() documentation for details on format strings */
         QString tickDateTimeFormat;
+        /** \brief format string for printf tick labels, see https://en.wikipedia.org/wiki/Printf_format_string documentation for details on format strings The first data parameter is the tick value as \c double an the second is tickUnitName as string. The following image shows an example for \c "y=%+.2f": \image html axisstyle/JKQTPCALTprintf.png */
+        QString tickPrintfFormat;
+#if __cplusplus >= 202002L || DOXYGEN
+#if defined(__cpp_lib_format) || DOXYGEN
+        /** \brief format string for std::format tick labels, (see e.g. https://en.cppreference.com/w/cpp/utility/format/formatter#Standard_format_specification ). The first data parameter is the tick value as \c double an the second is tickUnitName as string. The following image shows an example for \c "\\texttt{{ y={:*^+8.1f}}}": \image html axisstyle/JKQTPCALTformat.png
+              \note This option is only available for C++20 and above, use the CMake option \c JKQtPlotter_ENABLED_CXX20=ON if your compiler supports this.*/
+        QString tickFormatFormat;
+# endif
+#endif
 
 
 
         /** \brief minimum number of axis ticks */
         unsigned int minTicks;
-        /** \brief number of minor grid lines per axis tick interval
+        /** \brief number of minor grid lines per (major) axis tick interval
          *
          *  \image html docu_logaxis_set_minorticks.png
          **/
@@ -169,7 +206,19 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPCoordinateAxisStyle {
         double tickLabelDistance;
         /** \brief distance between tick label and axis label in pt */
         double labelDistance;
-        /** \brief rotation angle of tick labels [-180..180], i.e. given in degrees, default is 0 (horizontal) */
+        /** \brief rotation angle of tick labels [-180..180], i.e. given in degrees, default is 0 (horizontal)
+         *
+         *  These images show some example rotations:
+         *
+         *  \image html axisstyle/JKQTPCoordinateAxisTickLabelAngle-75Degree.png
+         *  \image html axisstyle/JKQTPCoordinateAxisTickLabelAngle-45Degree.png
+         *  \image html axisstyle/JKQTPCoordinateAxisTickLabelAngle-15Degree.png
+         *  \image html axisstyle/JKQTPCoordinateAxisTickLabelAngle0Degree.png
+         *  \image html axisstyle/JKQTPCoordinateAxisTickLabelAngle15Degree.png
+         *  \image html axisstyle/JKQTPCoordinateAxisTickLabelAngle45Degree.png
+         *  \image html axisstyle/JKQTPCoordinateAxisTickLabelAngle75Degree.png
+         *
+         */
         double tickLabelAngle;
 
         /** \brief styling of the major/primary grid */
@@ -183,6 +232,41 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPCoordinateAxisStyle {
         Qt::PenStyle styleZeroAxis;
         /** \brief if non-zero, the line of the coordinate axis is moved outside the plot by this amount [pt]. This does not apply to the zero-axis! */
         double axisLineOffset;
+
+
+        /** \brief returns a QPen that can be used for drawing zero axis lines */
+        QPen getZeroAxisPen(JKQTPEnhancedPainter& painter, JKQTBasePlotter* parent) const;
+        /** \brief returns a QPen that can be used for drawing axis lines */
+        QPen getAxisPen(JKQTPEnhancedPainter &painter, JKQTBasePlotter* parent) const;
+        /** \brief returns a QPen that can be used for drawing axis tick lines */
+        QPen getTickPen(JKQTPEnhancedPainter& painter, JKQTBasePlotter* parent) const;
+        /** \brief returns a QPen that can be used for drawing minor axis tick lines */
+        QPen getMinorTickPen(JKQTPEnhancedPainter &painter, JKQTBasePlotter* parent) const;
+        /** \brief calculates the size of an arrow in pixels */
+        double getArrowSize(JKQTPEnhancedPainter &painter, JKQTBasePlotter* parent) const;
+};
+
+
+/** \brief Support Class for JKQTPCoordinateAxis, which summarizes all properties that define the visual styling of a JKQTPCoordinateAxis
+ *         used for colorbars outside the plot
+ *  \ingroup jkqtpplotter_styling_classes
+ *
+ * The major difference between this dervied version and the base JKQTPCoordinateAxisStyle are differently initialized members.
+ * \see JKQTPCoordinateAxis, \ref jkqtpplotter_styling
+ *
+ */
+class JKQTPLOTTER_LIB_EXPORT JKQTPColorbarCoordinateAxisStyle: public JKQTPCoordinateAxisStyle {
+        Q_GADGET
+    public:
+        /** \copydoc JKQTPCoordinateAxisStyle::JKQTPCoordinateAxisStyle() */
+        JKQTPColorbarCoordinateAxisStyle();
+
+        /** \copydoc JKQTPCoordinateAxisStyle::JKQTPCoordinateAxisStyle(const JKQTBasePlotterStyle&) */
+        explicit JKQTPColorbarCoordinateAxisStyle(const JKQTBasePlotterStyle& baseStyle);
+    private:
+        /** \brief modifies the members to match the requirements of colorbar axes */
+        void initMembersForColorbars();
+
 };
 
 #endif // JKQTPCOORDINATEAXESSTYLE_H

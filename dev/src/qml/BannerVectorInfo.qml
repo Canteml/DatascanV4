@@ -1,10 +1,10 @@
-import QtQuick 2.4
+import QtQuick
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
-import QtQuick.Dialogs 1.3 as Std
+import QtQuick.Dialogs as Std
 import Qt.labs.platform 1.1 as Platform
 import Design 1.0
-import QtMultimedia 5.15
+import QtMultimedia
 
 Rectangle {
     id: idBannerVectorInfo
@@ -249,8 +249,8 @@ Rectangle {
                         color: "black"
                         maximumLength: 5
                         smooth: true
-                        validator: RegExpValidator {
-                            regExp: /^(?:[1-9]\d*|0)?(?:\.\d+)?$/
+                        validator: RegularExpressionValidator {
+                            regularExpression: /^(?:[1-9]\d*|0)?(?:\.\d+)?$/
                         }
 
                         onAccepted: focus = false
@@ -366,7 +366,6 @@ Rectangle {
                     spacing: 0
 
                     Image {
-                        visible: false
                         Layout.topMargin: 10
                         Layout.bottomMargin: 10
                         Layout.fillHeight: true
@@ -377,7 +376,6 @@ Rectangle {
                     }
 
                     Text {
-                        visible: false
                         text: currentVector.funcInertialSensor().paramLDirection + "°"
                         font.pointSize: 30
                     }
@@ -499,8 +497,8 @@ Rectangle {
                         color: "black"
                         maximumLength: 5
                         smooth: true
-                        validator: RegExpValidator {
-                            regExp: /^(?:[1-9]\d*|0)?(?:\.\d+)?$/
+                        validator: RegularExpressionValidator {
+                            regularExpression: /^(?:[1-9]\d*|0)?(?:\.\d+)?$/
                         }
 
                         onAccepted: focus = false
@@ -628,10 +626,9 @@ Rectangle {
 
                 Std.MessageDialog {
                     id: idMsgError
-                    icon: Std.StandardIcon.Critical
                     title: qsTr("Erreur")
-                    text: qsTr("L'examen n'a pas pu être sauvegardé :\n" + idFdMepExport.retExport )
-                    standardButtons: Std.StandardButton.Ok
+                    text: qsTr("L'examen n'a pas pu être sauvegardé :\n" + idFdMepExport.retExport)
+                    buttons: Std.MessageDialog.Ok
                 }
 
             }
@@ -784,7 +781,7 @@ Rectangle {
                 x:1
                 y:1
 
-                source: idCameraAlarm
+                // source: idCameraAlarm
             }
 
             MouseArea {
@@ -851,8 +848,7 @@ Rectangle {
 
         ColumnLayout {
             id: idLyBattery
-            //visible: currentVector.funcBattery().paramDBatteryLvlP !== 255
-            visible: false
+            visible: currentVector.funcBattery().paramDBatteryLvlP !== 255
             Layout.fillHeight: true
             spacing : 0
             Layout.topMargin: 5

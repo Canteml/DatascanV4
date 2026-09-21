@@ -32,6 +32,18 @@
 #include <core/Core.h>
 #include <xml/XmlSettings.h>
 
+#include <QMetaType>
+#include "VectorFuncAScan.h"
+#include "GenComLink.h"
+#include "ComDevice.h"
+#include "ComDeviceManager.h"
+
+void registerMetaTypes() {
+    qRegisterMetaType<VectorFuncAScan*>();
+    qRegisterMetaType<GenComLink*>();
+    qRegisterMetaType<ComDevice*>();
+    qRegisterMetaType<ComDeviceManager*>();
+}
 // ----------------------------------------------------------------------------
 // -- Static attributs of class Core
 
@@ -125,7 +137,15 @@ Core * Core::getInstance()
 // -- Behaviour
 int Core::exec(int argc, char* argv[])
 {
+    registerMetaTypes(); // <-- registra qui i tipi
+
     bool bContinue = true;
+    // -- init app names
+    qApp->setOrganizationName(getCompagnyName());
+    qApp->setOrganizationDomain(getCompagnyDomain());
+    qApp->setApplicationName(getApplicationName());
+    qApp->setApplicationVersion(getVersion());
+
     // -- init app names
     qApp->setOrganizationName(getCompagnyName());
     qApp->setOrganizationDomain(getCompagnyDomain());
@@ -137,17 +157,20 @@ int Core::exec(int argc, char* argv[])
     processArguments(argc, argv);
 
     bContinue = coreInitApp();
+
     if( bContinue ) {
         bContinue = coreStartApp();
 
         if( bContinue ) {
             // Enters the main event loop and waits until exit() is called
             m_appReturn = qApp->exec();
+
             // exit() has been called
             coreStopApp();
         }
     }
     coreDeleteApp();
+
     return m_appReturn;
 }
 
@@ -287,12 +310,19 @@ bool Core::isDevApp()
 // State chart
 bool Core::coreInitApp()
 {
+
+    // MODIFICA  DA QUI
+
+    // MODIFICA  FINO A QUI
+
     bool bContinue = true;
     bool initOk = false;
 
     // init paths :
     QDir appPath = QCoreApplication::applicationDirPath() + "/.."; // Application is in /bin directory, get parent directory
     bContinue &= appPath.makeAbsolute();
+
+
     if( !bContinue ) {
         qDebug()<<"Core::coreInitApp : Fail to make absolute path from " + appPath.path();
     } else {
@@ -323,22 +353,25 @@ bool Core::coreInitApp()
 
     if( bContinue ) {
         // Load settings
+
         XmlSettings::readSettingsFromFile();
 
         // Instanciate Logger
         m_pLogger = Logger::makeInstance();
+
         bContinue = m_pLogger->loadSettings();
+
     }
 
     if( bContinue ) {
         // Init application
         bContinue = initApp();
+
     }
 
     if( !initOk && !bContinue) {
         m_appReturn = 1;
     }
-
     return bContinue;
 }
 

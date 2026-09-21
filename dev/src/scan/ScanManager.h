@@ -17,6 +17,7 @@
 #include <v2/vector/VectorManager.h>
 #include <v2/vector/VectorStd.h>
 #include <v2/scan/AScan.h>
+#include <v2/vector/VectorFuncAScan.h>
 class AScan;
 class AScanGraph;
 class BScanGraph;

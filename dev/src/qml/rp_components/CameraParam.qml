@@ -1,7 +1,7 @@
 import QtQuick 2.4
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
-import QtMultimedia 5.15
+import QtMultimedia
 import Design 1.0
 
 RowLayout {
@@ -13,9 +13,6 @@ RowLayout {
     property var txtWidth: 80
     property var btAssignWidth: 100
     property var btPreviewWidth: 100
-
-    property alias cameraRoleItem : idRwCamParam.cameraRoleItem;
-    property alias cameraRoleText : idRwCamParam.cameraRoleText;
 
 
 

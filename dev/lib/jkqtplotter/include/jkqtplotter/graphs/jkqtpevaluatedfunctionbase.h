@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -18,6 +18,9 @@
 */
 
 
+#ifndef jkqtpevaluatedfunctionbase_H
+#define jkqtpevaluatedfunctionbase_H
+
 
 #include <QString>
 #include <QPainter>
@@ -27,9 +30,6 @@
 #include "jkqtplotter/jkqtplotter_imexport.h"
 #include "jkqtcommon/jkqtpgeometrytools.h"
 #include <functional>
-
-#ifndef jkqtpevaluatedfunctionbase_H
-#define jkqtpevaluatedfunctionbase_H
 
 
 
@@ -84,14 +84,9 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPEvaluatedFunctionGraphBase: public JKQTPGraph 
         /** \brief class destructor */
         virtual ~JKQTPEvaluatedFunctionGraphBase() ;
 
-        /** \brief get the maximum and minimum x-value of the graph
-         *
-         * This functions returns 0 for both parameters, so that the plotter uses the predefined
-         * min and max values.
-         */
+        /** \copydoc JKQTPPlotElement::getXMinMax() */
         virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero) override;
-        /** \brief get the maximum and minimum y-value of the graph
-         */
+        /** \copydoc JKQTPPlotElement::getYMinMax() */
         virtual bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero) override;
 
         /** \brief sets the params as a pointer to an internal COPY of the given vector (not the data of the vector, as then the size would be unknown!!!) */
@@ -122,7 +117,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPEvaluatedFunctionGraphBase: public JKQTPGraph 
         double getDataCleanupMaxAllowedAngleDegree() const;
         /** \copydoc displaySamplePoints */
         bool getDisplaySamplePoints() const;
-	public slots:
+	public Q_SLOTS:
         /** \copydoc minSamples */
         void setMinSamples(const unsigned int & __value);
         /** \copydoc maxRefinementDegree */
@@ -254,7 +249,7 @@ public:
 
     /** \copydoc JKQTPGraph::usesColumn() */
     virtual bool usesColumn(int c) const override;
-public slots:
+public Q_SLOTS:
     /** \brief sets the error params as a pointer to an internal COPY of the given vector (not the data of the vector, as then the size would be unknown!!!) */
     void setErrorParams(const QVector<double>& errorParams);
     /** \copydoc errorParameterColumn */

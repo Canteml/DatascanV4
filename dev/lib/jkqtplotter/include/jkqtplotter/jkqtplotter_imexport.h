@@ -3,7 +3,7 @@
 
 
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     last modification: $LastChangedDate: 2015-04-02 13:55:22 +0200 (Do, 02 Apr 2015) $  (revision $Rev: 3902 $)
 
@@ -39,7 +39,7 @@
         JKQTPLOTTER_LIB_EXPORT void exportedFunctionName();
     \endcode
     
-    These macros append the appropriate \c __declspec(dllexport) and \c __declspec(dllimport)
+    These macros append the appropriate \c Q_DECL_EXPORT and \c Q_DECL_IMPORT
     to the function/class body and thus tell windows compilers to export these sysmbols from
     the shared library, or import them from a shared library.
     
@@ -57,7 +57,11 @@
 
  */
 
-/*! \def JKQTPLOTTER_LIB_IN_DLL 
+// necessary to add this define to the Doxygen autodoc!!!
+#ifdef DOXYGEN
+#  define JKQTPLOTTER_LIB_IN_DLL
+#endif
+/*! \def JKQTPLOTTER_LIB_IN_DLL
     \ingroup jkqtpplottersupprt
     \brief declares that the application should link against a shared version of 
            JKQTPlotter, i.e. \c JKQTPlotterSharedLib_XYZ .
@@ -65,28 +69,27 @@
            any application linking against  \c JKQTPlotterSharedLib_XYZ. 
 */
 
-/*! \def JKQTPLOTTER_LIB_EXPORT_LIBRARY 
+// necessary to add this define to the Doxygen autodoc!!!
+#ifdef DOXYGEN
+#  define JKQTPLOTTER_LIB_EXPORT_LIBRARY
+#endif
+/*! \def JKQTPLOTTER_LIB_EXPORT_LIBRARY
     \ingroup jkqtpplottersupprt
     \brief is only defined while compiling JKQTPlotter into \c JKQTPlotterSharedLib_XYZ
            and ensures thet the symbols are exported. If it is not defined (e.g. while 
            compiling an application), the symbols are imported
 */
 
-#  ifndef __WINDOWS__
-#    if defined(WIN32) || defined(WIN64) || defined(_MSC_VER) || defined(_WIN32)
-#      define __WINDOWS__
-#    endif
-#  endif
+#include <QtCore/QtGlobal>
 
-#ifdef __WINDOWS__
 #  ifdef JKQTPLOTTER_LIB_IN_DLL
 #    ifndef JKQTPLOTTER_LIB_EXPORT
 #      ifdef JKQTPLOTTER_LIB_EXPORT_LIBRARY
           /* We are building this library */
-#        define JKQTPLOTTER_LIB_EXPORT __declspec(dllexport)
+#        define JKQTPLOTTER_LIB_EXPORT Q_DECL_EXPORT
 #      else
           /* We are using this library */
-#        define JKQTPLOTTER_LIB_EXPORT __declspec(dllimport)
+#        define JKQTPLOTTER_LIB_EXPORT Q_DECL_IMPORT
 #      endif
 #    endif
 #  else
@@ -94,10 +97,6 @@
 #      define JKQTPLOTTER_LIB_EXPORT
 #    endif
 #  endif
-#else
-#  define JKQTPLOTTER_LIB_EXPORT
-#endif
-
 
 
 

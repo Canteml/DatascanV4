@@ -58,7 +58,7 @@ QString IpCamera::rtspAddress() const
 
     */
     return QString("rtsp://") + QString("admin:R0b0planet@") + m_sAddress
-                + QString("/onvif/live");
+           + QString("/onvif/live");
 
 }
 

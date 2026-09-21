@@ -22,6 +22,7 @@ const quint32 VectorFuncMove::NO_MOVEMENT_UPDATE_MS_INTERVAL = 25;
 
 VectorFuncMove::VectorFuncMove(VectorStd *p_pVectorStd) : GenVectorFunc("VectorFuncMove", p_pVectorStd, ProtMsg::DEVICE_FUNC_MOVE)
 {
+    qRegisterMetaType<VectorFuncMove*>();
     m_tCmdAnsTimeout = new QTimer();
     m_tCmdAnsTimeout->setSingleShot(true);
     connect(m_tCmdAnsTimeout, &QTimer::timeout, this, &VectorFuncMove::onCmdAnsTimeout);

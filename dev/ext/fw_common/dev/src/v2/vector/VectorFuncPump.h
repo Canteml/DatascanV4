@@ -55,3 +55,9 @@ protected  :
     void setPumpWithLogical();
 
 };
+
+Q_DECLARE_OPAQUE_POINTER(VectorFuncPump*)
+#ifndef METATYPE_VECTORFUNCPRESSURESENSOR
+#define METATYPE_VECTORFUNCPRESSURESENSOR
+Q_DECLARE_METATYPE(VectorFuncPump*)
+#endif

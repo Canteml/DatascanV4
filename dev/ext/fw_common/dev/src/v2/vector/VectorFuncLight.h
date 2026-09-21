@@ -53,3 +53,9 @@ protected  :
     virtual void onDeviceConnected() override; ///< read device parameters when a device is just connected (called only for Ground Station)
     void setLightWithLogical();
 };
+
+Q_DECLARE_OPAQUE_POINTER(VectorFuncLight*)
+#ifndef METATYPE_VECTORFUNCPRESSURESENSOR
+#define METATYPE_VECTORFUNCPRESSURESENSOR
+Q_DECLARE_METATYPE(VectorFuncLight*)
+#endif

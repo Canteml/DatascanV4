@@ -21,9 +21,14 @@
 #include <QQmlProperty>
 #include <QThread>
 #include <QScreen>
+#include <QQuickWindow>
+#include <QSGRendererInterface>
+#include <utility>
 
 #include <QTranslator>
 #include <QInputDialog>
+
+#include <QDir>
 
 
 // -- Internal includes
@@ -63,7 +68,6 @@ CoreUiQml * CoreUiQml::getInstanceCoreUiQml()
 // -- Behaviour
 int CoreUiQml::execUiQml(int argc, char* argv[])
 {
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     m_pGuiApplication = new QApplication(argc, argv); //QGuiApplication(argc, argv);
 
     return Core::exec(argc, argv);
@@ -72,7 +76,6 @@ int CoreUiQml::execUiQml(int argc, char* argv[])
 
 int CoreUiQml::execUiQml_withSelectLanguage(int argc, char* argv[])
 {
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     m_pGuiApplication = new QApplication(argc, argv); //QGuiApplication(argc, argv);
 
 
@@ -81,12 +84,15 @@ int CoreUiQml::execUiQml_withSelectLanguage(int argc, char* argv[])
     QStringList languages;
     languages << "French" << "English" ;
     QString qStrLang = QInputDialog::getItem(NULL,"Select Language",
-                                         "Language",languages);
+                                             "Language",languages);
 
     //Loading translation file
     if("English" == qStrLang)
     {
-        qTranslator.load(":/english.qm");
+        bool bLoaded = qTranslator.load(":/english.qm");
+        if (!bLoaded) {
+            qWarning() << "Impossibile caricare il file di traduzione";
+        }
     }
 
     //Loading Translation on IHM
@@ -101,13 +107,15 @@ int CoreUiQml::execUiQml_withSelectLanguage(int argc, char* argv[])
 
 int CoreUiQml::execUiQml_EnglishLanguage(int argc, char* argv[])
 {
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     m_pGuiApplication = new QApplication(argc, argv); //QGuiApplication(argc, argv);
 
     //Language Selection
     QTranslator qTranslator;
     //Loading translation file
-    qTranslator.load(":/english.qm");
+    bool bLoaded = qTranslator.load(":/english.qm");
+    if (!bLoaded) {
+        qWarning() << "Impossibile caricare il file di traduzione";
+    }
     //Loading Translation on IHM
     m_pGuiApplication->installTranslator(&qTranslator);
 
@@ -117,13 +125,15 @@ int CoreUiQml::execUiQml_EnglishLanguage(int argc, char* argv[])
 
 int CoreUiQml::execUiQml_EspanolLanguage(int argc, char* argv[])
 {
-    QCoreApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
     m_pGuiApplication = new QApplication(argc, argv); //QGuiApplication(argc, argv);
 
     //Language Selection
     QTranslator qTranslator;
     //Loading translation file
-    qTranslator.load(":/espanol.qm");
+    bool bLoaded = qTranslator.load(":/english.qm");
+    if (!bLoaded) {
+        qWarning() << "Impossibile caricare il file di traduzione";
+    }
     //Loading Translation on IHM
     m_pGuiApplication->installTranslator(&qTranslator);
 
@@ -131,21 +141,59 @@ int CoreUiQml::execUiQml_EspanolLanguage(int argc, char* argv[])
     return Core::exec(argc, argv);
 }
 
+//===================================
 
+QString CoreUiQml::getDirAppQml()
+{
+    // Try res/qml (exe standalone)
+    QString resQml = m_dirApp + "/../res/qml";
+    if (QFile::exists(resQml + "/main.qml")) {
+        return resQml;
+    }
+
+    // Fallback: search upward from the source-file directory for src/qml or res/qml
+    QDir dir = QFileInfo(QString(__FILE__)).absoluteDir();
+    for (int i = 0; i < 10; ++i) {
+        QString candSrc = dir.absolutePath() + "/src/qml";
+        if (QFile::exists(candSrc + "/main.qml")) {
+            return candSrc;
+        }
+        QString candRes = dir.absolutePath() + "/res/qml";
+        if (QFile::exists(candRes + "/main.qml")) {
+            return candRes;
+        }
+        if (!dir.cdUp()) break;
+    }
+
+    // Last resort: try relative to application dir (may still fail and be logged by caller)
+    return m_dirApp + "/../res/qml";
+}
+
+/*
+QString CoreUiQml::getDirAppQml()
+{
+    if( isDevApp() ) {
+        // Percorso assoluto ai sorgenti QML
+        return QString("C:/Users/Win 11/Desktop/datascanV2.0.4/dev/src/qml");
+    } else {
+        return m_dirApp + "/res/qml";
+    }
+}
 
 
 QString CoreUiQml::getDirAppQml()
 {
     if( isDevApp() ) {
-        return QString("%1/../src/qml").arg(m_dirApp);
+        return QString("%1/../../src/qml").arg(m_dirApp);
     } else {
         return m_dirApp+"/res/qml";
     }
 }
+*/
 
 QString CoreUiQml::getWindowTitle() const
 {
-    return QString("%1 %2").arg(getApplicationName()).arg(getVersion());
+    return QString("%1 %2").arg(getApplicationName(),getVersion());
 }
 
 QQmlApplicationEngine *CoreUiQml::getApplicationEngine() const
@@ -176,7 +224,7 @@ bool CoreUiQml::initApp()
     m_pQmlApplicationEngine = new QQmlApplicationEngine();
     if( !useOpenGlRender() ) {
         // remove resizing artefact (blinking)
-        QQuickWindow::setSceneGraphBackend(QSGRendererInterface::Software); // OpenGL introduces artefacts while resizing
+        QQuickWindow::setGraphicsApi(QSGRendererInterface::Software); // OpenGL introduces artefacts while resizing
     }
 
     m_mainQmlFile = QString("%1/main.qml").arg(getDirAppQml());
@@ -207,6 +255,7 @@ bool CoreUiQml::startApp()
 
         // set window icon
         QString icoPath = getDirAppResImg()+"/application.png";
+
         if( !QFile::exists(icoPath) ) {
             fLogError("Icon file not found : "+icoPath);
         } else {
@@ -230,10 +279,10 @@ void CoreUiQml::stopApp()
         m_pMainView = nullptr;
     }
 
-//    QByteArray ba;
-//    QDataStream ds(&ba, QIODevice::WriteOnly);
-//    ds<<m_pMainView->geometry();
-//    m_settWinGeometry = ba.toHex().data();
+    //    QByteArray ba;
+    //    QDataStream ds(&ba, QIODevice::WriteOnly);
+    //    ds<<m_pMainView->geometry();
+    //    m_settWinGeometry = ba.toHex().data();
 
     // -- delete Qml objects
     if( nullptr != m_pQmlApplicationEngine ) {
@@ -316,9 +365,9 @@ void CoreUiQml::onReloadQml()
         obj->deleteLater();
 
     }
-//    m_pQmlApplicationEngine->loadData(QByteArray());
-//    m_pQmlApplicationEngine->clearComponentCache();
-//    m_pQmlApplicationEngine->load(m_mainQml);
+    //    m_pQmlApplicationEngine->loadData(QByteArray());
+    //    m_pQmlApplicationEngine->clearComponentCache();
+    //    m_pQmlApplicationEngine->load(m_mainQml);
 
     m_pQmlApplicationEngine->clearComponentCache();
     m_pQmlApplicationEngine->load(m_mainQmlUrl);
@@ -352,7 +401,7 @@ bool CoreUiQml::customApplySettings()
 
     QList<QScreen *> lScreens = QGuiApplication::screens();
     bool bOutside = true;
-    for(auto s : qAsConst(lScreens)) {
+    for(auto s : std::as_const(lScreens)) {
         if( s->availableGeometry().contains(m_settWinGeometry) ) {
             bOutside = false;
         }
@@ -377,4 +426,11 @@ bool CoreUiQml::customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pParen
     sWinGeo = ba.toHex().data();
     XML_WRITE_UNIQUE(sWinGeo);
     return true;
+}
+
+// -- KeyCatcher
+
+KeyCatcher::KeyCatcher() : QObject()
+{
+    // empty
 }

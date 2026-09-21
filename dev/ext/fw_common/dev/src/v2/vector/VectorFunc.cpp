@@ -12,7 +12,7 @@
 
 // -- Internal includes
 #include <v2/vector/VectorFunc.h>
-#include <v2/vector/VectorStd.h>
+#include <VectorStd.h>
 #include <v2/prot/ProtMsg.h>
 #include <v2/com/ComDeviceManager.h>
 #include <v2/com/ComDevice.h>
@@ -21,8 +21,15 @@
 // ----------------------------------------------------------------------------
 // -- GenVectorFunc
 
+bool GenVectorFunc::isVectorMpc() const {
+    if (m_pVectorStd == nullptr) return false;
+    return m_pVectorStd->isMpc();
+}
+
 GenVectorFunc::GenVectorFunc(const QString &p_functionName, VectorStd * p_pVectorStd, quint32 p_funcId) : QObject(p_pVectorStd), XmlProjectLoggable(p_functionName)
 {
+    qRegisterMetaType<GenComLink*>();
+
     m_pComLink = nullptr;
     m_pVectorStd = p_pVectorStd;
     m_pComDevice = nullptr;

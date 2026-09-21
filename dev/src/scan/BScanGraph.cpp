@@ -114,9 +114,9 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_pPlotBScan->getYAxis()->setLineWidth(1);
 //    m_pPlotAScan->getXAxis()->setAxisLabel("Distance (mm)");
 //    m_pPlotAScan->getYAxis()->setAxisLabel("Amplitude (%)");
-    m_pPlotBScan->getXAxis()->setDrawMode1(JKQTPCADrawMode::JKQTPCADMLineTicks);
-    m_pPlotBScan->getXAxis()->setDrawMode2(JKQTPCADrawMode::JKQTPCADMLineTicksTickLabels);
-    m_pPlotBScan->getYAxis()->setDrawMode2(JKQTPCADrawMode::JKQTPCADMLineTicksTickLabels );
+    m_pPlotBScan->getXAxis()->setDrawMode1(JKQTPCADrawMode(JKQTPCADMLineTicks));
+    m_pPlotBScan->getXAxis()->setDrawMode2(JKQTPCADrawMode(JKQTPCADMLineTicksTickLabels));
+    m_pPlotBScan->getYAxis()->setDrawMode2(JKQTPCADrawMode(JKQTPCADMLineTicksTickLabels));
     m_pPlotBScan->getYAxis()->setInverted(true);
 
     // improve performances
@@ -419,7 +419,17 @@ void BScanGraph::clearBScan()
 void BScanGraph::routeMouseEvents(QMouseEvent *event)
 {
     if( nullptr != m_pPlotBScan ) {
-        QMouseEvent* newEvent = new QMouseEvent( event->type(), event->localPos(), event->button(), event->buttons(), event->modifiers() );
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        QMouseEvent* newEvent = new QMouseEvent(
+            event->type(), event->position(), event->button(),
+            event->buttons(), event->modifiers()
+            );
+#else
+        QMouseEvent* newEvent = new QMouseEvent(
+            event->type(), event->localPos(), event->button(),
+            event->buttons(), event->modifiers()
+            );
+#endif
         QCoreApplication::postEvent( m_pPlotBScan, newEvent );
     }
 }
@@ -556,18 +566,40 @@ void BScanGraph::mouseDoubleClickEvent( QMouseEvent* event )
 void BScanGraph::wheelEvent(QWheelEvent *event)
 {
     if( nullptr != m_pPlotBScan ) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        QWheelEvent* newEvent = new QWheelEvent(
+            event->position(),
+            event->globalPosition(),
+            event->pixelDelta(),
+            event->angleDelta(),
+            event->buttons(),
+            event->modifiers(),
+            event->phase(),
+            event->isInverted(),
+            event->source()
+            );
+#else
         QWheelEvent* newEvent = new QWheelEvent(*event);
-        //QCoreApplication::sendEvent( m_CustomPlot, newEvent );
+#endif
         QCoreApplication::postEvent( m_pPlotBScan, newEvent );
     }
 }
 
 void BScanGraph::hoverMoveEvent(QHoverEvent *event)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    QPointF pos = event->position();
+    if( nullptr != m_eMouseMove && pos != m_eMouseMove->position() ) {
+        delete m_eMouseMove;
+        m_eMouseMove = new QMouseEvent(QEvent::MouseMove, pos, Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+        routeMouseEvents( m_eMouseMove );
+    }
+#else
     if( nullptr != m_eMouseMove && event->posF() != m_eMouseMove->localPos() ) {
         m_eMouseMove->setLocalPos(event->posF());
         routeMouseEvents( m_eMouseMove );
     }
+#endif
 }
 
 void BScanGraph::onPositionChanged(qreal p_value)

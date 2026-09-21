@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -27,11 +27,20 @@
 #include <limits>
 #include <QPoint>
 #include <QPointF>
+#include <QLineF>
+#include <QRectF>
 #include <vector>
 #include <QString>
 #include <functional>
+#include <type_traits>
+#include <QHashFunctions>
 
-
+#ifdef max
+#  undef max
+#endif
+#ifdef min
+#  undef min
+#endif
 
 /*! \brief \f$ \pi=3.14159... \f$
     \ingroup jkqtptools_math_basic
@@ -137,6 +146,24 @@ inline T jkqtp_roundTo(const double& v) {
     return static_cast<T>(round(v));
 }
 
+/** \brief round a double \a v using round() to a given number of decimal digits
+ *  \ingroup jkqtptools_math_basic
+ *
+ *  \param v the value to round and cast
+ *  \param decDigits number of decimal digits, i.e. precision of the result
+ *
+ *  this is equivalent to
+ *  \code
+ *     round(v * pow(10.0,(double)decDigits))/pow(10.0,(double)decDigits);
+ *  \endcode
+ *
+ * \callergraph
+ */
+inline double jkqtp_roundToDigits(const double& v, const int decDigits) {
+    const double fac=pow(10.0,(double)decDigits);
+    return round(v * fac) / fac;
+}
+
 /** \brief round a double \a v using ceil() and convert it to a specified type T (static_cast!)
  *  \ingroup jkqtptools_math_basic
  *
@@ -228,7 +255,7 @@ inline T jkqtp_boundedRoundTo(const double& v) {
     return jkqtp_boundedRoundTo<T>(std::numeric_limits<T>::min(), v, std::numeric_limits<T>::max());
 }
 
-/** \brief bounds a value \a v to the given range \a min ... \a max
+/** \brief limits a value \a v to the given range \a min ... \a max
  *  \ingroup jkqtptools_math_basic
  *
  *  \tparam T a numeric datatype (int, double, ...)
@@ -238,9 +265,25 @@ inline T jkqtp_boundedRoundTo(const double& v) {
  */
 template<typename T>
 inline T jkqtp_bounded(T min, T v, T max) {
-    if (v<min) return min;
-    if (v>max) return max;
-    return v;
+    return (v<min) ? min : ((v>max)? max : v);
+}
+
+/** \brief limits a value \a v to the range of the given type \a T , i.e.  \c std::numeric_limits<T>::min() ... \c std::numeric_limits<T>::max()
+ *  \ingroup jkqtptools_math_basic
+ *
+ *  \tparam T a numeric datatype (int, double, ...) for the output
+ *  \tparam TIn a numeric datatype (int, double, ...) or the input \a v
+ *  \param v the value to round and cast
+ *
+ *  \note As a special feature, this function detectes whether one of T or TIn are unsigned and then cmpares against a limit of 0 instead of \c std::numeric_limits<T>::min() .
+ */
+template<typename T, typename TIn>
+inline T jkqtp_bounded(TIn v) {
+    if (std::is_integral<T>::value && std::is_integral<TIn>::value && (std::is_signed<TIn>::value!=std::is_signed<T>::value)) {
+        return (v<TIn(0)) ? T(0) : ((v>std::numeric_limits<T>::max())? std::numeric_limits<T>::max() : static_cast<T>(v));
+    } else {
+        return (v<std::numeric_limits<T>::min()) ? std::numeric_limits<T>::min() : ((v>std::numeric_limits<T>::max())? std::numeric_limits<T>::max() : static_cast<T>(v));
+    }
 }
 
 /** \brief compare two floats \a a and \a b for euqality, where any difference smaller than \a epsilon is seen as equality
@@ -290,8 +333,8 @@ inline T jkqtp_sqr(const T& v) {
     \ingroup jkqtptools_math_basic
 
 */
-    template <class T>
-    inline T jkqtp_pow4(T x) {
+template <class T>
+inline T jkqtp_pow4(T x) {
     const T xx=x*x;
     return xx*xx;
 }
@@ -348,77 +391,87 @@ inline T jkqtp_inversePropSaveDefault(const T& v) {
     return jkqtp_inversePropSave<T>(v, std::numeric_limits<T>::epsilon()*100.0);
 }
 
-/*! \brief j0() function (without compiler issues)
-    \ingroup jkqtptools_math_basic
+#if defined(JKQtPlotter_HAS_j0) || defined(JKQtPlotter_HAS__j0) || defined(DOXYGEN)
 
-*/
-inline double jkqtp_j0(double x) {
-#if Q_CC_MSVC
-    return _j0(x);
-#else
-    return j0(x);
+    /*! \brief j0() function (without compiler issues)
+        \ingroup jkqtptools_math_basic
+
+    */
+    inline double jkqtp_j0(double x) {
+    #ifdef JKQtPlotter_HAS__j0
+        return _j0(x);
+    #elif defined(JKQtPlotter_HAS_j0)
+        return j0(x);
+    #endif
+    }
+
+    /*! \brief j1() function (without compiler issues)
+        \ingroup jkqtptools_math_basic
+
+    */
+    inline double jkqtp_j1(double x) {
+    #ifdef JKQtPlotter_HAS__j0
+        return _j1(x);
+    #elif defined(JKQtPlotter_HAS_j0)
+        return j1(x);
+    #endif
+    }
 #endif
-}
 
-/*! \brief j1() function (without compiler issues)
-    \ingroup jkqtptools_math_basic
+#if defined(JKQtPlotter_HAS_jn) || defined(JKQtPlotter_HAS__jn) || defined(DOXYGEN)
+    /*! \brief jn() function (without compiler issues)
+        \ingroup jkqtptools_math_basic
 
-*/
-inline double jkqtp_j1(double x) {
-#if Q_CC_MSVC
-    return _j1(x);
-#else
-    return j1(x);
+    */
+    inline double jkqtp_jn(int n, double x) {
+    #ifdef JKQtPlotter_HAS__jn
+        return _jn(n,x);
+    #elif defined(JKQtPlotter_HAS_jn)
+        return jn(n,x);
+    #endif
+    }
 #endif
-}
 
-/*! \brief y0() function (without compiler issues)
-    \ingroup jkqtptools_math_basic
 
-*/
-inline double jkqtp_y0(double x) {
-#if Q_CC_MSVC
-    return _y0(x);
-#else
-    return y0(x);
+#if defined(JKQtPlotter_HAS_y0) || defined(JKQtPlotter_HAS__y0) || defined(DOXYGEN)
+    /*! \brief y0() function (without compiler issues)
+        \ingroup jkqtptools_math_basic
+
+    */
+    inline double jkqtp_y0(double x) {
+    #ifdef JKQtPlotter_HAS__y0
+        return _y0(x);
+    #elif defined(JKQtPlotter_HAS_y0)
+        return y0(x);
+    #endif
+    }
+
+    /*! \brief y1() function (without compiler issues)
+        \ingroup jkqtptools_math_basic
+
+    */
+    inline double jkqtp_y1(double x) {
+    #ifdef JKQtPlotter_HAS__y0
+        return _y1(x);
+    #elif defined(JKQtPlotter_HAS_y0)
+        return y1(x);
+    #endif
+    }
 #endif
-}
+#if defined(JKQtPlotter_HAS_yn) || defined(JKQtPlotter_HAS__yn) || defined(DOXYGEN)
+    /*! \brief yn() function (without compiler issues)
+        \ingroup jkqtptools_math_basic
 
-/*! \brief y1() function (without compiler issues)
-    \ingroup jkqtptools_math_basic
-
-*/
-inline double jkqtp_y1(double x) {
-#if Q_CC_MSVC
-    return _y1(x);
-#else
-    return y1(x);
+    */
+    inline double jkqtp_yn(int n, double x) {
+    #ifdef JKQtPlotter_HAS__yn
+        return _yn(n,x);
+    #elif defined(JKQtPlotter_HAS_yn)
+        return yn(n,x);
+    #endif
+    }
 #endif
-}
 
-/*! \brief jn() function (without compiler issues)
-    \ingroup jkqtptools_math_basic
-
-*/
-inline double jkqtp_jn(int n, double x) {
-#if Q_CC_MSVC
-    return _jn(n,x);
-#else
-    return jn(n,x);
-#endif
-}
-
-/*! \brief yn() function (without compiler issues)
-    \ingroup jkqtptools_math_basic
-
-*/
-inline double jkqtp_yn(int n, double x) {
-#if Q_CC_MSVC
-    return _yn(n,x);
-#else
-    return yn(n,x);
-#endif
-}
 
 /** \brief calculate the distance between two QPointF points
  *  \ingroup jkqtptools_math_basic
@@ -442,6 +495,18 @@ inline double jkqtp_distance(const QPoint& p1, const QPoint& p2){
 template <typename T>
 inline bool JKQTPIsOKFloat(T v) {
     return std::isfinite(v)&&(!std::isinf(v))&&(!std::isnan(v));
+}
+
+inline bool JKQTPIsOKFloat(const QPointF& v) {
+    return JKQTPIsOKFloat<qreal>(v.x()) && JKQTPIsOKFloat<qreal>(v.y());
+}
+
+inline bool JKQTPIsOKFloat(const QLineF& v) {
+    return JKQTPIsOKFloat<qreal>(v.x1()) && JKQTPIsOKFloat<qreal>(v.x2()) && JKQTPIsOKFloat<qreal>(v.y1()) && JKQTPIsOKFloat<qreal>(v.y2());
+}
+
+inline bool JKQTPIsOKFloat(const QRectF& v) {
+    return JKQTPIsOKFloat<qreal>(v.x()) && JKQTPIsOKFloat<qreal>(v.x()) && JKQTPIsOKFloat<qreal>(v.width()) && JKQTPIsOKFloat<qreal>(v.height());
 }
 
 /** \brief evaluates a gaussian propability density function
@@ -473,6 +538,7 @@ inline double jkqtp_polyEval(double x, PolyItP firstP, PolyItP lastP) {
     }
     return v;
 }
+
 
 /*! \brief a C++-functor, which evaluates a polynomial
     \ingroup jkqtptools_math_basic
@@ -521,6 +587,123 @@ QString jkqtp_polynomialModel2Latex(PolyItP firstP, PolyItP lastP) {
         p++;
     }
     return str;
+}
+
+
+
+/*! \brief Calculates a factorial \f$ n!=n\cdot(n-1)\cdot(n-2)\cdot...\cdot2\cdot1 \f$
+    \ingroup jkqtptools_math_basic
+
+    */
+template <class T=int>
+inline T jkqtp_factorial(T n) {
+    T result = 1;
+    for (T i =1; i <= n; i++){
+        result = result*i;
+    }
+    return result;
+}
+
+
+/*! \brief Calculates a combination \f$ \left(\stackrel{n}{k}\right)=\frac{n!}{k!\cdot(n-k)!} \f$
+    \ingroup jkqtptools_math_basic
+
+    */
+template <class T=int>
+inline T jkqtp_combination(T n, T k) {
+    if (n==k) return 1;
+    if (k==0) return 1;
+    if (k>n) return 0;
+    return jkqtp_factorial(n)/(jkqtp_factorial(k)*jkqtp_factorial(n-k));
+}
+
+
+
+/*! \brief creates a functor that evaluates the Bernstein polynomial \f$ B_i^n(t):=\left(\stackrel{n}{i}\right)\cdot t^i\cdot(1-t)^{n-1},\ \ \ \ 0\leq i\leq n \f$
+    \ingroup jkqtptools_math_basic
+
+    */
+template <class T>
+std::function<T(T)> jkqtp_makeBernstein(int n, int i){
+    if (n==0 && i==0) return [=](T t) { return 1; };
+    if (n==1 && i==0) return [=](T t) { return (1.0-t); };
+    if (n==1 && i==1) return [=](T t) { return t; };
+    if (n==2 && i==0) return [=](T t) { return jkqtp_sqr(1.0-t); };
+    if (n==2 && i==1) return [=](T t) { return T(2.0)*t*(1.0-t); };
+    if (n==2 && i==2) return [=](T t) { return jkqtp_sqr(t); };
+    if (n==3 && i==0) return [=](T t) { return T(1)*jkqtp_cube(1.0-t); };
+    if (n==3 && i==1) return [=](T t) { return T(3)*t*jkqtp_sqr(1.0-t); };
+    if (n==3 && i==2) return [=](T t) { return T(3)*jkqtp_sqr(t)*(1.0-t); };
+    if (n==3 && i==3) return [=](T t) { return T(1)*jkqtp_cube(t); };
+    if (n==4 && i==0) return [=](T t) { return T(1)*jkqtp_pow4(1.0-t); };
+    if (n==4 && i==1) return [=](T t) { return T(4)*t*jkqtp_cube(1.0-t); };
+    if (n==4 && i==2) return [=](T t) { return T(6)*jkqtp_sqr(t)*jkqtp_sqr(1.0-t); };
+    if (n==4 && i==3) return [=](T t) { return T(4)*jkqtp_cube(t)*(1.0-t); };
+    if (n==4 && i==4) return [=](T t) { return T(1)*jkqtp_pow4(t); };
+    const T fac=jkqtp_combination<int64_t>(n,i);
+    return [=](T t) { return fac*pow(t,i)*pow(1.0-t,n-i); };
+}
+
+
+/*! \brief calculate the grwates common divisor (GCD) of \a a and \a b
+    \ingroup jkqtptools_math_basic
+
+    */
+JKQTCOMMON_LIB_EXPORT uint64_t jkqtp_gcd(uint64_t a, uint64_t b);
+
+
+/*! \brief calculates numeratur integer part \a intpart , \a num and denominator \a denom of a fraction, representing a given floating-point number \a input
+    \ingroup jkqtptools_math_basic
+
+    */
+JKQTCOMMON_LIB_EXPORT void jkqtp_estimateFraction(double input, int &sign, uint64_t &intpart, uint64_t& num, uint64_t& denom, unsigned int precision=9);
+
+/*! \brief returns the reversed containter \a l
+    \ingroup jkqtptools_math_basic
+
+    */
+template <class T>
+inline T jkqtp_reversed(const T& l) {
+    T reversed_l;
+    reversed_l.reserve(l.size());
+    std::reverse_copy(l.begin(), l.end(), std::back_inserter(reversed_l));
+    return reversed_l;
+}
+
+/*! \brief can be used to build a hash-values from several hash-values
+    \ingroup jkqtptools_math_basic
+
+    \code
+        std::size_t seed=0;
+        jkqtp_hash_combine(seed, valA);
+        jkqtp_hash_combine(seed, valB);
+        //...
+        // finally seed contains the combined hash
+    \endcode
+
+*/
+template <class T>
+inline void jkqtp_hash_combine(std::size_t& seed, const T& v)
+{
+    const auto hsh=::qHash(v,0);
+    seed ^= hsh + 0x9e3779b9 + (seed<<6) + (seed>>2);
+}
+
+/*! \brief can be used to build a hash-values from several hash-values
+    \ingroup jkqtptools_math_basic
+
+    \code
+        std::size_t seed=0;
+        jkqtp_combine_hash(seed, qHash(valA));
+        jkqtp_combine_hash(seed, qHash(valB));
+        //...
+        // finally seed contains the combined hash
+    \endcode
+
+*/
+inline void jkqtp_combine_hash(std::size_t& seed,  std::size_t hsh)
+{
+    seed ^= hsh + 0x9e3779b9 + (seed<<6) + (seed>>2);
 }
 
 #endif // jkqtpmathtools_H_INCLUDED

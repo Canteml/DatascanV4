@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
     with contributions from: Razi Alavizadeh
 
     
@@ -19,17 +19,13 @@
 */
 
 
-/*
-  Name: jkqtmathtext.h
-  Copyright: (c) 2010-2019
-  Author: Jan krieger <jan@jkrieger.de>, http://www.jkrieger.de/
-*/
 
 
 
 #ifndef JKQTMATHTEXT_H
 #define JKQTMATHTEXT_H
 
+#include <QFlags>
 #include <QObject>
 #include <QSettings>
 #include <QPainter>
@@ -37,29 +33,113 @@
 #include <QSet>
 #include <QFile>
 #include "jkqtmathtext/jkqtmathtext_imexport.h"
-#include <QWidget>
-#include <QLabel>
+#include "jkqtmathtext/jkqtmathtexttools.h"
 #include <QHash>
+#include <QPicture>
+#include <QImage>
+#include <QPixmap>
+#include <type_traits>
+#include <memory>
+#include <mutex>
 
 
+class JKQTMathTextNode; // forward
+class JKQTMathTextParser; // forward
+class JKQTMathTextVerticalListNode; // forward
 
-/** \brief initialized Qt-ressources necessary for JKQTMathText
- *  \ingroup jkqtmathtext
- */
-JKQTMATHTEXT_LIB_EXPORT void initJKQTMathTextResources();
-
-/*! \brief this class parses a LaTeX string and can then draw the contained text/equation onto a <a href="http://doc.qt.io/qt-5/qpainter.html">QPainter</a>
-    \ingroup jkqtmathtext
+/*! \brief this class parses a mathematical markup string and can then draw the contained text/equation onto a <a href="http://doc.qt.io/qt-5/qpainter.html">QPainter</a>
+    \ingroup jkqtmathtext_render
 
     
-    JKQTMathText is a self-contained LaTeX-renderer for Qt. It is used to renderer
+    JKQTMathText is a self-contained mathematical markup renderer for Qt. It is used to renderer
     labels in JKQTPlotter/JKQTBasePlotter, but can be used independently. 
     The class does not depend on any library, except Qt. 
-    In particular it actually parses a LaTeX string and draws it in pure C++. It does NOT rely
-    on an installed LaTeX for the rendering!
     
+    The implementation is split over several classes:
+      - JKQTMathText implements drawing, based on a memory representatioj of the markup. It also provides an interface for class users.
+      - JKQTMathTextParser and its children like JKQTMathTextLatexParser parses mathamtical markup.
+      - The nodes summarized in \ref jkqtmathtext_items  are used to build the memory representation of the markup.
+    .
+    
+    In particular JKQTMathTextLatexParser actually parses e.g. a LaTeX string and draws it in pure C++. It does NOT rely
+    on an installed LaTeX for the rendering! See \ref jkqtmathtext_supportedlatex for a description of the supported LaTeX subset.
+
+    More generally these pages describe how the class renders math markup:
+      - \ref jkqtmathtext_renderingmodel for a description of the rendering model of JKQTMathTextLatexParser
+      - \ref jkqtmathtext_fonthandling for a description of the font handling in JKQTMathTextLatexParser
+        (which is modelled after LaTeX, but with tweaks especially for use in the  context of GUI code)
+      - \ref jkqtmathtext_supportedlatex for a description of the supported LaTeX subset
+    .
+
+    \section JKQTMathTextUsageThreadSafety Thread-Safety/Re-Entrancy Guarantees
+    All functions in this class are reentrant. Therefore different instances off JKQTMathtext can be used in parallel in different threads.
+    DO NOT however use the same instance from multiple threads, as the functions are not thread-safe!
+
+    Also note that there are certain caches that reuse information (e.g. about fonts) from previous runs, which allow different instances
+    (also over different threads) to profit from each other. On the other hand, this strategy requires a bit of overhead due to synchronization,
+    but usually the speedup outweighs the overhead significantly!
+
+
     \section JKQTMathTextUsage Usage
-    \subsection JKQTMathTextUsageDirect Direct Usage
+
+    \see See \ref page_buildinstructions for detailed build-instructions and on how to link against JKQTMathText!
+
+
+    \subsection JKQTMathTextUsageParsing Parsing Functions
+    The class provieds two flavours of a parsing function:
+      - There is a function \c parse(markup, markupType) that accepts the markup, the type of markup (as enum DefaultParserTypes)  and parser options.
+        This function determines the appropriate parser class, based on the markup type.
+      - A templated function parse<TParser>(markup, options) that gets a parser class to be used on the markup.
+    .
+
+    \subsection JKQTMathTextUsageDirect Drawing Functions
+    The class provides different variants of the drawing function draw() that paints using an
+    externlly provided <a href="https://doc.qt.io/qt-6/qpainter.html">QPainter</a>. These variants
+    either paint into a QRect, or starting from a single location (x,y).
+
+    The QRect-variants can align the render result inside the rectangle, whereas the
+    location-variants draw from a position that is on the left-hand side of the output's baseline:
+
+    \image html jkqtmathtext/jkqtmathtext_node_geo.png
+
+    Note that you first need to call one of the \ref JKQTMathTextUsageParsing so there is anything to render!
+
+
+
+    \subsection JKQTMathTextUsageConvenience Convenience Functions
+
+    Alternatively you can use these methods to directly generate a QPixmap or QPicture:
+      - drawIntoPixmap()
+      - drawIntoImage()
+      - drawIntoPicture()
+    .
+
+
+    \subsection JKQTMathTextSizing Determining the size of an equation
+
+    In addition there are also functions that allow to calculate the size of the equation,
+    before drawing it (just like the functions in <a href="http://doc.qt.io/qt-6/qfontmetrics.html">QFontMetrics</a>
+    or <a href="http://doc.qt.io/qt-6/qfontmetricsf.html">QFontMetricsF</a>):
+      - getSizeDetail()
+      - getSize()
+      - getAscent(), getDescent()
+    .
+
+
+    \subsection JKQTMathTextUsageQLabel Usage within a QLabel class JKQTMathTextLabel
+
+    Finally, there is also a QLabel-derived class JKQTMathTextLabel which can be used for drawing a LaTeX string onto a Qt form.
+
+    \see JKQTMathTextLabel
+
+
+    \subsection JKQTMathTextErrorHandling Error Handling
+
+    The class is designed to be as robust as possible and will still return some output, even if the equation contains some errors.
+    Nevertheless, several errors are detected while parsing. You can get a list of error messages using getErrorList() after calling parse().
+    Also parse() will return \c false if an error occured while parsing.
+
+    \subsection JKQTMathTextUsageExample Example Code
     This small piece of C++ code may serve as an example of the usage and capabilities of the class:
     \code
     // create a JKQTMathText object.
@@ -72,224 +152,248 @@ JKQTMATHTEXT_LIB_EXPORT void initJKQTMathTextResources();
     // parse some LaTeX code (the Schroedinger's equation)
     mathText.parse("$\\left[-\\frac{\\hbar^2}{2m}\\frac{\\partial^2}{\\partial x^2}+V(x)\\right]\\Psi(x)=\\mathrm{i}\\hbar\\frac{\\partial}{\\partial t}\\Psi(x)$");
 
+    // draw the result into a QPixmap
+    QPixmap result=mathText.drawIntoPixmap();
+    \endcode
+
+    Alternatively you can also use this class with a <a href="https://doc.qt.io/qt-6/qpainter.html">QPainter</a>:
+
+    \code
     // use the draw() methods to draw the equation using a QPainter (here onto a QPixmap)
     QPainter painter;
-    QPixmap pix(600,400);
-    painter.begin(&pix);
+
+    // first we determine the size of the render output:
+    const JKQTMathTextNodeSize size=getSizeDetail(painter);
+
+    // now we can us that size information to render:
     mathText.draw(painter, Qt::AlignCenter, QRectF(0,0,pix.width(), pix.height()), false);
-    painter.end();
     \endcode
-    
-    \subsection JKQTMathTextSizing Determining the size of an equation
-    
-    In addition there are also functions that allow to calculate the size of the equation, before drawing it (just like the functions in <a href="http://doc.qt.io/qt-5/qfontmetrics.html">QFontMetrics</a> and  <a href="http://doc.qt.io/qt-5/qfontmetricsf.html">QFontMetricsF</a>):
-      - getSizeDetail()
-      - getSize()
-      - getAscent(), getDescent()
-    .
-    
-    \subsection JKQTMathTextErrorHandling Error Handling
-    
-    The class is designed to be as robust as possible and will still return some output, even if the equation contains some errors.
-    Nevertheless, several errors are detected while parsing. You can get a list of error messages using getErrorList() after calling parse().
-    Also parse() will return \c false if an error occured while parsing.
-
-    
-    \subsection JKQTMathTextUsageQLabel Usage within a QLabel class JKQTMathTextLabel
-    
-    Finally, there is also a QLabel-derived class JKQTMathTextLabel which can be used for drawing a LaTeX string onto a Qt form.
-    
-    \see JKQTMathTextLabel
-
-    
-    \section JKQTMathTextExamples Examples
-
-    Examples for the usage of this class can be found here: 
-      - \ref JKQTMathTextSimpleExample 
-    .
 
 
-    \section JKQTMathTextSuppoertedLaTeX Supported LaTeX Subset
-    \subsection JKQTMathTextSuppoertedLaTeXSimple Simple Instructions
-    The supported LaTeX subset is listes below. Please note that some commands are used differently than in actual LaTeX.
-    For example \c \\bf is just a renamed form of \c \\textbf and used as \c \\bf{...} and NOT as \c {\\bf...} .
 
-      - \c $ : enter/leave math mode
-      - \c \\bf{...} \c \\textbf{...} \c \\mathbf{...}:  draw the contained text in bold face \image html jkqtmathtext_bold.png
-      - \c \\it{...} \c \\textit{...} \c \\mathit{...} :  draw the contained text in italic face \image html jkqtmathtext_italic.png
-      - \c \\rm{...} \c \\textrm{...} \c \\mathrm{...} \c \\mbox{...} :  draw the contained text in normal upright roman font face \image html jkqtmathtext_fonts.png
-      - \c \\sf{...} \c \\textsf{...} \c \\mathsf{...} :  draw the contained text in normal upright sans-serif font face \image html jkqtmathtext_fonts.png
-      - \c \\script{...} \c \\textscript{...} \c \\mathscript{...} :  draw the contained text in a script font face \image html jkqtmathtext_fonts.png
-      - \c \\sc{...} : draw the text in small caps \image html jkqtmathtext_sc.png
-      - \c \\ul{...} \c \\underline{...} \c \\underlined{...} : draw the text with underlining \image html jkqtmathtext_ul.png
-      - \c \\ol{...} \c \\overline{...} \c \\overlined{...} : draw the text with overlining \image html jkqtmathtext_ol.png
-      - \c \\tt{...} \c \\texttt{...} \c \\mathtt{...} : draw text in typewriter font \image html jkqtmathtext_fonts.png
-      - \c \\textcolor{color}{...} \c \\color{color} \c \\mathcolor{color}{...} : draw colored text \image html jkqtmathtext_colored.png
-      - \c \\boxed{...} : draw text with a box around it \image html jkqtmathtext_boxed.png
-      - \c \\colorbox{color}{...} : draw a colored box around text \image html jkqtmathtext_colorbox.png
-      - \c \\alpha ... : display the according greek letter \image html jkqtmathtext_greek.png
-      - \c ^{...} \c _{...} : display the contents of braces in superscript/subscript \image html jkqtmathtext_supersub.png
-        <br>Special subscript/superscript typesetting applies, when the sub/super follows \c \\sum \c \\Prod ...: \image html jkqtmathtext_specialsubsuper.png
-      - \c \\{ / \\} : display opening/closing brace
-      - \c \\_ : display underscore
-      - \c \\sum \c \\prod \c \\int ... : plot special symbol. Note that depending on the fontEncoding the available
-                                          symbols may differ (there are not all symbols defined in the MS Windows Symbol
-                                          font!). Best coverage should be given by Unicode font encoding with a good
-                                          unicode font installed!<br>\image html jkqtmathtext_symbols.png
-      - <code>\\vec{x} \\dot{x} \\ddot{x} \\overline{x} \\underline{x} \\hat{x} \\tilde{x} \\uul{x} \\ool{x} \\bar{x} \\arrow{x} </code>: Decorations over/under symbols \image html jkqtmathtext_mathdeco.png
-      - <code>\\verb{don't parse this _aaa\LaTeX} </code>: interpret enclosed text as verbose \image html jkqtmathtext_verb.png
-    .
-
-    \subsection JKQTMathTextSuppoertedLaTeXBraces Braces ...
-    Braces in math mode are adjusted in size, so they are a small bit (factor \c brace_factor ) larger than the contents.
-    To enable this you have to write braces with \c \\left and \c \\right. These types of braces are defined (slight
-    differences to LaTeX standard):
-      - \c \\left( \c \\right) : default meaning (), \image html jkqtmathtext_brace_round.png
-      - \c \\left[ \c \\right] : default meaning [], \image html jkqtmathtext_brace_rect.png
-      - \c \\left\\{ \c \\right\\} : default meaning {}, \image html jkqtmathtext_brace_curly.png
-      - \c \\left< \c \\right> : "averaging" braces , \image html jkqtmathtext_brace_tri.png
-      - \c \c \\left\\lfloor \c \\right\\rfloor : floor braces , \image html jkqtmathtext_brace_floor.png
-      - \c \\left~ \c \\right~ \c \\left\\lceil \c \\right\\rceil : ceil braces , \image html jkqtmathtext_brace_ceil.png
-      - \c \\left| \c \\right| : absolute value braces | |, \image html jkqtmathtext_brace_oneline.png
-      - \c \\left\| \c \\right\| : norm braces || ||, \image html jkqtmathtext_brace_dblline.png
-      - You can use \c \\left. or \c \\right. to have only right or only left brace
-    .
-
-    \subsection JKQTMathTextSuppoertedLaTeXUnderOver Undersetting, Oversetting, Underbraces, Overbraces ...
-    There are also instructions that allow to under/overset braces, arrows, ...:
-      - <code>$\underbrace{x+x+...+x}{k\ \mathrm{times}}$</code> \image html jkqtmathtext_brace_underbrace.png
-      - <code>$\overbrace{x+x+...+x}{k\ \mathrm{times}}$</code> \image html jkqtmathtext_brace_overbrace.png
-      - <code>$\overset{main}{over}$</code> \image html jkqtmathtext_brace_overset.png
-      - <code>$\underset{main}{under}$</code> \image html jkqtmathtext_brace_underset.png
-    .
-
-    \subsection JKQTMathTextSuppoertedLaTeXMatrix Matrix/Array Type Instructions
-    Several Matrix/Array-typed LaTeX instructions are supported:
-      - <code>$\frac{...}{...}$</code>, <code>$\tfrac{...}{...}$</code> (70% smaller font), <code>$\dfrac{...}{...}$</code> \image html jkqtmathtext_brace_frac.png
-      - <code>$\sfrac{...}{...}$</code> \image html mathparser/MTFMsfrac.png
-      - <code>$\stfrac{...}{...}$</code> (70% smaller font) \image html mathparser/MTFMstfrac.png
-      - <code>$\stackrel{...}{...}$ $\binom{...}{...}$</code> \image html jkqtmathtext_brace_stackrel.png
-      - <code>$\begin{cases} ... & ... \\ ... & ... \end{cases}$</code> \image html jkqtmathtext_brace_begincases.png
-      - <code>$\begin{array} a & b & ...\\ c & d & ...\end{array}$</code> <code>$\begin{matrix} a & b & ...\\ c & d & ...\end{matrix}$</code> \image html jkqtmathtext_array.png
-      - <code>$\begin{pmatrix} a & b & ...\\ c & d & ...\end{pmatrix}$</code> \image html jkqtmathtext_pmatrix.png
-      - <code>$\begin{bmatrix} a & b & ...\\ c & d & ...\end{bmatrix}$</code> \image html jkqtmathtext_bmatrix.png
-      - <code>$\begin{Bmatrix} a & b & ...\\ c & d & ...\end{Bmatrix}$</code> \image html jkqtmathtext_bbmatrix.png
-      - <code>$\begin{vmatrix} a & b & ...\\ c & d & ...\end{vmatrix}$</code> \image html jkqtmathtext_vmatrix.png
-      - <code>$\begin{Vmatrix} a & b & ...\\ c & d & ...\end{Vmatrix}$</code> \image html jkqtmathtext_vvmatrix.png
-    .
-
-    \section JKQTMathTextSuppoertedFonts Font Handling
-    
-    Several fonts are defined as properties to the class:
-      - A "roman" font used as the standard font ( setFontRoman()  )
-      - A "sans-serif" font which may be activated with \c \\sf ... ( setFontSans()  )
-      - A "typewriter" font which may be activated with \c \\tt ... ( setFontTypewriter() )
-      - A "script" font which may be activated with \c \\script ... ( setFontScript() )
-      - A greek font which is used to display greek letters \c \\alpha ... ( setSymbolfontGreek() )
-      - A symbol font used to display special (math) symbols. ( setSymbolfontSymbol() )
-      - A "roman" font used as the standard font in math mode ( setFontMathRoman() )
-      - A "sans-serif" used as sans serif font in math mode ( setFontMathSans() )
-      - A "blackboard" font used to display double stroked characters (setFontBlackboard() )
-      - A "caligraphic" font used to display caligraphic characters ( setFontCaligraphic() )
-    .
-    
-    These fonts are generic font classes, which font is actually used can be configured in JKQTMathText class with the \c set...() functions mentioned above. You can also use these functions to set the fonts used for math rendering in math-mode:
-      - useSTIX() use the STIX fonts from <a href="https://www.stixfonts.org/">https://www.stixfonts.org/</a> in math-mode<br>\image html jkqtmathparser_stix.png
-      - useXITS() use the XITS fonts from <a href="https://github.com/alif-type/xits">https://github.com/alif-type/xits</a> in math-mode. These are included by default in this library and also activated by default.<br>\image html jkqtmathparser_xits.png
-      - useASANA() use the ASANA fonts from <a href="https://ctan.org/tex-archive/fonts/Asana-Math/">https://ctan.org/tex-archive/fonts/Asana-Math/</a> in math-mode<br>\image html jkqtmathparser_asana.png
-      - useAnyUnicode() use generic Unicode fonts, e.g. "Arial" and "Times New Roman" in math-mode. You should use fonts that contain as many of the mathematical symbols as possible to ensure good rendering results.<br>using "Times New Roman": \image html jkqtmathparser_timesnewroman.png
-        <br>using "Arial": \image html jkqtmathparser_arial.png
-        <br>using "Courier New": \image html jkqtmathparser_couriernew.png
-        <br>using "Comic Sans MS": \image html jkqtmathparser_comicsans.png
-    .
-
-
-    Math-mode is activated by enclosing your equation in \c $...$ or \c \\[...\\] . This mode is optimized for mathematical equations. Here is an example of the difference:
-      - <b>math-mode (XITS fonts are used, whitespaces are mostly not drawn directly, symbol spacing is different)</b> \c $...$: <br>\image html jkqtmathparser_schreq_mathmode.png
-      - <b>normal mode (Times new Roman is used, whitespaces are evaluated directly)</b>: <br>\image html jkqtmathparser_schreq_normalmode.png
-    .
-    
 
     \section JKQTMathTextToHTML Convert to HTML
-    
+
     The method toHtml() may be used to get a HTML representation of the LaTeX string, if possible (only for simple LaTeX equations!). Whether
     the transformation was possible is returned as a call by value argument!
+
+    
+    \section JKQTMathTextExamples Example Projects
+
+    Examples for the usage of this class can be found here: 
+      - \ref JKQTMathTextSimpleExample
+      - \ref JKQTMathTextRenderCmdLineTool
+      - \ref JKQTMathTextTestApp
+    .
+
 
 
  */
 class JKQTMATHTEXT_LIB_EXPORT JKQTMathText : public QObject {
         Q_OBJECT
     public:
+        friend class JKQTMathTextParser;
+        friend class JKQTMathTextNode;
+
         /** \brief minimum linewidth allowed in a JKQTMathText (given in pt) */
         static const double ABS_MIN_LINEWIDTH;
 
-        /** \brief class constructor */
-        JKQTMathText(QObject * parent = nullptr);
+
+        /** \brief class constructor with a paren QObject \a parent and calls useGuiFonts() if \a useFontsForGUI \c =true */
+        JKQTMathText(QObject * parent = nullptr, bool useFontsForGUI=false);
         /** \brief class destructor */
         ~JKQTMathText();
-        /** \brief load the object settings from the given QSettings object with the given name prefix */
-        void loadSettings(const QSettings& settings, const QString& group=QString("mathtext/"));
-        /** \brief store the object settings to the given QSettings object with the given name prefix */
-        void saveSettings(QSettings& settings, const QString& group=QString("mathtext/")) const;
-        /** \brief parse the given enhanced string. Returns \c true on success. */
-        bool parse(QString text);
+
+
+/** @name Parsing Math Markup */
+/**@{*/
+        /** \brief options for parse() */
+        enum ParseOption {
+            AddSpaceBeforeAndAfter = 0x01, /*!< \brief If set, a little bit of space is added before and after the text. */
+            StartWithMathMode = 0x02, /*!< \brief if set, the parser assumes the LaTeX string is in math-mode (as if surrounded by \c $ ) */
+            AllowLinebreaks = 0x04, /*!< \brief If set, linebreak (i.e. \c \\ or \c \\newline )  are allowed, otherwise a single line wihtout such linebreak commands is expected */
+            DefaultParseOptions=AllowLinebreaks,
+        };
+        Q_DECLARE_FLAGS(ParseOptions, ParseOption)
+        Q_FLAG(ParseOptions)
+        /** \brief lists the parser classes that are available by default (convenience interface to the templated parse()-funktion */
+        enum DefaultParserTypes {
+            LatexParser, /*!< \brief use the LaTeX parser from JKQTMathTextLatexParser */
+            DefaultParser=LatexParser
+        };
+        /** \brief parse the given math \a markup string with a parser derived from \a markupType.
+         *
+         *  \param markup the string of math markup
+         *  \param markupType defines the language the \a markup is written in (and  is used to derive the parser to use)
+         *  \param options Options for parsing, \see ParseOptions
+         *
+         *  \returns \c true on success.
+         */
+        bool parse(const QString &markup, DefaultParserTypes markupType=DefaultParser, ParseOptions options=DefaultParseOptions);
+        /** \brief parse the given math \a markup string, using the given parser class \a TParser
+         *
+         *  \tparam TParser the  parser (deived from JKQTMathTextParser) to be used
+         *  \param markup the string of math markup
+         *  \param options Options for parsing, \see ParseOptions
+         *
+         *  \returns \c true on success.
+         */
+        template <class TParser>
+        inline bool parse(const QString &markup, ParseOptions options=DefaultParseOptions) {
+            static_assert(std::is_base_of<JKQTMathTextParser, TParser>::value, "in parse<TParser>() the type TParser has to be derived from JKQTMathTextParser to work!");
+            std::unique_ptr<TParser> p=std::unique_ptr<TParser>(new TParser(this));
+            deleteParsedNode();
+            clearErrorList();
+            parsedNode=p->parse(markup, options);
+            return parsedNode!=nullptr;
+        }
+        /** \brief returns the syntax tree of JKQTMathTextNode's that was created by the last parse() call */
+        JKQTMathTextNode* getNodeTree() ;
+        /** \copydoc parsedNode */
+        const JKQTMathTextNode *getNodeTree() const;
+/**@}*/
+
+
+/** @name Determine the Size of the Output */
+/**@{*/
+
         /** \brief get the size of the drawn representation. returns an invalid size if no text has been parsed. */
         QSizeF getSize(QPainter& painter);
+        /** \brief get the rounded (using ceil) to an integer size of the drawn representation. returns \c QSize(0,0) if no text has been parsed. */
+        QSize getIntSize(QPainter& painter);
         /** \brief return the descent, i.e. the distance from the baseline to the lowest part of the representation */
         double getDescent(QPainter& painter);
         /** \brief return the ascentt, i.e. the distance from the baseline to the highest part of the representation */
         double getAscent(QPainter& painter);
         /** \brief return the detailes sizes of the text */
         void getSizeDetail(QPainter& painter, double& width, double& ascent, double& descent, double& strikeoutPos);
-        /** \brief draw a representation to the <a href="http://doc.qt.io/qt-5/qpainter.html">QPainter</a> object at the specified position */
-        void draw(QPainter& painter, double x, double y, bool drawBoxes=false);
-        /** \brief overloaded version of draw(QPainter& painter, double x, double y).
+        /** \brief return the detailes sizes of the text */
+        JKQTMathTextNodeSize getSizeDetail(QPainter& painter);
+/**@}*/
+
+
+/** @name Rendering */
+/**@{*/
+
+        /** \brief draw a representation to the  object at the specified position \a x , \a y
          *
-         *  This version draws the text inside the given rectangle according to the specified flags.
+         *  \param painter the <a href="http://doc.qt.io/qt-5/qpainter.html">QPainter</a> to use for drawing
+         *  \param x position of the left border of the text/expression to be drawn (see sketch below)
+         *  \param drawBoxes if \c true boxes defining the size of each node are drawn, example output: \image html jkqtmathtext/jkqtmathtext_drawboxes.png
+         *
+         *  Here is an illustration of the geometry of the drawn text/expression:
+         *  \image html jkqtmathtext/jkqtmathtext_node_geo.png
+         */
+        void draw(QPainter& painter, QPointF x, bool drawBoxes=false);
+        /** \brief draw a representation to the  object at the specified position \a x , \a y
+         *
+         *  \param painter the <a href="http://doc.qt.io/qt-5/qpainter.html">QPainter</a> to use for drawing
+         *  \param x x-position of the left border of the text/expression to be drawn (see sketch below)
+         *  \param y y-position of the baseline of the text/expression to be drawn (see sketch below)
+         *  \param drawBoxes if \c true boxes defining the size of each node are drawn, example output: \image html jkqtmathtext/jkqtmathtext_drawboxes.png
+         *
+         *  Here is an illustration of the geometry of the drawn text/expression:
+         *  \image html jkqtmathtext/jkqtmathtext_node_geo.png
+         */
+        double draw(QPainter& painter, double x, double y, bool drawBoxes=false);
+        /** \brief draw into a rectangle \a rect with alignment defined in \a flags (see below)
+         *
+         *  \param painter the <a href="http://doc.qt.io/qt-5/qpainter.html">QPainter</a> to use for drawing
+         *  \param rect rectangle to draw the text/expression into (see sketch below)
+         *  \param flags alignment within \a rect (see below), use e.g. <tt>Qt::AlignHCenter | Qt::AlignVCenter</tt> to center the expression inside \a rect
+         *               The flags (dark-red is the rectangle \a rect) are interpreted in the following way:
+         *               \image html jkqtmathtext/jkqtmathtext_draw_flags.png
+         *  \param drawBoxes if \c true boxes defining the size of each node are drawn, example output: \image html jkqtmathtext/jkqtmathtext_drawboxes.png
+         *
+         *
+         *
+         *  \see drawIntoPixmap(), drawIntoPicture(), getSize(), getSizeDetail()
          */
         void draw(QPainter& painter, unsigned int flags, QRectF rect, bool drawBoxes=false);
+
+        /** \brief render the last  parse result into a <a href="https://doc.qt.io/qt-6/qpixmap.html">QPixmap</a>
+         *
+         *  \param drawBoxes if \c true boxes defining the size of each node are drawn, example output: \image html jkqtmathtext/jkqtmathtext_drawboxes.png
+         *  \param backgroundColor fill color for the returnes QPixmap
+         *  \param sizeincrease margin around the tight size of the rendering result for the returned QPixmap
+         *  \param devicePixelRatio the devicePixelRatio of the returned QPixmap
+         */
+        QPixmap drawIntoPixmap(bool drawBoxes=false, QColor backgroundColor=QColor(Qt::white), int sizeincrease=0, qreal devicePixelRatio=1.0);
+
+        /** \brief render the last  parse result into a <a href="https://doc.qt.io/qt-6/qimage.html">QImage</a>
+         *
+         *  \param drawBoxes if \c true boxes defining the size of each node are drawn, example output: \image html jkqtmathtext/jkqtmathtext_drawboxes.png
+         *  \param backgroundColor fill color for the returnes QPixmap
+         *  \param sizeincrease margin around the tight size of the rendering result for the returned QPixmap
+         *  \param devicePixelRatio the devicePixelRatio of the returned QImage
+         *  \param resolution_dpi resolution in dots/inch
+         */
+        QImage drawIntoImage(bool drawBoxes=false, QColor backgroundColor=QColor(Qt::white), int sizeincrease=0, qreal devicePixelRatio=1.0, unsigned int resolution_dpi=96);
+
+        /** \brief render the last  parse result into a <a href="https://doc.qt.io/qt-6/qpicture.html">QPicture</a>
+         *
+         *  \param drawBoxes if \c true boxes defining the size of each node are drawn, example output: \image html jkqtmathtext/jkqtmathtext_drawboxes.png
+         */
+        QPicture drawIntoPicture(bool drawBoxes=false);
 
 
         /** \brief convert LaTeX to HTML. returns \c ok=true on success and \c ok=false else. */
         QString toHtml(bool* ok=nullptr, double fontPointSize=10);
+/**@}*/
 
-        /*! \brief used to specify the font encoding used for drawing
-        */
-        enum MTfontEncoding {
-            MTFEwinSymbol,      /*!< \brief This assumes that symbols shall be taken from a MS Windows style Symbol font */
-            MTFEunicode,        /*!< \brief This assumes that symbols shall be taken from a Unicode font  (e.g. the STIX fonts from <a href="http://www.stixfonts.org/">http://www.stixfonts.org/</a>)*/
-            MTFEunicodeLimited, /*!< \brief This assumes that the fonts used are Unicode, but only offer a limited set of symbols.  Especially math symbols are missing from this encoding */
-            MTFEStandard,       /*!< \brief the encoding of a standard TTF font (i.e. we can only expect letters,number and not many special characters) */
+/** @name Font Handling */
+/**@{*/
+        /** \brief options for the base font */
+        enum BaseFontOption {
+            BaseFontBold = 0x01, /*!< \brief output is bold (equivalent to placinf text in <code>\textbf{...}</code>) */
+            BaseFontItalic = 0x02, /*!< \brief output is italic (equivalent to placinf text in <code>\textit{...}</code>) */
+            BaseFontUnderlined = 0x04, /*!< \brief output is underlined (equivalent to placinf text in <code>\underlined{...}</code>) */
+            BaseFontSmallCaps = 0x08, /*!< \brief output is small-caps (equivalent to placinf text in <code>\textsc{...}</code>) */
+            BaseFontDefault=0x00, /*!< \brief base font is used as is, without modifications */
         };
-
-        /** \brief convert MTfontEncoding to a string */
-        static QString encoding2String(MTfontEncoding e);
-
-
-        /** \brief the available logical fonts (default is MTEroman)  */
-        enum MTenvironmentFont {
-            MTEroman,       /*!< \brief roman font, e.g. <code>\\rm{}</code> */
-            MTEsans,        /*!< \brief sans-serif font, e.g. <code>\\sf{}</code> */
-            MTEmathRoman,   /*!< \brief math-mode roman font, e.g. <code>\\mathrm{}</code> */
-            MTEmathSans,    /*!< \brief math-mode sans-serif font, e.g. <code>\\mathsf{}</code> */
-            MTEtypewriter,  /*!< \brief typewriter font, e.g. <code>\\tt{},\\mathtt{}</code> */
-            MTEscript,      /*!< \brief script font, e.g. <code>\\script{},\\mathscript{}</code> */
-            MTEblackboard,  /*!< \brief blackboard font, e.g. <code>\\mathbb{}</code> */
-            MTEcaligraphic, /*!< \brief caligraphic font, e.g. <code>\\mathcal{}</code> */
-            MTEfraktur,     /*!< \brief fraktur font, e.g. <code>\\mathfrak{}</code> */
-
-            MTenvironmentFontCount  /*!< \brief internal enum value that allows to iterate over MTenvironmentFont \internal */
-        };
-
-
-        /** \copydoc fontColor */ 
+        Q_DECLARE_FLAGS(BaseFontOptions, BaseFontOption)
+        Q_FLAG(BaseFontOptions)
+        /** \brief convert BaseFontOptions to a string (e.g. <code>BOLD+ITALIC</code> */
+        static QString BaseFontOptions2String(BaseFontOptions opt);
+        /** \brief convert a string (generated by BaseFontOptions2String() to BaseFontOptions */
+        static BaseFontOptions String2BaseFontOptions(const QString& s);
+        /** \copydoc fontColor */
         void setFontColor(const QColor & __value);
         /** \copydoc fontColor */ 
         QColor getFontColor() const;
-        /** \copydoc fontSize */ 
+        /** \copydoc setFontPointSize() */
         void setFontSize(double __value);
-        /** \copydoc fontSize */ 
+        /** \brief set the default font size in points
+         *  \see getFontSize(), fontSize, fontSizeUnits */
+        void setFontPointSize(double __value);
+        /** \brief set the default font soze in pixels
+         *  \see getFontSizePixels(), fontSize, fontSizeUnits */
+        void setFontSizePixels(double __value);
+        /** \brief returns the currently set default font size in points, if it was defined in points using setFontSize(), or -1 if it was set in pixels with setFontSizePixels()
+         *  \see setFontSize(), fontSize, fontSizeUnits */
+        double getFontPointSize() const;
+        /** \copydoc getFontPointSize() */
         double getFontSize() const;
+        /** \brief returns the currently set default font size in pixels, if it was defined in points using setFontSizePixels(), or -1 if it was set in points with setFontSize()
+         *  \see setFontSizePixels(), fontSize, fontSizeUnits */
+        double getFontSizePixels() const;
+        /** \brief set (overwrite) the options applied to the base font
+         *
+         *  \see BaseFontOptions
+         */
+        void setFontOptions(BaseFontOptions opts);
+        /** \brief en/disable the given base font option
+         *
+         *  \see BaseFontOptions
+         */
+        void setFontOption(BaseFontOption opt,bool enabled=true);
+        /** \brief returns the options applied to the base font
+         *
+         *  \see BaseFontOptions
+         */
+        BaseFontOptions getFontOptions() const;
+
+
         /** \brief add a font pair to the table with font replacements
          *
          * e.g. if it is known that a certain font is not good for rendering, you can add an alternative with this function.
@@ -310,193 +414,375 @@ class JKQTMATHTEXT_LIB_EXPORT JKQTMathText : public QObject {
          * \param useFont replacement font for nonUseFont
          * \param useFontEncoding encoding of the replacement font
          */
-        void addReplacementFont(const QString& nonUseFont, const QString& useFont, MTfontEncoding useFontEncoding);
+        void addReplacementFont(const QString& nonUseFont, const QString& useFont, JKQTMathTextFontEncoding useFontEncoding);
         /** \brief retrieves a replacement for the given font name \a nonUseFont, including its encoding. Returns the given default values \a defaultFont and/or \a defaultFontEncoding if one of the two is not found */
-        QPair<QString, MTfontEncoding> getReplacementFont(const QString &nonUseFont, const QString &defaultFont, MTfontEncoding defaultFontEncoding) const;
-
-        enum class FontSubclass {
-            Text,
-            Default=Text,
-            Symbols,
-            Greek,
-        };
+        QPair<QString, JKQTMathTextFontEncoding> getReplacementFont(const QString &nonUseFont, const QString &defaultFont, JKQTMathTextFontEncoding defaultFontEncoding) const;
 
         /** \brief retrieve the font and encoding to be used for \a font, which might optionally be typeset inside a math environment, specified by in_math_environment, possibly for the given font subclass \a subclass */
-        QPair<QString, MTfontEncoding> getFontData(MTenvironmentFont font, bool in_math_environment=false, FontSubclass subclass=FontSubclass::Default) const;
+        QPair<QString, JKQTMathTextFontEncoding> getFontData(JKQTMathTextEnvironmentFont font, bool in_math_environment=false) const;
 
-        /*! \brief calls setFontRoman(), or calls useXITS() if \a __value \c =="XITS".  calls useSTIX() if \a __value \c =="STIX", ...
+        /*! \brief set the font by parsing a special syntax defined in the description of JKQTMathTextFontSpecifier
+         *
+         *  This allows to set the text-mode and math-mode roman fonts.
+         *
+         *   \note This function is a shorthand for
+         *   \code
+         *     setFontRomanOrSpecial(JKQTMathTextFontSpecifier::fromFontSpec(fontName), encoding);
+         *   \endcode
+         *
+         *  \see JKQTMathTextFontSpecifier, setFontRoman(), setFontMathRoman(),  \ref jkqtmathtext_fonthandling
+         */
+        void setFontRomanOrSpecial(const QString & fontName, JKQTMathTextFontEncoding encoding=JKQTMathTextFontEncoding::MTFEStandard);
+        /*! \brief set the font by an instance of JKQTMathTextFontSpecifier
+         *
+         *  This allows to set the text-mode and math-mode roman fonts.
+         *
+         *  \see JKQTMathTextFontSpecifier, setFontRoman(), setFontMathRoman(),  \ref jkqtmathtext_fonthandling
+         */
+        void setFontRomanOrSpecial(const JKQTMathTextFontSpecifier & fontName, JKQTMathTextFontEncoding encoding=JKQTMathTextFontEncoding::MTFEStandard);
+        /*! \brief set font(s) from parsing a font specifier
+         *
+         *  This function understands a font-specifier in the following forms:
+         *    - \c fontRoman - set "roman" and "math-roman" to fontRoman "sans"/"math-sans" are reset to the default, when constructing the object
+         *    - \c fontRoman/fontSans -  set "roman" and "math-roman" to fontRoman and "sans" and "math-sans" to fontSans
+         *    - \c fontRoman/fontSans/fontMathRoman/fontMathSans -  sets all four majpr fonts
+         *    - any above with addition:
+         *        - \c +XITS use XITS for math/symbols, calls useXITS()
+         *        - \c +ASANA use ASANA for math/symbols, calls useASANA()
+         *        - \c +STIX use STIX for math/symbols, calls useSTIX()
+         *        - \c +FIRA use Fira Math for math/symbols, calls useFiraMath()
+         *        - \c +BOLD make font initially bold
+         *        - \c +ITALIC make font initially italic
+         *        - \c +UNDERLINED make font initially underlines
+         *        - \c +SMALLCAPS make font initially smallcaps
+         *      .
+         *    - \c GUI use GUI-fonts, calls useGuiFonts()
+         *  .
+         *
+         *  Font names can also be one of the special names, specified in the documentation of JKQTMathTextFontSpecifier and JKQTMathTextFontSpecifier::transformFontNameAndDecodeSpecialFonts()
+         *
+         */
+        void setFontSpecial(const QString& fontSpec);
 
-            \see setFontRoman(), useXITS(), useSTIX() for more information */
-        void setFontRomanOrSpecial(const QString & fontName);
-
-        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text in the logical font MTEroman   */
-        void setFontRoman(const QString & fontName, MTfontEncoding encoding=MTfontEncoding::MTFEStandard);
+        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text in the logical font MTEroman
+         *
+         *  \see  \ref jkqtmathtext_fonthandling
+          */
+        void setFontRoman(const QString & fontName, JKQTMathTextFontEncoding encoding=JKQTMathTextFontEncoding::MTFEStandard);
+        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text and math, i.e. the logical font MTEroman and MTEmathRoman
+         *
+         *  \see  \ref jkqtmathtext_fonthandling
+         */
+        void setFontRomanAndMath(const QString & fontName, JKQTMathTextFontEncoding encoding=JKQTMathTextFontEncoding::MTFEStandard);
         /** \brief retrieves the font to be used for text in the logical font MTEroman   */
         QString getFontRoman() const;
-        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text in the logical font MTEsans   */
-        void setFontSans(const QString & fontName, MTfontEncoding encoding=MTfontEncoding::MTFEStandard);
+        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text in the logical font MTEsans
+         *
+         *  \see  \ref jkqtmathtext_fonthandling
+         */
+        void setFontSans(const QString & fontName, JKQTMathTextFontEncoding encoding=JKQTMathTextFontEncoding::MTFEStandard);
         /** \brief retrieves the font to be used for text in the logical font MTEsans   */
         QString getFontSans() const;
-        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text in the logical font MTEtypewriter   */
-        void setFontTypewriter(const QString & fontName, MTfontEncoding encoding=MTfontEncoding::MTFEStandard);
+        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text in the logical font MTEtypewriter
+         *
+         *  \see  \ref jkqtmathtext_fonthandling
+         */
+        void setFontTypewriter(const QString & fontName, JKQTMathTextFontEncoding encoding=JKQTMathTextFontEncoding::MTFEStandard);
         /** \brief retrieves the font to be used for text in the logical font MTEtypewriter   */
         QString getFontTypewriter() const;
-        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text in the logical font MTEscript   */
-        void setFontScript(const QString & fontName, MTfontEncoding encoding=MTfontEncoding::MTFEStandard);
+        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text in the logical font MTEscript
+         *
+         *  \see  \ref jkqtmathtext_fonthandling
+         */
+        void setFontScript(const QString & fontName, JKQTMathTextFontEncoding encoding=JKQTMathTextFontEncoding::MTFEStandard);
         /** \brief retrieves the font to be used for text in the logical font MTEscript   */
         QString getFontScript() const;
-        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text in the logical font MTEfraktur   */
-        void setFontFraktur(const QString & fontName, MTfontEncoding encoding=MTfontEncoding::MTFEStandard);
+        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text in the logical font MTEfraktur
+         *
+         *  \see  \ref jkqtmathtext_fonthandling
+         */
+        void setFontFraktur(const QString & fontName, JKQTMathTextFontEncoding encoding=JKQTMathTextFontEncoding::MTFEStandard);
         /** \brief retrieves the font to be used for text in the logical font MTEfraktur   */
         QString getFontFraktur() const;
-        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text in the logical font MTEcaligraphic   */
-        void setFontCaligraphic(const QString & fontName, MTfontEncoding encoding=MTfontEncoding::MTFEStandard);
+        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text in the logical font MTEcaligraphic
+         *
+         *  \see  \ref jkqtmathtext_fonthandling
+         */
+        void setFontCaligraphic(const QString & fontName, JKQTMathTextFontEncoding encoding=JKQTMathTextFontEncoding::MTFEStandard);
         /** \brief retrieves the font to be used for text in the logical font MTEcaligraphic   */
         QString getFontCaligraphic() const;
-        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text in the logical font MTEblackboard   */
-        void setFontBlackboard(const QString & fontName, MTfontEncoding encoding=MTfontEncoding::MTFEStandard);
-        /** \brief blackboard font is simulated by using roman with outlines only  */
-        void setFontBlackboardSimulated(bool doSimulate);
-        /** \brief is blackboard font simulated by using roman with outlines only  */
-        bool isFontBlackboardSimulated() const;
-        /** \brief retrieves the font to be used for text in the logical font MTEblackboard   */
+        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text in the logical font MTEblackboard \see setFontBlackboardMode()
+         *
+         *
+         */
+        void setFontBlackboard(const QString & fontName, JKQTMathTextFontEncoding encoding=JKQTMathTextFontEncoding::MTFEStandard);
+        /** \copydoc blackboradFontMode */
+        JKQTMathTextBlackboradDrawingMode getFontBlackboradMode() const;
+        /** \copydoc blackboradFontMode */
+        void setFontBlackboradMode(JKQTMathTextBlackboradDrawingMode mode);
+
+        /** \brief retrieves the font to be used for text in the logical font MTEblackboard \see blackboradFontMode  */
         QString getFontBlackboard() const;
-        /** \brief set the font \a fontName and it's encoding \a encoding to be used for greek letters in the logical font \a font   */
-        void setSymbolfontGreek(MTenvironmentFont font, const QString & fontName, MTfontEncoding encoding=MTfontEncoding::MTFEStandard);
-        /** \brief set the font \a fontName and it's encoding \a encoding to be used for integrals in all logical fonts   */
-        void setSymbolfontGreek(const QString & fontName, MTfontEncoding encoding=MTfontEncoding::MTFEStandard);
-        /** \brief retrieves the font to be used for greek letters in the logical font \a font   */
-        QString getSymbolfontGreek(MTenvironmentFont font) const;
-        /** \brief set the font \a fontName and it's encoding \a encoding to be used for symbols in the logical font \a font   */
-        void setSymbolfontSymbol(MTenvironmentFont font, const QString & fontName, MTfontEncoding encoding=MTfontEncoding::MTFEStandard);
-        /** \brief set the font \a fontName and it's encoding \a encoding to be used for integrals in all logical fonts   */
-        void setSymbolfontSymbol(const QString & fontName, MTfontEncoding encoding=MTfontEncoding::MTFEStandard);
+        /** \brief set the font \a fontName and it's encoding \a encoding to be used for symbols in the logical font \a font
+         *
+         *  \see  \ref jkqtmathtext_fonthandling
+         */
+        void setFallbackFontSymbols(const QString & fontName, JKQTMathTextFontEncoding encoding=JKQTMathTextFontEncoding::MTFEStandard);
         /** \brief retrieves the font to be used for symbols in the logical font \a font   */
-        QString getSymbolfontSymbol(MTenvironmentFont font) const;
+        QString getFallbackFontSymbols() const;
 
-        /** \brief retrieves the encoding used for the symbol font to be used for symbols in the logical font \a font   */
-        MTfontEncoding getSymbolfontEncodingSymbol(MTenvironmentFont font) const;
-        /** \brief retrieves the encoding used for the greek letter font to be used for symbols in the logical font \a font   */
-        MTfontEncoding getSymbolfontEncodingGreek(MTenvironmentFont font) const;
+        /** \brief retrieves the encoding used for the symbol font to be used for symbols   */
+        JKQTMathTextFontEncoding getFontEncodingFallbackFontSymbols() const;
         /** \brief retrieves the encoding used for the script font  */
-        MTfontEncoding getFontEncodingScript() const;
+        JKQTMathTextFontEncoding getFontEncodingScript() const;
         /** \brief retrieves the encoding used for the Fraktur font  */
-        MTfontEncoding getFontEncodingFraktur() const;
+        JKQTMathTextFontEncoding getFontEncodingFraktur() const;
         /** \brief retrieves the encoding used for the typewriter font  */
-        MTfontEncoding getFontEncodingTypewriter() const;
+        JKQTMathTextFontEncoding getFontEncodingTypewriter() const;
         /** \brief retrieves the encoding used for the sans-serif font  */
-        MTfontEncoding getFontEncodingSans() const;
+        JKQTMathTextFontEncoding getFontEncodingSans() const;
         /** \brief retrieves the encoding used for the roman font  */
-        MTfontEncoding getFontEncodingRoman() const;
+        JKQTMathTextFontEncoding getFontEncodingRoman() const;
         /** \brief retrieves the encoding used for the blackboard font  */
-        MTfontEncoding getFontEncodingBlackboard() const;
+        JKQTMathTextFontEncoding getFontEncodingBlackboard() const;
         /** \brief retrieves the encoding used for the caligraphic font  */
-        JKQTMathText::MTfontEncoding getFontEncodingCaligraphic() const;
+        JKQTMathTextFontEncoding getFontEncodingCaligraphic() const;
 
 
-        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text in the logical font MTEmathRoman   */
-        void setFontMathRoman(const QString & fontName, MTfontEncoding encoding=MTfontEncoding::MTFEStandard);
+        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text in the logical font MTEmathRoman
+         *
+         *  \see  \ref jkqtmathtext_fonthandling
+         */
+        void setFontMathRoman(const QString & fontName, JKQTMathTextFontEncoding encoding=JKQTMathTextFontEncoding::MTFEStandard);
         /** \brief retrieves the font to be used for text in the logical font MTEroman   */
         QString getFontMathRoman() const;
-        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text in the logical font MTEmathSans   */
-        void setFontMathSans(const QString & fontName, MTfontEncoding encoding=MTfontEncoding::MTFEStandard);
+        /** \brief set the font \a fontName and it's encoding \a encoding to be used for text in the logical font MTEmathSans
+         *
+         *  \see  \ref jkqtmathtext_fonthandling
+         */
+        void setFontMathSans(const QString & fontName, JKQTMathTextFontEncoding encoding=JKQTMathTextFontEncoding::MTFEStandard);
         /** \brief retrieves the font to be used for text in the logical font MTEsans   */
         QString getFontMathSans() const;
         /** \brief retrieves the encoding used for the math-mode sans-serif font  */
-        MTfontEncoding getFontEncodingMathSans() const;
+        JKQTMathTextFontEncoding getFontEncodingMathSans() const;
         /** \brief retrieves the encoding used for the math-mode roman font  */
-        MTfontEncoding getFontEncodingMathRoman() const;
+        JKQTMathTextFontEncoding getFontEncodingMathRoman() const;
 
         /** \brief configures the class to use the STIX fonts in mathmode
          *
          * use STIX (1.x/2.x) fonts from <a href="https://www.stixfonts.org/">https://www.stixfonts.org/</a> in math-mode
+         * or in math and text-mode (if \a mathModeOnly \c ==false )
          *
-         * \image html jkqtmathparser_stix.png
+         * If \c useAsFallbackSymbol is set \c ==true then the XITS fonts are also used as MTEFallbackSymbols
+         *
+         * \image html jkqtmathtext/jkqtmathtext_stix.png
+         *
+         * This function does not only use default font-names for STIX, but searches
+         * the font database of the system with several different variants, using JKQTMathTextFontSpecifier::getSTIXFamilies().
+         * It also sets the special math-variant of STIX for math mode and the normal variant for text-mode
+         *
+         * \see \ref jkqtmathtext_fonthandling
          */
-        bool useSTIX(bool mathModeOnly=true);
+        bool useSTIX(bool mathModeOnly=true, bool useAsFallbackSymbol=true);
 
         /** \brief configures the class to use the XITS fonts in mathmode
          *
-         * use XITS fonts from <a href="https://github.com/alif-type/xits">https://github.com/alif-type/xits</a> in math-mode.
-         * These are included by default in this library and also activated by default.
+         * use XITS fonts from <a href="https://github.com/alif-type/xits">https://github.com/alif-type/xits</a> in math-mode
+         * or in math and text-mode (if \a mathModeOnly \c ==false ).
          *
-         * \image html jkqtmathparser_xits.png
+         * If \c useAsFallbackSymbol is set \c ==true then the XITS fonts are also used as MTEFallbackSymbols
          *
-         * \note The XITS fonts can be compiled into JKQTPlotter, when the CMake-option \c is set to ON (default: ON).
+         * \image html jkqtmathtext/jkqtmathtext_xits.png
+         *
+         * \note The XITS fonts can be compiled into JKQTPlotter, when the CMake-option \c JKQtPlotter_BUILD_INCLUDE_XITS_FONTS is set to ON (default: ON).
          *       Then the XITS fonts are added as Qt-Ressources to the library binary.
          *       If this is not the case, you have to provide the XITS fonts on the target system by other means, if you want
          *       to use them.
+         *
+         * This function does not only use default font-names for XITS, but searches
+         * the font database of the system with several different variants, using JKQTMathTextFontSpecifier::getXITSFamilies().
+         * It also sets the special math-variant of XITS for math mode and the normal variant for text-mode
+         *
+         * \see \ref jkqtmathtext_fonthandling
          */
-        bool useXITS(bool mathModeOnly=true);
+        bool useXITS(bool mathModeOnly=true, bool useAsFallbackSymbol=true);
+
+        /** \brief configures the class to use the Fira Math fonts in mathmode
+         *
+         * use Fira Math fonts from <a href="https://github.com/firamath/firamath">https://github.com/firamath/firamath</a> in math-mode
+         * or in math and text-mode (if \a mathModeOnly \c ==false ).
+         *
+         * If \c useAsFallbackSymbol is set \c ==true then the Fira Math fonts are also used as MTEFallbackSymbols
+         *
+         * \image html jkqtmathtext/jkqtmathtext_usefira.png
+         *
+         * \note The Fira Math fonts can be compiled into JKQTPlotter, when the CMake-option \c JKQtPlotter_BUILD_INCLUDE_FIRAMATH_FONTS is set to ON (default: ON).
+         *       Then the Fira Math fonts are added as Qt-Ressources to the library binary.
+         *       If this is not the case, you have to provide the Fira Math fonts on the target system by other means, if you want
+         *       to use them.
+         *
+         * This function does not only use default font-names for Fira Math, but searches
+         * the font database of the system with several different variants, using JKQTMathTextFontSpecifier::getFIRAFamilies().
+         * It also sets the special math-variant of Fira for math mode and the normal variant for text-mode
+         *
+         * \see \ref jkqtmathtext_fonthandling
+         */
+        bool useFiraMath(bool mathModeOnly=true, bool useAsFallbackSymbol=true);
 
         /** \brief configures the class to use the ASANA fonts in mathmode
          *
          * use the ASANA fonts from <a href="https://ctan.org/tex-archive/fonts/Asana-Math/">https://ctan.org/tex-archive/fonts/Asana-Math/</a> in math-mode
+         * or in math and text-mode (if \a mathModeOnly \c ==false )
          *
-         * \image html jkqtmathparser_asana.png
+         * If \c useAsFallbackSymbol is set \c ==true then the XITS fonts are also used as MTEFallbackSymbols
+         *
+         * \image html jkqtmathtext/jkqtmathtext_asana.png
+         *
+         * This function does not only use default font-names for ASANA, but searches
+         * the font database of the system with several different variants, using JKQTMathTextFontSpecifier::getASANAFamilies().
+         * It also sets the special math-variant of ASANA for math mode and the normal variant for text-mode
+         *
+         * \see \ref jkqtmathtext_fonthandling
          */
-        bool useASANA(bool mathModeOnly=true);
+        bool useASANA(bool mathModeOnly=true, bool useAsFallbackSymbol=true);
+
+        /** \brief configures the class to be used for GUI output, i.e. tries to find fonts that are harmonious for the
+         *         default GUI font, sets the default GUI font for "roman" and finds an oppposite font for "sans", which means that
+         *         "sans" may actually be a serif font,when the app font is sans serif!
+         *
+         *
+         * \see \ref jkqtmathtext_fonthandling
+         */
+        bool useGuiFonts();
 
         /** \brief sets \a timesFont (with its encoding \a encodingTimes ) for serif-text and \a sansFont (with its encoding \a encodingSans ) for both mathmode and textmode fonts
          *
-         * use generic Unicode fonts, e.g. "Arial" and "Times New Roman" in math-mode.
-         * You should use fonts that contain as many of the mathematical symbols as possible to ensure good rendering results.
+         * \note use generic Unicode fonts, e.g. "Arial" and "Times New Roman" in math-mode.
+         *       You should use fonts that contain as many of the mathematical symbols as possible
+         *       to ensure good rendering results.
          *
-         * <code>setAnyUnicode("Times New Roman", "Times New Roman")</code>:<br>\image html jkqtmathparser_timesnewroman.png  <br><br>
-         * <code>setAnyUnicode("Arial", "Arial")</code>:<br>\image html jkqtmathparser_arial.png  <br><br>
-         * <code>setAnyUnicode("Courier New", "Courier New")</code>:<br>\image html jkqtmathparser_couriernew.png  <br><br>
-         * <code>setAnyUnicode("Comic Sans MS", "Comic Sans MS")</code>:<br>\image html jkqtmathparser_comicsans.png  <br><br>
          *
+         * <code>useAnyUnicode("Comic Sans MS", "Comic Sans MS")</code>:<br>\image html jkqtmathtext/jkqtmathtext_comicsans.png  <br><br>
+         * <code>useAnyUnicodeForTextOnly("Comic Sans MS", "Comic Sans MS");</code>:<br/>\image html jkqtmathtext/jkqtmathtext_comicsans_textonly.png
+         * <code>useAnyUnicodeForMathOnly("Comic Sans MS", "Comic Sans MS");</code>:<br/>\image html jkqtmathtext/jkqtmathtext_comicsans_mathonly.png
+         *
+         * \see useAnyUnicodeForMathOnly(), useAnyUnicodeForTextOnly(), \ref jkqtmathtext_fonthandling
          */
-        void useAnyUnicode(QString timesFont=QString(""), const QString& sansFont=QString(""), MTfontEncoding encodingTimes=MTfontEncoding::MTFEunicode, MTfontEncoding encodingSans=MTfontEncoding::MTFEunicode);
+        void useAnyUnicode(QString timesFont, const QString& sansFont, JKQTMathTextFontEncoding encodingTimes=JKQTMathTextFontEncoding::MTFEUnicode, JKQTMathTextFontEncoding encodingSans=JKQTMathTextFontEncoding::MTFEUnicode);
+        /** \brief sets \a timesFont (with its encoding \a encodingTimes ) for serif-text and \a sansFont (with its encoding \a encodingSans ) for mathmode fonts only
+         *
+         * \note use generic Unicode fonts, e.g. "Arial" and "Times New Roman" in math-mode.
+         *       You should use fonts that contain as many of the mathematical symbols as possible to ensure good rendering results.
+         *
+         * <code>useAnyUnicode("Comic Sans MS", "Comic Sans MS")</code>:<br>\image html jkqtmathtext/jkqtmathtext_comicsans.png  <br><br>
+         * <code>useAnyUnicodeForTextOnly("Comic Sans MS", "Comic Sans MS");</code>:<br/>\image html jkqtmathtext/jkqtmathtext_comicsans_textonly.png
+         * <code>useAnyUnicodeForMathOnly("Comic Sans MS", "Comic Sans MS");</code>:<br/>\image html jkqtmathtext/jkqtmathtext_comicsans_mathonly.png
+         *
+         * \see useAnyUnicodeForTextOnly(), useAnyUnicode(), \ref jkqtmathtext_fonthandling
+         */
+        void useAnyUnicodeForMathOnly(QString timesFont, const QString& sansFont, JKQTMathTextFontEncoding encodingTimes=JKQTMathTextFontEncoding::MTFEUnicode, JKQTMathTextFontEncoding encodingSans=JKQTMathTextFontEncoding::MTFEUnicode);
+        /** \brief sets \a timesFont (with its encoding \a encodingTimes ) for serif-text and \a sansFont (with its encoding \a encodingSans ) for both mathmode fonts only
+         *
+         * <code>useAnyUnicode("Comic Sans MS", "Comic Sans MS")</code>:<br>\image html jkqtmathtext/jkqtmathtext_comicsans.png  <br><br>
+         * <code>useAnyUnicodeForTextOnly("Comic Sans MS", "Comic Sans MS");</code>:<br/>\image html jkqtmathtext/jkqtmathtext_comicsans_textonly.png
+         * <code>useAnyUnicodeForMathOnly("Comic Sans MS", "Comic Sans MS");</code>:<br/>\image html jkqtmathtext/jkqtmathtext_comicsans_mathonly.png
+         *
+         *  \see useAnyUnicodeForMathOnly(), useAnyUnicode(), \ref jkqtmathtext_fonthandling
+         */
+        void useAnyUnicodeForTextOnly(QString timesFont, const QString& sansFont, JKQTMathTextFontEncoding encodingTimes=JKQTMathTextFontEncoding::MTFEUnicode, JKQTMathTextFontEncoding encodingSans=JKQTMathTextFontEncoding::MTFEUnicode);
+/**@}*/
 
 
+/** @name (Defining) Rendering Details */
+/**@{*/
+        /** \brief load the object settings from the given QSettings object with the given name prefix */
+        void loadSettings(const QSettings& settings, const QString& group=QString("mathtext/"));
+        /** \brief store the object settings to the given QSettings object with the given name prefix */
+        void saveSettings(QSettings& settings, const QString& group=QString("mathtext/")) const;
 
         /** \copydoc brace_factor */ 
         void setBraceFactor(double __value);
         /** \copydoc brace_factor */ 
         double getBraceFactor() const;
-        /** \copydoc subsuper_size_factor */ 
+        /** \copydoc subsuper_size_factor */
         void setSubsuperSizeFactor(double __value);
-        /** \copydoc subsuper_size_factor */ 
+        /** \copydoc subsuper_size_factor */
         double getSubsuperSizeFactor() const;
-        /** \copydoc italic_correction_factor */ 
-        void setItalicCorrectionFactor(double __value);
-        /** \copydoc italic_correction_factor */ 
-        double getItalicCorrectionFactor() const;
+        /** \copydoc subsuper_mode_selection_by_size_factor */
+        void setSubsuperModeSelectionBySizeFactor(double __value);
+        /** \copydoc subsuper_mode_selection_by_size_factor */
+        double getSubsuperModeSelectionBySizeFactor() const;
         /** \copydoc operatorsubsuper_size_factor */ 
         void setOperatorsubsuperSizeFactor(double __value);
         /** \copydoc operatorsubsuper_size_factor */ 
         double getOperatorsubsuperSizeFactor() const;
-        /** \copydoc mathoperator_width_factor */ 
+        /** \copydoc operatorsubsuper_distance_factor */
+        void setOperatorsubsuperDistanceFactor(double __value);
+        /** \copydoc operatorsubsuper_distance_factor */
+        double getOperatorsubsuperDistanceFactor() const;
+        /** \copydoc operatorsubsuper_extraspace_factor */
+        void setOperatorsubsuperExtraSpaceFactor(double __value);
+        /** \copydoc operatorsubsuper_extraspace_factor */
+        double getOperatorsubsuperExtraSpaceFactor() const;
+        /** \copydoc mathoperator_width_factor */
         void setMathoperatorWidthFactor(double __value);
-        /** \copydoc mathoperator_width_factor */ 
+        /** \copydoc mathoperator_width_factor */
         double getMathoperatorWidthFactor() const;
-        /** \copydoc super_shift_factor */ 
+        /** \copydoc intsubsuper_xcorrection_factor */
+        void setIntSubSuperXCorrectionFactor(double __value);
+        /** \copydoc intsubsuper_xcorrection_factor */
+        double getIntSubSuperXCorrectionFactor() const;
+        /** \copydoc intsubbesides_xcorrection_xfactor */
+        void setIntSubBesidesXCorrectionXFactor(double __value);
+        /** \copydoc intsubbesides_xcorrection_xfactor */
+        double getIntSubBesidesXCorrectionXFactor() const;
+        /** \copydoc bigmathoperator_font_factor */
+        void setBigMathoperatorFontFactor(double __value);
+        /** \copydoc bigmathoperator_font_factor */
+        double getBigMathoperatorFontFactor() const;
+        /** \copydoc super_shift_factor */
         void setSuperShiftFactor(double __value);
-        /** \copydoc super_shift_factor */ 
+        /** \copydoc super_shift_factor */
         double getSuperShiftFactor() const;
-        /** \copydoc sub_shift_factor */ 
+        /** \copydoc sub_shift_factor */
         void setSubShiftFactor(double __value);
-        /** \copydoc sub_shift_factor */ 
+        /** \copydoc sub_shift_factor */
         double getSubShiftFactor() const;
-        /** \copydoc brace_shrink_factor */ 
-        void setBraceShrinkFactor(double __value);
-        /** \copydoc brace_shrink_factor */ 
-        double getBraceShrinkFactor() const;
+        /** \copydoc special_super_shift_factor */
+        void setSpecialSuperShiftFactor(double __value);
+        /** \copydoc special_super_shift_factor */
+        double getSpecialSuperShiftFactor() const;
+        /** \copydoc special_sub_shift_factor */
+        void setSpecialSubShiftFactor(double __value);
+        /** \copydoc special_sub_shift_factor */
+        double getSpecialSubShiftFactor() const;
         /** \copydoc underbrace_factor */ 
         void setUnderbraceFactor(double __value);
         /** \copydoc underbrace_factor */ 
         double getUnderbraceFactor() const;
-        /** \copydoc undersetFactor */ 
+                /** \copydoc underbrace_separation_xfactor */
+        void setUnderbraceSeparationXFactor(double __value);
+        /** \copydoc underbrace_separation_xfactor */
+        double getUnderbraceSeparationXFactor() const;
+        /** \copydoc underbrace_bracesize_xfactor */
+        void setUnderbraceBraceSizeXFactor(double __value);
+        /** \copydoc underbrace_bracesize_xfactor */
+        double getUnderbraceBraceSizeXFactor() const;
+        /** \copydoc underset_factor */
         void setUndersetFactor(double __value);
-        /** \copydoc undersetFactor */ 
+        /** \copydoc underset_factor */
         double getUndersetFactor() const;
-        /** \copydoc frac_factor */ 
+        /** \copydoc frac_factor */
         void setFracFactor(double __value);
-        /** \copydoc frac_factor */ 
+        /** \copydoc frac_factor */
         double getFracFactor() const;
-        /** \copydoc frac_shift_factor */ 
+        /** \copydoc frac_nested_factor */
+        void setFracNestedFactor(double __value);
+        /** \copydoc frac_nested_factor */
+        double getFracNestedFactor() const;
+
+
+        /** \copydoc frac_shift_factor */
         void setFracShiftFactor(double __value);
         /** \copydoc frac_shift_factor */ 
         double getFracShiftFactor() const;
@@ -504,730 +790,336 @@ class JKQTMATHTEXT_LIB_EXPORT JKQTMathText : public QObject {
         void setBraceYShiftFactor(double __value);
         /** \copydoc brace_y_shift_factor */ 
         double getBraceYShiftFactor() const;
-        /** \copydoc decoration_height_factor */ 
+
+        /** \copydoc decoration_height_factor */
         void setDecorationHeightFactor(double __value);
-        /** \copydoc decoration_height_factor */ 
+        /** \copydoc decoration_height_factor */
         double getDecorationHeightFactor() const;
-        /** \copydoc expensiveRendering */ 
-        void setExpensiveRendering(bool __value);
-        /** \copydoc expensiveRendering */ 
-        bool getExpensiveRendering() const;
-        /** \copydoc useUnparsed */ 
-        void setUseUnparsed(bool __value);
-        /** \copydoc useUnparsed */ 
-        bool isUsingUnparsed() const;
-        /** \copydoc error_list */ 
+        /** \copydoc decoration_separation_factor */
+        void setDecorationSeparationXFactor(double __value);
+        /** \copydoc decoration_separation_factor */
+        double getDecorationSeparationFactor() const;
+        /** \copydoc decoration_width_reduction_Xfactor */
+                void setDecorationWidthReductionFactor(double __value);
+        /** \copydoc decoration_width_reduction_Xfactor */
+        double getDecorationWidthReductionXFactor() const;
+
+
+        /** \copydoc sqrt_width_Xfactor */
+        void setSqrtWidthXFactor(double __value);
+        /** \copydoc sqrt_width_Xfactor */
+        double getSqrtWidthXFactor() const;
+        /** \copydoc sqrt_height_factor */
+        void setSqrtHeightFactor(double __value);
+        /** \copydoc sqrt_height_factor */
+        double getSqrtHeightFactor() const;
+        /** \copydoc sqrt_smallfont_factor */
+        void setSqrtSmallFontFactor(double __value);
+        /** \copydoc sqrt_smallfont_factor */
+        double getSqrtSmallFontFactor() const;
+
+        /** \copydoc matrix_linewidth_thin_factor */
+        double getMatrixLinewidthThinFactor();
+        /** \copydoc matrix_linewidth_thin_factor */
+        void setMatrixLinewidthThinFactor(double factor);
+        /** \copydoc matrix_linewidth_heavy_factor */
+        double getMatrixLinewidthHeavyFactor();
+        /** \copydoc matrix_linewidth_heavy_factor */
+        void setMatrixLinewidthHeavyFactor(double factor);
+        /** \copydoc matrix_line_separation_factor */
+        double getMatrixLineSeparationFactor();
+        /** \copydoc matrix_line_separation_factor */
+        void setMatrixLineSeparationFactor(double factor);
+        /** \copydoc matrix_xSeparation_factor */
+        double getMatrixXSeparationFactor();
+        /** \copydoc matrix_xSeparation_factor */
+        void setMatrixXSeparationFactor(double factor);
+        /** \copydoc matrix_ySeparation_factor */
+        double getMatrixYSeparationFactor();
+        /** \copydoc matrix_ySeparation_factor */
+        void setMatrixYSeparationFactor(double factor);
+        /** \copydoc matrix_xPadding_factor */
+        double getMatrixXPaddingFactor();
+        /** \copydoc matrix_xPadding_factor */
+        void setMatrixXPaddingFactor(double factor);
+        /** \copydoc matrix_yPadding_factor */
+        double getMatrixYPaddingFactor();
+        /** \copydoc matrix_yPadding_factor */
+        void setMatrixYPaddingFactor(double factor);
+/**@}*/
+
+
+/** @name Error Handling */
+/**@{*/
+        /** \copydoc error_list */
         QStringList getErrorList() const;
-
+        /** \brief returns \c true when errors were registered in the system \see error_list */
+        bool hadErrors() const;
     protected:
+        /** \copydoc error_list */
+        void addToErrorList(const  QString& error);
+        /** \brief clears all registered errors (see error_list)
+         */
+        void clearErrorList();
 
-        /** \brief describes the current drawing environment (base fontname ...) */
-        struct MTenvironment {
-            MTenvironment();
-            /** \brief current font color */
-            QColor color;
-            /** \brief current font */
-            MTenvironmentFont font;
-            /** \brief current font size [pt] */
-            double fontSize;
-            /** \brief is the text currently bold? */
-            bool bold;
-            /** \brief is the text currently italic? */
-            bool italic;
-            /** \brief is the text currently in small caps? */
-            bool smallCaps;
-            /** \brief is the text currently underlined? */
-            bool underlined;
-            /** \brief is the text currently overlined? */
-            bool overline;
-            /** \brief is the text currently stroke through? */
-            bool strike;
-            /** \brief is the text currently are we inside a math environment? */
-            bool insideMath;
-
-
-            /** \brief build a QFont object from the settings in this object */
-            QFont getFont(JKQTMathText* parent) const;
-            /** \brief generate a HTML prefix that formats the text after it according to the settings in this object
-             *
-             * \param defaultEv environment before applying the current object (to detect changes)
-             * \see toHtmlAfter()
-             */
-            QString toHtmlStart(MTenvironment defaultEv) const;
-            /** \brief generate a HTML postfix that formats the text in front of it according to the settings in this object
-             *
-             * \param defaultEv environment before applying the current object (to detect changes)
-             * \see toHtmlAfter()
-             */
-            QString toHtmlAfter(MTenvironment defaultEv) const;
-        };
-
-        /** \brief beschreibt die Größe eines Knotens */
-        struct JKQTMATHTEXT_LIB_EXPORT MTnodeSize {
-            MTnodeSize();
-            double width;
-            double baselineHeight;
-            double overallHeight;
-            double strikeoutPos;
-        };
-
-
-    public:
-        /** \brief subclass representing one node in the syntax tree
-         *  \ingroup jkqtmathtext_items
+        /** \brief a list that will be filled with error messages while parsing, if any error occur
          *
-         * \image html jkqtmathtext_node_geo.png
-         */
-        class JKQTMATHTEXT_LIB_EXPORT MTnode {
-            public:
-                explicit MTnode(JKQTMathText* parent);
-                MTnode(const MTnode&)=delete;
-                MTnode& operator=(const MTnode&)=delete;
-                virtual ~MTnode();
-                /** \brief determine the size of the node, calls getSizeInternal() implementation of the actual type \see getSizeInternal()
-                 *
-                 * \param painter painter to use for determining the size
-                 * \param currentEv current environment object
-                 * \param[out] width width of the block/node
-                 * \param[out] baselineHeight distance from the bottom of the block/node-box to the baseline
-                 * \param[out] overallHeight overall height (bottom to top) of the node, the ascent is \c overallHeight-baselineHeight
-                 * \param[out] strikeoutPos position of the strikeout-line
-                 * \param[in] prevNodeSize optional parameter, describing the size of the previous node (on the left). This may be used for layout of some nodes (e.g. sub/super to move correctly next to large parantheses ...)
-                 *
-                 */
-                void getSize(QPainter& painter, MTenvironment currentEv, double& width, double& baselineHeight, double& overallHeight, double& strikeoutPos, const MTnodeSize* prevNodeSize=nullptr);
-                /** \brief draw the contents at the designated position
-                 *
-                 * \param painter QPainter to use
-                 * \param x x-position, where the drawing starts [Pixel]
-                 * \param y Y-position of the baseline, where the drawing starts [Pixel]
-                 * \param currentEv JKQTMathText::MTenvironment object describing the current drawing environment/settings
-                 * \param[in] prevNodeSize optional parameter, describing the size of the previous node (on the left). This may be used for layout of some nodes (e.g. sub/super to move correctly next to large parantheses ...)
-                 * \return the x position which to use for the next part of the text
-                 */
-                virtual double draw(QPainter& painter, double x, double y, MTenvironment currentEv, const MTnodeSize* prevNodeSize=nullptr)=0;
-                /** \brief convert node to HTML and returns \c true on success
-                 * \param[out] html new HTML code is APPENDED to this string
-                 * \param currentEv JKQTMathText::MTenvironment object describing the current drawing environment/settings
-                 * \param defaultEv JKQTMathText::MTenvironment object describing the default drawing environment/settings when starting to interpret a node tree
-                 * \return \c true on success
-                 */
-                virtual bool toHtml(QString& html, JKQTMathText::MTenvironment currentEv, JKQTMathText::MTenvironment defaultEv);
-
-                /** \brief returns the drawing of colored boxes (for DEBUGGING) around the actual output of the node is enabled */
-                bool getDrawBoxes() const;
-                /** \brief enables the drawing of colored boxes (for DEBUGGING) around the actual output of the node */
-                virtual void setDrawBoxes(bool draw);
-                /** \brief return the name of this class as a string */
-                virtual QString getTypeName() const;
-            protected:
-                /** \brief determine the size of the node, overwrite this function in derived classes
-                 *
-                 * \param painter painter to use for determining the size
-                 * \param currentEv current environment object
-                 * \param[out] width width of the block/node
-                 * \param[out] baselineHeight distance from the bottom of the block/node-box to the baseline
-                 * \param[out] overallHeight overall height (bottom to top) of the node, the ascent is \c overallHeight-baselineHeight
-                 * \param[out] strikeoutPos position of the strikeout-line
-                 * \param[in] prevNodeSize optional parameter, describing the size of the previous node (on the left). This may be used for layout of some nodes (e.g. sub/super to move correctly next to large parantheses ...)
-                 *
-                 */
-                virtual void getSizeInternal(QPainter& painter, MTenvironment currentEv, double& width, double& baselineHeight, double& overallHeight, double& strikeoutPos, const MTnodeSize* prevNodeSize=nullptr)=0;
-
-                /** \brief parent JKQTMathText object (required for several drawing operations */
-                JKQTMathText* parent;
-                /** \brief enables the drawing of colored boxes (for DEBUGGING) around the actual output of the node */
-                bool drawBoxes;
-                /** \brief draws colored boxes (for DEBUGGING) around the actual output of the node
-                 *
-                 * \param painter QPainter to use
-                 * \param x x-position, where the drawing starts [Pixel]
-                 * \param y Y-position of the baseline, where the drawing starts [Pixel]
-                 * \param currentEv JKQTMathText::MTenvironment object describing the current drawing environment/settings
-                 */
-                void doDrawBoxes(QPainter& painter, double x, double y, JKQTMathText::MTenvironment currentEv);
-        };
-
-        /** \brief subclass representing one text node in the syntax tree
-         *  \ingroup jkqtmathtext_items
-         */
-        class JKQTMATHTEXT_LIB_EXPORT MTtextNode: public MTnode {
-            public:
-                explicit MTtextNode(JKQTMathText* parent, const QString& text, bool addWhitespace, bool stripInnerWhitepace=false);
-                virtual ~MTtextNode() override;
-                /** \copydoc MTnode::draw() */
-                virtual double draw(QPainter& painter, double x, double y, MTenvironment currentEv, const MTnodeSize* prevNodeSize=nullptr) override;
-                /** \copydoc MTnode::toHtml() */
-                virtual bool toHtml(QString& html, JKQTMathText::MTenvironment currentEv, JKQTMathText::MTenvironment defaultEv) override;
-                /** \copydoc text */ 
-                QString getText() const;
-                virtual QString getTypeName() const override ;
-            protected:
-                /** \copydoc MTnode::getSizeInternal() */
-                virtual void getSizeInternal(QPainter& painter, MTenvironment currentEv, double& width, double& baselineHeight, double& overallHeight, double& strikeoutPos, const MTnodeSize* prevNodeSize=nullptr) override;
-                QString text;
-                /** \brief transforms the text before sizing/drawing (may e.g. exchange special letters for other unicode symbols etc.) */
-                virtual QString textTransform(const QString& text, JKQTMathText::MTenvironment currentEv, bool forSize=false);
-        };
-
-        /** \brief subclass representing one text node in the syntax tree
-         *  \ingroup jkqtmathtext_items
-         */
-        class JKQTMATHTEXT_LIB_EXPORT MTplainTextNode: public MTtextNode {
-            public:
-                explicit MTplainTextNode(JKQTMathText* parent, const QString& text, bool addWhitespace, bool stripInnerWhitepace=false);
-                /** \copydoc MTnode::getTypeName() */
-                virtual QString getTypeName() const override;
-            protected:
-                /** \copydoc MTtextNode::textTransform() */
-                virtual QString textTransform(const QString& text, JKQTMathText::MTenvironment currentEv, bool forSize=false) override;
-        };
-        /** \brief subclass representing one whitepsace node in the syntax tree
-         *  \ingroup jkqtmathtext_items
-         */
-        class JKQTMATHTEXT_LIB_EXPORT MTwhitespaceNode: public MTtextNode {
-            public:
-                explicit MTwhitespaceNode(JKQTMathText* parent);
-                virtual ~MTwhitespaceNode() override;
-                /** \copydoc MTnode::getTypeName() */
-                virtual QString getTypeName() const override;
-                /** \brief convert node to HTML and returns \c true on success */
-                /** \copydoc MTnode::toHtml() */
-                virtual bool toHtml(QString& html, JKQTMathText::MTenvironment currentEv, JKQTMathText::MTenvironment defaultEv) override;
-        };
-
-        /** \brief subclass representing one symbol (e.g. \c \\alpha , \c \\cdot ...) node in the syntax tree
-         *  \ingroup jkqtmathtext_items
-         */
-        class JKQTMATHTEXT_LIB_EXPORT MTsymbolNode: public MTnode {
-            public:
-                explicit MTsymbolNode(JKQTMathText* parent, const QString& name, bool addWhitespace);
-                virtual ~MTsymbolNode() override;
-                /** \copydoc MTnode::getTypeName() */
-                virtual QString getTypeName() const override;
-                /** \copydoc MTnode::draw() */
-                virtual double draw(QPainter& painter, double x, double y, MTenvironment currentEv, const MTnodeSize* prevNodeSize=nullptr) override;
-                /** \copydoc MTnode::toHtml() */
-                virtual bool toHtml(QString& html, JKQTMathText::MTenvironment currentEv, JKQTMathText::MTenvironment defaultEv) override;
-                /** \copydoc symbolName */ 
-                QString getSymbolName() const;
-                QString getSymbolfontName() const;
-                bool getAddWhitespace() const;
-            protected:
-                /** \copydoc MTnode::getSizeInternal() */
-                virtual void getSizeInternal(QPainter& painter, MTenvironment currentEv, double& width, double& baselineHeight, double& overallHeight, double& strikeoutPos, const MTnodeSize* prevNodeSize=nullptr) override;
-
-                /** \brief this string will be sent to the drawText method with properly set fonts */
-                QString symbolName;
-                /** \brief add a whitespace to the symbol? */
-                bool addWhitespace;
-                struct SymbolProps {
-                    /** \brief the symbol name supplied to the constructor */
-                    QString symbol;
-                    /** \brief font to use for output */
-                    QString font;
-                    /** \brief magnification factor for the font size */
-                    double fontFactor;
-                    /** \brief 0: leave italic setting as is, >0: set italic, <0 set italic to false */
-                    char italic;
-                    /** \brief 0: leave bold setting as is, >0: set bold, <0 set bold to false */
-                    char bold;
-                    /** \brief this corrects the y position of a symbol: draws at y <- y+ height*yfactor) */
-                    double yfactor;
-                    /** \brief indicates whether to draw a bar (like for \c \\hbar ) */
-                    bool drawBar;
-                    bool heightIsAscent;
-                    bool exactAscent;
-                    bool extendWidthInMathmode;
-                };
-                /** \brief retrieve the properties to render the given symbol \a symName in the current environment \a currentEv */
-                SymbolProps getSymbolProp(const QString& symName, const MTenvironment& currentEv) const;
-                /** \brief fill \a props for the symbol named \a n in the given environment \a currentEv and with the given \a mathFontFactor , returns \c true if the symbol can be drawn using Unicode font (or WinSymbol as Fallback)*/
-                bool getSymbolProp(JKQTMathText::MTsymbolNode::SymbolProps &props, const QString &n, const MTenvironment &currentEv, double mathFontFactor) const;
-                /** \brief fill \a props for the greek letter symbol named \a n in the given environment \a currentEv and with the given \a mathFontFactor , returns \c true if the symbol can be drawn using Unicode font (or WinSymbol as Fallback) */
-                bool getGreekSymbolProp(JKQTMathText::MTsymbolNode::SymbolProps &props, const QString &n, const MTenvironment &currentEv, double mathFontFactor) const;
-                /** \brief fill \a props for the symbol named \a n in the given environment \a currentEv and with the given \a mathFontFactor , returns \c true if the symbol can be drawn using WinSymbol font */
-                bool getWinSymbolProp(JKQTMathText::MTsymbolNode::SymbolProps &props, const QString &n, const MTenvironment &currentEv, double mathFontFactor) const;
-                /** \brief fill \a props for the symbol named \a n  , returns \c true if the symbol can be drawn using any font, does not alter the font name!!! */
-                bool getStandardTextSymbolProp(JKQTMathText::MTsymbolNode::SymbolProps &props, const QString &n) const;
-                /** \brief fill \a props for the symbol named \a n  , returns \c true if the symbol can be drawn using any unicode font, does not alter the font name!!! */
-                bool getUnicodeBaseSymbolProp(JKQTMathText::MTsymbolNode::SymbolProps &props, const QString &n) const;
-                /** \brief fill \a props for the symbol named \a n  , returns \c true if the symbol can be drawn using a full unicode font, does not alter the font name!!! */
-                bool getUnicodeFullSymbolProp(JKQTMathText::MTsymbolNode::SymbolProps &props, const QString &n, double mathFontFactor) const;
-        };
-
-        /** \brief subclass representing a list of nodes in the syntax tree
-         *  \ingroup jkqtmathtext_items
-         */
-        class JKQTMATHTEXT_LIB_EXPORT MTlistNode: public MTnode {
-            public:
-                explicit MTlistNode(JKQTMathText* parent);
-                virtual ~MTlistNode() override;
-                /** \copydoc MTnode::getTypeName() */
-                virtual QString getTypeName() const override;
-                /** \copydoc MTnode::draw() */
-                virtual double draw(QPainter& painter, double x, double y, MTenvironment currentEv, const MTnodeSize* prevNodeSize=nullptr) override;
-                void addNode(MTnode* n) { nodes.append(n); }
-                /** \copydoc MTnode::toHtml() */
-                virtual bool toHtml(QString& html, JKQTMathText::MTenvironment currentEv, JKQTMathText::MTenvironment defaultEv) override;
-                /** \copydoc MTnode::setDrawBoxes() */
-                virtual void setDrawBoxes(bool draw) override;
-                /** \copydoc nodes */ 
-                QList<MTnode*> getNodes() const;
-            protected:
-                /** \copydoc MTnode::getSizeInternal() */
-                virtual void getSizeInternal(QPainter& painter, MTenvironment currentEv, double& width, double& baselineHeight, double& overallHeight, double& strikeoutPos, const MTnodeSize* prevNodeSize=nullptr) override;
-                QList<MTnode*> nodes;
-                QSet<QString> subsupOperations;
-        };
-
-        /** \brief subclass representing an instruction node with exactly one argument in the syntax tree
-         *  \ingroup jkqtmathtext_items
-         */
-        class JKQTMATHTEXT_LIB_EXPORT MTinstruction1Node: public MTnode {
-            public:
-                explicit MTinstruction1Node(JKQTMathText* parent, const QString& name, MTnode* child, const QStringList& parameters=QStringList());
-                virtual ~MTinstruction1Node() override;
-                /** \copydoc MTnode::getTypeName() */
-                virtual QString getTypeName() const override;
-                /** \copydoc MTnode::draw() */
-                virtual double draw(QPainter& painter, double x, double y, MTenvironment currentEv, const MTnodeSize* prevNodeSize=nullptr) override;
-                /** \brief convert node to HTML and returns \c true on success */
-                /** \copydoc MTnode::toHtml() */
-                virtual bool toHtml(QString& html, JKQTMathText::MTenvironment currentEv, JKQTMathText::MTenvironment defaultEv) override;
-                /** \copydoc MTnode::setDrawBoxes() */
-                virtual void setDrawBoxes(bool draw) override;
-                /** \brief returns the child node  */
-                MTnode* getChild() const;
-                /** \copydoc name */ 
-                QString getName() const;
-                /** \copydoc parameters */ 
-                QStringList getParameters() const;
-            protected:
-                /** \copydoc MTnode::getSizeInternal() */
-                virtual void getSizeInternal(QPainter& painter, MTenvironment currentEv, double& width, double& baselineHeight, double& overallHeight, double& strikeoutPos, const MTnodeSize* prevNodeSize=nullptr) override;
-                bool setupMTenvironment(JKQTMathText::MTenvironment &ev);
-
-                MTnode* child;
-                QString name;
-                QStringList parameters;
-        };
-
-
-
-        /** \brief subclass representing an subscript node with exactly one argument in the syntax tree
-         *  \ingroup jkqtmathtext_items
+         *  This list of errors is (mostly) filled during a call to parse(). During rendering (e.g. with draw() )
+         *  only very few errors will be detected, as most errors are caused by wrong markup.
          *
-         * \image html jkqtmathtext_subscriptnode_getSizeInternal.png
-         */
-        class JKQTMATHTEXT_LIB_EXPORT MTsubscriptNode: public MTnode {
-            public:
-                explicit MTsubscriptNode(JKQTMathText* parent, MTnode* child);
-                virtual ~MTsubscriptNode() override;
-                /** \copydoc MTnode::draw() */
-                virtual double draw(QPainter& painter, double x, double y, MTenvironment currentEv, const MTnodeSize* prevNodeSize=nullptr) override;
-                /** \copydoc MTnode::getTypeName() */
-                virtual QString getTypeName() const override;                /** \brief returns the child node  */
-                 MTnode *getChild() const;
-                /** \copydoc MTnode::toHtml() */
-                virtual bool toHtml(QString& html, JKQTMathText::MTenvironment currentEv, JKQTMathText::MTenvironment defaultEv) override;
-                /** \copydoc MTnode::setDrawBoxes() */
-                virtual void setDrawBoxes(bool draw) override;
-            protected:
-                /** \copydoc MTnode::getSizeInternal() */
-                virtual void getSizeInternal(QPainter& painter, MTenvironment currentEv, double& width, double& baselineHeight, double& overallHeight, double& strikeoutPos, const MTnodeSize* prevNodeSize=nullptr) override;
-                MTnode* child;
-        };
-
-        /** \brief subclass representing an superscript node with exactly one argument in the syntax tree
-         *  \ingroup jkqtmathtext_items
+         *  A call to parse() also clears this list.
          *
-         * \image html jkqtmathtext_subscriptnode_getSizeInternal.png
+         *  \see getErrorList(), hadErrors() and addToErrorList()
          *
-         * \note a MTlistNode might modify the positioning slightly for special cases (e.g. \c \\int , \c \\sum ... or after braces)
-         */
-        class JKQTMATHTEXT_LIB_EXPORT MTsuperscriptNode: public MTnode {
-            public:
-                explicit MTsuperscriptNode(JKQTMathText* parent, MTnode* child);
-                virtual ~MTsuperscriptNode() override;
-                /** \copydoc MTnode::draw() */
-                virtual double draw(QPainter& painter, double x, double y, MTenvironment currentEv, const MTnodeSize* prevNodeSize=nullptr) override;
-                /** \brief returns the child node  */
-                MTnode* getChild() const;
-                /** \copydoc MTnode::getTypeName() */
-                virtual QString getTypeName() const override;
-                /** \copydoc MTnode::toHtml() */
-                virtual bool toHtml(QString& html, JKQTMathText::MTenvironment currentEv, JKQTMathText::MTenvironment defaultEv) override;
-                /** \copydoc MTnode::setDrawBoxes() */
-                virtual void setDrawBoxes(bool draw) override;
-            protected:
-                /** \copydoc MTnode::getSizeInternal() */
-                virtual void getSizeInternal(QPainter& painter, MTenvironment currentEv, double& width, double& baselineHeight, double& overallHeight, double& strikeoutPos, const MTnodeSize* prevNodeSize=nullptr) override;
-                MTnode* child;
-        };
-
-        /** \brief subclass representing a brace node
-         *  \ingroup jkqtmathtext_items
           */
-        class JKQTMATHTEXT_LIB_EXPORT MTbraceNode: public MTnode {
-            public:
-                MTbraceNode(JKQTMathText* parent, const QString& openbrace, const QString& closebrace, MTnode* child, bool showRightBrace=true);
-                virtual ~MTbraceNode() override;
-                /** \copydoc MTnode::draw() */
-                virtual double draw(QPainter& painter, double x, double y, MTenvironment currentEv, const MTnodeSize* prevNodeSize=nullptr) override;
-                /** \copydoc MTnode::toHtml() */
-                virtual bool toHtml(QString& html, JKQTMathText::MTenvironment currentEv, JKQTMathText::MTenvironment defaultEv) override;
-                /** \copydoc MTnode::setDrawBoxes() */
-                virtual void setDrawBoxes(bool draw) override;
-                /** \copydoc MTnode::getTypeName() */
-                virtual QString getTypeName() const override;
-                /** \brief returns the child node  */
-                inline MTnode* getChild() const {
-                    return this->child; 
-                }
-                /** \copydoc openbrace */ 
-                inline QString getOpenbrace() const { 
-                    return this->openbrace; 
-                }
-                /** \copydoc closebrace */ 
-                inline QString getClosebrace() const { 
-                    return this->closebrace; 
-                }
-                /** \copydoc showRightBrace */ 
-                inline bool getShowRightBrace() const { 
-                    return this->showRightBrace; 
-                }
-            protected:
-                /** \copydoc MTnode::getSizeInternal() */
-                virtual void getSizeInternal(QPainter& painter, MTenvironment currentEv, double& width, double& baselineHeight, double& overallHeight, double& strikeoutPos, const MTnodeSize* prevNodeSize=nullptr) override;
-                MTnode* child;
-                QString openbrace;
-                QString closebrace;
-                bool showRightBrace;
+        QStringList error_list;
+/**@}*/
 
-                void getBraceWidth(QPainter& painter, MTenvironment currentEv, double baselineHeight, double overallHeight, double& bracewidth, double& braceheight);
-        };
+        /** \brief the syntax tree of JKQTMathTextNode's that was created by the last parse() call */
+        JKQTMathTextNode* parsedNode;
+        /** \brief this function moves a <code>delete parsedNode</code>-call into the cpp-file, as JKQTMathTextNode is "only" forward declared here and therefore, deleting it  may cause undefined behaviour */
+        void deleteParsedNode();
 
 
-        /** \brief subclass representing a sqrt node
-         *  \ingroup jkqtmathtext_items
-          */
-        class JKQTMATHTEXT_LIB_EXPORT MTsqrtNode: public MTnode {
-            public:
-                MTsqrtNode(JKQTMathText* parent, MTnode* child, int degree=2);
-                virtual ~MTsqrtNode() override;
-                /** \copydoc MTnode::draw() */
-                virtual double draw(QPainter& painter, double x, double y, MTenvironment currentEv, const MTnodeSize* prevNodeSize=nullptr) override;
-                /** \copydoc MTnode::toHtml() */
-                virtual bool toHtml(QString& html, JKQTMathText::MTenvironment currentEv, JKQTMathText::MTenvironment defaultEv) override;
-                /** \copydoc MTnode::setDrawBoxes() */
-                virtual void setDrawBoxes(bool draw) override;
-                virtual QString getTypeName() const override ;
-                /** \brief returns the child node  */
-                MTnode *getChild() const;
-                /** \copydoc degree */ 
-                int getDegree() const;
-            protected:
-                /** \copydoc MTnode::getSizeInternal() */
-                virtual void getSizeInternal(QPainter& painter, MTenvironment currentEv, double& width, double& baselineHeight, double& overallHeight, double& strikeoutPos, const MTnodeSize* prevNodeSize=nullptr) override;
-                MTnode* child;
-                int degree;
-        };
-
-        enum MTfracMode {
-            MTFMfrac,  /*!< \brief normal fraction \image html mathparser/MTFMfrac.png */
-            MTFMdfrac,  /*!< \brief normal fraction, without scaling of under/over text \image html mathparser/MTFMdfrac.png */
-            MTFMtfrac,  /*!< \brief text fraction (smaller than MTFMfrac) \image html mathparser/MTFMtfrac.png */
-            MTFMsfrac,  /*!< \brief slanted fraction \image html mathparser/MTFMsfrac.png */
-            MTFMstfrac,  /*!< \brief slanted text fraction \image html mathparser/MTFMstfrac.png */
-            MTFMunderbrace,  /*!< \brief curly underbrace \image html mathparser/MTFMunderbrace.png */
-            MTFMoverbrace,  /*!< \brief curly overbrace \image html mathparser/MTFMoverbrace.png */
-            MTFMstackrel,  /*!< \brief binom/fraction without line \image html mathparser/MTFMstackrel.png */
-            MTFMunderset,  /*!< \brief underset text \image html mathparser/MTFMunderset.png */
-            MTFMoverset  /*!< \brief overset text \image html mathparser/MTFMoverset.png */
-        };
-
-        static QString fracModeToString(MTfracMode mode);
-
-        /** \brief subclass representing a \\frac node
-         *  \ingroup jkqtmathtext_items
-          */
-        class JKQTMATHTEXT_LIB_EXPORT MTfracNode: public MTnode {
-            public:
-                MTfracNode(JKQTMathText* parent, MTnode* child_top, MTnode* child_bottom, MTfracMode mode);
-                virtual ~MTfracNode() override;
-                virtual QString getTypeName() const override;
-                /** \copydoc MTnode::draw() */
-                virtual double draw(QPainter& painter, double x, double y, MTenvironment currentEv, const MTnodeSize* prevNodeSize=nullptr) override;
-                /** \copydoc MTnode::toHtml() */
-                virtual bool toHtml(QString& html, JKQTMathText::MTenvironment currentEv, JKQTMathText::MTenvironment defaultEv) override;
-                /** \copydoc MTnode::setDrawBoxes() */
-                virtual void setDrawBoxes(bool draw) override;
-                /** \brief returns the 1st child node  */
-                MTnode* getChild1() const;
-                /** \brief returns the 2nd child node  */
-                MTnode* getChild2() const;
-                /** \copydoc mode */ 
-                MTfracMode getMode() const;
-            protected:
-                /** \copydoc MTnode::getSizeInternal() */
-                virtual void getSizeInternal(QPainter& painter, MTenvironment currentEv, double& width, double& baselineHeight, double& overallHeight, double& strikeoutPos, const MTnodeSize* prevNodeSize=nullptr) override;
-                MTnode* child1;
-                MTnode* child2;
-                MTfracMode mode;
-        };
-
-        /** \brief subclass representing a \\begin{matrix} node
-         *  \ingroup jkqtmathtext_items
-          */
-        class JKQTMATHTEXT_LIB_EXPORT MTmatrixNode: public MTnode {
-            public:
-                MTmatrixNode(JKQTMathText* parent, QVector<QVector<MTnode*> > children);
-                virtual ~MTmatrixNode() override;
-                /** \copydoc MTnode::getTypeName() */
-                virtual QString getTypeName() const override;
-                virtual double draw(QPainter& painter, double x, double y, MTenvironment currentEv, const MTnodeSize* prevNodeSize=nullptr) override;
-                virtual bool toHtml(QString& html, JKQTMathText::MTenvironment currentEv, JKQTMathText::MTenvironment defaultEv) override;
-                /** \brief returns the child nodes  */
-                QVector<QVector<MTnode*> > getChildren() const;
-                /** \copydoc columns */ 
-                int getColumns() const;
-                /** \copydoc lines */ 
-                int getLines() const;
-            protected:
-                /** \copydoc MTnode::getSizeInternal() */
-                virtual void getSizeInternal(QPainter& painter, MTenvironment currentEv, double& width, double& baselineHeight, double& overallHeight, double& strikeoutPos, const MTnodeSize* prevNodeSize=nullptr) override;
-                /** \copydoc MTnode::setDrawBoxes() */
-                virtual void setDrawBoxes(bool draw) override;
-                QVector<QVector<MTnode*> > children;
-                int columns;
-                int lines;
-        };
-
-
-        enum MTdecoration {
-            MTDvec,  /*!< \brief vector arrow over block \image html mathparser/MTDvec.png */
-            MTDhat,  /*!< \brief hat over block \image html mathparser/MTDhat.png */
-            MTDdot,  /*!< \brief single dot over block \image html mathparser/MTDvec.png */
-            MTDddot,  /*!< \brief double dot over block \image html mathparser/MTDddot.png */
-            MTDbar,  /*!< \brief bar over block \image html mathparser/MTDbar.png */
-            MTDarrow,  /*!< \brief arrow over block \image html mathparser/MTDarrow.png */
-            MTDoverline,  /*!< \brief overline over block \image html mathparser/MTDoverline.png */
-            MTDdoubleoverline,  /*!< \brief double overline over block \image html mathparser/MTDdoubleoverline.png */
-            MTDunderline,  /*!< \brief underline under block \image html mathparser/MTDunderline.png */
-            MTDdoubleunderline,  /*!< \brief double underline under block \image html mathparser/MTDdoubleunderline.png */
-            MTDtilde  /*!< \brief tilde over block \image html mathparser/MTDtilde.png */
-        };
-        static QString decorationToString(MTdecoration mode);
-
-        /** \brief subclass representing a decorated text m (e.g. \c \\vec \c \\hat ...) node
-         *  \ingroup jkqtmathtext_items
-         */
-        class JKQTMATHTEXT_LIB_EXPORT MTdecoratedNode: public MTnode {
-            public:
-                MTdecoratedNode(JKQTMathText* parent, MTdecoration decoration, MTnode* child);
-                virtual ~MTdecoratedNode() override;
-                /** \copydoc MTnode::draw() */
-                virtual double draw(QPainter& painter, double x, double y, MTenvironment currentEv, const MTnodeSize* prevNodeSize=nullptr) override;
-                /** \copydoc MTnode::toHtml() */
-                virtual bool toHtml(QString& html, JKQTMathText::MTenvironment currentEv, JKQTMathText::MTenvironment defaultEv) override;
-                /** \copydoc MTnode::setDrawBoxes() */
-                virtual void setDrawBoxes(bool draw) override;
-                virtual QString getTypeName() const override ;
-                /** \brief returns the child node  */
-                MTnode* getChild() const;
-                /** \copydoc decoration */ 
-                MTdecoration getDecoration() const;
-            protected:
-                /** \copydoc MTnode::getSizeInternal() */
-                virtual void getSizeInternal(QPainter& painter, MTenvironment currentEv, double& width, double& baselineHeight, double& overallHeight, double& strikeoutPos, const MTnodeSize* prevNodeSize=nullptr) override;
-                MTnode* child;
-                MTdecoration decoration;
-        };
-
-    protected:
         /** \brief table with font replacements to use (e.g. if it is known that a certain font is not good for rendering, you can add
          *         an alternative using addReplacementFont(). These are automatically applied, when setting a new font name! */
         QMap<QString, QString> fontReplacements;
         /** \brief acompanies fontReplacements and collects the encodings of the replacement fonts, if no entry is present, the default encoding is used, as given to the setter! */
-        QMap<QString, MTfontEncoding> fontEncodingReplacements;
+        QMap<QString, JKQTMathTextFontEncoding> fontEncodingReplacements;
 
         /** \brief font color */
         QColor fontColor;
-        /** \brief base font size in points */
+        /** \brief base font size in the units defined in fontSizeUnits \see fontSizeUnits */
         double fontSize;
+        /** \brief unit of fontSize */
+        JKQTMathTextEnvironment::FontSizeUnit fontSizeUnits;
+        /** \brief additional options for the base fonts */
+        BaseFontOptions fontOptions;
+        /** \brief sets all properties of JKQTMathTextEnvironment \a ev from the fon settings stored in this class (e.g. fontSize, fontOptions, ...) */
+        void modifyEnvironmentFromFontSettings(JKQTMathTextEnvironment& ev) const;
 
-
-        /*! \brief summarizes all information available on a font for a specific MTenvironmentFont
-            \see fontDefinitions */
-        struct FontDefinition {
-            FontDefinition();
-            /** \brief name of the font */
-            QString fontName;
-            /** \brief specifies the encoding of the font (default is \c MTFEwinSymbol ) */
-            MTfontEncoding fontEncoding;
-
-            /** \brief symbol font used for greek symbols, or empty when \a fontName shall be used */
-            QString symbolfontGreek;
-            /** \brief specifies the encoding of symbolfontGreek */
-            MTfontEncoding symbolfontGreekEncoding;
-            /** \brief symbol font, used for math symbols, or empty when \a fontName shall be used */
-            QString symbolfontSymbol;
-            /** \brief specifies the encoding of symbolfontSymbol */
-            MTfontEncoding symbolfontSymbolEncoding;
-        };
 
         /** \brief stores information about the different fonts used by LaTeX markup */
-        QHash<MTenvironmentFont, FontDefinition> fontDefinitions;
-        /** \brief if enabled, the blackboard-characters are simulated by using font outlines only */
-        bool blackboardSimulated;
+        QHash<JKQTMathTextEnvironmentFont, JKQTMathTextFontDefinition> fontDefinitions;
+
+        /** \brief specifies how to draw blackboard font characters (i.e. \c \\mathbb{N} )
+         *
+         *  Blackboard fonts are not widely available on target systems (viable fonts are e.g.
+         *  <code>"Double Stroke", "CloisterOpenFace BT", "GoudyHandtooled BT", "Castellar", "MathJax_AMS", "Castellar Standard", "MathJax_AMS Standard", "Colonna MT"</code>).
+         *  But the most important blackboard characters are usually available in the higher unicode
+         *  codepoints of Fonts specialized for math (e.g. XIST, STIX, ASANA).
+         *
+         *  Therefore JKQTMathText supports using these characters, or simulating a blackboard font in
+         *  addition to using one of the fonts above. You can set that by setting
+         *  JKQTMathText::setFontBlackboradMode() with one of the options from JKQTMathTextBlackboradDrawingMode:
+         *    - MTBBDMfontDirectly: use a blackboard font specified by JKQTMathText::setFontBlackboard() \image html jkqtmathtext/jkqtmathtext_bb_font_directly.png using \c JKQTMathText::setFontBlackboard("Castellar")
+         *    - MTBBDMsimulate: \image html jkqtmathtext/jkqtmathtext_bb_simulate.png using \c JKQTMathText::setFontBlackboard("Arial")
+         *    - MTBBDMunicodeCharactersOrFontDirectly: \image html jkqtmathtext/jkqtmathtext_bb_unicode_or_font_directly.png using \c JKQTMathText::setFontBlackboard("Castellar")
+         *    - MTBBDMunicodeCharactersOrSimulate: \image html jkqtmathtext/jkqtmathtext_bb_unicode_or_simulate.png using \c JKQTMathText::setFontBlackboard("Arial")
+         *  .
+         *
+         *  \see JKQTMathTextBlackboradDrawingMode, setFontBlackboard(), setBlackboardFontMode(),  \ref jkqtmathtext_fonthandling
+         */
+        JKQTMathTextBlackboradDrawingMode blackboradFontMode;
 
 
-        /** \brief resizing factor for braces in math mode */
+        /** \brief for \c \\left / \c \\right braces: The brace is this factor higher than the child block it surrounds */
         double brace_factor;
-        /** \brief shrinking the width of braces in math mode 0: reduce to 0 pixel width, 1: leave unchanged*/
-        double brace_shrink_factor;
         /** \brief resizing factor for font size in sub-/superscript */
         double subsuper_size_factor;
-        /** \brief fraction of a whitespace by which to shift a sub-/superscript left/right when the previous text is italic */
-        double italic_correction_factor;
-        /** \brief like subsuper_size_factor, but for operators (\\sum, \\int) where the text is placed above/below the symbol */
+        /** \brief this factor is used to determine how to typeset sub-/superscript.
+         *
+         *  If the ascent for superscript of descent for subscript of the previous character is  \c >=subsuper_mode_selection_by_size_factor*ascent(currentFont)
+         *  or \c <=subsuper_mode_selection_by_size_factor*descent(currentFont) respectively, the sub/superscript is typeset, aligned with the ascent or descent
+         *  of the previous character. Otherwise it is aligned with the default method:
+         *
+         *  <b>Default mode:</b>
+         *  \image html jkqtmathtext_superscriptnode_getSizeInternal.png
+         *  \image html jkqtmathtext_subscriptnode_getSizeInternal.png
+         *
+         *  <b>Special mode:</b>
+         *
+         *
+         *  This method fixes problems with characters that are significantyl larger that normal text character of the fonst, such as generated
+         *  by \c \\sum,\\int,... .
+         */
+        double subsuper_mode_selection_by_size_factor;
+        /** \brief like subsuper_size_factor, but for operators (\c \\sum , \c \\int , ...) where the text is placed above/below the symbol */
         double operatorsubsuper_size_factor;
-        /** \brief factor, used to extend the size of an operator in math mode */
+        /** \brief for operators (\c \\sum , \c \\int , ...) where the text is placed above/below the symbol, this is the distance between the operator symbol and the sub-/super-text if multiplied by xHeight
+         *
+         *  \image html jkqtmathtext_subsuper_with_limits.png
+         */
+        double operatorsubsuper_distance_factor;
+        /** \brief for operators (\c \\sum , \c \\int , ...) where the text is placed above/below the symbol, this is the additional width added to the width of maximum width of the operator, above and below
+         *
+         *  \image html jkqtmathtext_subsuper_with_limits.png
+         */
+        double operatorsubsuper_extraspace_factor;
+        /** \brief for integrals (\c \\int , \c \\oint , ...) the sub-/superscripts above/below the symbol have to be shifted a bit to the left/right to accomodate the shape of the operator symbol (i.e. some free space at the top-left and bottom-right)
+         *
+         *  \image html jkqtmathtext/jkqtmathtext_doc_subsupershift_integral.png
+         *
+         *  \image html jkqtmathtext/jkqtmathtext_doc_subsupershift_integral_boxes.png
+         *
+         *  This factor is multiplied by the symbol width: xshift=intsubsuper_xcorrection_factor*symbolWidth
+         *  Then the subscript below is placed at centerx(symbol)-xshift and the superscript at centerx(symbol)+shiftx.
+         *  This is also used to correct a subset next to the symbol by shifting it to rightx(symbol)-xshift.
+         *
+         *  This correction is applied to \\int, \\iint, \\iiint, \\oint, ...
+         */
+        double intsubsuper_xcorrection_factor;
+        /** \brief for integrals (\c \\int , \c \\oint , ...) the subscripts besides the symbol have to be shifted to the left a bit to the left to accomodate the shape of the operator symbol (i.e. some free space at the bottom-right)
+         *
+         *  \image html jkqtmathtext/jkqtmathtext_doc_subsupershift_integral.png
+         *
+         *  \image html jkqtmathtext/jkqtmathtext_doc_subsupershift_integral_boxes.png
+         *
+         *  This factor is multiplied by the width of an x: xshift=intsubbesides_xcorrection_xfactor*xWidth
+         *  Then the subscript besides the symbol is shifted by xshift to the left
+         *
+         *  This correction is applied to \\int, \\iint, \\iiint, \\oint, ...
+         */
+        double intsubbesides_xcorrection_xfactor;
+        /** \brief factor, used to extend the size of an operator in math mode
+         *
+         *  The next image demonstrates the effect of this property, which adds extra space
+         *  around certain math operators in math mode:
+         *
+         *  \image html jkqtmathtext/jkqtmathtext_mathoperator_width_factor.png
+         */
         double mathoperator_width_factor;
-        /** \brief relative shift of text in superscript to normal text:
-         *         0= baseline kept, 1: baseline shifted to top of normal text */
+        /** \brief factor, used to increase the font size for big math operators, such as \c \\sum , \c \\prod , ...
+         *
+         */
+        double bigmathoperator_font_factor;
+        /** \brief relative shift of text in superscript to normal text, factor is multiplied by \c font.xHeight()
+         *
+         *  \image html jkqtmathtext_superscriptnode_getSizeInternal.png
+         */
         double super_shift_factor;
-        /** \brief relative shift of text in subscript to normal text:
-         *         0= baseline kept, 1: baseline shifted to bottom of normal text */
+        /** \brief relative shift of text in subscript to normal text, factor is multiplied by \c font.xHeight()
+         *
+         *  \image html jkqtmathtext_subscriptnode_getSizeInternal.png
+         */
         double sub_shift_factor;
+        /** \brief relative shift of text in superscript to normal text in special superscript mode (after large previous nodes):
+         *         0= superscript descent coincides with the previous node's baselineHeight, 1: top of previous node and top of the superscript nodes coincide
+         *
+         *  \image html jkqtmathtext_specialsuperscriptnode_getSizeInternal.png
+         */
+        double special_super_shift_factor;
+        /** \brief relative shift of text in subscript to normal text in special superscript mode (after large previous nodes):
+         *         0=child's baseline at the descent of the previous node, 1: subscript-node starts at the descent of the previous node
+         *
+         *  \image html jkqtmathtext_specialsubscriptnode_getSizeInternal.png
+         */
+        double special_sub_shift_factor;
 
 
-        /** \brief scaling factor for font of nominator and denominator of a fraction */
+        /** \brief scaling factor for font size of nominator and denominator of a fraction
+         *
+         *  \image html jkqtmathtext/jkqtmathtext_frac_factor.png
+         */
         double frac_factor;
-        /** \brief shift of denominator/nummerator away from central line of a frac */
+        /** \brief scaling factor for font size of nominator and denominator of a nested fraction
+         *
+         *  \image html jkqtmathtext/jkqtmathtext_frac_factor.png
+         */
+        double frac_nested_factor;
+        /** \brief shift of denominator/nummerator away from central line of a frac
+         *
+         *  \image html jkqtmathtext_fracnode_geo.png
+         */
         double frac_shift_factor;
         /** \brief scaling factor for font of underbrace/overbrace text */
         double underbrace_factor;
         /** \brief scaling factor for font of underset/overset text */
-        double undersetFactor;
+        double underset_factor;
+        /** \brief additional space between the main text to the curly brace and the brace to underbrace/overbrace, multiplied with height("x") */
+        double underbrace_separation_xfactor;
+        /** \brief height of the brace in underbrace/overbrace, multiplied with ascent */
+        double underbrace_bracesize_xfactor;
         /** \brief fraction of the brace ascent that the brace is shifted downwards, when scaled */
         double brace_y_shift_factor;
-        /** \brief size of the decorations (dot, tilde, ...), as fractio of the baselineheight */
-        double decoration_height_factor;
-        /** \brief switches on some options that will grant better rendering at the expense of higher time consumption */
-        bool expensiveRendering;
-        /** \brief a list that will be filled with error messages while parsing, if any error occur */
-        QStringList error_list;
-        /** \brief used by the parser. This is used to implement brace pairs with \\right. */
-        bool showRightBrace;
-
-        /** \brief the result of parsing the last string supplied to the object via parse() */
-        MTnode* parsedNode;
-        /** \brief a tree containing the unparsed text as a single node */
-        MTnode* unparsedNode;
-        /** \brief if true, the unparsedNode is drawn */
-        bool useUnparsed;
-
-        MTnode* getTree() const;
-
-        /** \brief the token types that may arrise in the string */
-        enum tokenType {
-            MTTnone,
-            MTTtext,
-            MTTinstruction,
-            MTTunderscore,
-            MTThat,
-            MTTdollar,
-            MTTopenbrace,
-            MTTclosebrace,
-            MTTwhitespace,
-            MTTampersand
-        };
-
-        /** \brief tokenizer for the LaTeX parser */
-        tokenType getToken();
-        /** \brief parse a LaTeX string */
-        MTnode* parseLatexString(bool get, const QString& quitOnClosingBrace=QString(""), const QString& quitOnEnvironmentEnd=QString(""));
-        /** \brief parse a LaTeX math environment */
-        MTnode* parseMath(bool get);
-
-        /** \brief used by the tokenizer. type of the current token */
-        tokenType currentToken;
-        /** \brief used by the tokenizer. Name of the current token, id applicable */
-        QString currentTokenName;
-        /** \brief used by the tokenizer. Points to the currently read character in parseString */
-        int currentTokenID;
-        /** \brief used by the tokenizer. The string to be parsed */
-        QString parseString;
-        /** \brief used by the parser. indicates whether we are in a math environment */
-        bool parsingMathEnvironment;
-
-
-    public:
-        /** \copydoc parsedNode */ 
-        MTnode *getParsedNode() const;
-
-        struct JKQTMATHTEXT_LIB_EXPORT tbrData {
-            explicit tbrData(const QFont& f, const QString& text, QPaintDevice *pd);
-            QFontMetricsF fm;
-            QString text;
-            QRectF tbr;
-            QFont f;
-            int ldpiX, ldpiY, pdpiX, pdpiY;
-            //QPaintDevice *pd;
-
-            bool operator==(const tbrData& other) const;
-        };
-        struct JKQTMATHTEXT_LIB_EXPORT tbrDataH {
-            explicit tbrDataH(const QFont& f, const QString& text, QPaintDevice *pd);
-            QString text;
-            QFont f;
-            int ldpiX, ldpiY, pdpiX, pdpiY;
-
-            bool operator==(const tbrDataH& other) const;
-        };
-        static QList<JKQTMathText::tbrData> tbrs;
-        static QHash<JKQTMathText::tbrDataH, QRectF> tbrh;
-        static QRectF getTightBoundingRect(const QFont &fm, const QString& text,  QPaintDevice *pd);
-
-};
-
-
-
-inline uint qHash(const JKQTMathText::tbrDataH& data) {
-    return qHash(data.f.family())+qHash(data.text);
-}
-
-
-
-
-/*! \brief A QLabel-derived class that draws an equation with LaTeX markup using JKQTMathText
-    \ingroup jkqtmathtext
-
-    \see JKQTMathText
-*/
-class JKQTMATHTEXT_LIB_EXPORT JKQTMathTextLabel: public QLabel {
-        Q_OBJECT
-    public:
-        explicit JKQTMathTextLabel(QWidget* parent=nullptr);
-        virtual ~JKQTMathTextLabel();
-
-        /** \brief returns the internal JKQTMathText instance used for drawing
+        /** \brief size of the decorations (dot, tilde, ...), as fraction of the ascent
          *
-         *  Use this function to set the font, font size and other properties of the used renderer.
+         *  \image html jkqtmathtext/decoration_sizing.png
          */
-        JKQTMathText* getMathText() const;
-        /** \brief set the equation to draw */
-        void setMath(const QString& text, bool doRepaint=true);
-    protected:
-        JKQTMathText* m_mathText;
-        QString lastText;
-        QPixmap buffer;
-        bool repaintDo;
-        void internalPaint();
+        double decoration_height_factor;
+        /** \brief separation between the text and the decorations (dot, tilde, ...), as fraction of the ascent
+         *
+         *  \image html jkqtmathtext/decoration_sizing.png
+         */
+        double decoration_separation_factor;
+        /** \brief a decoration has a size, which is slightly smaller than the text- width. the width is reduced by \c decoration_width_reduction_Xfactor*width("X") and the position is centered around the child-box. Also an italic correction is applied:
+         *
+         *  \image html jkqtmathtext/decoration_sizing.png
+         */
+        double decoration_width_reduction_Xfactor;
+        /** \brief scaling factor for the small font used to indicate the degree of the sqrt */
+        double sqrt_smallfont_factor;
+        /** \brief width of the sqrt-symbol, as factor to width("X") */
+        double sqrt_width_Xfactor;
+        /** \brief height-increase of the sqrt-symbol, as factor of the child's height */
+        double sqrt_height_factor;
 
-        void paintEvent(QPaintEvent * event);
+        /** \brief width of thin table lines, this factor is multiplied with the current \c font.linewidth()
+         *
+         *  \image html jkqtmathtext/jkqtmathtext_matrix_geometry.png
+         */
+        double matrix_linewidth_thin_factor;
+        /** \brief width of heavy table lines, this factor is multiplied with the current \c font.linewidth()
+         *
+         *  \image html jkqtmathtext/jkqtmathtext_matrix_geometry.png
+         */
+        double matrix_linewidth_heavy_factor;
+        /** \brief separation of double-lines in tables, this factor is multiplied with the \c font.linewidth()
+         *
+         *  \image html jkqtmathtext/jkqtmathtext_matrix_geometry.png
+         */
+        double matrix_line_separation_factor;
+        /** \brief x-separation of  two columns, this factor is multiplied with the \c font.width("x")
+         *
+         *  \image html jkqtmathtext/jkqtmathtext_matrix_geometry.png
+         */
+        double matrix_xSeparation_factor;
+        /** \brief y-separation of  two columns, this factor is multiplied with the \c font.width("x")
+         *
+         *  \image html jkqtmathtext/jkqtmathtext_matrix_geometry.png
+         */
+        double matrix_ySeparation_factor;
+        /** \brief x-padding of  two columns, this factor is multiplied with the \c font.width("x")
+         *
+         *  \image html jkqtmathtext/jkqtmathtext_matrix_geometry.png
+         */
+        double matrix_xPadding_factor;
+        /** \brief y-padding of  two columns, this factor is multiplied with the \c font.width("x")
+         *
+         *  \image html jkqtmathtext/jkqtmathtext_matrix_geometry.png
+         */
+        double matrix_yPadding_factor;
+
+        /** \brief initial choice for "serif" font */
+        static QString init_serifFont;
+        /** \brief initial choice for "sans-erif" font */
+        static QString init_sansFont;
+        /** \brief initial choice for "fallback symbol" font */
+        static QString init_symbolFont;
+        /** \brief initial choice for "script" font */
+        static QString init_scriptFont;
+        /** \brief initial choice for "typewriter" font */
+        static QString init_typewriterFont;
+        /** \brief initial choice for "caligraphic" font */
+        static QString init_caligraphicFont;
+        /** \brief initial choice for "blackboard" font */
+        static QString init_blackboardFont;
+        /** \brief initial choice for "fraktur" font */
+        static QString init_fracturFont;
+        /** \brief used to check for the first construction of a JKQTMathText ... if \c true several static variables are initialized in the constructor */
+        static bool s_firstStart;
+        /** \brief mutex to protect the static members */
+        static std::mutex s_mutex;
 };
 
 

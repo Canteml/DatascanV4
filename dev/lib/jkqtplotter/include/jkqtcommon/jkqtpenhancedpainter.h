@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -31,110 +31,58 @@
 
 */
 class JKQTCOMMON_LIB_EXPORT JKQTPEnhancedPainter : public QPainter {
-        Q_GADGET
     public:
+        /** \brief flags that are used to configure a JKQTPEnhancedPainter */
+        enum PainterFlag { DefaultPaintMode = 0x00, /*!< \brief the default  mode, the JKQTPEnhancedPainter draws on a pixel-device */
+                           VectorPainting   = 0x01, /*!< \brief if set, the JKQTPEnhancedPainter draws onto a vector-device, like a printer, PDF or SVG-output */
+                         };
+        Q_ENUM(PainterFlag)
+        /** \brief specifies the plot styles for the error information, e.g. error bars, boxes, lines ...
+         * \ingroup jkqtplotter_basegraphserrors
+         *
+         * \qFlagsNote{JKQTPErrorPlotstyle,JKQTPErrorPlotstyleElements}
+         *
+         * \see JKQTPErrorPlotstyleElements, JKQTPXGraphErrorData, JKQTPYGraphErrorData
+         */
+        Q_DECLARE_FLAGS(PainterFlags, PainterFlag)
+        Q_FLAG(PainterFlags)
+
         JKQTPEnhancedPainter(QPaintDevice* device);
         JKQTPEnhancedPainter();
+        /** \copydoc m_flags */
+        PainterFlags painterFlags() const ;
+        /** \copydoc m_flags */
+        void setPainterFlag(PainterFlag flag, bool enabled=true);
+        /** \copydoc m_flags */
+        void setPainterFlag(PainterFlags flags);
 
+        /** \brief faster variant of QPainter::drawPolyline(),it turns out that drawing single lines is way faster than drawing with drawPolyLine()
+         *
+         *  At least for thin (1 Pixel) lines on non-vector-devices, this does not make much difference in appearance
+         */
+        void drawPolylineFast(const QPointF *points, int pointCount);
+        inline void drawPolylineFast(const QPolygonF &polyline) {
+            drawPolylineFast(polyline.constData(), int(polyline.size()));
+        }
+        void drawPolylineFast(const QPoint *points, int pointCount);
+        inline void drawPolylineFast(const QPolygon &polyline) {
+            drawPolylineFast(polyline.constData(), int(polyline.size()));
+        }
 
-        //void drawPath(const QPainterPath &path);
-        //void drawPoints(const QPoint *points, int pointCount);
-        //void drawPoints(const QPointF *points, int pointCount);
-//        void drawLines(const QLineF *lines, int lineCount);
-//        void drawLines(const QPointF *pointPairs, int lineCount);
-//        void drawLines(const QLine *lines, int lineCount);
-//        void drawLines(const QPoint *pointPairs, int lineCount);
-
-
-//        inline void drawPoint(const QPointF &p) {
-//            drawPoints(&p, 1);
-//        }
-
-//        inline void drawPoint(const QPoint &p) {
-//             drawPoints(&p, 1);
-//        }
-
-//        inline void drawPoint(int x, int y) {
-//            drawPoint(QPointF(x,y));
-//        }
-
-//        inline void drawPoint(double x, double y) {
-//            drawPoint(QPointF(x,y));
-//        }
-
-//        inline void drawPoints(const QPolygonF &points){
-//             drawPoints(points.constData(), points.size());
-//        }
-
-//        inline void drawPoints(const QPolygon &points){
-//            drawPoints(points.constData(), points.size());
-//        }
-
-//        inline void drawLine(const QLineF &line) {
-//            drawLines(&l, 1);
-//        }
-
-//        inline void drawLine(const QLine &line) {
-//            drawLines(&l, 1);
-//        }
-
-//        inline void drawLine(int x1, int y1, int x2, int y2) {
-//            drawLines(QLineF(x1,y1,x2,y2), 1);
-//        }
-
-//        inline void drawLine(double x1, double y1, double x2, double y2) {
-//            drawLines(QLineF(x1,y1,x2,y2), 1);
-//        }
-
-//        inline void drawLine(const QPoint &p1, const QPoint &p2) {
-//            drawLine(QLineF(QLine(p1, p2)));
-//        }
-
-//        inline void drawLine(const QPointF &p1, const QPointF &p2) {
-//            drawLine(QLineF(p1, p2));
-//        }
-
-//        inline void drawLines(const QVector<QLineF> &lines) {
-//            drawLines(lines.constData(), lines.size());
-//        }
-
-//        inline void drawLines(const QVector<QPointF> &pointPairs) {
-//            drawLines(pointPairs.constData(), pointPairs.size() / 2);
-//        }
-
-//        inline void drawLines(const QVector<QLine> &lines) {
-//            drawLines(lines.constData(), lines.size());
-//        }
-
-//        inline void drawLines(const QVector<QPoint> &pointPairs) {
-//            drawLines(pointPairs.constData(), pointPairs.size() / 2);
-//        }
-
-//        inline void drawRect(const QRectF &rect) {
-//            drawRects(&rect, 1);
-//        }
-
-//        inline void drawRect(int x1, int y1, int w, int h) {
-//            QRectF r(x, y, w, h);
-//            drawRects(&r, 1);
-//        }
-
-//        inline void drawRect(double x1, double y1, double w, double h) {
-//            QRectF r(x, y, w, h);
-//            drawRects(&r, 1);
-//        }
-
-//        inline void drawRect(const QRect &rect) {
-//           drawRects(&r, 1);
-//        }
-
+        /** \brief draw a rounded rect, where each corner has a separate radius */
+        void drawComplexRoundedRect(const QRectF& r, double rTopLeft, double rTopRight, double rBottomLeft, double rBottomRight, Qt::SizeMode mode = Qt::AbsoluteSize);
+        /** \brief draw a rounded rect (\a radius >0 ), or a simple rect (\a radius <=0 ) */
+        void drawRoundedRectOrRect(const QRectF& r, double radius, Qt::SizeMode mode = Qt::AbsoluteSize);
     protected:
         void initQEnhacedPainter();
     private:
-
+        /** \brief flags, specifying how the JKQTPEnhancedPainter works
+         *
+         *  \see PainterFlags */
+        PainterFlags m_flags;
 };
 
-
+Q_DECLARE_OPERATORS_FOR_FLAGS(JKQTPEnhancedPainter::PainterFlags)
 
 
 

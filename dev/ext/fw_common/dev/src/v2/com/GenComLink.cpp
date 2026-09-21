@@ -33,6 +33,10 @@
 
 GenComLink::GenComLink(IntComMsg* p_pIntComMsg) : XmlSettingsLoggable("GenComLink")
 {
+   qRegisterMetaType<ComLinkSerial*>("ComLinkSerial*");
+   qRegisterMetaType<ComLinkTcpCli*>("ComLinkTcpCli*");
+   qRegisterMetaType<ComLinkUdpCli*>("ComLinkUdpCli*");
+   qRegisterMetaType<ProtMsg*>("ProtMsg*");
    m_pIntComMsg = p_pIntComMsg;
    m_funcGeneral = m_pIntComMsg->getFuncGeneralParam();
    m_linkState = LINK_STATE_DISCONNECTED;
@@ -43,9 +47,9 @@ GenComLink::GenComLink(IntComMsg* p_pIntComMsg) : XmlSettingsLoggable("GenComLin
    m_msgDecodeStep = MSG_DECODE_STEP_MAGIC_NUMBER;
    m_pMappedDevice = nullptr;
 
-   m_mBufferWriteMsg = new QMutex(QMutex::NonRecursive);
-   m_mBufferReadMsg = new QMutex(QMutex::NonRecursive);
-   m_mInterface = new QMutex(QMutex::NonRecursive);
+   m_mBufferWriteMsg = new QRecursiveMutex();
+   m_mBufferReadMsg = new QRecursiveMutex();
+   m_mInterface = new QRecursiveMutex();
 
    m_timAutoConnect = new QTimer();
    m_timAutoConnect->setSingleShot(true);

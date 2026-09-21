@@ -255,7 +255,7 @@ void StatTime::incrementTimer()
 // -- Singleton
 StatisticManager::StatisticManager() : Loggable("StatisticManager"), XmlSettings("StatisticManager")
 {
-    m_mStats = new QMutex(QMutex::Recursive);
+    m_mStats = new QRecursiveMutex();
 
     m_timUpdateStatTime = new QTimer();
     m_timUpdateStatTime->setSingleShot(false);

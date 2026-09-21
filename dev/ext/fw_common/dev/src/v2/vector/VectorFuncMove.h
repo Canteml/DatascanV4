@@ -117,3 +117,9 @@ private :
     bool m_moveBoost;
     bool m_manualMode;
 };
+
+Q_DECLARE_OPAQUE_POINTER(VectorFuncMove*)
+#ifndef METATYPE_VECTORFUNCPRESSURESENSOR
+#define METATYPE_VECTORFUNCPRESSURESENSOR
+Q_DECLARE_METATYPE(VectorFuncMove*)
+#endif

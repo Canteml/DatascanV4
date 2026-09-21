@@ -70,7 +70,7 @@ private :
 
     // -- Xml members
     static QString m_settingsFileName;  ///< Filename of settings file, set by readSettingsFromFile
-    static QMutex m_mXmlDoc;   ///< protect concurent use of xml items
+    static QRecursiveMutex m_mXmlDoc;   ///< protect concurent use of xml items
     static QDomDocument * m_pXmlDoc;
     static QDomElement * m_pXmlRoot;
 

@@ -103,8 +103,8 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_pPlotAScan->getYAxis()->setLineWidth(1);
 //    m_pPlotAScan->getXAxis()->setAxisLabel("Distance (mm)");
 //    m_pPlotAScan->getYAxis()->setAxisLabel("Amplitude (%)");
-    m_pPlotAScan->getXAxis()->setDrawMode2(JKQTPCADrawMode::JKQTPCADMnone);
-    m_pPlotAScan->getYAxis()->setDrawMode2(JKQTPCADrawMode::JKQTPCADMnone);
+    m_pPlotAScan->getXAxis()->setDrawMode2(JKQTPCADrawMode(JKQTPCADMnone));
+    m_pPlotAScan->getYAxis()->setDrawMode2(JKQTPCADrawMode(JKQTPCADMnone));
 
     // improve performances : CPU : 11% => 5%
     m_pPlotAScan->getPlotter()->setUseAntiAliasingForGraphs(false);
@@ -339,18 +339,40 @@ void AScanGraph::mouseDoubleClickEvent( QMouseEvent* event )
 void AScanGraph::wheelEvent(QWheelEvent *event)
 {
     if( nullptr != m_pPlotAScan ) {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+        QWheelEvent* newEvent = new QWheelEvent(
+            event->position(),          // pos (local)
+            event->globalPosition(),    // globalPos
+            event->pixelDelta(),        // pixelDelta
+            event->angleDelta(),        // angleDelta
+            event->buttons(),           // buttons
+            event->modifiers(),         // modifiers
+            event->phase(),             // phase
+            event->isInverted(),        // inverted
+            event->source()             // source
+            );
+#else
         QWheelEvent* newEvent = new QWheelEvent(*event);
-        //QCoreApplication::sendEvent( m_CustomPlot, newEvent );
+#endif
         QCoreApplication::postEvent( m_pPlotAScan, newEvent );
     }
 }
 
 void AScanGraph::hoverMoveEvent(QHoverEvent *event)
 {
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+    QPointF pos = event->position();
+    if( nullptr != m_eMouseMove && pos != m_eMouseMove->position() ) {
+        delete m_eMouseMove;
+        m_eMouseMove = new QMouseEvent(QEvent::MouseMove, pos, Qt::NoButton, Qt::NoButton, Qt::NoModifier);
+        routeMouseEvents( m_eMouseMove );
+    }
+#else
     if( nullptr != m_eMouseMove && event->posF() != m_eMouseMove->localPos() ) {
         m_eMouseMove->setLocalPos(event->posF());
         routeMouseEvents( m_eMouseMove );
     }
+#endif
 }
 
 bool AScanGraph::customLoadSettings(QDomElement * p_pParent)

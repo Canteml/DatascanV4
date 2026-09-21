@@ -127,7 +127,7 @@ private :
     QString m_logHeader;    ///< for files
     static QStringList m_lFatalErrors; ///< List of fatals errors treated by the core when the program ends
     static QList<logMessage*> m_lLogs;   ///< List with logs to treat
-    static QMutex m_mLogs;      ///< protect m_lLogs
+    static QRecursiveMutex m_mLogs;      ///< protect m_lLogs
     static bool m_isFinished;
 
     static QThread * m_thLogger;   ///< thread to treal logs
@@ -138,7 +138,7 @@ private :
 
     // file
     QFile * m_pLogFile;         ///< current file where logs are written
-    static QMutex m_mLogFile;   ///< protect file access to m_pLogFile
+    static QRecursiveMutex m_mLogFile;   ///< protect file access to m_pLogFile
     quint32 m_fileLineCount;    ///< number lines in the cuurent log file
 
     // -- constants

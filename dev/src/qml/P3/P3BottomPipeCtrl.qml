@@ -1,7 +1,7 @@
 import QtQuick 2.4
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
-import QtQuick.Dialogs 1.3 as Std
+import QtQuick.Dialogs
 import Qt.labs.platform 1.1 as Platform
 import Design 1.0
 
@@ -53,13 +53,13 @@ Rectangle {
                 ToolTip.text: qsTr("Démarrer un nouvel examen.")
             }
 
-            Std.MessageDialog {
+            MessageDialog {
                 id: idMsdExamModified
-                icon: Std.StandardIcon.Warning
+                //icon: Std.StandardIcon.Warning
                 title: qsTr("Examen non sauvegardé !")
                 text: qsTr("Des données n'ont pas été enregistrées.\nVoulez-vous quand même démarrer un nouvel examen ?")
-                standardButtons: Std.StandardButton.Yes | Std.StandardButton.No
-                onYes: examPipeManager.resetExam();
+                buttons: MessageDialog.Yes | MessageDialog.No
+                onAccepted: examPipeManager.resetExam();
             }
 
             Button {
@@ -108,12 +108,12 @@ Rectangle {
             }
         }
 
-        Std.MessageDialog {
+        MessageDialog {
             id: idMsgError
-            icon: Std.StandardIcon.Critical
+            //icon: Std.StandardIcon.Critical
             title: qsTr("Erreur")
             text: qsTr("L'examen n'a pas pu être sauvegardé :\n" + idFdExamExport.retExport )
-            standardButtons: Std.StandardButton.Ok
+            buttons: MessageDialog.Ok
         }
 
         Rectangle {

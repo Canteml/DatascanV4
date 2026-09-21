@@ -106,5 +106,6 @@
         <file>icons/on_wall.png</file>
         <file>icons/btAutoMove.png</file>
         <file>icons/btManualMove.png</file>
+	<file>icons/no_camera.png</file>
     </qresource>
 </RCC>

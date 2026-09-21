@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Package>
+    <DisplayName>DatascanV2</DisplayName>
+    <Description>DatascanV2 Application</Description>
+    <Version>2.0.4</Version>
+    <ReleaseDate>2026-04-29</ReleaseDate>
+    <Default>true</Default>
+</Package>

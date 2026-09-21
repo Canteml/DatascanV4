@@ -1,4 +1,4 @@
-import QtQuick 2.15
+import QtQuick
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
 import Qt.labs.platform 1.1
@@ -262,8 +262,8 @@ Rectangle {
                             Layout.preferredWidth: 80
                             selectByMouse: true
                             Layout.preferredHeight: 30
-                            validator: RegExpValidator {
-                                regExp: /([0-9]+(\.[0-9]+))/
+                            validator: RegularExpressionValidator {
+                                regularExpression: /([0-9]+(\.[0-9]+))/
                             }
                             onTextEdited: {examManager.bscanPerimeter = parseFloat(idTxtPerimeter.text)}
                             Connections {
@@ -288,8 +288,8 @@ Rectangle {
                             Layout.preferredWidth: 80
                             selectByMouse: true
                             Layout.preferredHeight: 30
-                            validator: RegExpValidator {
-                                regExp: /([0-9]+(\.[0-9]+))/
+                            validator: RegularExpressionValidator {
+                                regularExpression: /([0-9]+(\.[0-9]+))/
                             }
                             onTextEdited: {examManager.bscanDiameter = parseFloat(idTxtDiameter.text)}
                             Connections {
@@ -416,9 +416,6 @@ Rectangle {
                         Layout.preferredWidth: 80
                         selectByMouse: true
                         Layout.preferredHeight: 30
-                        validator: RegExpValidator {
-                            regExp: /([0-9]+(\.[0-9]+))/
-                        }
                         onTextEdited: {examManager.mepPerimeter = parseFloat(idTxtPerimeterMep.text)}
                         Connections {
                             target : examManager
@@ -442,9 +439,6 @@ Rectangle {
                         Layout.preferredWidth: 80
                         selectByMouse: true
                         Layout.preferredHeight: 30
-                        validator: RegExpValidator {
-                            regExp: /([0-9]+(\.[0-9]+))/
-                        }
                         onTextEdited: {examManager.mepDiameter = parseFloat(idTxtDiameterMep.text)}
                         Connections {
                             target : examManager
@@ -493,8 +487,6 @@ Rectangle {
                         Layout.preferredWidth: 80
                         selectByMouse: true
                         Layout.preferredHeight: 30
-                        validator: RegExpValidator {
-                            regExp: /([0-9]+(\.[0-9]+))/
                         }
                         onTextEdited: {examManager.mepIntervalY = parseFloat(idTxtIntervalYMep.text)}
                         Connections {
@@ -524,9 +516,6 @@ Rectangle {
                         Layout.preferredWidth: 80
                         selectByMouse: true
                         Layout.preferredHeight: 30
-                        validator: RegExpValidator {
-                            regExp: /([0-9]+(\.[0-9]+))/
-                        }
                         onTextEdited: {examManager.mepHeight = parseFloat(idTxtHeightMep.text)}
                         Connections {
                             target : examManager

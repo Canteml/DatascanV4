@@ -3,8 +3,10 @@
 #include <QMessageBox>
 #include <QSharedMemory>
 
+
 int main(int argc, char *argv[])
 {
+
     CoreApp app;
 
 
@@ -19,7 +21,6 @@ int main(int argc, char *argv[])
         return 55; // Close the reduncy application
     }
 
-
     if(QString(APP_VERSION).contains("ENG"))
     {
         return app.execUiQml_EnglishLanguage(argc, argv);
@@ -32,7 +33,6 @@ int main(int argc, char *argv[])
     {
          return app.execUiQml(argc, argv);
     }
-
 
     //return app.execUiQml_withSelectLanguage(argc, argv);
 }

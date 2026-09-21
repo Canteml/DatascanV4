@@ -3,7 +3,7 @@
 
 
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     last modification: $LastChangedDate: 2015-04-02 13:55:22 +0200 (Do, 02 Apr 2015) $  (revision $Rev: 3902 $)
 
@@ -25,7 +25,7 @@
 
 
 /*! \def JKQTFASTPLOTTER_LIB_EXPORT
-    \ingroup tools
+    \ingroup jkqtfastplotter_tools
 
     This define allows to export functions and classes from the jkqtcommon-library when building a dynamic/shared library.
     Usage is as follows:
@@ -39,7 +39,7 @@
         JKQTFASTPLOTTER_LIB_EXPORT void exportedFunctionName();
     \endcode
     
-    These macros append the appropriate \c __declspec(dllexport) and \c __declspec(dllimport)
+    These macros append the appropriate \c Q_DECL_EXPORT and \c Q_DECL_IMPORT
     to the function/class body and thus tell windows compilers to export these sysmbols from
     the shared library, or import them from a shared library.
     
@@ -57,20 +57,30 @@
 
  */
 
-/*! \def JKQTFASTPLOTTER_LIB_IN_DLL 
-    \ingroup tools
+// necessary to add this define to the Doxygen autodoc!!!
+#ifdef DOXYGEN
+#  define JKQTFASTPLOTTER_LIB_IN_DLL
+#endif
+/*! \def JKQTFASTPLOTTER_LIB_IN_DLL
+    \ingroup jkqtfastplotter_tools
     \brief declares that the application should link against a shared version of 
            JKQTFastPlotter, i.e. \c JKQTFastPlotterSharedLib_XYZ .
            This needs to be defined while compiling the library and while compiling 
            any application linking against  \c JKQTFastPlotterSharedLib_XYZ. 
 */
 
-/*! \def JKQTFASTPLOTTER_LIB_EXPORT_LIBRARY 
-    \ingroup tools
+// necessary to add this define to the Doxygen autodoc!!!
+#ifdef DOXYGEN
+#  define JKQTFASTPLOTTER_LIB_EXPORT_LIBRARY
+#endif
+/*! \def JKQTFASTPLOTTER_LIB_EXPORT_LIBRARY
+    \ingroup jkqtfastplotter_tools
     \brief is only defined while compiling JKQTFastPlotter into \c JKQTFastPlotterSharedLib_XYZ
            and ensures thet the symbols are exported. If it is not defined (e.g. while 
            compiling an application), the symbols are imported
 */
+
+#include <QtCore/QtGlobal>
 
 #  ifndef __WINDOWS__
 #    if defined(WIN32) || defined(WIN64) || defined(_MSC_VER) || defined(_WIN32)
@@ -83,10 +93,10 @@
 #    ifndef JKQTFASTPLOTTER_LIB_EXPORT
 #      ifdef JKQTFASTPLOTTER_LIB_EXPORT_LIBRARY
           /* We are building this library */
-#        define JKQTFASTPLOTTER_LIB_EXPORT __declspec(dllexport)
+#        define JKQTFASTPLOTTER_LIB_EXPORT Q_DECL_EXPORT
 #      else
           /* We are using this library */
-#        define JKQTFASTPLOTTER_LIB_EXPORT __declspec(dllimport)
+#        define JKQTFASTPLOTTER_LIB_EXPORT Q_DECL_IMPORT
 #      endif
 #    endif
 #  else

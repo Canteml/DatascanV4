@@ -25,7 +25,7 @@
 
 // -- Xml file
 QString XmlSettings::m_settingsFileName = "";
-QMutex XmlSettings::m_mXmlDoc(QMutex::Recursive);
+QRecursiveMutex XmlSettings::m_mXmlDoc;
 QDomDocument * XmlSettings::m_pXmlDoc = nullptr;
 QDomElement * XmlSettings::m_pXmlRoot = nullptr;
 

@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
 
 
@@ -27,6 +27,7 @@
 #include "jkqtplotter/jkqtpimagetools.h"
 #include "jkqtplotter/jkqtpgraphsbasestyle.h"
 #include "jkqtplotter/jkqtplotter_imexport.h"
+#include "jkqtplotter/jkqtplotter_configmacros.h"
 #include "jkqtcommon/jkqtpdrawingtools.h"
 #include "jkqtcommon/jkqtpbasicimagetools.h"
 #include <QColor>
@@ -39,7 +40,7 @@
 
 
 /** \brief Support Class for JKQTBasePlotter, which summarizes all properties that define the visual styling of a JKQTBasePlotter
- *  \ingroup jkqtpplotter_styling
+ *  \ingroup jkqtpplotter_styling_classes
  *
  *  \see JKQTBasePlotter, \ref jkqtpplotter_styling
  */
@@ -66,10 +67,22 @@ class JKQTPLOTTER_LIB_EXPORT JKQTBasePlotterStyle {
          */
         void saveSettings(QSettings& settings, const QString& group=QString("plots/")) const;
 
-        /** \brief if set \c true (default: \c false ) the JKQTBasePlotter draws colored rectangles to indicate the different regions in the plot (border, axes, ...) */
+        /** \brief if set \c true (default: \c false ) the JKQTBasePlotter draws colored rectangles to indicate the different regions in the plot (border, axes, ...)
+         *
+         * \image html debugShowRegionBoxes.png
+         *
+         */
         bool debugShowRegionBoxes;
         /** \brief width of the lines that are drawn, when debugShowRegionBoxes \c ==true [in pixels] */
         double debugRegionLineWidth;
+        /** \brief if set \c true (default: \c false ) the JKQTBasePlotter draws colored rectangles to indicate the outline etc. of text inside the plot
+         *
+         * \image html debugShowTextBoxes.png
+         *
+         */
+        bool debugShowTextBoxes;
+        /** \brief width of the lines that are drawn, when debugShowTextBoxes \c ==true [in pixels] */
+        double debugTextBoxLineWidth;
 
 
         /** \brief the decimal separator used when exporting data to text files */
@@ -126,6 +139,12 @@ class JKQTPLOTTER_LIB_EXPORT JKQTBasePlotterStyle {
         QString plotLabelFontName;
         /** \brief the plot label font size [pt] */
         double plotLabelFontSize;
+        /** \brief the plot label color */
+        QColor plotLabelColor;
+        /** \brief offset of the plot label from the next element of the graph, i.e. below the label [pt]. \see plotLabelTopBorder for spacing above */
+        double plotLabelOffset;
+        /** \brief offset of the plot label from the top [pt]. \see plotLabelOffset for spacing between label and graph */
+        double plotLabelTopBorder;
         /** \brief specifies whether to use antialiasing for plotting the coordinate system */
         bool useAntiAliasingForSystem;
         /** \brief specifies whether to use antialiasing when drawing any text
@@ -147,10 +166,12 @@ class JKQTPLOTTER_LIB_EXPORT JKQTBasePlotterStyle {
         JKQTPCoordinateAxisStyle xAxisStyle;
         /** \brief style of the y-axis of the main coordinate system */
         JKQTPCoordinateAxisStyle yAxisStyle;
+        /** \brief separation between two seondary axes in pt */
+        double secondaryAxisSeparation;
         /** \brief style of the coordinate axes used to display colorbars in the right */
-        JKQTPCoordinateAxisStyle rightColorbarAxisStyle;
+        JKQTPColorbarCoordinateAxisStyle rightColorbarAxisStyle;
         /** \brief style of the coordinate axes used to display colorbars at the top */
-        JKQTPCoordinateAxisStyle topColorbarAxisStyle;
+        JKQTPColorbarCoordinateAxisStyle topColorbarAxisStyle;
         /** \brief style of the graphs */
         JKQTGraphsBaseStyle graphsStyle;
 
@@ -158,14 +179,14 @@ class JKQTPLOTTER_LIB_EXPORT JKQTBasePlotterStyle {
 };
 
 /** \brief returns the system-wide default JKQTPlotterStyle
- *  \ingroup jkqtpplotter_styling
+ *  \ingroup jkqtpplotter_styling_classes
  *
  * \see JKQTPGetSystemDefaultStyle(), JKQTPSetSystemDefaultStyle(), JKQTPSetSystemDefaultBaseStyle(), \ref jkqtpplotter_styling
  */
 JKQTPLOTTER_LIB_EXPORT JKQTBasePlotterStyle& JKQTPGetSystemDefaultBaseStyle();
 
 /** \brief replaces the system-wide default JKQTPlotterStyle with the given \a newStyle
- *  \ingroup jkqtpplotter_styling
+ *  \ingroup jkqtpplotter_styling_classes
  *
  * \see JKQTPGetSystemDefaultStyle(), JKQTPSetSystemDefaultStyle(), JKQTPGetSystemDefaultBaseStyle(), \ref jkqtpplotter_styling
  */

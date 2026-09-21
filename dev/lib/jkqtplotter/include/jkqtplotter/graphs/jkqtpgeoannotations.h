@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -17,6 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef jkqtpgeoannotations_H_INCLUDED
+#define jkqtpgeoannotations_H_INCLUDED
+
 
 #include <QString>
 #include <QPainter>
@@ -26,9 +29,6 @@
 #include "jkqtplotter/jkqtptools.h"
 #include "jkqtplotter/jkqtplotter_imexport.h"
 #include "jkqtmathtext/jkqtmathtext.h"
-
-#ifndef jkqtpgeoannotations_H_INCLUDED
-#define jkqtpgeoannotations_H_INCLUDED
 
 
 
@@ -49,8 +49,6 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPGeoSymbol: public JKQTPPlotAnnotationElement, 
             \param y y-coordinate of symbol center
             \param symbol symbol type
             \param symbolSize size of the symbol in pt
-            \param color color of drawing
-            \param fillColor fill color of the symbol (if filled)
          */
         JKQTPGeoSymbol(JKQTBasePlotter* parent, double x, double y, JKQTPGraphSymbols symbol, double symbolSize);
         /*! \brief class contructor
@@ -60,8 +58,6 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPGeoSymbol: public JKQTPPlotAnnotationElement, 
             \param y y-coordinate of symbol center
             \param symbol symbol type
             \param symbolSize size of the symbol in pt
-            \param color color of drawing
-            \param fillColor fill color of the symbol (if filled)
          */
         JKQTPGeoSymbol(JKQTPlotter* parent, double x, double y, JKQTPGraphSymbols symbol, double symbolSize);
         /*! \brief class contructor
@@ -148,19 +144,19 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPGeoSymbol: public JKQTPPlotAnnotationElement, 
         /** \brief returns x and y at the same time \see x, y */
         QPointF getP() const;
 
-        /** \copydoc JKQTPPlotAnnotationElement::getXMinMax()        */
+        /** \copydoc JKQTPPlotElement::getXMinMax() */
         virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero) override;
-        /** \copydoc JKQTPPlotAnnotationElement::getYMinMax()        */
+        /** \copydoc JKQTPPlotElement::getYMinMax() */
         virtual bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero) override;
 
         /** \brief plots the graph to the plotter object specified as parent */
         virtual void draw(JKQTPEnhancedPainter& painter) override;
 
         /** \brief plots a key marker inside the specified rectangle \a rect */
-        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
         /** \brief returns the color to be used for the key label */
         virtual QColor getKeyLabelColor() const override;
-    public slots:
+    public Q_SLOTS:
         /** set the symbol color and symbol fill color  */
         virtual void setColor(QColor c);
 
@@ -266,10 +262,10 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPGeoText: public JKQTPPlotAnnotationElement, pu
         virtual void draw(JKQTPEnhancedPainter& painter) override;
 
         /** \brief plots a key marker inside the specified rectangle \a rect */
-        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
         /** \brief returns the color to be used for the key label */
         virtual QColor getKeyLabelColor() const override;
-	public slots:
+	public Q_SLOTS:
         /** \brief set line and fill color */
         virtual void setColor(QColor c) ;
 		

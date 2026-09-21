@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -17,6 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef jkqtpgraphspeakstream_H_INCLUDED
+#define jkqtpgraphspeakstream_H_INCLUDED
+
 
 
 #include <QString>
@@ -24,9 +27,6 @@
 #include <QPair>
 #include "jkqtplotter/jkqtpgraphsbase.h"
 #include "jkqtplotter/jkqtpgraphsbasestylingmixins.h"
-
-#ifndef jkqtpgraphspeakstream_H_INCLUDED
-#define jkqtpgraphspeakstream_H_INCLUDED
 
 // forward declarations
 class JKQTBasePlotter;
@@ -38,7 +38,7 @@ class JKQTPDatastore;
 /*! \brief interprets data as a stream of x- or y-positions \f$ p_i \f$ (depending in \a yPeaks ) ans plots a line on the height
            \a baseline and upright lines from baseline to baseline+peakHeight at each position \f$ p_i \f$. This can be used to
            display a stream of photons with given arrivaltimes \f$ p_i \f$.
-    \ingroup jkqtplotter_diverse
+    \ingroup jkqtplotter_eventgraphs
 
     \image html JKQTPPeakStreamGraphY.png "yPeaks=true"
     \image html JKQTPPeakStreamGraphX.png "yPeaks=false"
@@ -52,22 +52,16 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPPeakStreamGraph: public JKQTPSingleColumnGraph
         JKQTPPeakStreamGraph(JKQTBasePlotter* parent=nullptr);
         JKQTPPeakStreamGraph(JKQTPlotter* parent);
 
-        /** \brief get the maximum and minimum x-value of the graph
-         *
-         * The result is given in the two parameters which are call-by-reference parameters!
-         */
+        /** \copydoc JKQTPPlotElement::getXMinMax() */
         virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero) override;
-        /** \brief get the maximum and minimum y-value of the graph
-         *
-         * The result is given in the two parameters which are call-by-reference parameters!
-         */
+        /** \copydoc JKQTPPlotElement::getYMinMax() */
         virtual bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero) override;
 
 
         /** \brief plots the graph to the plotter object specified as parent */
         virtual void draw(JKQTPEnhancedPainter& painter) override;
         /** \brief plots a key marker inside the specified rectangle \a rect */
-        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
         /** \brief returns the color to be used for the key label */
         virtual QColor getKeyLabelColor() const override;
         /** \brief set symbol color and fill color at the same time */

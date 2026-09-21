@@ -1,5 +1,5 @@
 /*
-    Copyright (c) 2008-2020 Jan W. Krieger (<jan@jkrieger.de>)
+    Copyright (c) 2008-2024 Jan W. Krieger (<jan@jkrieger.de>)
 
     
 
@@ -17,6 +17,9 @@
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
+#ifndef jkqtpgraphsviolinplot_H
+#define jkqtpgraphsviolinplot_H
+
 
 #include <QString>
 #include <QPainter>
@@ -28,14 +31,11 @@
 #include "jkqtplotter/graphs/jkqtpviolinplotstylingmixins.h"
 #include "jkqtplotter/jkqtpgraphsbasestylingmixins.h"
 
-#ifndef jkqtpgraphsviolinplot_H
-#define jkqtpgraphsviolinplot_H
-
 
 
 /** \brief This implements a single vertical <a href="https://en.wikipedia.org/wiki/Violin_plot">Violin Plot</a> as a "geometric element"
  *  \ingroup jkqtplotter_statgraphs
- *  \ingroup jkqtplotter_diverse
+ *  \ingroup jkqtplotter_statgraphs
  *
  *  Represents a violin plot in one of the following styles:
  *
@@ -86,7 +86,7 @@ public:
 
     /** \copydoc violinFrequencyColumn */
     int getViolinFrequencyColumn() const;
-public slots:
+public Q_SLOTS:
     /** \brief set the color of the graph (colors all elements, based on the given color \a c ) */
     virtual void setColor(QColor c);
     /** \copydoc violinFrequencyColumn */
@@ -138,7 +138,7 @@ protected:
 
 /*! \brief This implements a single vertical <a href="https://en.wikipedia.org/wiki/Violin_plot">Violin Plot</a> as a "geometric element"
     \ingroup jkqtplotter_statgraphs
-    \ingroup jkqtplotter_diverse
+    \ingroup jkqtplotter_statgraphs
 
     Draws a vertical violin plot in one of the following styles:
 
@@ -174,19 +174,13 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPViolinplotVerticalElement: public JKQTPViolinp
         /** \brief plots the graph to the plotter object specified as parent */
         virtual void draw(JKQTPEnhancedPainter& painter) override;
         /** \brief plots a key marker inside the specified rectangle \a rect */
-        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
 
 
 
-        /** \brief get the maximum and minimum x-value of the graph
-         *
-         * The result is given in the two parameters which are call-by-reference parameters!
-         */
+        /** \copydoc JKQTPPlotElement::getXMinMax() */
         virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero) override;
-        /** \brief get the maximum and minimum y-value of the graph
-         *
-         * The result is given in the two parameters which are call-by-reference parameters!
-         */
+        /** \copydoc JKQTPPlotElement::getYMinMax() */
         virtual bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero) override;
 
 
@@ -195,7 +189,7 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPViolinplotVerticalElement: public JKQTPViolinp
 
 /*! \brief This implements a single horizontal <a href="https://en.wikipedia.org/wiki/Violin_plot">Violin Plot</a> as a "geometric element"
     \ingroup jkqtplotter_statgraphs
-    \ingroup jkqtplotter_diverse
+    \ingroup jkqtplotter_statgraphs
 
     Draws a horizontal violin plot in one of the following styles:
 
@@ -230,18 +224,12 @@ class JKQTPLOTTER_LIB_EXPORT JKQTPViolinplotHorizontalElement: public JKQTPVioli
         /** \brief plots the graph to the plotter object specified as parent */
         virtual void draw(JKQTPEnhancedPainter& painter) override;
         /** \brief plots a key marker inside the specified rectangle \a rect */
-        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, QRectF& rect) override;
+        virtual void drawKeyMarker(JKQTPEnhancedPainter& painter, const QRectF& rect) override;
 
 
-        /** \brief get the maximum and minimum x-value of the graph
-         *
-         * The result is given in the two parameters which are call-by-reference parameters!
-         */
+        /** \copydoc JKQTPPlotElement::getXMinMax() */
         virtual bool getXMinMax(double& minx, double& maxx, double& smallestGreaterZero) override;
-        /** \brief get the maximum and minimum y-value of the graph
-         *
-         * The result is given in the two parameters which are call-by-reference parameters!
-         */
+        /** \copydoc JKQTPPlotElement::getYMinMax() */
         virtual bool getYMinMax(double& miny, double& maxy, double& smallestGreaterZero) override;
 };
 
