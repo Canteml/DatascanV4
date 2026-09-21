@@ -10,7 +10,7 @@ int main(int argc, char *argv[])
     CoreApp app;
 
 
-    // Check if there is no other Datascan V2 instance
+    // Check if there is no other Datascan V3 instance
     /* Creation of the shared memory zone identified by a character string
      *  We will use a GUID to have a unique identifier so that there is no possible conflict with other applications
      */

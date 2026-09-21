@@ -87,7 +87,7 @@ CoreApp::~CoreApp()
 
 QString CoreApp::getApplicationName() const
 {
-    return "DatascanV2";
+    return "DatascanV3";
 }
 
 QString CoreApp::getVersion() const
@@ -164,7 +164,7 @@ bool CoreApp::startApp()
 //    pComp->setLink()
 
     qInstallMessageHandler([](QtMsgType type, const QMessageLogContext& ctx, const QString& msg) {
-        static QFile logFile("C:/ProgramData/Roboplanet/DatascanV2/conf/qml_debug.txt");
+        static QFile logFile("C:/ProgramData/Roboplanet/DatascanV3/conf/qml_debug.txt");
         // if (!logFile.isOpen()) logFile.open(QIODevice::Append | QIODevice::Text);
         if (!logFile.isOpen()) {
             if (!logFile.open(QIODevice::Append | QIODevice::Text)) {

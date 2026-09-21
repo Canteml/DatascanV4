@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Installer>
-    <Name>DatascanV2</Name>
-    <Version>2.0.4</Version>
-    <Title>DatascanV2 Installer</Title>
+    <Name>DatascanV3</Name>
+    <Version>3.0.0</Version>
+    <Title>DatascanV3 Installer</Title>
     <Publisher>Roboplanet</Publisher>
-    <StartMenuDir>DatascanV2</StartMenuDir>
-    <TargetDir>@HomeDir@/DatascanV2</TargetDir>
+    <StartMenuDir>DatascanV3</StartMenuDir>
+    <TargetDir>@HomeDir@/DatascanV3</TargetDir>
 </Installer>

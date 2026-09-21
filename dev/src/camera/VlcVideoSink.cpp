@@ -114,7 +114,7 @@ void VlcVideoSink::onDisplay(void* opaque, void*)
     static int frameCount = 0;
     if (frameCount < 50) {  // aumenta il limite
         frameCount++;
-        FILE* f = fopen("C:/ProgramData/Roboplanet/DatascanV2/conf/camera_test.txt", "a");
+        FILE* f = fopen("C:/ProgramData/Roboplanet/DatascanV3/conf/camera_test.txt", "a");
         if (f) {
             fprintf(f, "onDisplay frameCount=%d sink=%s topLevel=%s\n",
                     frameCount,

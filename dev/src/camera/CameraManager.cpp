@@ -205,7 +205,7 @@ void CameraManager::onGuiPageChanged(quint32 p_page)
         QTimer::singleShot(3000, this, [this]() {
             QObject* vo = m_pQmlTopLevel->findChild<QObject*>(
                 "previewVideoOutput", Qt::FindChildrenRecursively);
-            FILE* f = fopen("C:/ProgramData/Roboplanet/DatascanV2/conf/camera_test.txt", "a");
+            FILE* f = fopen("C:/ProgramData/Roboplanet/DatascanV3/conf/camera_test.txt", "a");
             if (f) { fprintf(f, "findChild previewVideoOutput: %s\n", vo ? "TROVATO" : "NON TROVATO"); fclose(f); }
             if (vo) {
                 setPreviewVideoSink(vo);
@@ -214,7 +214,7 @@ void CameraManager::onGuiPageChanged(quint32 p_page)
                 QTimer::singleShot(1000, this, [this]() {
                     QObject* vo2 = m_pQmlTopLevel->findChild<QObject*>(
                         "previewVideoOutput", Qt::FindChildrenRecursively);
-                    FILE* f2 = fopen("C:/ProgramData/Roboplanet/DatascanV2/conf/camera_test.txt", "a");
+                    FILE* f2 = fopen("C:/ProgramData/Roboplanet/DatascanV3/conf/camera_test.txt", "a");
                     if (f2) { fprintf(f2, "retry findChild: %s\n", vo2 ? "TROVATO" : "NON TROVATO"); fclose(f2); }
                     if (vo2) setPreviewVideoSink(vo2);
                 });
