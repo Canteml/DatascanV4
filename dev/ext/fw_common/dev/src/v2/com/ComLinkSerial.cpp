@@ -227,7 +227,6 @@ QString ComLinkSerial::interfaceName() const
 QIODevice * ComLinkSerial::makeInterface()
 {
     QSerialPort * sp = new QSerialPort(QString("COM%1").arg(m_config.getPortNumber()));
-//    sp->setReadBufferSize(1000000);
     connect(sp, &QSerialPort::errorOccurred, this, &ComLinkSerial::onErrorOccured, Qt::QueuedConnection);
     sp->setBaudRate(m_config.getBaudrate());
     return sp;

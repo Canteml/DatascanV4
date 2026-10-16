@@ -39,10 +39,13 @@ JkGate::JkGate(MyJkQtPlotter* p_pPlot, qint32 p_gateIndex) :
         // RED GATE
         m_brushNotHovered.setColor(QColor("#22B022"));
         m_brushHovered.setColor(QColor("#40D040"));
-    } else {
+    } else if( 1 == m_gateIndex ){
         // GREEN GATE
         m_brushNotHovered.setColor(QColor("#DD2222"));
         m_brushHovered.setColor(QColor("#FF6060"));
+    } else if( 2 == m_gateIndex){
+        m_brushNotHovered.setColor(QColor("#FF8C00"));
+        m_brushHovered.setColor(QColor("#FFA040"));
     }
 
     m_pLine = new JKQTPGeoLine(p_pPlot, 30, 30, 40, 40);
@@ -70,10 +73,13 @@ void JkGate::setAScan(VectorFuncAScan *p_pAScan)
             disconnect(m_pAScan,&VectorFuncAScan::paramLGate0StartChanged, this, &JkGate::onUpdateGateFromModel);
             disconnect(m_pAScan,&VectorFuncAScan::paramLGate0WidthChanged, this, &JkGate::onUpdateGateFromModel);
             disconnect(m_pAScan,&VectorFuncAScan::paramLGate0HeightChanged, this, &JkGate::onUpdateGateFromModel);
-        } else {
+        } else if( 1 == m_gateIndex ){
             disconnect(m_pAScan,&VectorFuncAScan::paramLGate1StartChanged, this, &JkGate::onUpdateGateFromModel);
             disconnect(m_pAScan,&VectorFuncAScan::paramLGate1WidthChanged, this, &JkGate::onUpdateGateFromModel);
             disconnect(m_pAScan,&VectorFuncAScan::paramLGate1HeightChanged, this, &JkGate::onUpdateGateFromModel);
+        } else if( 2 == m_gateIndex ) {
+            disconnect(m_pAScan,&VectorFuncAScan::paramLGateNoiseStartChanged, this, &JkGate::onUpdateGateFromModel);
+            disconnect(m_pAScan,&VectorFuncAScan::paramLGateNoiseWidthChanged, this, &JkGate::onUpdateGateFromModel);
         }
     }
 
@@ -81,10 +87,13 @@ void JkGate::setAScan(VectorFuncAScan *p_pAScan)
         connect(p_pAScan,&VectorFuncAScan::paramLGate0StartChanged, this, &JkGate::onUpdateGateFromModel, Qt::QueuedConnection);
         connect(p_pAScan,&VectorFuncAScan::paramLGate0WidthChanged, this, &JkGate::onUpdateGateFromModel, Qt::QueuedConnection);
         connect(p_pAScan,&VectorFuncAScan::paramLGate0HeightChanged, this, &JkGate::onUpdateGateFromModel, Qt::QueuedConnection);
-    } else {
+    } else if( 1 == m_gateIndex ){
         connect(p_pAScan,&VectorFuncAScan::paramLGate1StartChanged, this, &JkGate::onUpdateGateFromModel, Qt::QueuedConnection);
         connect(p_pAScan,&VectorFuncAScan::paramLGate1WidthChanged, this, &JkGate::onUpdateGateFromModel, Qt::QueuedConnection);
         connect(p_pAScan,&VectorFuncAScan::paramLGate1HeightChanged, this, &JkGate::onUpdateGateFromModel, Qt::QueuedConnection);
+    } else if( 2 == m_gateIndex){
+        connect(p_pAScan,&VectorFuncAScan::paramLGateNoiseStartChanged, this, &JkGate::onUpdateGateFromModel, Qt::QueuedConnection);
+        connect(p_pAScan,&VectorFuncAScan::paramLGateNoiseWidthChanged, this, &JkGate::onUpdateGateFromModel, Qt::QueuedConnection);
     }
 
     m_pAScan = p_pAScan;
@@ -240,6 +249,12 @@ void JkGate::setMargin(qreal p_value)
     m_margin = p_value;
 }
 
+void JkGate::setNoiseGateThreshold(qreal value)
+{
+    m_noiseGateThreshold = value;
+    onUpdateGateFromModel();
+}
+
 qreal JkGate::getMargin() const
 {
     return m_margin;
@@ -252,6 +267,7 @@ void JkGate::mouseMoveEvent(const QPointF &p_position)
         qreal dL = distLine(p_position);
         qreal dP1 = distMarkerBegin(p_position);
         qreal dP2 = distMarkerEnd(p_position);
+        bool locked = isPositionLocked();
 
 
         if( m_isClicked ) {
@@ -265,11 +281,11 @@ void JkGate::mouseMoveEvent(const QPointF &p_position)
                 setP2(QPointF(p_position.x()-m_offsetFromGate1, m_pLine->getY2()));
             }
         } else {
-            if( dP1 < dP2  && dP1 < m_margin ) {
+            if( !locked && dP1 < dP2  && dP1 < m_margin ) {
                 m_elementHovered = 2;
                 m_isHovered = true;
                 onUpdatePlot();
-            } else if( dP2 < m_margin ) {
+            } else if( !locked && dP2 < m_margin ) {
                 m_elementHovered = 3;
                 m_isHovered = true;
                 onUpdatePlot();
@@ -297,17 +313,18 @@ void JkGate::mouseClickEvent(const QPointF &p_position)
         qreal dL = distLine(p_position);
         qreal dP1 = distMarkerBegin(p_position);
         qreal dP2 = distMarkerEnd(p_position);
+        bool locked = isPositionLocked();
 
         //qDebug()<<"dL = "<<dL<<" / dP1 = "<<dP1<<" / dP2 = "<<dP2;
 
-        if( dP1 < dP2  && dP1 < m_margin ) {
+        if( !locked && dP1 < dP2  && dP1 < m_margin ) {
             m_elementHovered = 2;
             m_isClicked = true;
             m_pPlot->setMouseUsedByItem(true);
             m_isGateClicked = true;
             m_isHovered = true;
             onUpdatePlot();
-        } else if( dP2 < m_margin ) {
+        } else if( !locked && dP2 < m_margin ) {
             m_elementHovered = 3;
             m_isClicked = true;
             m_pPlot->setMouseUsedByItem(true);
@@ -417,8 +434,10 @@ void JkGate::onUpdateGateFromModel()
     if( nullptr != m_pAScan ) {
         if( 0 == m_gateIndex ) {
             setGate(m_pAScan->getParamLGate0Start(), m_pAScan->getParamLGate0Width(), m_pAScan->getParamLGate0Height());
-        } else {
+        } else if( 1 == m_gateIndex) {
             setGate(m_pAScan->getParamLGate1Start(), m_pAScan->getParamLGate1Width(), m_pAScan->getParamLGate1Height());
+        } else if( 2 == m_gateIndex){
+            setGate(m_pAScan->paramLGateNoiseStart(), m_pAScan->paramLGateNoiseWidth(), m_noiseGateThreshold);
         }
     }
 }
@@ -467,6 +486,11 @@ void JkGate::onUpdatePlot()
     m_pPlot->requestUpdate();
 }
 
+bool JkGate::isPositionLocked() const
+{
+    return 1 == m_gateIndex && nullptr != m_pAScan && m_pAScan->paramDAutoSyncGates();
+}
+
 void JkGate::updateModel()
 {
     if( 0 == m_gateIndex ) {
@@ -479,8 +503,8 @@ void JkGate::updateModel()
         if( m_pAScan->getParamLGate0Height() != getGateHeight() ) {
             m_pAScan->setParamLGate0Height((qint32)getGateHeight());
         }
-    } else {
-        if( m_pAScan->getParamLGate1Start() != getGateStart() ) {
+    } else if( 1 == m_gateIndex ) {
+        if( !isPositionLocked() && m_pAScan->getParamLGate1Start() != getGateStart() ) {
             m_pAScan->setParamLGate1Start((qint32)getGateStart());
         }
         if( m_pAScan->getParamLGate1Width() != getGateWidth() ) {
@@ -488,6 +512,17 @@ void JkGate::updateModel()
         }
         if( m_pAScan->getParamLGate1Height() != getGateHeight() ) {
             m_pAScan->setParamLGate1Height((qint32)getGateHeight());
+        }
+    } else if( 2 == m_gateIndex) {
+        if( m_pAScan->paramLGateNoiseStart() != getGateStart() ) {
+            m_pAScan->setParamLGateNoiseStart((qint32)getGateStart());
+        }
+        if( m_pAScan->paramLGateNoiseWidth() != getGateWidth() ) {
+            m_pAScan->setParamLGateNoiseWidth((qint32)getGateWidth());
+        }
+        qint16 newThreshold = static_cast<qint16>(qRound(getGateHeight()));
+        if(m_pAScan->paramDAutoGainThreshold() != newThreshold) {
+            m_pAScan->setParamDAutoGainThreshold(newThreshold);
         }
     }
 }

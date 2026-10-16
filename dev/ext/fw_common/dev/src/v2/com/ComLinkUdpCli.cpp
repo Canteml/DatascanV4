@@ -26,6 +26,7 @@ QString ComLinkUdpCli::getConfigHelp() const
 {
    QString sRet;
    if( nullptr != m_pUdpSocket ) {
+
       sRet = QString("Add. %1, Port %2 (udp)").arg(m_pUdpSocket->peerAddress().toString()).arg(m_pUdpSocket->peerPort());
    }
    return sRet;

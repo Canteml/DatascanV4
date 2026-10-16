@@ -2,10 +2,11 @@ import QtQuick 2.4
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
 import Design 1.0
+import Fonts 1.0
 import "../rp_components"
 
 Rectangle {
-    color: "#EFEFEF"
+    color: "#D5DEE3"
     border.color: "#000000"
 
     ColumnLayout {
@@ -15,6 +16,7 @@ Rectangle {
         Text {
             Layout.alignment: Qt.AlignCenter
             text: qsTr("Gain")
+            font.family: Fonts.robotoCondensed
             font.pixelSize: 16
             Layout.topMargin: 5
         }
@@ -65,9 +67,11 @@ Rectangle {
                 anchors.bottom: parent.bottom
                 implicitHeight: 30
                 implicitWidth: 30 // Adjust width here
-                color: sbGain.up.pressed ? Design.colButtonSelectedBackground : Design.colButtonBackground
+                color: "white"
                 border.color: enabled ? Design.colFrameBorder : Design.colButtonHoveredBackground
+                border.width: 2
                 Text {
+                    font.family: Fonts.robotoCondensed
                     text: '+'
                     font.pointSize: 12
                     anchors.centerIn: parent
@@ -80,9 +84,11 @@ Rectangle {
                 anchors.bottom: parent.bottom
                 implicitHeight: 30
                 implicitWidth: 30 // Adjust width here
-                color: sbGain.down.pressed ? Design.colButtonSelectedBackground : Design.colButtonBackground
+                color: "white"
                 border.color: enabled ? Design.colFrameBorder : Design.colButtonHoveredBackground
+                border.width: 2
                 Text {
+                    font.family: Fonts.robotoCondensed
                     text: '-'
                     font.pointSize: 12
                     anchors.centerIn: parent
@@ -105,7 +111,8 @@ Rectangle {
 
         Text {
             Layout.alignment: Qt.AlignCenter
-            text: qsTr("Zoom")
+            text: qsTr("Résol. x")
+            font.family: Fonts.robotoCondensed
             font.pixelSize: 16
         }
 
@@ -118,13 +125,18 @@ Rectangle {
                 Layout.preferredHeight: 30
                 Layout.preferredWidth: 30
                 background: Rectangle {
-                    color: (idBtAScanZoomOut.pressed) ? Design.colButtonSelectedBackground : idBtAScanZoomOut.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
-                    border.width: 1
+                    color: "white"
+                    border.width: 2
                     border.color: Design.colFrameBorder
                 }
 
-                text: "-"
-                font.pointSize: 12
+                Text {
+                    font.family: Fonts.robotoCondensed
+                    text: '-'
+                    font.pointSize: 12
+                    anchors.centerIn: parent
+                    color : parent.enabled ? Design.colButtonSelectedText : Design.colButtonSelectedBackground
+                }
 
                 onPressed: {
                     scanManager.ascanZoomOut()
@@ -136,13 +148,18 @@ Rectangle {
                 Layout.preferredHeight: 30
                 Layout.preferredWidth: 30
                 background: Rectangle {
-                    color: (idBtAScanZoomIn.pressed) ? Design.colButtonSelectedBackground : idBtAScanZoomIn.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
-                    border.width: 1
+                    color: "white"
+                    border.width: 2
                     border.color: Design.colFrameBorder
                 }
 
-                text: "+"
-                font.pointSize: 12
+                Text {
+                    font.family: Fonts.robotoCondensed
+                    text: '+'
+                    font.pointSize: 12
+                    anchors.centerIn: parent
+                    color : parent.enabled ? Design.colButtonSelectedText : Design.colButtonSelectedBackground
+                }
 
                 onPressed: {
                     scanManager.ascanZoomIn()
@@ -164,6 +181,7 @@ Rectangle {
         Text {
             Layout.alignment: Qt.AlignCenter
             text: qsTr("2nd Echo")
+            font.family: Fonts.robotoCondensed
             font.pixelSize: 16
             Layout.topMargin: 5
         }
@@ -213,10 +231,12 @@ Rectangle {
                 anchors.bottom: parent.bottom
                 implicitHeight: 30
                 implicitWidth: 30 // Adjust width here
-                color: sb2EchoStart.up.pressed ? Design.colButtonSelectedBackground : Design.colButtonBackground
+                color: "white"
                 border.color: enabled ? Design.colFrameBorder : Design.colButtonHoveredBackground
+                border.width: 2
                 Text {
                     text: '+'
+                    font.family: Fonts.robotoCondensed
                     font.pointSize: 12
                     anchors.centerIn: parent
                     color : parent.enabled ? Design.colButtonSelectedText : Design.colButtonSelectedBackground
@@ -228,10 +248,12 @@ Rectangle {
                 anchors.bottom: parent.bottom
                 implicitHeight: 30
                 implicitWidth: 30 // Adjust width here
-                color: sb2EchoStart.down.pressed ? Design.colButtonSelectedBackground : Design.colButtonBackground
+                color: "white"
                 border.color: enabled ? Design.colFrameBorder : Design.colButtonHoveredBackground
+                border.width: 2
                 Text {
                     text: '-'
+                    font.family: Fonts.robotoCondensed
                     font.pointSize: 12
                     anchors.centerIn: parent
                     color : parent.enabled ? Design.colButtonSelectedText : Design.colButtonSelectedBackground

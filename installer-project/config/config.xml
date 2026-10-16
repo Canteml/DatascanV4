@@ -2,8 +2,29 @@
 <Installer>
     <Name>DatascanV3</Name>
     <Version>3.0.0</Version>
-    <Title>DatascanV3 Installer</Title>
+    <Title>DatascanV3</Title>
     <Publisher>Roboplanet</Publisher>
+    <ProductUrl>http://www.roboplanet.fr</ProductUrl>
+
+    <!-- Layout atteso dall'app: <TargetDir>/bin/DatascanV3.exe + <TargetDir>/res
+         (Core::coreInitApp usa applicationDirPath()/.. come radice) -->
+    <TargetDir>@ApplicationsDirX64@/Roboplanet/DatascanV3</TargetDir>
+    <AdminTargetDir>@ApplicationsDirX64@/Roboplanet/DatascanV3</AdminTargetDir>
     <StartMenuDir>DatascanV3</StartMenuDir>
-    <TargetDir>@HomeDir@/DatascanV3</TargetDir>
+
+    <!-- application.ico / application.png / banner.bmp vengono copiati qui da build_installer.ps1 -->
+    <InstallerApplicationIcon>application</InstallerApplicationIcon>
+    <InstallerWindowIcon>application.png</InstallerWindowIcon>
+    <Banner>banner.bmp</Banner>
+    <WizardStyle>Modern</WizardStyle>
+    <WizardDefaultWidth>640</WizardDefaultWidth>
+    <WizardDefaultHeight>480</WizardDefaultHeight>
+
+    <MaintenanceToolName>DatascanV3_Uninstall</MaintenanceToolName>
+    <RemoveTargetDir>true</RemoveTargetDir>
+    <AllowSpaceInPath>true</AllowSpaceInPath>
+    <AllowNonAsciiCharacters>true</AllowNonAsciiCharacters>
+
+    <RunProgram>@TargetDir@/bin/DatascanV3.exe</RunProgram>
+    <RunProgramDescription>Avvia DatascanV3</RunProgramDescription>
 </Installer>

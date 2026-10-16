@@ -17,13 +17,11 @@
         <file alias="P3/P3TopAscan.qml">src/qml/P3/P3TopAscan.qml</file>
         <file alias="P3/P3TopCamSettings.qml">src/qml/P3/P3TopCamSettings.qml</file>
         <file alias="P3/P3TopCam.qml">src/qml/P3/P3TopCam.qml</file>
-        <file alias="P3/P3TopSettingsAscan.qml">src/qml/P3/P3TopSettingsAscan.qml</file>
         <file alias="P3/P3Top.qml">src/qml/P3/P3Top.qml</file>
         <file alias="P3/P3Bottom.qml">src/qml/P3/P3Bottom.qml</file>
         <file alias="P3/P3BottomBScanCtrl.qml">src/qml/P3/P3BottomBScanCtrl.qml</file>
         <file alias="P3/P3BottomBScanView.qml">src/qml/P3/P3BottomBScanView.qml</file>
         <file alias="P3/P3BottomVectorIO.qml">src/qml/P3/P3BottomVectorIO.qml</file>
-        <file alias="P3/P3TopSettingsBscan.qml">src/qml/P3/P3TopSettingsBscan.qml</file>
         <file alias="rp_components/RpSpinBox.qml">src/qml/rp_components/RpSpinBox.qml</file>
         <file alias="BannerBottomNavigate.qml">src/qml/BannerBottomNavigate.qml</file>
         <file alias="rp_components/FormSection.qml">src/qml/rp_components/FormSection.qml</file>
@@ -34,9 +32,7 @@
         <file alias="rp_components/PipeSensor.qml">src/qml/rp_components/PipeSensor.qml</file>
         <file alias="CentralPage5.qml">src/qml/CentralPage5.qml</file>
         <file alias="LicenceWarning.qml">src/qml/LicenceWarning.qml</file>
-        <file alias="P3/P3TopSensorsDisplay.qml">src/qml/P3/P3TopSensorsDisplay.qml</file>
         <file alias="P3/P3BottomMepView.qml">src/qml/P3/P3BottomMepView.qml</file>
-        <file alias="P3/P3TopSettingsMep.qml">src/qml/P3/P3TopSettingsMep.qml</file>
     </qresource>
     <qresource prefix="/img">
         <file alias="logo.png">src/qml/logo.png</file>

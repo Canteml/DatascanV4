@@ -282,6 +282,9 @@ void CameraManager::onCameraIsReadyChanged(CameraRole *p_pCameraRole, bool p_ena
             emit isMainCameraIpChanged(true);
         }
         if( -1 != m_roleMainCamera && p_pCameraRole == m_aCameraRole[m_roleMainCamera] ) {
+            if( !isMainCameraIp() ) {
+                startMainUsbCamera();
+            }
             emit evMainCameraReady();
         }
         if( p_pCameraRole == m_aCameraRole[CameraRole::ROLE_ALARM] ) {
@@ -305,7 +308,38 @@ void CameraManager::onExamControlTypeChanged(quint32 p_type)
 void CameraManager::onMainCameraIndexChanged(quint32 p_index)
 {
     if(isMainCameraIp()) {
+        if (m_pCameraMain) m_pCameraMain->stop();
         openMainIpMedia();
+    } else {
+        startMainUsbCamera();
+    }
+}
+
+void CameraManager::startMainUsbCamera()
+{
+    if (!m_pCameraMain || !m_pGlobalManager) return;
+
+    // Main camera is displayed only on page Scan
+    if (3 != m_pGlobalManager->getGuiPage()) return;
+
+    CameraVideo* pCamVideo = m_aCameraRole[m_roleMainCamera]->getCameraVideo();
+    if (!m_aCameraRole[m_roleMainCamera]->getIsReady() || !pCamVideo || pCamVideo->isIpCamera()) {
+        m_pCameraMain->stop();
+        return;
+    }
+
+    const QList<QCameraDevice> devices = QMediaDevices::videoInputs();
+    for (const QCameraDevice& d : devices) {
+        if (d.id() == pCamVideo->getCameraId()) {
+            if (m_pMainPlayer) m_pMainPlayer->stop();
+            if (m_pCameraPreview) m_pCameraPreview->stop();   // USB device can not be opened twice
+            if (m_pCameraMain->cameraDevice() != d) {
+                m_pCameraMain->stop();
+                m_pCameraMain->setCameraDevice(d);
+            }
+            m_pCameraMain->start();
+            return;
+        }
     }
 }
 
@@ -560,6 +594,40 @@ void CameraManager::assignPreviewAs(qint32 p_role)
     } else {
         m_aCameraRole[p_role]->setCamera(pCamVideo);
     }
+    onUpdateCameraDatabase();
+}
+
+void CameraManager::assignCameraToRole(qint32 p_role, qint32 p_cameraIndex)
+{
+    if (p_role < 0 || p_role >= CameraRole::ROLE_MAX) return;
+
+    CameraVideo* pCamVideo = nullptr;
+    for (auto cam : qAsConst(m_lCameraVideo)) {
+        if (cam->getCameraIndex() == p_cameraIndex) {
+            pCamVideo = cam;
+            break;
+        }
+    }
+
+    if (m_aCameraRole[p_role]->getCameraVideo() == pCamVideo) return;
+
+    // Remove the previous assignation from database, otherwise onUpdateCameraDatabase() restores it
+    if (m_pVectorStd) {
+        QList<CameraDatabase*> dbToDelete;
+        for (auto db : qAsConst(m_lCameraDatabase)) {
+            if (db->getCameraRole() == p_role &&
+                db->getProductUid() == m_pVectorStd->getFuncGeneralParam().m_paramDProdUid) {
+                dbToDelete.append(db);
+            }
+        }
+        for (auto db : qAsConst(dbToDelete)) {
+            m_lCameraDatabase.removeAll(db);
+            delete db;
+        }
+    }
+
+    // nullptr (index -1 or not found) => un-assign
+    m_aCameraRole[p_role]->setCamera(pCamVideo);
     onUpdateCameraDatabase();
 }
 
@@ -1524,6 +1592,6 @@ void CameraManager::connectMainIpSink(QObject* videoOutput)
     if (!sink || !m_pMainSink) return;
     if (sink) {
         m_pMainSink->setVideoSink(sink);
-        fLogInfo("connectMainIpSink: sink connesso");
+        fLogInfo("connectMainIpSink: sink connected");
     }
 }

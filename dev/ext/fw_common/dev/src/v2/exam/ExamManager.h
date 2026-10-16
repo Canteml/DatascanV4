@@ -23,6 +23,10 @@ class MepMatrix;
 // -- Qt Includes
 #include <QObject>
 #include <QTime>
+#include <QMap>
+#include <QStringList>
+#include <QByteArray>
+#include <QVariantList>
 
 /**
  * @brief The ExamManager class
@@ -34,6 +38,17 @@ class MepMatrix;
 class ExamManager : public QObject, public XmlSettingsLoggable
 {
     Q_OBJECT
+    // Equipment
+    Q_PROPERTY(QString equipmentNom READ getEquipmentNom WRITE setEquipmentNom NOTIFY evEquipmentNomChanged)
+    Q_PROPERTY(QString equipmentNumero READ equipmentNumero WRITE setEquipmentNumero NOTIFY equipmentNumeroChanged)
+    Q_PROPERTY(QString equipmentDate READ equipmentDate WRITE setEquipmentDate NOTIFY equipmentDateChanged)
+    Q_PROPERTY(bool dateValide READ getDateValide NOTIFY evDateValideChanged)
+    Q_PROPERTY(double equipmentFrequency READ equipmentFrequency WRITE setEquipmentFrequency NOTIFY equipmentFrequencyChanged)
+    Q_PROPERTY(QString sondeNbVoies READ sondeNbVoies WRITE setSondeNbVoies NOTIFY sondeNbVoiesChanged)
+    Q_PROPERTY(QString sondeNumero READ sondeNumero WRITE setSondeNumero NOTIFY sondeNumeroChanged)
+    Q_PROPERTY(QString controlleurNom READ controlleurNom WRITE setControlleurNom NOTIFY controlleurNomChanged)
+    Q_PROPERTY(QString sondeAnee READ sondeAnee WRITE setSondeAnee NOTIFY sondeAneeChanged)
+    Q_PROPERTY(bool sondeDateValide READ getSondeDateValide NOTIFY evSondeDateValideChanged)
     // Settings
     Q_PROPERTY(QString structName READ getStructName WRITE setStructName NOTIFY evStructNameChanged)
     Q_PROPERTY(QString pieceName READ getPieceName WRITE setPieceName NOTIFY evPieceNameChanged)
@@ -73,13 +88,23 @@ class ExamManager : public QObject, public XmlSettingsLoggable
     Q_PROPERTY(QString currentExamName READ getCurrentExamName NOTIFY evCurrentExamNameChanged)
 
     Q_PROPERTY(qint32 examStep READ getExamStep WRITE setExamStep NOTIFY evExamStepChanged)
-    Q_PROPERTY(qint32 examWriteProgress READ getExamWriteProgress WRITE setExamWriteProgress NOTIFY evExamWriteProgressChanged)
 
     // Execution
     Q_PROPERTY(quint32 selectedBScanGeneratrix READ getSelectedBScanGeneratrix WRITE setSelectedBScanGeneratrix NOTIFY evSelectedBScanGeneratrixChanged)
     Q_PROPERTY(quint32 MeasureDisplay READ getMeasureDisplay WRITE setMeasureDisplay NOTIFY evMeasureDisplayChanged)
 
     Q_PROPERTY(qreal mepZoom READ getMepZoom WRITE setMepZoom NOTIFY evMepZoomChanged)
+
+    // Planner import (TOML) : messages shown next to the import button
+    Q_PROPERTY(QVariantList importMessages READ getImportMessages NOTIFY securityCheckChanged)
+    Q_PROPERTY(bool importConforme READ isImportConforme NOTIFY securityCheckChanged)
+    // Free session ("Session libre" in CentralPage0): no planner, always compliant
+    Q_PROPERTY(bool freeSession READ isFreeSession WRITE setFreeSession NOTIFY evFreeSessionChanged)
+
+    // User Session Control
+    Q_PROPERTY(QString inputUserName READ inputUserName WRITE setInputUserName NOTIFY inputUserNameChanged)
+    Q_PROPERTY(QString inputUSerPassword READ inputUSerPassword WRITE setInputUSerPassword NOTIFY inputUSerPasswordChanged)
+    Q_PROPERTY(bool inputValidCheck READ inputValidCheck WRITE setInputValidCheck NOTIFY inputValidCheckChanged)
 
 
 public :
@@ -169,6 +194,20 @@ public :
     Q_INVOKABLE void addMepColAfter();
     Q_INVOKABLE void removeCurrentMepRow();
     Q_INVOKABLE void removeCurrentMepCol();
+    Q_INVOKABLE bool importPlannerToml(const QString& p_filePath);
+    QVariantList getImportMessages() const { return m_importMessages; }
+    // -- false as soon as the last planner import reported a warning or an error
+    bool isImportConforme() const;
+    bool isFreeSession() const { return m_freeSession; }
+    void setFreeSession(bool p_freeSession);
+
+    // User Session Control
+    QString inputUserName() const;
+    void setInputUserName(const QString& p_value);
+    QString inputUSerPassword() const;
+    void setInputUSerPassword(const QString& p_value);
+    bool inputValidCheck() const;
+    void setInputValidCheck(bool value);
 
     quint32 getMepCol() const;
     quint32 getMepRow() const;
@@ -205,15 +244,8 @@ public :
     void setExamStep(qint32 p_value);
     bool isRecording() const; ///< true in steps EXAM_STOPPED and EXAM_RECORDING
 
-    qint32 getExamWriteProgress() const;
-    void setExamWriteProgress(qint32 p_value);
-
-    Q_INVOKABLE QString makeExamFullFileName(const QString &p_file) const;
-    Q_INVOKABLE void startExamWrite(const QString &p_file);
-    Q_INVOKABLE void cancelExamWrite();
     Q_INVOKABLE QString getExamGeneratedFileName() const;   ///< return file name function to structure, piece ...
-    Q_INVOKABLE QString getExportFullFileName() const;        ///< return Path+File name
-    Q_INVOKABLE qint32 checkFileName(const QString &p_file) const;        ///< return 0 if npo error, 1 if directory is invalid, 2 if the file already exists
+    Q_INVOKABLE QString getExportFullFileName() const;        ///< return Path+File name of the CSV of the current / last acquisition. Empty if not created.
 
     // ASCAN
     void pushAScan(AScan* p_pAscan);
@@ -242,6 +274,58 @@ public :
     qreal getMepZoom();
     void setMepZoom(qreal p_rZoom);
 
+    Q_INVOKABLE void inputUserControl();
+
+    // -- Planner import [equipment] block
+    QString getEquipmentNom() const;
+    void setEquipmentNom(const QString& p_value);
+    QString equipmentNumero() const;
+    void setEquipmentNumero(const QString& p_value);
+    QString equipmentDate() const;
+    void setEquipmentDate(const QString& p_value);
+    bool getDateValide() const;
+    double equipmentFrequency() const;
+    void setEquipmentFrequency(double p_value);
+    QString sondeNbVoies() const;
+    void setSondeNbVoies(const QString& p_value);
+    QString sondeNumero() const;
+    void setSondeNumero(const QString& p_value);
+    QString controlleurNom() const;
+    void setControlleurNom(const QString& p_value);
+    QString sondeAnee() const;
+    void setSondeAnee(const QString& p_value);
+    bool getSondeDateValide() const;
+
+    // -- Planner import (TOML) : [object] block
+    void setObjectType(const QString& p_value);
+    void setObjectProduit(const QString& p_value);
+    void setObjectRobeDiameter(double p_value);
+    void setObjectTuyauterieDiametreMm(double p_value);
+    void setObjectTuyauterieDiametreIn(double p_value);
+    void setObjectTuyauterieEpaisseur(double p_value);
+    void setObjectTuyauterieLingueur(double p_value);
+    void setObjectCoquePosition(const QString& p_value);
+    void setObjectCoqueOrientation(const QString& p_value);
+    void setObjectCoqueLongueur(double p_value);
+    void setObjectFondDiametre(double p_value);
+    void setObjectFondNbAnnulaires(int p_value);
+    void setObjectFondNbCentrales(int p_value);
+    void setObjectToitDiametre(double p_value);
+    void setObjectToitEpNominale(double p_value);
+    void setObjectToitType(const QString& p_value);
+
+    // -- Planner import (TOML) : inspection parameters
+    void setInspProductDensity(const QString& p_value);
+    void setInspFillingHeight(const QString& p_value);
+    void setInspSectionCount(const QString& p_value);
+    void setInspViroleLength(int p_index, const QString& p_value);
+    void setInspViroleThickness(int p_index, const QString& p_value);
+    void setInspViroleSteelGrade(int p_index, const QString& p_value);
+
+    // -- Planner import (TOML) : [Reperage] block
+    void setMepVerticalDirection(const QString& p_value);
+    void setMepHorizontalDirection(const QString& p_value);
+
 protected :
     // -- Settings
     virtual bool customLoadSettings(QDomElement * p_pParent) override;
@@ -257,8 +341,21 @@ private :
 
     void initControl();
 
+    QMap<QString, QString> captureTrackedParams() const;
+
+    void equipmentDateCheck(const QString& p_date);
+    void sondeDateCheck(const QString& p_date);
+
 signals :
+    void evEquipmentNomChanged(QString);
+    void equipmentNumeroChanged(QString);
+    void equipmentDateChanged(QString);
+    void  equipmentFrequencyChanged(double);
+    void sondeNbVoiesChanged(QString);
+    void sondeAneeChanged(QString);
     void evStructNameChanged(QString);
+    void sondeNumeroChanged(QString);
+    void controlleurNomChanged(QString);
     void evPieceNameChanged(QString);
     void evCommonPieceNamesChanged(QStringList);
     void evExportFolderChanged(QString);
@@ -301,19 +398,28 @@ signals :
     void evRequestLocationZoneUpdate(Location1d*);
 
     void evExamStepChanged(qint32 p_value);
-    void evExamWriteProgressChanged(bool p_success);
-    void evExportTerminatedChanged(bool);
+    void evExportErrorChanged(QString p_fileName);   ///< the CSV of the acquisition can't be created / written
 
     void evMepUpdated(MepMatrix*);
     void evMepHeaderUpdated();
     void evMepZoomChanged(qreal);
 
+    void securityCheckChanged();
+    void evFreeSessionChanged();
+
+    void evDateValideChanged(bool);
+    void evSondeDateValideChanged(bool);
+
+    // User Session Control
+    void inputUserNameChanged();
+    void inputUSerPasswordChanged();
+    void inputValidCheckChanged();
+
 private slots :
     void onRequestSurfaceUpdate(Surface1d*);
     void onLocationZoneChanged(Location1d*);
 
-    void onExportProgressChanged(qint32);
-    void onExportTerminatedChanged(bool);
+    void onExportError(QString);
 
     void onMepDataChanged();
     void onNewPosition(qreal rMmXPosition);
@@ -321,6 +427,8 @@ private slots :
 
 private :
     void examStartBScan();
+    void startCsvRecording();   ///< create <exportFolder>/<name>/<name>.csv and write its header
+    void appendJournal(const QString& p_key, const QString& p_value);  ///< append "key = value" to the journal of the current acquisition
 
 private :
     ExamManager();
@@ -372,7 +480,8 @@ private :
     bool m_isMepAutoMode;
 
     qint32 m_examStep;              ///< value in EXAM_STEP, manage state chart of recording
-    qint32 m_examWriteProgress;     ///< signal to GUI the progress while writing stored measures. Value : 0..100% / -1 = error
+    QString m_exportFullFileName;   ///< CSV of the current / last acquisition. Empty if not created.
+    QString m_journalFullFileName;  ///< journal.txt of the current / last acquisition (next to the CSV). Empty if not created.
 
     ExportCsv * m_pExportCsv;
 
@@ -383,5 +492,83 @@ private :
     quint32 m_currentMepRow;
     quint32 m_currentMepColumn;
     qreal m_mepZoom;
+
+    // -- Planner import: [equipment] block
+    QString m_equipmentNom;
+    QString m_equipmentNumero;
+    QString m_equipmentDate;
+    bool m_dateValide = true;
+    double m_equipmentFrequency = 1000;
+    QString m_sondeNbVoies;
+    QString m_sondeAnee;
+    bool m_sondeDateValide = true;
+    QString m_sondeNumero;
+    QString m_controlleurNom;
+
+    // -- Planner import (TOML) : [object] block
+    QString m_objectType;
+    QString m_objectProduit;
+    double m_objectRobeDiameter;
+    double m_objectTuyauterieDiametreMm;
+    double m_objectTuyauterieDiametreIn;
+    double m_objectTuyauterieEpaisseur;
+    double m_objectTuyauterieLingueur;
+    QString m_objectCoquePosition;
+    QString m_objectCoqueOrientation;
+    double m_objectCoqueLongueur;
+    double m_objectFondDiametre;
+    int m_objectFondNbAnnulaires;
+    int m_objectFondNbCentrales;
+    double m_objectToitDiametre;
+    double m_objectToitEpNominale;
+    QString m_objectToitType;
+
+    // -- Planner import (TOML) : inspection parameters
+    QString m_inspDiameter;
+    QString m_inspHeight;
+    QString m_inspLength;
+    QString m_inspProductDensity;
+    QString m_inspFillingHeight;
+    QString m_inspPressure;
+    QString m_inspSectionCount;
+    QString m_inspSteelQuality;
+    QString m_inspOriginalThickness;
+    QString m_inspGeneratricesCount;
+    QString m_inspRaysCount;
+    QString m_inspFirstGeneratricePos;
+    QString m_inspAnnotations;
+    QStringList m_inspViroleLengths;
+    QStringList m_inspViroleThicknesses;
+    QStringList m_inspViroleSteelGrades;
+
+    // -- Planner import (TOML) : [Reperage] block
+    QString m_mepVerticalDirection;
+    QString m_mepHorizontalDirection;
+
+    // -- Planner import (TOML) : security check results
+    bool m_firstImport;
+    bool m_securityPlannedMissing;
+    bool m_securityMissingFile;
+    bool m_securityModifiedFile;
+    bool m_securityIncompatibleDate;
+    bool m_securityNonReadable;
+    QVariantList m_importMessages;
+    bool m_freeSession = false;
+
+    // -- Planner import (TOML) : key state, replayed into the manifest at export time
+    bool m_importFileImported;
+    bool m_importKeyMismatch;
+    QByteArray m_importComputedKey;
+    QByteArray m_importOriginalKey;
+    QString m_importFileName;
+
+    // -- Planner import (TOML) : baseline for [[modification]] tracking
+    QMap<QString, QString> m_plannerSnapshot;
+    bool m_plannerSnapshotValid;
+
+    // User Session Control
+    QString m_inputUserName;
+    QString m_inputUSerPassword;
+    bool m_inputValidCheck = false;
 };
 

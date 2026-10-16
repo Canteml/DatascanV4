@@ -1,48 +1,83 @@
 import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
+import Design 1.0
+import Fonts 1.0
 
 RowLayout {
 
     property alias idBtPrev: idBtPrev
     property alias idBtNext: idBtNext
 
-    Layout.preferredHeight: 40
+    Layout.preferredHeight: 60
     Layout.fillHeight: true
     Layout.margins: 5
 
-    Button {
-        id: idBtPrev
-        Layout.preferredHeight: 40
-        Layout.preferredWidth: 550/(153/Layout.preferredHeight) // icon size = 550*153
-
-        text: "XXX"
-        font.pixelSize: 20
-
-        background: Image {
-            id: idImBtPrev
-            source: idBtPrev.pressed ? "qrc:///img/icons/btArrow_select.png" : idBtPrev.hovered ? "qrc:///img/icons/btArrow_hover.png" : "qrc:///img/icons/btArrow_std.png"
-            mirror: true
-        }
-    }
-
-    Item {
-        // Spacer
+    Rectangle {
+        color: "#D5DEE3"
         Layout.fillWidth: true
-    }
+        Layout.preferredHeight: 56
+        Layout.leftMargin: 10
+        Layout.rightMargin: 10
+        border.width: 1
+        border.color: Design.colFrameBorder
 
-    Button {
-        id: idBtNext
-        Layout.preferredHeight: 40
-        Layout.preferredWidth: 550/(153/Layout.preferredHeight) // icon size = 550*153
+        RowLayout {
+            anchors.fill: parent
+            anchors.margins: 8
+            spacing: 15
 
-        text: "XXX"
-        font.pixelSize: 20
+            Button {
+                id: idBtPrev
+                text: qsTr("PROJET")
+                Layout.preferredHeight: 40
+                Layout.preferredWidth: 160
 
-        background: Image {
-            id: idImBtNext
-            source: idBtNext.pressed ? "qrc:///img/icons/btArrow_select.png" : idBtNext.hovered ? "qrc:///img/icons/btArrow_hover.png" : "qrc:///img/icons/btArrow_std.png"
+                background: Rectangle {
+                    color: "white"
+                    border.width: 1
+                    border.color: Design.colFrameBorder
+                }
+
+                contentItem: Text {
+                    text: "◄  " + idBtPrev.text
+                    font.family: Fonts.robotoCondensed
+                    font.pixelSize: 14
+                    font.bold: true
+                    color: "black"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
+
+            Item {
+                // Spacer
+                Layout.fillWidth: true
+                Layout.fillHeight: true
+            }
+
+            Button {
+                id: idBtNext
+                text: qsTr("SCANNER")
+                Layout.preferredHeight: 40
+                Layout.preferredWidth: 160
+
+                background: Rectangle {
+                    color: Design.colButtonDarkBackground
+                    border.width: 1
+                    border.color: Design.colFrameBorder
+                }
+
+                contentItem: Text {
+                    text: idBtNext.text + "  ►"
+                    font.family: Fonts.robotoCondensed
+                    font.pixelSize: 14
+                    font.bold: true
+                    color: "white"
+                    horizontalAlignment: Text.AlignHCenter
+                    verticalAlignment: Text.AlignVCenter
+                }
+            }
         }
     }
 }
-

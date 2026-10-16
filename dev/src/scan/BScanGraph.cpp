@@ -129,7 +129,7 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_drawFlagViewYMode = true;
     m_pPlotBScan->setXY(0, 20, -m_axeXScaleM/2, m_axeXScaleM/2);
     m_pPlotBScan->getPlotter()->setBackgroundColor(QColor(255,255,255));
-    m_pPlotBScan->getPlotter()->setPlotBorder(-10,0,-5,5);
+    m_pPlotBScan->getPlotter()->setPlotBorder(-10,0,10,5); // top > 0 : keep the top X axis tick labels inside the widget
 
     connect(m_pPlotBScan, &MyJkQtPlotter::evRequestUpdate, this, &BScanGraph::onPrivateNeedRefresh, Qt::QueuedConnection);
     connect(this, &BScanGraph::evPrivateNeedRefresh, this, &BScanGraph::onPrivateNeedRefresh);

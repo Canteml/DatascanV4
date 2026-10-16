@@ -23,6 +23,12 @@
 
 // -- Qt Includes
 #include <QQmlApplicationEngine>
+#include <QCoreApplication>
+#include <QFile>
+#include <QTextStream>
+#include <QDomDocument>
+#include <QDir>
+#include <QRegularExpression>
 
 
 ScanManager* ScanManager::m_pMyInstance = nullptr;
@@ -33,6 +39,7 @@ ScanManager::ScanManager() : XmlSettingsLoggable("ScanManger")
     m_pBScanGraphMain = nullptr;
     m_pGate0 = nullptr;
     m_pGate1 = nullptr;
+    m_pGateNoise = nullptr;
     m_pVector = nullptr;
     m_selectedAScanIndex = 0;
     m_lastUpdateAScan = 0;
@@ -61,6 +68,10 @@ ScanManager::~ScanManager()
     if( nullptr != m_pGate1) {
         delete m_pGate1;
         m_pGate1 = nullptr;
+    }
+    if( nullptr != m_pGateNoise) {
+        delete m_pGateNoise;
+        m_pGateNoise = nullptr;
     }
 
     if( nullptr != m_pAScanGraphMain ) {
@@ -113,6 +124,7 @@ void ScanManager::initQmlObject(QObject * p_pQmlTopLevel)
         m_pAScanGraphMain->setParent(this);
         m_pGate0 = new JkGate(m_pAScanGraphMain->getPlot(), 0);
         m_pGate1 = new JkGate(m_pAScanGraphMain->getPlot(), 1);
+        m_pGateNoise = new JkGate(m_pAScanGraphMain->getPlot(), 2);
         setPrivateSelectedAScanIndex(0);
         m_pAScanGraphMain->initAfterItemAdded();
     }
@@ -121,7 +133,6 @@ void ScanManager::initQmlObject(QObject * p_pQmlTopLevel)
     if( nullptr == m_pBScanGraphMain ) {
         fLogError("Fail to found m_pBScanGraphMain");
     } else {
-        // Proxy connections
         connect(m_pBScanGraphMain, &BScanGraph::evViewXModeChanged, this, &ScanManager::onPrivateBScanViewXModeChanged);
         connect(m_pBScanGraphMain, &BScanGraph::evViewYModeChanged, this, &ScanManager::onPrivateBScanViewYModeChanged);
         connect(m_pBScanGraphMain, &BScanGraph::evAxeXScaleMmChanged, this, &ScanManager::onPrivateBScanAxeXScaleMChanged);
@@ -192,6 +203,263 @@ qreal ScanManager::getAScanThicknessMmMultiEcho()
 qreal ScanManager::getAScanThicknessMm1Echo()
 {
     return getCurrentAScan()->getAScanMeasure()->m_thicknessMm1Echo;
+}
+
+static const QString ASCAN_USER_PARAMS_FILE = "/ascan_user_params.xml";
+
+void ScanManager::ascanSaveUserParams()
+{
+    if( nullptr == m_pVector ) return;
+    VectorFuncAScan* pAscan = getSelectedFuncAScan();
+    if( nullptr == pAscan ) return;
+    pAscan->writeProjectToFile(QCoreApplication::applicationDirPath() + ASCAN_USER_PARAMS_FILE);
+}
+
+void ScanManager::ascanLoadUserParams()
+{
+    if( nullptr == m_pVector ) return;
+    VectorFuncAScan* pAscan = getSelectedFuncAScan();
+    if( nullptr == pAscan ) return;
+    const QString fileName = QCoreApplication::applicationDirPath() + ASCAN_USER_PARAMS_FILE;
+    if( !QFile::exists(fileName) ) return;  // nothing saved yet
+    pAscan->readProjectFromFile(fileName);
+    emit evSelectedFuncAScanChanged(pAscan);
+}
+
+void ScanManager::ascanResetDefaultParams()
+{
+    if( nullptr == m_pVector ) return;
+    VectorFuncAScan* pAscan = getSelectedFuncAScan();
+    if( nullptr == pAscan ) return;
+    pAscan->setParamDGain(10);
+    pAscan->setParamDVoltage(100);
+    pAscan->setParamDUtElement(1);
+    pAscan->setParamDPulseWidth(0);
+    pAscan->setParamLCelerity(5940);
+    pAscan->setParamLProbeDelayMm(0);
+    pAscan->setParamLLowPassFilter(0);
+    pAscan->setParamDFilterMode(0);
+    pAscan->setParamDWaveType(0);
+    pAscan->setParamLGate0Start(100);
+    pAscan->setParamLGate0Width(200);
+    pAscan->setParamLGate0Height(20);
+    pAscan->setParamLGate1Start(300);
+    pAscan->setParamLGate1Width(200);
+    pAscan->setParamLGate1Height(40);
+}
+
+static const QString ASCAN_PRESETS_DIR = "/ascan_presets";
+
+static QString ascanPresetFilePath(const QString& p_name)
+{
+    QString name = p_name.trimmed();
+    name.replace(QRegularExpression("[\\\\/:*?\"<>|]"),"_");
+    if( name.isEmpty() ) return QString();
+    return QCoreApplication::applicationDirPath() + ASCAN_PRESETS_DIR + "/" + name + ".xml";
+}
+
+bool ScanManager::ascanSavePreset(const QString& p_name)
+{
+    if(nullptr == m_pVector) return false;
+    VectorFuncAScan* pAScan = getSelectedFuncAScan();
+    if(nullptr == pAScan) return false;
+
+    const QString fileName = ascanPresetFilePath(p_name);
+    if(fileName.isEmpty() ) return false;
+
+    if( !QDir().mkpath(QCoreApplication::applicationDirPath() + ASCAN_PRESETS_DIR) ) return false;
+
+    if( !pAScan->writeProjectToFile(fileName) ) return false;
+    emit evAScanPresetChanged();
+    return true;
+}
+
+bool ScanManager::ascanPresetExists(const QString& p_name) const
+{
+    const QString fileName = ascanPresetFilePath(p_name);
+    return !fileName.isEmpty() && QFile::exists(fileName);
+}
+
+QStringList ScanManager::ascanListPresets() const
+{
+    QDir dir(QCoreApplication::applicationDirPath() + ASCAN_PRESETS_DIR);
+    if( !dir.exists() ) return QStringList();
+
+    QStringList names;
+
+    const QFileInfoList files = dir.entryInfoList(QStringList() << "*.xml", QDir::Files, QDir::Time);
+    for( const QFileInfo& fi : files ) {
+        names << fi.completeBaseName();
+    }
+    return names;
+}
+
+bool ScanManager::ascanLoadPreset(const QString& p_name)
+{
+    if( nullptr == m_pVector ) return false;
+    VectorFuncAScan* pAScan = getSelectedFuncAScan();
+    if( nullptr == pAScan) return false;
+
+    const QString fileName = ascanPresetFilePath(p_name);
+    if( fileName.isEmpty() || !QFile::exists(fileName) ) return false;
+    if( !pAScan->readProjectFromFile(fileName)) return false;
+
+    emit evSelectedFuncAScanChanged(pAScan);
+    ascanSaveUserParams();
+    return true;
+}
+
+static const QString BSCAN_USER_PARAMS_FILE = "/bscan_user_params.xml";
+
+void ScanManager::setEncoderController(EncoderController* p_pEncoder)
+{
+    m_pEncoderController = p_pEncoder;
+}
+
+bool ScanManager::bscanWriteParamsToFile(const QString& p_fileName)
+{
+    if( nullptr == m_pBScanGraphMain || nullptr == m_pExamManager ) return false;
+
+    QDomDocument doc;
+    QDomNode xmlNode = doc.createProcessingInstruction("xml", "version=\"1.0\" encoding=\"UTF-8\"");
+    doc.appendChild(xmlNode);
+    QDomElement root = doc.createElement("root");
+    doc.appendChild(root);
+
+    XmlHelper::xmlWriteUniqueParameter(&doc, &root, "BScanAxeXScaleM",    QVariant(getBScanAxeXScaleM()));
+    XmlHelper::xmlWriteUniqueParameter(&doc, &root, "BScanAxeYMinMm",     QVariant(getBScanAxeYMinMm()));
+    XmlHelper::xmlWriteUniqueParameter(&doc, &root, "BScanAxeYMaxMm",     QVariant(getBScanAxeYMaxMm()));
+    XmlHelper::xmlWriteUniqueParameter(&doc, &root, "ZoneAutoHoleSizeMm", QVariant(m_pExamManager->getZoneAutoHoleSizeMm()));
+
+    if( nullptr != m_pEncoderController ) {
+        XmlHelper::xmlWriteUniqueParameter(&doc, &root, "EncoderZeroMm",         QVariant(m_pEncoderController->zeroMm()));
+        XmlHelper::xmlWriteUniqueParameter(&doc, &root, "EncoderCalibRealMm",     QVariant(m_pEncoderController->calibrationRealMm()));
+        XmlHelper::xmlWriteUniqueParameter(&doc, &root, "EncoderCalibEstimatedMm",QVariant(m_pEncoderController->calibrationEstimatedMm()));
+    }
+
+    QFile file(p_fileName);
+    if( !file.open(QIODevice::WriteOnly | QIODevice::Text) ) return false;
+    QTextStream stream(&file);
+    stream << doc.toString();
+    file.close();
+    return true;
+}
+
+bool ScanManager::bscanReadParamsFromFile(const QString& p_fileName)
+{
+    if( nullptr == m_pBScanGraphMain || nullptr == m_pExamManager ) return false;
+
+    QFile file(p_fileName);
+    if( !file.open(QIODevice::ReadOnly) ) return false;
+
+    QDomDocument doc;
+    if( !doc.setContent(&file) ) { file.close(); return false; }
+    file.close();
+
+    QDomElement root = doc.documentElement();
+    if( root.isNull() || root.nodeName() != "root" ) return false;
+
+    qreal xScale     = getBScanAxeXScaleM();
+    qreal yMin       = getBScanAxeYMinMm();
+    qreal yMax       = getBScanAxeYMaxMm();
+    qreal zoneHoleMm = m_pExamManager->getZoneAutoHoleSizeMm();
+
+    XmlHelper::xmlReadUniqueParameter<qreal>(&root, xScale,     "BScanAxeXScaleM");
+    XmlHelper::xmlReadUniqueParameter<qreal>(&root, yMin,       "BScanAxeYMinMm");
+    XmlHelper::xmlReadUniqueParameter<qreal>(&root, yMax,       "BScanAxeYMaxMm");
+    XmlHelper::xmlReadUniqueParameter<qreal>(&root, zoneHoleMm, "ZoneAutoHoleSizeMm");
+
+    setBScanAxeXScaleM(xScale);
+    setBScanAxeYMinMm(0);
+    setBScanAxeYMaxMm(yMax);
+    setBScanAxeYMinMm(yMin);
+    m_pExamManager->setZoneAutoHoleSizeMm(zoneHoleMm);
+
+    if( nullptr != m_pEncoderController ) {
+        qreal encZero      = m_pEncoderController->zeroMm();
+        qreal encRealMm    = m_pEncoderController->calibrationRealMm();
+        qreal encEstimMm   = m_pEncoderController->calibrationEstimatedMm();
+        XmlHelper::xmlReadUniqueParameter<qreal>(&root, encZero,    "EncoderZeroMm");
+        XmlHelper::xmlReadUniqueParameter<qreal>(&root, encRealMm,  "EncoderCalibRealMm");
+        XmlHelper::xmlReadUniqueParameter<qreal>(&root, encEstimMm, "EncoderCalibEstimatedMm");
+        m_pEncoderController->setCalibration(encZero, encRealMm, encEstimMm);
+    }
+    return true;
+}
+
+void ScanManager::bscanSaveUserParams()
+{
+    bscanWriteParamsToFile(QCoreApplication::applicationDirPath() + BSCAN_USER_PARAMS_FILE);
+}
+
+void ScanManager::bscanLoadUserParams()
+{
+    bscanReadParamsFromFile(QCoreApplication::applicationDirPath() + BSCAN_USER_PARAMS_FILE);
+}
+
+static const QString BSCAN_PRESET_DIR = "/bscan_presets";
+
+static QString bscanPresetFilePath(const QString& p_name)
+{
+    QString name = p_name.trimmed();
+    name.replace(QRegularExpression("[\\\\/:*?\"<>|]"),"_");
+    if(name.isEmpty()) return QString();
+    return QCoreApplication::applicationDirPath() + BSCAN_PRESET_DIR + "/" + name +".xml";
+}
+
+bool ScanManager::bscanSavePreset(const QString& p_name)
+{
+    const QString fileName = bscanPresetFilePath(p_name);
+    if(fileName.isEmpty()) return false;
+
+    if(!QDir().mkpath(QCoreApplication::applicationDirPath() + BSCAN_PRESET_DIR)) return false;
+
+    if(!bscanWriteParamsToFile(fileName)) return false;
+    emit evBScanPresetChanged();
+    return true;
+}
+
+bool ScanManager::bscanPresetExists(const QString& p_name) const
+{
+    const QString fileName = bscanPresetFilePath(p_name);
+    return !fileName.isEmpty() && QFile::exists(fileName);
+}
+
+QStringList ScanManager::bscanListPresets() const
+{
+    QDir dir(QCoreApplication::applicationDirPath() + BSCAN_PRESET_DIR);
+    if(!dir.exists()) return QStringList();
+
+    QStringList names;
+
+    const QFileInfoList files = dir.entryInfoList(QStringList() << "*.xml", QDir::Files, QDir::Time);
+    for(const QFileInfo& fi : files){
+        names << fi.completeBaseName();
+    }
+    return names;
+}
+
+bool ScanManager::bscanLoadPreset(const QString& p_name)
+{
+    const QString fileName = bscanPresetFilePath(p_name);
+    if(fileName.isEmpty() || !QFile::exists(fileName)) return false;
+    if(!bscanReadParamsFromFile(fileName)) return false;
+
+    bscanSaveUserParams();
+    return true;
+}
+
+void ScanManager::bscanResetDefaultParams()
+{
+    setBScanAxeXScaleM(2);
+    setBScanAxeYMaxMm(10);
+    setBScanAxeYMinMm(0);
+    if( nullptr != m_pExamManager ) {
+        m_pExamManager->setZoneAutoHoleSizeMm(30);
+    }
+    if( nullptr != m_pEncoderController ) {
+        m_pEncoderController->resetCalibration();
+    }
 }
 
 // -- BSCAN
@@ -371,6 +639,11 @@ bool ScanManager::customApplySettings()
 {
     bool bRet = true;
 
+    if (m_pGate0) m_pGate0->setAScan(getSelectedFuncAScan());
+    if (m_pGate1) m_pGate1->setAScan(getSelectedFuncAScan());
+    if (m_pGateNoise) m_pGateNoise->setAScan(getSelectedFuncAScan());
+    pushAutoGainParamsToGraph();
+
     return bRet;
 }
 
@@ -395,7 +668,67 @@ void ScanManager::setPrivateSelectedAScanIndex(quint32 p_index)
     m_pAScanGraphMain->updateAScan(&m_pAScan[p_index]);
     m_pGate0->setAScan(getSelectedFuncAScan());
     m_pGate1->setAScan(getSelectedFuncAScan());
+    m_pGateNoise->setAScan(getSelectedFuncAScan());
+
+    if (m_pConnectedAutoGainAScan) {
+        disconnect(m_pConnectedAutoGainAScan, &VectorFuncAScan::paramDAutoGainChanged,          this, &ScanManager::onAutoGainParamsChanged);
+        disconnect(m_pConnectedAutoGainAScan, &VectorFuncAScan::paramDAutoGainThresholdChanged,  this, &ScanManager::onAutoGainParamsChanged);
+        disconnect(m_pConnectedAutoGainAScan, &VectorFuncAScan::paramLGateNoiseStartChanged,     this, &ScanManager::onAutoGainParamsChanged);
+        disconnect(m_pConnectedAutoGainAScan, &VectorFuncAScan::paramLGateNoiseWidthChanged,     this, &ScanManager::onAutoGainParamsChanged);
+        disconnect(m_pConnectedAutoGainAScan, &VectorFuncAScan::paramLGate0StartChanged,         this, &ScanManager::onMeasureGateChanged);
+        disconnect(m_pConnectedAutoGainAScan, &VectorFuncAScan::paramLGate0WidthChanged,         this, &ScanManager::onMeasureGateChanged);
+    }
+    m_pConnectedAutoGainAScan = getSelectedFuncAScan();
+    if (m_pConnectedAutoGainAScan) {
+        connect(m_pConnectedAutoGainAScan, &VectorFuncAScan::paramDAutoGainChanged,          this, &ScanManager::onAutoGainParamsChanged, Qt::QueuedConnection);
+        connect(m_pConnectedAutoGainAScan, &VectorFuncAScan::paramDAutoGainThresholdChanged,  this, &ScanManager::onAutoGainParamsChanged, Qt::QueuedConnection);
+        connect(m_pConnectedAutoGainAScan, &VectorFuncAScan::paramLGateNoiseStartChanged,     this, &ScanManager::onAutoGainParamsChanged, Qt::QueuedConnection);
+        connect(m_pConnectedAutoGainAScan, &VectorFuncAScan::paramLGateNoiseWidthChanged,     this, &ScanManager::onAutoGainParamsChanged, Qt::QueuedConnection);
+        connect(m_pConnectedAutoGainAScan, &VectorFuncAScan::paramLGate0StartChanged,         this, &ScanManager::onMeasureGateChanged, Qt::QueuedConnection);
+        connect(m_pConnectedAutoGainAScan, &VectorFuncAScan::paramLGate0WidthChanged,         this, &ScanManager::onMeasureGateChanged, Qt::QueuedConnection);
+        pushAutoGainParamsToGraph();
+        pushMeasureGateToGraph();
+    }
+
     emitUpdateAScanTimed(true);
+}
+
+void ScanManager::onAutoGainParamsChanged()
+{
+    pushAutoGainParamsToGraph();
+}
+
+void ScanManager::onMeasureGateChanged()
+{
+    pushMeasureGateToGraph();
+}
+
+void ScanManager::pushAutoGainParamsToGraph()
+{
+    if (nullptr == m_pAScanGraphMain || nullptr == m_pConnectedAutoGainAScan) return;
+
+    bool autoGainActive = m_pConnectedAutoGainAScan->paramDAutoGain();
+
+    m_pGateNoise->setIsVisible(autoGainActive);
+    qreal threshold = static_cast<qreal>(m_pConnectedAutoGainAScan->paramDAutoGainThreshold());
+    m_pGateNoise->setNoiseGateThreshold(threshold);
+    m_pGateNoise->setAScan(m_pConnectedAutoGainAScan);
+
+    m_pAScanGraphMain->setAutoGainParams(
+        autoGainActive,
+        m_pConnectedAutoGainAScan->paramDAutoGainThreshold(),
+        m_pConnectedAutoGainAScan->paramLGateNoiseStart(),
+        m_pConnectedAutoGainAScan->paramLGateNoiseWidth()
+    );
+}
+
+void ScanManager::pushMeasureGateToGraph()
+{
+    if (nullptr == m_pAScanGraphMain || nullptr == m_pConnectedAutoGainAScan) return;
+    m_pAScanGraphMain->setMeasureGate(
+        m_pConnectedAutoGainAScan->getParamLGate0Start(),
+        m_pConnectedAutoGainAScan->getParamLGate0Width()
+        );
 }
 
 void ScanManager::emitUpdateAScanTimed(bool p_force)

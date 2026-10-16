@@ -145,6 +145,12 @@ int CoreUiQml::execUiQml_EspanolLanguage(int argc, char* argv[])
 
 QString CoreUiQml::getDirAppQml()
 {
+    // Installed layout: <app>/bin/exe + <app>/res/qml (same root as getDirAppRes())
+    QString installedQml = getDirAppRes() + "/qml";
+    if (QFile::exists(installedQml + "/main.qml")) {
+        return installedQml;
+    }
+
     // Try res/qml (exe standalone)
     QString resQml = m_dirApp + "/../res/qml";
     if (QFile::exists(resQml + "/main.qml")) {

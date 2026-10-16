@@ -18,6 +18,7 @@
 #include <v2/vector/VectorStd.h>
 #include <v2/scan/AScan.h>
 #include <v2/vector/VectorFuncAScan.h>
+#include <encoder/EncoderController.h>
 class AScan;
 class AScanGraph;
 class BScanGraph;
@@ -29,14 +30,6 @@ class ExamManager;
 #include <QObject>
 class QQmlApplicationEngine;
 class QTimer;
-
-/**
- * @brief The ScanManager class
- *
- *  TODO : select source of ASCAN :
- *      - A ASCAN stored in a BSCAN if user click on BSCAN
- *      - the last ASCAN of the selected sensor
- */
 
 class ScanManager : public QObject, public XmlSettingsLoggable
 {
@@ -65,7 +58,7 @@ public :
     void stop();
 
     quint32 getSelectedAScanIndex() const;
-    void setSelectedAScanIndex(quint32 p_index); ///< value in 0..3 : select AScan chanel
+    void setSelectedAScanIndex(quint32 p_index);
 
     VectorFuncAScan* getSelectedFuncAScan() const;
 
@@ -78,6 +71,21 @@ public :
 
     Q_INVOKABLE qreal getAScanThicknessMmMultiEcho();
     Q_INVOKABLE qreal getAScanThicknessMm1Echo();
+
+    Q_INVOKABLE void ascanSaveUserParams();
+    Q_INVOKABLE void ascanLoadUserParams();
+    Q_INVOKABLE bool ascanSavePreset(const QString& p_name);
+    Q_INVOKABLE bool ascanPresetExists(const QString& p_name) const;
+    Q_INVOKABLE void ascanResetDefaultParams();
+    Q_INVOKABLE QStringList ascanListPresets() const;
+    Q_INVOKABLE bool ascanLoadPreset(const QString& p_name);
+    Q_INVOKABLE void bscanSaveUserParams();
+    Q_INVOKABLE void bscanLoadUserParams();
+    Q_INVOKABLE bool bscanSavePreset(const QString& p_name);
+    Q_INVOKABLE bool bscanPresetExists(const QString& p_name) const;
+    Q_INVOKABLE void bscanResetDefaultParams();
+    Q_INVOKABLE QStringList bscanListPresets() const;
+    Q_INVOKABLE bool bscanLoadPreset(const QString& p_name);
 
 //    // -- BSCAN
 
@@ -96,6 +104,7 @@ public :
     qreal getBScanAxeYMaxMm(void) const;
     void setBScanAxeYMaxMm(qreal p_value);
 
+    void setEncoderController(EncoderController* p_pEncoder);
 
     static const qint32 ASCAN_MEASURE_REFRESH_DELAY = 100;
 
@@ -103,7 +112,7 @@ public :
 signals :
     void evSelectedAScanIndexChanged(quint32);
     void evSelectedFuncAScanChanged(VectorFuncAScan*);
-    void evUpdateAScan();   ///< new AScan to display
+    void evUpdateAScan();
 
     void evBScanViewXModeChanged(qint32);
     void evBScanViewYModeChanged(qint32);
@@ -111,9 +120,14 @@ signals :
     void evBScanAxeYMinMmChanged(qreal);
     void evBScanAxeYMaxMmChanged(qreal);
 
+    void evAScanPresetChanged();
+    void evBScanPresetChanged();
+
 private slots :
     void onNewAScanTreated(AScan*);
     void onVectorNbAScanEnabledChanged(qint32);
+    void onAutoGainParamsChanged();
+    void onMeasureGateChanged();
 
     void onPrivateBScanViewXModeChanged(qint32);
     void onPrivateBScanViewYModeChanged(qint32);
@@ -137,22 +151,29 @@ private :
     static ScanManager* m_pMyInstance;
 
     void onVectorProductChanged();    
-    void setPrivateSelectedAScanIndex(quint32 p_index); ///< value in 0..3
+    void setPrivateSelectedAScanIndex(quint32 p_index);
     void emitUpdateAScanTimed(bool p_force = false);
+    void pushAutoGainParamsToGraph();
+    void pushMeasureGateToGraph();
+    bool bscanWriteParamsToFile(const QString& p_fileName);
+    bool bscanReadParamsFromFile(const QString& p_fileName);
 
     // -- Behaviour
-    quint32 m_selectedAScanIndex;   ///< value in 0..3
+    quint32 m_selectedAScanIndex;
     QTimer * m_timUpdateAScan;
     qint64 m_lastUpdateAScan;
 
     JkGate * m_pGate0;
     JkGate * m_pGate1;
+    JkGate * m_pGateNoise;
 
     // -- Manager
     AScan m_pAScan[VectorStd::NB_FUNC_ASCAN];
     AScanGraph* m_pAScanGraphMain;
     BScanGraph* m_pBScanGraphMain;
+    VectorFuncAScan* m_pConnectedAutoGainAScan = nullptr;
     VectorStd * m_pVector;
     ExamManager * m_pExamManager;
+    EncoderController * m_pEncoderController = nullptr;
 };
 

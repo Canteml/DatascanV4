@@ -189,6 +189,36 @@ void VectorFuncAScan::clearAScan()
     connect(m_pAScanWorker, &AScanWorker::evAScanTreated, this, &VectorFuncAScan::onAScanTreated, Qt::QueuedConnection);
 }
 
+
+void VectorFuncAScan::injectRawSamples(const quint8* samples, qint64 timestampMs)
+{
+    AScan* pAScan = new AScan();
+    pAScan->copyParam(m_ascan);
+    memcpy(pAScan->getAScanRawSample()->m_rawSamples, samples, AScanRawSample::ASCAN_SAMPLE_SIZE);
+    pAScan->getAScanRawSample()->m_epocTimeMs = timestampMs;
+    pAScan->getAScanRawSample()->m_position   = QPointF(m_pVectorStd->funcPosition()->getParamLBscanPosMmX(), 0);
+    m_pAScanWorker->pushAScanToTreat(pAScan);
+}
+
+void VectorFuncAScan::syncGate1OnSecondEcho(AScan *p_pAScan)
+{
+    qint32 indexEcho = p_pAScan->getAScanMeasure()->m_indexSecondEchoGate0;
+    if( indexEcho < 0 ) {
+        return; // no 2nd echo in Gate 0 : Gate 1 keeps its last position
+    }
+
+    // index -> mm (inverse of AScan::mmToIndex), using the settings the sample was acquired with
+    qreal echoMm = indexEcho * p_pAScan->getSensorSettings()->getSampleStepMM() - p_pAScan->getAScanMeasure()->m_paramLProbeDelayMm;
+
+    // center Gate 1 on the echo, keeping the width chosen by the user. Round 2 decimals (as JkGate)
+    qreal start = qMax(0.0, echoMm - getParamLGate1Width() / 2);
+    start = static_cast<double>(static_cast<int>(start*100+0.5))/100.0;
+
+    if( qAbs(start - getParamLGate1Start()) >= AUTO_SYNC_GATE_HYSTERESIS_MM ) {
+        setParamLGate1Start(start);
+    }
+}
+
 void VectorFuncAScan::resetAScanPart()
 {
     m_AScanRxPart = 0;
@@ -205,6 +235,11 @@ bool VectorFuncAScan::customLoadParam(QDomElement * p_pParent)
     bRet &= m_ascan.getSensorSettings()->loadParam(p_pParent);
     bRet &= m_ascan.getAScanEnhancedSample()->loadParam(p_pParent);
     bRet &= m_ascan.getAScanMeasure()->loadParam(p_pParent);
+    XML_READ_UNIQUE_DEFAULT(quint8, m_filterMode, 0);
+    XML_READ_UNIQUE_DEFAULT(quint8, m_waveType, 0);
+    XML_READ_UNIQUE_DEFAULT(bool, m_autoGainEnabled, false);
+    XML_READ_UNIQUE_DEFAULT(qint16, m_autoGainThreshold, 5);
+    XML_READ_UNIQUE_DEFAULT(bool, m_autoSyncGatesEnabled, false);
     return bRet;
 }
 
@@ -219,6 +254,29 @@ bool VectorFuncAScan::customApplyParam()
 {
     bool bRet = true;
 
+    // XML loading writes directly to the backing store without going through
+    // setters, so no NOTIFY signals are emitted. Re-emit them here so that
+    // QML bindings (and the UsKey hardware sync) re-evaluate their values.
+    // waveType must come before gate heights because the gate height range
+    // depends on paramDWaveType (RF mode).
+    m_ascan.getAScanEnhancedSample()->m_paramDWaveType = m_waveType;
+    emit paramDFilterModeChanged(m_filterMode);
+    emit paramDWaveTypeChanged(m_waveType);
+    emit paramDGate0OptionChanged(getParamDGate0Option());
+    emit paramDGate1OptionChanged(getParamDGate1Option());
+    emit paramLGate0StartChanged(getParamLGate0Start());
+    emit paramLGate0WidthChanged(getParamLGate0Width());
+    emit paramLGate0HeightChanged(getParamLGate0Height());
+    emit paramLGate1StartChanged(getParamLGate1Start());
+    emit paramLGate1WidthChanged(getParamLGate1Width());
+    emit paramLGate1HeightChanged(getParamLGate1Height());
+
+    emit paramDAutoGainChanged(m_autoGainEnabled);
+    emit paramDAutoGainThresholdChanged(m_autoGainThreshold);
+    emit paramLGateNoiseStartChanged(m_gateNoiseStart);
+    emit paramLGateNoiseWidthChanged(m_gateNoiseWidth);
+    emit paramDAutoSyncGatesChanged(m_autoSyncGatesEnabled);
+
     return bRet;
 }
 
@@ -228,6 +286,11 @@ bool VectorFuncAScan::customSaveParam(QDomDocument * p_pDoc, QDomElement * p_pPa
     bRet &= m_ascan.getSensorSettings()->saveParam(p_pDoc, p_pParent);
     bRet &= m_ascan.getAScanEnhancedSample()->saveParam(p_pDoc, p_pParent);
     bRet &= m_ascan.getAScanMeasure()->saveParam(p_pDoc, p_pParent);
+    bRet &= XML_WRITE_UNIQUE(m_filterMode);
+    bRet &= XML_WRITE_UNIQUE(m_waveType);
+    bRet &= XML_WRITE_UNIQUE(m_autoGainEnabled);
+    bRet &= XML_WRITE_UNIQUE(m_autoGainThreshold);
+    bRet &= XML_WRITE_UNIQUE(m_autoSyncGatesEnabled);
     return bRet;
 }
 
@@ -252,6 +315,9 @@ void VectorFuncAScan::onAScanTreated()
     } else {
         AScan* pAScan = m_pAScanWorker->takeAScanTreated();
         if( nullptr != pAScan ) {
+            if( m_autoSyncGatesEnabled ) {
+                syncGate1OnSecondEcho(pAScan);
+            }
             emit evNewAScanTreated(pAScan);
 
             if( m_pAScanWorker->hasAscanTreated() ) {

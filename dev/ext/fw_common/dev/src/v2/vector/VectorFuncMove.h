@@ -104,6 +104,7 @@ signals :
     void evCmdJoyXY(qint8 p_x, qint8 p_y);
     void moveDirChanged(quint8);   ///< value in MOVE_DIRECTION
     void manualModeChanged(bool);
+    void evLocalJoyXY(qint8 p_x, qint8 p_y);
 
 private :
     QTimer* m_tCmdAnsTimeout;

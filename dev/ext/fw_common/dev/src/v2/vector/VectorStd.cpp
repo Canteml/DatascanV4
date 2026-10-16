@@ -212,6 +212,24 @@ void VectorStd::clearAScan()
     }
 }
 
+void VectorStd::activateStandalone()
+{
+    quint32 prodId = m_funcGeneral.m_paramDProdId;
+    if (prodId == ProtMsg::PROD_UNDEF) {
+        // No product configured: minimal standalone mode (ASCAN0 + POSITION only)
+        disableAllFunctions();
+        m_pFuncAScan[0]->configure(true, ProtMsg::PROD_UNDEF);
+        m_pFuncPosition->configure(true, ProtMsg::PROD_UNDEF);
+    } else {
+        // Product already configured: keep all enabled functions, just ensure ASCAN0 + POSITION are on
+        m_pFuncAScan[0]->configure(true, prodId);
+        m_pFuncPosition->configure(true, prodId);
+    }
+    emit evNbFuncAScanEnabledChanged(getNbFuncAScanEnabled());
+    emit evListFunctionEnabledChanged();
+    setFunctionStateConnection(FUNC_CONNECTION_CONNECTED);
+}
+
 // -- MODEL COMP
 
 VectorFuncAScan * VectorStd::funcAScan0() const

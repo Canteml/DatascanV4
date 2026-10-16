@@ -44,11 +44,24 @@ include($$BASEDIR_FW_UI/fw_ui.pri)
 
 ## -- COPY FILES
 CONFIG += file_copies
-COPIES += CopyRes CopySDL2 CopyJKQT CopyVLCQt CopyVLCQtBin
+COPIES += CopySDL2 CopyJKQT CopyVLCQt CopyVLCQtBin
 
-## Copy resources
-CopyRes.files = $$PWD/src/res
-CopyRes.path  = build
+## -- Copy resources & QML sources
+
+CopyResSync.target   = copy_res_sync
+CopyResSync.depends  = FORCE
+CopyResSync.commands = xcopy $$system_quote($$shell_path($$PWD/src/res)) $$system_quote($$shell_path($$OUT_PWD/build/res)) /E /I /Y /Q /D
+QMAKE_EXTRA_TARGETS += CopyResSync
+PRE_TARGETDEPS += copy_res_sync
+
+## Copy the qml/ sources (a sibling of src/res, not inside it) to where
+## CoreUiQml::getDirAppQml() looks for them first: getDirAppRes()/qml, i.e.
+## <exe dir>/../res/qml = $$OUT_PWD/build/res/qml (same layout as the installer: bin + res)
+CopyResQmlSync.target   = copy_res_qml_sync
+CopyResQmlSync.depends  = FORCE
+CopyResQmlSync.commands = xcopy $$system_quote($$shell_path($$PWD/src/qml)) $$system_quote($$shell_path($$OUT_PWD/build/res/qml)) /E /I /Y /Q /D
+QMAKE_EXTRA_TARGETS += CopyResQmlSync
+PRE_TARGETDEPS += copy_res_qml_sync
 
 ## Copy SDL2
 CopySDL2.files = $$PWD/lib/SDL2/bin/SDL2.dll
@@ -70,10 +83,13 @@ CONFIG(debug, debug|release) {
 }
 CopyJKQT.path = $$DESTDIR
 
-## Copy VLCQt DLLs
-CopyVLCPlugins.files = $$PWD/lib/vlcqt/bin/plugins
-CopyVLCPlugins.path  = $$DESTDIR
-COPIES += CopyVLCPlugins
+## -- Copy VLC plugins
+VLC_PLUGINS_STAMP = $$DESTDIR/plugins/.vlc_plugins_stamp
+CopyVLCPluginsStamp.target   = $$VLC_PLUGINS_STAMP
+CopyVLCPluginsStamp.depends  = $$PWD/lib/vlcqt/bin/plugins
+CopyVLCPluginsStamp.commands = xcopy $$system_quote($$shell_path($$PWD/lib/vlcqt/bin/plugins)) $$system_quote($$shell_path($$DESTDIR/plugins)) /E /I /Y /Q $$escape_expand(\\n\\t) type nul>$$system_quote($$shell_path($$VLC_PLUGINS_STAMP))
+QMAKE_EXTRA_TARGETS += CopyVLCPluginsStamp
+PRE_TARGETDEPS += $$VLC_PLUGINS_STAMP
 CONFIG(debug, debug|release) {
     CopyVLCQt.files = \
         $$PWD/lib/vlcqt/bin/libVLCQtCored.dll \
@@ -90,6 +106,21 @@ CopyVLCQtBin.files = \
     $$PWD/lib/vlcqt/bin/libvlc.dll \
     $$PWD/lib/vlcqt/bin/libvlccore.dll
 CopyVLCQtBin.path = $$DESTDIR
+
+## Copy US-Key DLLs and config files (x64 version)
+CopyUsKey.files = \
+    $$PWD/UsKey/Ap_int_usb.dll \
+    $$PWD/UsKey/USB2.dll \
+    $$PWD/UsKey/USB2X64.dll \
+    $$PWD/UsKey/ExeUSB2X86.exe \
+    $$PWD/UsKey/Ap_int_usb.ini \
+    $$PWD/UsKey/license.dat \
+    $$PWD/UsKey/LecoeurUS.dll \
+    $$PWD/UsKey/DecodeIntr.dll \
+    $$PWD/UsKey/Decodeintr.ini \
+    $$PWD/UsKey/lvanlys.dll
+CopyUsKey.path = $$DESTDIR
+COPIES += CopyUsKey
 
 ## Copy Qt Multimedia plugins
 COPIES += CopyMultimedia

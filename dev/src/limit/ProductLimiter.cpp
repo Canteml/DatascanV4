@@ -36,17 +36,7 @@ QStringList ProductLimiter::getEnabledProductsNames()
 
 void ProductLimiter::setProdIndex(qint32 p_u32Index)
 {
-    ProtMsg::PROD_ID prodId = getProductIdFromIndex(p_u32Index);
-    bool hadPipe = isPipeEnabled();
-    qint32 intProdId = static_cast<qint32>(prodId);
-    VectorStd* currentVector = VectorManager::getInstance()->getVectorStd();
-    if(currentVector->getProdId() != intProdId) {
-        currentVector->setProdIdDeviceAd(intProdId, 0);
-        bool hasPipe = isPipeEnabled();
-        if(hasPipe != hadPipe) {
-            emit pipeEnabledChanged(hasPipe);
-        }
-    }
+    setProdId(static_cast<qint32>(getProductIdFromIndex(p_u32Index)));
 }
 
 qint32 ProductLimiter::getCurrentIndex()
@@ -54,6 +44,28 @@ qint32 ProductLimiter::getCurrentIndex()
     VectorStd* currentVector = VectorManager::getInstance()->getVectorStd();
     ProtMsg::PROD_ID currentId = static_cast<ProtMsg::PROD_ID>(currentVector->getProdId());
     return m_aEnabledProducts.indexOf(currentId);
+}
+
+void ProductLimiter::setProdId(qint32 p_s32ProdId)
+{
+    if(p_s32ProdId <= ProtMsg::PROD_UNDEF || p_s32ProdId >= ProtMsg::PROD_MAX_ID) {
+        return;
+    }
+    bool hadPipe = isPipeEnabled();
+    VectorStd* currentVector = VectorManager::getInstance()->getVectorStd();
+    if(currentVector->getProdId() != p_s32ProdId) {
+        currentVector->setProdIdDeviceAd(p_s32ProdId, 0);
+        bool hasPipe = isPipeEnabled();
+        if(hasPipe != hadPipe) {
+            emit pipeEnabledChanged(hasPipe);
+        }
+    }
+}
+
+qint32 ProductLimiter::getCurrentProdId()
+{
+    VectorStd* currentVector = VectorManager::getInstance()->getVectorStd();
+    return static_cast<qint32>(currentVector->getProdId());
 }
 
 bool ProductLimiter::isPipeEnabled()

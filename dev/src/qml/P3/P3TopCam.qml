@@ -3,6 +3,7 @@ import QtMultimedia
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
 import Design 1.0
+import Fonts 1.0
 
 Rectangle {
     id: idRectTopCam
@@ -123,19 +124,32 @@ Rectangle {
         id: idCbSelectCameraMain
         model: modelCameraRoleList
         visible: !cameraManager.selectMainCameraAuto
-        anchors.horizontalCenter: idRectTopCam.horizontalCenter
+        anchors.right: idRectTopCam.right
+        anchors.rightMargin: 5
         anchors.top: idRectTopCam.top
-        anchors.topMargin: 0
+        anchors.topMargin: 5
         width: 150
         height: 35
         font.pixelSize: 18
         property var ready: false
 
         background: Rectangle {
-            color: "#FFFFFF"
-            opacity: 0.6
-            border.color: "#000000"
-            border.width: 1
+            color: "#2C3B43"
+            border.color: "#46606E"
+            border.width: 2
+        }
+
+        contentItem: Text {
+            leftPadding: 0
+            rightPadding: idCbSelectCameraMain.indicator.width + idCbSelectCameraMain.spacing
+            text: idCbSelectCameraMain.displayText
+            font.bold: true
+            font.family: Fonts.robotoCondensed
+            font.pixelSize: 16
+            color: "white"
+            elide: Text.ElideRight
+            verticalAlignment: Text.AlignVCenter
+            horizontalAlignment: Text.AlignHCenter
         }
 
         delegate: ItemDelegate {
@@ -143,11 +157,12 @@ Rectangle {
             width: idCbSelectCameraMain.width
             contentItem: Text {
                 text: modelData
-                color: "#000000"
+                color: idItemDelegate.hovered ? "white" : Design.colMainInk
+                font.family: Fonts.robotoCondensed
                 font.pixelSize: 18
                 elide: Text.ElideRight
                 verticalAlignment: Text.AlignVCenter
-                horizontalAlignment: Text.AlignLeft
+                horizontalAlignment: Text.AlignHCenter
             }
             background: Rectangle {
                 color: idItemDelegate.hovered ? Design.colButtonSelectedBackground : "white"
@@ -188,13 +203,20 @@ Rectangle {
         height: 35
         font.pixelSize: 18
         background: Rectangle {
-            color: (idBtCapture.pressed) ? Design.colButtonSelectedBackground : idBtCapture.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
-            opacity: 0.6
-            border.width: 1
+            color: "white"
+            border.width: 2
             border.color: Design.colFrameBorder
         }
-        text: qsTr("Photo")
-        font.pointSize: 18
+        contentItem: Text {
+            text: qsTr("CAPTURE")
+            color: "Black"
+            font.bold: true
+            font.family: Fonts.robotoCondensed
+            font.pixelSize: 16
+            elide: Text.ElideRight
+            verticalAlignment: Text.AlignVCenter
+            horizontalAlignment: Text.AlignHCenter
+        }
         onPressed: { keyAction() }
 
         Action { shortcut: "c"; enabled: examManager.controlType !== 2; onTriggered: idBtCapture.keyAction() }

@@ -55,6 +55,8 @@ public :
     Q_INVOKABLE QString getBScanPosMeterWith2Decimals() const;
     Q_INVOKABLE void setParamLBscanPosMmXFromString(const QString& p_value);
 
+    void injectEncoderPositionMm(qreal mm);
+
 private slots :
     void onDOdoPosMmXChanged(qint32 p_value);
     void onLBscanPosMmXChanged(qreal p_value);

@@ -13,6 +13,8 @@
 // -- Internal includes
 #include "AScanGraph.h"
 #include <v2/scan/AScan.h>
+#include <v2/vector/VectorFuncAScan.h>
+#include <scan/ScanManager.h>
 
 #include <jkqtplotter/graphs/jkqtpgeometric.h>
 
@@ -131,6 +133,44 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
 
 }
 
+void AScanGraph::setAutoGainParams(bool enabled, qint16 threshold, quint16 noiseStart, quint16 noiseWidth){
+    m_autoGainEnabled   = enabled;
+    m_autoGainThreshold = threshold;
+    m_noiseGateStart    = noiseStart;
+    m_noiseGateWidth    = noiseWidth;
+    if(!enabled){
+        m_lastValidScaleFactor = 1.0;
+    }
+
+    /*
+    // Update noise gate visual line
+    qreal x1 = static_cast<qreal>(noiseStart);
+    qreal x2 = static_cast<qreal>(noiseStart + noiseWidth);
+    qreal y  = static_cast<qreal>(threshold);
+    m_pNoiseGateLine->setX1(x1);
+    m_pNoiseGateLine->setY1(y);
+    m_pNoiseGateLine->setX2(x2);
+    m_pNoiseGateLine->setY2(y);
+    m_pNoiseGateLine->setVisible(enabled);
+    m_pPlotAScan->requestUpdate();
+*/
+}
+
+void AScanGraph::setMeasureGate(qreal startMm, qreal widthMm)
+{
+    m_measureGateStart = startMm;
+    m_measureGateWidth = widthMm;
+}
+
+int AScanGraph::mmToDisplayIndex(qreal mm, AScan* pAScan) const
+{
+    qreal stepMm = pAScan->getSensorSettings()->getSampleStepMM();
+    if (stepMm <= 0.0) return 0;
+    qreal probeDelayMm = pAScan->getAScanMeasure()->m_paramLProbeDelayMm;
+    int idx = qRound((mm + probeDelayMm) / (stepMm * 4.0));
+    return qBound(0, idx, AScanRawSample::ASCAN_SAMPLE_SIZE / 4 - 1);
+}
+
 AScanGraph::~AScanGraph()
 {
     m_mutBuffer.lock();
@@ -171,23 +211,92 @@ void AScanGraph::updateAScan(AScan * p_pAScan)
     if( !m_mouseClicked ) { // Do not update the ASCAN while user drag the graph with the mouse
         if( nullptr != p_pAScan ) {
             qreal d = p_pAScan->getSensorSettings()->getSampleStepMM();
+            quint8 wt = p_pAScan->getAScanEnhancedSample()->m_paramDWaveType;
             // Draw a ASCAN with 4000 points use lot of CPU.
             // Reduce to 1000 points (/4)
             for(int i=0; i<AScanRawSample::ASCAN_SAMPLE_SIZE/4; i++) {
                 int is = i*4;
-                qreal x = d*is-p_pAScan->getAScanMeasure()->m_paramLProbeDelayMm;
+                qreal x = d*is - p_pAScan->getAScanMeasure()->m_paramLProbeDelayMm;
                 m_pAScanXData[i] = x;
                 qreal ymoy = 0;
                 for(int j=is; j<is+4; j++) {
-                    ymoy +=  p_pAScan->getAScanEnhancedSample()->m_enhancedSamples[is];
+                    ymoy += p_pAScan->getAScanEnhancedSample()->m_enhancedSamples[j];
                 }
-                m_pAScanYData[i] = (ymoy/4) * 100 / std::numeric_limits<quint8>::max();
-            }            
+                if (wt == 3) {
+                    m_pAScanYData[i] = (ymoy/4 - 127.0) / std::numeric_limits<quint8>::max() * 100.0; // RF: centrato su 0, range -50..+50
+                } else {
+                    m_pAScanYData[i] = (ymoy/4) * 100.0 / std::numeric_limits<quint8>::max();
+                }
+            }
+
+            if (m_autoGainEnabled) {
+                const int N = AScanRawSample::ASCAN_SAMPLE_SIZE / 4;
+
+                int noiseStart = mmToDisplayIndex(static_cast<qreal>(m_noiseGateStart),                    p_pAScan);
+                int noiseEnd   = mmToDisplayIndex(static_cast<qreal>(m_noiseGateStart + m_noiseGateWidth), p_pAScan);
+
+                int measStart  = mmToDisplayIndex(m_measureGateStart,                          p_pAScan);
+                int measEnd    = mmToDisplayIndex(m_measureGateStart + m_measureGateWidth,     p_pAScan);
+
+                if (wt == 3) {
+                    // RF AutoGain: normalizza il picco assoluto del gate di misura all'80% del range
+                    qreal scaleFactor = 1.0;
+                    qreal measAbsMax = 0.0;
+                    for (int i = measStart; i <= measEnd; i++) {
+                        qreal absY = qAbs(m_pAScanYData[i]);
+                        if (absY > measAbsMax) measAbsMax = absY;
+                    }
+                    if (measAbsMax > 1.0)
+                        scaleFactor = 40.0 / measAbsMax; // 80% di ±50
+
+                    // Noise gate RF: threshold >= 0 → controlla massimo; threshold < 0 → controlla minimo
+                    const qreal thr = static_cast<qreal>(m_autoGainThreshold);
+                    if (thr >= 0.0) {
+                        for (int i = noiseStart; i <= noiseEnd; i++) {
+                            if (m_pAScanYData[i] > thr) { scaleFactor = 1.0; break; }
+                        }
+                    } else {
+                        for (int i = noiseStart; i <= noiseEnd; i++) {
+                            if (m_pAScanYData[i] < thr) { scaleFactor = 1.0; break; }
+                        }
+                    }
+
+                    for (int i = 0; i < N; i++) {
+                        m_pAScanYData[i] = qBound<qreal>(-50.0, m_pAScanYData[i] * scaleFactor, 50.0);
+                    }
+                } else {
+                    // 1. Calcola scaleFactor dal picco nel gate di misura
+                    qreal scaleFactor = 1.0;
+                    qreal measMax = 0.0;
+                    for (int i = measStart; i <= measEnd; i++) {
+                        if (m_pAScanYData[i] > measMax) measMax = m_pAScanYData[i];
+                    }
+                    if (measMax > 1.0) {
+                        scaleFactor = 80.0 / measMax;
+                    }
+
+                    // 2. Controlla il rumore sul segnale amplificato
+                    qreal noiseMax = 0.0;
+                    for (int i = noiseStart; i <= noiseEnd; i++) {
+                        if (m_pAScanYData[i] > noiseMax) noiseMax = m_pAScanYData[i];
+                    }
+                    if (noiseMax * scaleFactor > static_cast<qreal>(m_autoGainThreshold)) {
+                        scaleFactor = 1.0; // Rumore eccessivo: mostra segnale originale
+                    }
+
+                    // Applica
+                    for (int i = 0; i < N; i++) {
+                        m_pAScanYData[i] = qBound<qreal>(0.0, m_pAScanYData[i] * scaleFactor, 100.0);
+                    }
+                }
+            }
+
         } else {
             for(int i=0; i<AScanRawSample::ASCAN_SAMPLE_SIZE/4; i++) {
                 m_pAScanYData[i] = 0;
             }
         }
+
         needRefresh(false);
     }
 }
@@ -206,6 +315,20 @@ void AScanGraph::initAfterItemAdded()
     m_pAScanGraphWorker->start();
 
     needRefresh(false);
+
+    // RF mode (paramDWaveType == 3) changes the Y range: re-apply the settings
+    // whenever the wave type of the selected A-scan function changes.
+    auto reconnectWaveType = [this](VectorFuncAScan* func) {
+        disconnect(m_waveTypeConnection);
+        if (func) {
+            m_waveTypeConnection = connect(func, &VectorFuncAScan::paramDWaveTypeChanged,
+                                           this, [this]{ customApplySettings(); });
+            customApplySettings();
+        }
+    };
+    connect(ScanManager::getInstance(), &ScanManager::evSelectedFuncAScanChanged,
+            this, reconnectWaveType);
+    reconnectWaveType(ScanManager::getInstance()->getSelectedFuncAScan());
 }
 
 void AScanGraph::zoomIn()
@@ -226,7 +349,7 @@ void AScanGraph::zoomIn()
     }
 
     computeTickSpacing();
-    m_pPlotAScan->zoom(m_AxeXMin, m_AxeXMax,0 ,100); // X visible area
+    m_pPlotAScan->zoom(m_AxeXMin, m_AxeXMax, m_AxeYMin, m_AxeYMax); // X visible area
     needRefresh(true);
 }
 
@@ -248,7 +371,7 @@ void AScanGraph::zoomOut()
     }
 
     computeTickSpacing();
-    m_pPlotAScan->zoom(m_AxeXMin, m_AxeXMax,0 ,100); // X visible area
+    m_pPlotAScan->zoom(m_AxeXMin, m_AxeXMax, m_AxeYMin, m_AxeYMax); // X visible area
     needRefresh(true);
 }
 
@@ -396,8 +519,19 @@ bool AScanGraph::customApplySettings()
 {
     bool bRet = true;
     computeTickSpacing();
+
+    VectorFuncAScan* mode = ScanManager::getInstance()->getSelectedFuncAScan();
+    bool isRF = mode && (mode->getParamDWaveType() == 3);
+    m_AxeYMin = isRF ? -50.0 : 0.0;
+    m_AxeYMax = isRF ? 50.0 : 100.0;
+
+    if (m_pZeroLine) {
+        m_pZeroLine->setY1(m_AxeYMin);
+        m_pZeroLine->setY2(m_AxeYMax);
+    }
+
     if( nullptr != m_pPlotAScan ) {
-        m_pPlotAScan->zoom(m_AxeXMin, m_AxeXMax,0 ,100); // X visible area
+        m_pPlotAScan->zoom(m_AxeXMin, m_AxeXMax, m_AxeYMin, m_AxeYMax); // X visible area
     }
     return bRet;
 }
@@ -461,7 +595,7 @@ void AScanGraph::onPlotMouseMove(double x, double y)
         m_AxeXMin = newXMin;
         m_AxeXMax = newXMax;
 
-        m_pPlotAScan->zoom(m_AxeXMin, m_AxeXMax,0 ,100); // X visible area
+        m_pPlotAScan->zoom(m_AxeXMin, m_AxeXMax, m_AxeYMin, m_AxeYMax); // X visible area
         needRefresh(true);
     }
 }

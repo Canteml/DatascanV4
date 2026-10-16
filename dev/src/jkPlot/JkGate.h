@@ -61,6 +61,8 @@ public :
     bool getIsVisible() const;
     void setIsVisible(bool p_value);
 
+    void setNoiseGateThreshold(qreal value);
+
     qreal distLine(const QPointF &p) const;
     qreal distMarkerBegin(const QPointF &p) const;
     qreal distMarkerEnd(const QPointF &p) const;
@@ -79,6 +81,7 @@ private slots :
 private :
 
     void updateModel();
+    bool isPositionLocked() const; ///< true when the gate start is driven by "Auto Sync Porte" (markers can't be dragged)
 
     JKQTPGeoLine * m_pLine;
     JKQTPGeoSymbol * m_pMarkerBegin;
@@ -95,6 +98,8 @@ private :
     bool m_isClicked;
     bool m_isVisible;
     qint32 m_gateIndex; ///< 0 or 1
+
+    qreal m_noiseGateThreshold = 0;
 
     static bool m_isGateClicked;    ///< only one gate can be clicked at a time
 

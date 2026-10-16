@@ -439,6 +439,17 @@ GenComLink *ComLinkManager::getLinkName(const QString p_name) const
     return nullptr;
 }
 
+QStringList ComLinkManager::getAuthentifiedLinkNames() const
+{
+    QStringList names;
+    for(auto i : qAsConst(m_lLink)) {
+        if( i->isAuthentified() ) {
+            names.append(i->getName());
+        }
+    }
+    return names;
+}
+
 
 void ComLinkManager::onLinkStateChanged(GenComLink* p_link, quint32 p_old, qint32 p_new)
 {
@@ -479,6 +490,7 @@ void ComLinkManager::onIntComMsgDeviceAdChanged(qint32 /*p_deviceAd*/)
 void ComLinkManager::onRetryDiscoverSerial()
 {
     // Try to open all Serial Port Com not opened :
+    static constexpr quint16 VID_INTEL = 0x8086;
 
     // first, get list of current ports :
     QStringList lAvailablePorts;
@@ -486,6 +498,14 @@ void ComLinkManager::onRetryDiscoverSerial()
     foreach (const QSerialPortInfo &Port, QSerialPortInfo::availablePorts() )
     {
         quint32 serialNum = Port.portName().mid(3).toInt(&bOk);
+        if( Port.hasVendorIdentifier() && Port.vendorIdentifier() == VID_INTEL ) {
+            continue;
+        }
+
+        if( m_reservedSerialPorts.contains(Port.portName()) ) {
+            continue;
+        }
+
         if( bOk ) {
             bool bFound = false;
             for(auto i : qAsConst(m_lDiscoverLinkSerial) ) {
@@ -506,4 +526,8 @@ void ComLinkManager::onRetryDiscoverSerial()
     }
 }
 
-
+void ComLinkManager::setReservedSerialPorts(const QStringList& ports)
+{
+    m_reservedSerialPorts = ports;
+    fLogInfo(QString("[ComLingManager] reserved serial ports: [%1]").arg(ports.join(", ")));
+}

@@ -44,14 +44,9 @@
 #include "adapter/ClipboardAdapter.h"
 #include "limit/ProductLimiter.h"
 #include "camera/VlcQmlVideoSink.h"
-
-// -- TEMPORANEAMENTE DISABILITATO Qt6 migration
-//#include <VLCQtCore/Common.h>
-//#include <VLCQtCore/Instance.h>
-//#include <VLCQtCore/Media.h>
-//#include <VLCQtCore/MediaPlayer.h>
-//#include <VLCQtQml/Qml.h>
-//#include <VLCQtQml/QmlSource.h>
+#include <uskey/UsKeyController.h>
+#include <altiscan/AltiscanController.h>
+#include <encoder/EncoderController.h>
 
 #include <v2/camera/IpCamera.h>
 
@@ -61,6 +56,13 @@
 
 #include <QMediaDevices>
 #include <QCameraDevice>
+
+#include <QSerialPortInfo>
+#include <algorithm>
+
+#ifdef Q_OS_WIN
+#include <windows.h>
+#endif
 
 #include "SoftwareLicenceChecker.h"
 
@@ -77,6 +79,7 @@ CoreApp::CoreApp() : CoreUiQml("CoreApp")
     m_pExamPipeManager = nullptr;
     m_pMepExporter = nullptr;
     m_pProductLimiter = nullptr;
+    m_pUsKeyController = nullptr;
 }
 
 
@@ -92,7 +95,7 @@ QString CoreApp::getApplicationName() const
 
 QString CoreApp::getVersion() const
 {
-    return QString(APP_VERSION); //QString("4.0.0");
+    return QString(APP_VERSION);
 }
 
 // -- state machine
@@ -102,7 +105,6 @@ bool CoreApp::initApp()
     bool bRet = CoreUiQml::initApp();
 
     // -- make my managers
-    // example : m_pStatisticApp = StatisticApp::makeInstance();    
     m_pJoystickManager = JoystickManager::makeInstance();
     m_pVectorManager = VectorManager::makeInstance(this);
     m_pScanManager = ScanManager::makeInstance();
@@ -112,7 +114,6 @@ bool CoreApp::initApp()
     m_pGlobalManager = GlobalManager::makeInstance();
 
     // -- init my managers
-    // example : m_pStatisticApp->initManager();
     m_pVectorManager->init();
     m_pVectorStd = m_pVectorManager->getVectorStd();
     m_pScanManager->init();
@@ -122,16 +123,87 @@ bool CoreApp::initApp()
     m_pCameraManager->start();
     m_pExamPipeManager->init();
 
+    bool altiscanActive = false;
+    {
+        m_pAltiscanController = new AltiscanController(this);
+        connect(m_pAltiscanController, &AltiscanController::evError, this,
+                [this](const QString& msg) { fLogError(QString("[Altiscan] %1").arg(msg)); });
+
+        altiscanActive = m_pAltiscanController->activate(m_pVectorStd, "COM6");
+        if (altiscanActive) {
+            fLogInfo("[CoreApp] Altiscan active on COM6");
+        } else {
+            fLogInfo("[CoreApp] Altiscan not found on COM6, position from Altiscan disabled");
+        }
+    }
+
+    QString encoderPort;
+    {
+        m_pEncoderController = new EncoderController(this);
+        connect(m_pEncoderController, &EncoderController::evError, this,
+                [this](const QString& msg) { fLogError(QString("[Encoder] %1").arg(msg)); });
+
+        fLogInfo("[CoreApp] initApp - EncoderController::activate() - scanning available COM ports");
+
+        QList<QSerialPortInfo> availablePorts = QSerialPortInfo::availablePorts();
+
+        for (const QSerialPortInfo& p : availablePorts) {
+            fLogInfo(QString("[CoreApp] Available port: %1 | %2 | VID:0x%3 PID:0x%4")
+                     .arg(p.portName(), p.description())
+                     .arg(p.hasVendorIdentifier()  ? QString::number(p.vendorIdentifier(),  16).toUpper() : QString("----"))
+                     .arg(p.hasProductIdentifier() ? QString::number(p.productIdentifier(), 16).toUpper() : QString("----")));
+        }
+
+        std::sort(availablePorts.begin(), availablePorts.end(),
+                  [](const QSerialPortInfo& a, const QSerialPortInfo& b) {
+                      if (a.hasVendorIdentifier() != b.hasVendorIdentifier())
+                          return a.hasVendorIdentifier();
+                      return a.portName().mid(3).toInt() < b.portName().mid(3).toInt();
+                  });
+
+        static constexpr quint16 VID_INTEL = 0x8086;
+
+        bool encoderFound = false;
+        for (const QSerialPortInfo& portInfo : availablePorts) {
+            if (portInfo.hasVendorIdentifier() && portInfo.vendorIdentifier() == VID_INTEL) {
+                fLogInfo(QString("[CoreApp] Skipping system port %1 (%2, VID:0x%3)")
+                         .arg(portInfo.portName(), portInfo.description())
+                         .arg(portInfo.vendorIdentifier(), 0, 16));
+                continue;
+            }
+            const QString port = portInfo.portName();
+            fLogInfo(QString("[CoreApp] Trying encoder on %1 (%2)").arg(port, portInfo.description()));
+            if (m_pEncoderController->activate(m_pVectorStd, port)) {
+                fLogInfo(QString("[CoreApp] Encoder active on %1 (%2)").arg(port, portInfo.description()));
+                encoderFound = true;
+                encoderPort = port;
+                break;
+            }
+        }
+        if (!encoderFound)
+            fLogInfo("[CoreApp] Encoder not found on any available COM port, position from encoder disabled");
+
+        m_pScanManager->setEncoderController(m_pEncoderController);
+        m_pEncoderController->setLinkManager(m_pVectorStd->getLinkManager());
+    }
+
+    {
+        QStringList reservedPorts;
+        if (altiscanActive)
+            reservedPorts << "COM6";
+        if (!encoderPort.isEmpty())
+            reservedPorts << encoderPort;
+        if (!reservedPorts.isEmpty())
+            m_pVectorStd->getLinkManager()->setReservedSerialPorts(reservedPorts);
+    }
+
     // -- load settings of my managers
-    // example : bRet &= m_pStatisticApp->loadSettings();
     bRet &= m_pVectorManager->loadSettings();
     bRet &= m_pExamManager->loadSettings();
     bRet &= m_pCameraManager->loadSettings();
 
-    // ===== TEST CAMERA - da rimuovere dopo diagnosi =====
     {
         const QList<QCameraDevice> testDevices = QMediaDevices::videoInputs();
-        fLogInfo(QString("CAMERA TEST: dispositivi trovati: %1").arg(testDevices.size()));
         for (const QCameraDevice& d : testDevices) {
             fLogInfo(QString("CAMERA TEST:  - %1").arg(d.description()));
         }
@@ -142,6 +214,8 @@ bool CoreApp::initApp()
 
     m_pProductLimiter = new ProductLimiter();
     m_pProductLimiter->loadLimitations();
+
+    m_pUsKeyController = new UsKeyController(this);
 
     bRet &= m_licence.bInit();
 
@@ -154,21 +228,23 @@ bool CoreApp::startApp()
     bool bRet = true;
 
     // -- start my managers
-
-    if( ProtMsg::PROD_UNDEF == m_pVectorStd->getProdId() ) {
+    if( ProtMsg::PROD_UNDEF == m_pVectorStd->getProdId()
+        || (m_pAltiscanController && m_pAltiscanController->isActive()) ) {
         fLogInfo("Make default Product : ALTISCAN");
         m_pVectorStd->setProdIdDeviceAd(ProtMsg::PROD_ALTISCAN_V2, ProtMsg::DEVICE_AD_MPC);
     }
 
-//    ComDevice * pComp = m_pVectorStd->getDeviceManager()->getComp(0);
-//    pComp->setLink()
+    static QtMessageHandler s_previousHandler = nullptr;
+    s_previousHandler = qInstallMessageHandler([](QtMsgType type, const QMessageLogContext& ctx, const QString& msg) {
+        if (s_previousHandler) {
+            s_previousHandler(type, ctx, msg);
+        }
 
-    qInstallMessageHandler([](QtMsgType type, const QMessageLogContext& ctx, const QString& msg) {
         static QFile logFile("C:/ProgramData/Roboplanet/DatascanV3/conf/qml_debug.txt");
         // if (!logFile.isOpen()) logFile.open(QIODevice::Append | QIODevice::Text);
         if (!logFile.isOpen()) {
             if (!logFile.open(QIODevice::Append | QIODevice::Text)) {
-                qWarning() << "Failed to open log file";
+                return;
             }
         }
         QString prefix;
@@ -203,6 +279,11 @@ bool CoreApp::startApp()
 void CoreApp::stopApp()
 {
 //    StatisticApp::stopAppExecution();
+    m_pUsKeyController->deactivate();
+    m_pAltiscanController->deactivate();
+    m_pEncoderController->deactivate();
+    m_pJoystickManager->stop();
+
     m_pJoystickManager->stop();
     m_pCameraManager->stop();
 
@@ -214,8 +295,26 @@ void CoreApp::stopApp()
 
 }
 
+#ifdef Q_OS_WIN
+namespace {
+    LONG WINAPI shutdownCrashFilter(EXCEPTION_POINTERS*)
+    {
+        ExitProcess(0);
+    }
+}
+#endif
+
 void CoreApp::deleteApp()
 {
+#ifdef Q_OS_WIN
+    SetUnhandledExceptionFilter(shutdownCrashFilter);
+#endif
+
+    // Release the UsKey vendor DLL/device handle before the other managers.
+    if(nullptr != m_pUsKeyController)
+        delete m_pUsKeyController;
+    m_pUsKeyController = nullptr;
+
     // delete managers
     if(nullptr != m_pScanManager)
         delete m_pScanManager;
@@ -327,6 +426,7 @@ bool CoreApp::initQmlContext()
     m_pQmlApplicationEngine->rootContext()->setContextProperty("mepExporter", m_pMepExporter);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("clipboard", m_pClipboardAdapter);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("products", m_pProductLimiter);
+    m_pQmlApplicationEngine->rootContext()->setContextProperty("encoderController", m_pEncoderController);
 
     m_pQmlApplicationEngine->rootContext()->setContextProperty(
         "modelCameraList", QVariant::fromValue(QStringList()));
@@ -348,8 +448,24 @@ void CoreApp::initCppFromQml()
     m_pScanManager->initQmlObject(m_pQmlTopLevel);    
     m_pCameraManager->initQmlObject(m_pQmlTopLevel);
 
-    // load graphical settings (wait QML instanciated)
+    // -- US-Key standalone mode: activate after AScanGraph is connected
+    connect(m_pUsKeyController, &UsKeyController::evError, this,
+            [this](const QString& msg) { fLogError(QString("[UsKey] %1").arg(msg)); });
+
+    if (m_pUsKeyController->activate(m_pVectorStd)) {
+        fLogInfo("[CoreApp] US-Key standalone mode active");
+        connect(m_pScanManager, &ScanManager::evSelectedFuncAScanChanged,
+                m_pUsKeyController, [this](VectorFuncAScan*) {
+                    m_pUsKeyController->syncToHardware();
+                });
+    } else {
+        fLogInfo("[CoreApp] US-Key not available, running in normal mode");
+    }
+
     m_pScanManager->loadSettings();
+
+    fLogInfo("[CoreApp] initCppFromQml - ascanLoadUserParams + UsKey sync");
+    m_pScanManager->ascanLoadUserParams();
 }
 
 QString CoreApp::getWindowTitle() const

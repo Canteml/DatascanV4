@@ -1,145 +1,629 @@
 import QtQuick
+import Qt.labs.platform 1.1 as Platform
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
-import Qt.labs.platform 1.1
+import Design 1.0
+import Fonts 1.0
 import "rp_components"
+
 
 Rectangle {
     Layout.fillWidth: true
-    Layout.fillHeight : true    
+    Layout.fillHeight : true
 
-    ColumnLayout {
-        anchors.fill: parent        
-        anchors.margins: 5
 
-        FormSection {
-            text: qsTr("Caractéristiques de la structure")
+    Dialog {
+        id: userLoginWindow
+        title: qsTr("Onglets incomplete")
+        modal: true
+        anchors.centerIn: parent
+        width: 380
+
+        background: Rectangle {
+            color: "white"
+            border.width: 1
+            border.color: "#4B5563"
         }
 
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.leftMargin: 15
+        header: Label {
+            text: userLoginWindow.title
+            elide: Label.ElideRight
+            font.bold: true
+            padding: 12
+            color: "#FFFFFF"
+
+            background: Rectangle {
+                color: "#0D2B38"
+            }
+        }
+
+        ColumnLayout {
+            anchors.fill: parent
+            spacing: 15
 
             Text {
-                text: qsTr("Nom de la structure :")
-                font.pixelSize: 14
+                font.family: "Roboto Condensed"
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("User Name")
             }
 
             TextField {
-                text: examManager.structName
+                text: ""
+                font.family: Fonts.robotoCondensed
                 selectByMouse: true
-                Layout.fillWidth: true;
+                color: "black"
+                Layout.row: 0
+                Layout.column: 1
+                Layout.fillWidth: true
+                Layout.preferredWidth: 220
                 Layout.preferredHeight: 30
-                onTextChanged: {examManager.structName = text}
+                onTextChanged: {examManager.inputUserName = text}
                 Keys.onReturnPressed: {
                     console.log("Captured !")
                 }
-
-            }
-
-            Text {
-                text: qsTr("Nom de la Pièce :")
-                visible: examManager.controlType === 2 // Only for pipe
-                font.pixelSize: 14
-                Layout.leftMargin: 10
-            }
-
-            ComboBox {
-                id: idCbPiece
-                visible: examManager.controlType === 2 // Only for pipe
-                model: examManager.commonPieceNames
-                Layout.preferredHeight: 30
-                editable: true
-                onAccepted: { examManager.pieceName = editText }
-                onCurrentTextChanged: { examManager.pieceName = currentText }
-                Component.onCompleted: {
-                        contentItem.selectByMouse = true
+                background: Rectangle {
+                    color: "white"
+                    border.width: 2
+                    border.color: Design.colFrameBorder
                 }
+
             }
 
             Text {
-                text: qsTr("Dossier exports :")
-                font.pixelSize: 14
-                Layout.leftMargin: 10
+                font.family: "Roboto Condensed"
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("Mot de passe")
             }
 
             TextField {
-                text: examManager.exportFolder
+                text: ""
+                font.family: Fonts.robotoCondensed
                 selectByMouse: true
-                readOnly: true
-                Layout.fillWidth: true;
+                color: "black"
+                Layout.row: 0
+                Layout.column: 1
+                Layout.fillWidth: true
+                Layout.preferredWidth: 220
                 Layout.preferredHeight: 30
-            }
-
-            Button {
-                text: "..."
-                Layout.preferredHeight: 30
-                Layout.preferredWidth: 30
-                onPressed: {
-                    folderDialog.open()
+                onTextChanged: {examManager.inputUSerPassword = text}
+                Keys.onReturnPressed: {
+                    console.log("Captured !")
+                }
+                background: Rectangle {
+                    color: "white"
+                    border.width: 2
+                    border.color: Design.colFrameBorder
                 }
             }
+            RowLayout{
+                Button {
+                    id: btConfirmerUser
+                    width: 80
+                    height: 40
 
-            FolderDialog {
-                id: folderDialog
-                currentFolder: "file:///" + examManager.exportFolder
-                onFolderChanged: {
-                    examManager.exportFolder = folder.toString().replace("file:///", "")
+                    contentItem: Text {
+                        text: qsTr("Confirmer")
+                        font.family: Fonts.robotoCondensed
+                        font.pixelSize: 14
+                        color: "white"
+                        font.bold: true
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    background: Rectangle {
+                        color: "#0D2B38"
+                        border.color: Design.colBlackBorder
+                        border.width: 3
+                    }
+
+                    onClicked: {
+                        examManager.inputUserControl()
+                        if(examManager.inputValidCheck){
+                            examManager.freeSession = true
+                            userLoginWindow.close();
+                        }
+                    }
+                }
+
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Button {
+                    id: btAnnulerUser
+                    width: 80
+                    height: 40
+
+                    contentItem: Text {
+                        text: qsTr("Annuler")
+                        font.family: Fonts.robotoCondensed
+                        font.pixelSize: 14
+                        color: Design.colMainInk
+                        font.bold: true
+                        horizontalAlignment: Text.AlignHCenter
+                        verticalAlignment: Text.AlignVCenter
+                    }
+
+                    background: Rectangle {
+                        color: "white"
+                        border.color: Design.colBlackBorder
+                        border.width: 3
+                    }
+
+                    onClicked: {
+                        userLoginWindow.close();
+                    }
                 }
             }
         }
+    }
 
-        RowLayout {
-            Layout.leftMargin: 15
+    ColumnLayout {
+        anchors.fill: parent
+        anchors.margins: 5
+
+
+        Item {
             Layout.fillWidth: true
-
-            Text {
-                text: qsTr("Site :")
-                font.pixelSize: 14
-            }
-
-            TextField {
-                text: examManager.siteName
-                selectByMouse: true
-                Layout.fillWidth: true;
-                Layout.preferredHeight: 30
-                onTextChanged: {examManager.siteName = text}
-            }
-
-            Text {
-                text: qsTr("Secteur :")
-                Layout.leftMargin: 10
-                font.pixelSize: 14
-            }
-
-            TextField {
-                text: examManager.sectorName
-                selectByMouse: true
-                Layout.fillWidth: true;
-                Layout.preferredHeight: 30
-                onTextChanged: {examManager.sectorName = text}
-            }
-
+            height: 30
         }
 
-        RowLayout {
-            Layout.leftMargin: 15
+
+        RowLayout{
             Layout.fillWidth: true
+            spacing: 5
 
-            Text {
-                text: qsTr("Origine :")
-                font.pixelSize: 14
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 0
+
+                Rectangle {
+                    color: "#D5DEE3"
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 20
+                    Layout.rightMargin: 20
+                    Layout.preferredHeight: 40
+                    border.width: 1
+                    border.color: Design.colFrameBorder
+
+                    RowLayout {
+                        anchors.fill: parent
+                        spacing: 5
+
+                        Text {
+                            text: qsTr("CHARGER UN PLAN")
+                            font.family: Fonts.robotoCondensed
+                            font.pixelSize: 12
+                            font.bold: Design.colFrameBorder
+                            color: Design.colMainInk
+                            Layout.fillWidth: true
+                            Layout.leftMargin: 5
+                        }
+                    }
+                }
+
+                Rectangle {
+                    color: "white"
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 20
+                    Layout.rightMargin: 20
+                    height: 90
+                    border.width: 1
+                    border.color: Design.colFrameBorder
+
+                    Button {
+                        id: btChargePlanner
+                        width: 180
+                        height: 60
+                        anchors.top: parent.top
+                        anchors.left: parent.left
+                        anchors.topMargin: 15
+                        anchors.leftMargin: 15
+
+                        contentItem: Text {
+                            text: qsTr("Charger un fichier")
+                            font.family: Fonts.robotoCondensed
+                            font.pixelSize: 14
+                            color: "white"
+                            font.bold: true
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        background: Rectangle {
+                            color: "#0D2B38"
+                            border.color: Design.colBlackBorder
+                            border.width: 3
+                        }
+
+                        onClicked: {
+                            fileDialogChargePlannerExport.open();
+                        }
+                    }
+
+                    Platform.FileDialog {
+                        id: fileDialogChargePlannerExport
+                        title: "Selectionnez une acquisition"
+                        folder: "file:///C:/Altiscan/"
+                        nameFilters: ["Fichier TOML (*.toml)"]
+                        onAccepted: examManager.importPlannerToml(fileDialogChargePlannerExport.file.toString())
+                    }
+
+                    // -- Import messages (errors / warnings from ImportToml), one line each
+                    Column {
+                        anchors.top: btChargePlanner.top
+                        anchors.left: btChargePlanner.right
+                        anchors.right: parent.right
+                        anchors.leftMargin: 15
+                        anchors.rightMargin: 15
+                        spacing: 4
+
+                        Repeater {
+                            model: examManager.importMessages
+
+                            delegate: Rectangle {
+                                readonly property color levelColor: modelData.level === "error"   ? "#C62828"
+                                                                  : modelData.level === "warning" ? "#E07B00"
+                                                                  :                                 "#2E7D32"
+                                width: parent.width
+                                height: 60
+                                color: Qt.rgba(levelColor.r, levelColor.g, levelColor.b, 0.1)
+                                border.width: 1
+                                border.color: levelColor
+
+                                Text {
+                                    id: idMsgText
+                                    anchors.fill: parent
+                                    anchors.leftMargin: 6
+                                    anchors.rightMargin: 6
+                                    verticalAlignment: Text.AlignVCenter
+                                    text: (modelData.level === "error"   ? "✖ "
+                                         : modelData.level === "warning" ? "⚠ "
+                                         :                                 "✔ ") + modelData.text
+                                    font.family: Fonts.robotoCondensed
+                                    font.pixelSize: 14
+                                    color: parent.levelColor
+                                    wrapMode: Text.WrapAnywhere
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
-            TextField {
-                text: examManager.examOrigin
-                selectByMouse: true
-                Layout.fillWidth: true;
-                Layout.preferredHeight: 30
-                onTextChanged: {examManager.examOrigin = text}
+            ColumnLayout {
+                Layout.fillWidth: true
+                spacing: 0
+
+                Rectangle {
+                    color: "#D5DEE3"
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 20
+                    Layout.rightMargin: 20
+                    Layout.preferredHeight: 40
+                    border.width: 1
+                    border.color: Design.colFrameBorder
+
+                    RowLayout {
+                        anchors.fill: parent
+                        spacing: 5
+
+                        Text {
+                            text: qsTr("SESSION LIBRE")
+                            font.family: Fonts.robotoCondensed
+                            font.pixelSize: 12
+                            font.bold: Design.colFrameBorder
+                            color: Design.colMainInk
+                            Layout.fillWidth: true
+                            Layout.leftMargin: 5
+                        }
+                    }
+                }
+
+                Rectangle {
+                    color: "white"
+                    Layout.fillWidth: true
+                    Layout.leftMargin: 20
+                    Layout.rightMargin: 20
+                    height: 90
+                    border.width: 1
+                    border.color: Design.colFrameBorder
+
+
+                    RowLayout{
+                        spacing: 20
+                        anchors.top: parent.top
+                        anchors.left: parent.left
+                        anchors.right: parent.right
+                        anchors.topMargin: 15
+                        anchors.leftMargin: 15
+                        anchors.rightMargin: 15
+
+                        Button {
+                            Layout.preferredWidth: 180
+                            Layout.preferredHeight: 60
+
+                            contentItem: Text {
+                                text: qsTr("Session libre")
+                                font.family: Fonts.robotoCondensed
+                                font.pixelSize: 14
+                                color: Design.colMainInk
+                                font.bold: true
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
+
+                            background: Rectangle {
+                                color: "white"
+                                border.color: Design.colBlackBorder
+                                border.width: 3
+                            }
+
+                            onClicked: {
+                                examManager.freeSession = false
+                                userLoginWindow.open();
+                            }
+                        }
+                        Text {
+                            visible: examManager.inputValidCheck
+                            text: qsTr("Identifiant utilisateur : ")
+                            font.family: Fonts.robotoCondensed
+                            font.pixelSize: 14
+                            font.bold: true
+                            color: Design.colMainInk
+                            Layout.fillWidth: true
+                            Layout.leftMargin: 5
+                        }
+                        Text {
+                            visible: examManager.inputValidCheck
+                            text: examManager.inputUserName
+                            font.family: Fonts.robotoCondensed
+                            font.pixelSize: 14
+                            color: Design.colMainInk
+                            Layout.fillWidth: true
+                            Layout.leftMargin: 5
+                        }
+                    }
+                }
             }
         }
 
+        Item {
+            Layout.fillWidth: true
+            height: 30
+        }
+
+        ColumnLayout {
+            Layout.fillWidth: true
+            spacing: 0
+
+
+            Rectangle {
+                color: "#D5DEE3"
+                Layout.fillWidth: true
+                Layout.leftMargin: 20
+                Layout.rightMargin: 20
+                Layout.preferredHeight: 40
+                border.width: 1
+                border.color: Design.colFrameBorder
+
+                RowLayout {
+                    anchors.fill: parent
+                    spacing: 5
+
+                    Text {
+                        text: qsTr("CARACTÉRISTIQUES DE LÉQUIPEMENT")
+                        font.family: Fonts.robotoCondensed
+                        font.pixelSize: 12
+                        font.bold: Design.colFrameBorder
+                        color: Design.colMainInk
+                        Layout.fillWidth: true
+                        Layout.leftMargin: 5
+                    }
+                }
+            }
+
+            Rectangle {
+                color: "white"
+                Layout.fillWidth: true
+                Layout.leftMargin: 20
+                Layout.rightMargin: 20
+                height: 200
+                border.width: 1
+                border.color: Design.colFrameBorder
+
+                GridLayout {
+                    anchors.left: parent.left
+                    anchors.right: parent.right
+                    anchors.verticalCenter: parent.verticalCenter
+                    anchors.margins: 15
+                    columns: 4
+                    columnSpacing: 15
+                    rowSpacing: 20
+
+                    // -- Ligne 0 : Nom de la structure / Dossier exports
+
+                    Text {
+                        text: qsTr("Nom de la structure")
+                        font.pixelSize: 14
+                        font.family: Fonts.robotoCondensed
+                        Layout.row: 0
+                        Layout.column: 0
+                    }
+
+                    TextField {
+                        text: examManager.structName
+                        font.family: Fonts.robotoCondensed
+                        selectByMouse: true
+                        color: "black"
+                        Layout.row: 0
+                        Layout.column: 1
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 220
+                        Layout.preferredHeight: 30
+                        onTextChanged: {examManager.structName = text}
+                        Keys.onReturnPressed: {
+                            console.log("Captured !")
+                        }
+                        background: Rectangle {
+                            color: "white"
+                            border.width: 2
+                            border.color: Design.colFrameBorder
+                        }
+                    }
+
+                    Text {
+                        text: qsTr("Dossier exports")
+                        font.family: Fonts.robotoCondensed
+                        font.pixelSize: 14
+                        Layout.row: 0
+                        Layout.column: 2
+                    }
+
+                    RowLayout {
+                        Layout.row: 0
+                        Layout.column: 3
+                        Layout.fillWidth: true
+                        spacing: 5
+
+                        TextField {
+                            text: examManager.exportFolder
+                            font.family: Fonts.robotoCondensed
+                            selectByMouse: true
+                            readOnly: true
+                            color: "black"
+                            Layout.fillWidth: true
+                            Layout.preferredWidth: 185
+                            Layout.preferredHeight: 30
+                            background: Rectangle {
+                                color: "white"
+                                border.width: 2
+                                border.color: Design.colFrameBorder
+                            }
+                        }
+
+                        Button {
+                            Layout.preferredHeight: 30
+                            Layout.preferredWidth: 30
+                            contentItem: Text {
+                                text: "..."
+                                font.bold: true
+                                font.family: Fonts.robotoCondensed
+                                color: "white"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
+
+                            background: Rectangle {
+                                color: "#0D2B38"
+                                border.color: Design.colBlackBorder
+                                border.width: 2
+                            }
+
+                            onPressed: {
+                                folderDialog.open()
+                            }
+                        }
+                    }
+
+                    Platform.FolderDialog {
+                        id: folderDialog
+                        currentFolder: "file:///" + examManager.exportFolder
+                        onFolderChanged: {
+                            examManager.exportFolder = folder.toString().replace("file:///", "")
+                        }
+                    }
+
+                    // -- Ligne 1 : Site / Secteur
+
+                    Text {
+                        text: qsTr("Site")
+                        font.family: Fonts.robotoCondensed
+                        font.pixelSize: 14
+                        Layout.row: 1
+                        Layout.column: 0
+                    }
+
+                    TextField {
+                        text: examManager.siteName
+                        font.family: Fonts.robotoCondensed
+                        selectByMouse: true
+                        color: "black"
+                        Layout.row: 1
+                        Layout.column: 1
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 220
+                        Layout.preferredHeight: 30
+                        onTextChanged: {examManager.siteName = text}
+                        background: Rectangle {
+                            color: "white"
+                            border.width: 2
+                            border.color: Design.colFrameBorder
+                        }
+                    }
+
+                    Text {
+                        text: qsTr("Secteur")
+                        font.family: Fonts.robotoCondensed
+                        font.pixelSize: 14
+                        Layout.row: 1
+                        Layout.column: 2
+                    }
+
+                    TextField {
+                        text: examManager.sectorName
+                        font.family: Fonts.robotoCondensed
+                        selectByMouse: true
+                        color: "black"
+                        Layout.row: 1
+                        Layout.column: 3
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 220
+                        Layout.preferredHeight: 30
+                        onTextChanged: {examManager.sectorName = text}
+                        background: Rectangle {
+                            color: "white"
+                            border.width: 2
+                            border.color: Design.colFrameBorder
+                        }
+                    }
+
+                    // -- Ligne 3 : Origine
+
+                    Text {
+                        text: qsTr("Origine")
+                        font.family: Fonts.robotoCondensed
+                        font.pixelSize: 14
+                        Layout.row: 2
+                        Layout.column: 0
+                    }
+
+                    TextField {
+                        text: examManager.examOrigin
+                        font.family: Fonts.robotoCondensed
+                        selectByMouse: true
+                        color: "black"
+                        Layout.row: 2
+                        Layout.column: 1
+                        Layout.fillWidth: true
+                        Layout.preferredWidth: 220
+                        Layout.preferredHeight: 30
+                        onTextChanged: {examManager.examOrigin = text}
+                        background: Rectangle {
+                            color: "white"
+                            border.width: 2
+                            border.color: Design.colFrameBorder
+                        }
+                    }
+                }
+            }
+        }
+
+
+        /*
         RowLayout {
             Layout.fillWidth: true
             Layout.leftMargin: 15
@@ -397,15 +881,6 @@ Rectangle {
                 RowLayout {
                     Layout.fillWidth: true
                     Layout.leftMargin: 40
-                    /*Text {
-                        text: qsTr("Intervalle X (m) : ")
-                        Layout.minimumWidth: 105
-                    }
-                    Text {
-                        text: examManager.mepIntervalX.toFixed(2)
-                        font.bold: true
-                        Layout.minimumWidth: 40
-                    }*/
 
                     Text {
                         text: qsTr("Périmètre (m) : ")
@@ -482,25 +957,7 @@ Rectangle {
                         text: qsTr("Intervalle Y (m) : ")
                         Layout.minimumWidth: 105
                     }
-                    /*TextField {
-                        id: idTxtIntervalYMep
-                        Layout.preferredWidth: 80
-                        selectByMouse: true
-                        Layout.preferredHeight: 30
-                        }
-                        onTextEdited: {examManager.mepIntervalY = parseFloat(idTxtIntervalYMep.text)}
-                        Connections {
-                            target : examManager
-                            function onMepIntervalYChanged() {
-                                if(!idTxtIntervalYMep.focus) {
-                                    idTxtIntervalYMep.text = examManager.mepIntervalY.toFixed(2)
-                                }
-                            }
-                        }
-                        Component.onCompleted: {
-                            idTxtIntervalYMep.text = examManager.mepIntervalY.toFixed(2)
-                        }
-                    }*/
+
                     Text {
                         text: examManager.mepIntervalY.toFixed(2)
                         font.bold: true
@@ -531,7 +988,7 @@ Rectangle {
                     }
                 }
             }
-        }
+        }*/
 
         Item {
             // Spacer
@@ -553,5 +1010,6 @@ Rectangle {
                 }
             }
         }
+
     }
 }

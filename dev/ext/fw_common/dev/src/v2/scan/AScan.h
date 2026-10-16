@@ -31,7 +31,7 @@ public :
     static const qint32 ASCAN_SAMPLE_SIZE = 4000;
     quint8 m_rawSamples[ASCAN_SAMPLE_SIZE];
     qint64 m_epocTimeMs = 0;
-    QPointF m_position  = QPointF(0,0); ///< BScan use only X    
+    QPointF m_position  = QPointF(0,0); ///< BScan use only X
 
     void copy(const AScanRawSample& p_value);
 
@@ -51,6 +51,7 @@ public :
     static const qint32 ASCAN_SAMPLE_SIZE = 4000;
     quint8 m_enhancedSamples[ASCAN_SAMPLE_SIZE];
     quint8 m_paramLLowPassFilter = 0;
+    quint8 m_paramDWaveType      = 0;
 
     void copyParam(const AScanEnhancedSample& p_value); ///< copy only parameters
     void copy(const AScanEnhancedSample& p_value);      ///< copy data and parameters
@@ -96,6 +97,7 @@ public :
     qreal m_paramLStart     = 0;
     qreal m_paramLWidth     = 0;
     qreal m_paramLHeight    = 0;
+    quint8  m_paramDOption  = 0; // 0 = Premier maximum, 1 = Maximum absolu, 2 = Flanc montant, 3 = Smart gate
 
     qint32 m_gateId;
 
@@ -125,6 +127,7 @@ public :
     qreal m_thicknessMm1Echo        = 0;
     qreal m_paramLProbeDelayMm      = 0;
     QList<quint32> m_listPicsIndex;         //
+    qint32 m_indexSecondEchoGate0   = -1;   ///< sample index of the 2nd echo found in Gate 0 (-1 if none), used by "Auto Sync Porte"
 
     void copyParam(const AScanMeasure& p_value);
     void copy(const AScanMeasure& p_value);
@@ -160,6 +163,7 @@ public :
     AScanEnhancedSample * getAScanEnhancedSample();
     SensorSettings * getSensorSettings();
     AScanMeasure * getAScanMeasure();
+    const AScanMeasure * getAScanMeasure() const;
 
     quint32 m_source;   ///< Sensor number. Value in [0..VectorStd::NB_FUNC_ASCAN[
 
@@ -171,8 +175,7 @@ public :
 
     quint32 mmToIndex(qreal p_posMm);   ///< compute an index function to Probe Delay, FrequencySample. return 0 if invalid
 
-    qint32 m_cellsCount = 0; ///< represents the number of SurfaceCells using this AScan, since multiple cells can share the same AScan
-                             // (It allows us to know when an AScan is useless so we can delete it)
+    qint32 m_cellsCount = 0;
 
 protected :
     // -- Inherited from XmlProject

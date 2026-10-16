@@ -207,3 +207,11 @@ void VectorFuncPosition::computeBScanPosMmX()
     }
     setParamLBscanPosMmX(newBscanPos);
 }
+
+void VectorFuncPosition::injectEncoderPositionMm(qreal mm)
+{
+    if(mm == m_paramLBscanPosMmX)
+        return;
+    m_paramLBscanPosMmX = mm;
+    emit paramLBscanPosMmXChanged(mm);
+}

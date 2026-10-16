@@ -72,6 +72,7 @@ AScanEnhancedSample::AScanEnhancedSample() : XmlProject("AScanEnhancedSample")
 void AScanEnhancedSample::copyParam(const AScanEnhancedSample &p_value)
 {
     m_paramLLowPassFilter = p_value.m_paramLLowPassFilter;
+    m_paramDWaveType        = p_value.m_paramDWaveType;
 }
 
 void AScanEnhancedSample::copy(const AScanEnhancedSample &p_value)
@@ -87,6 +88,7 @@ bool AScanEnhancedSample::customLoadParam(QDomElement * p_pParent)
     //bRet &= XML_READ_UNIQUE(QString, sEnhancedSample);
     //memcpy(m_enhancedSamples, QByteArray::fromHex(sEnhancedSample.toLatin1().data()).data(), ASCAN_SAMPLE_SIZE);
     bRet &= XML_READ_UNIQUE(quint8, m_paramLLowPassFilter);
+    bRet &= XML_READ_UNIQUE(quint8, m_paramDWaveType);
     return bRet;
 }
 
@@ -100,6 +102,7 @@ bool AScanEnhancedSample::customSaveParam(QDomDocument * p_pDoc, QDomElement * p
     sEnhancedSample = ba.toHex().data();
     //bRet &= XML_WRITE_UNIQUE(sEnhancedSample);
     bRet &= XML_WRITE_UNIQUE(m_paramLLowPassFilter);
+    bRet &= XML_WRITE_UNIQUE(m_paramDWaveType);
     return bRet;
 }
 
@@ -178,6 +181,7 @@ void AScanGate::copyParam(const AScanGate &p_value)
     m_paramLStart = p_value.m_paramLStart;
     m_paramLWidth = p_value.m_paramLWidth;
     m_paramLHeight = p_value.m_paramLHeight;
+    m_paramDOption = p_value.m_paramDOption;
 }
 
 // -- Inherited from XmlProject
@@ -187,6 +191,7 @@ bool AScanGate::customLoadParam(QDomElement * p_pParent)
     bRet &= XML_READ_UNIQUE_DEFAULT(qreal, m_paramLStart, 10);
     bRet &= XML_READ_UNIQUE_DEFAULT(qreal, m_paramLWidth, 50);
     bRet &= XML_READ_UNIQUE_DEFAULT(qreal, m_paramLHeight, 10);
+    bRet &= XML_READ_UNIQUE_DEFAULT(quint8, m_paramDOption, 0);
     return bRet;
 }
 
@@ -196,6 +201,7 @@ bool AScanGate::customSaveParam(QDomDocument * p_pDoc, QDomElement * p_pParent)
     bRet &= XML_WRITE_UNIQUE(m_paramLStart);
     bRet &= XML_WRITE_UNIQUE(m_paramLWidth);
     bRet &= XML_WRITE_UNIQUE(m_paramLHeight);
+    bRet &= XML_WRITE_UNIQUE(m_paramDOption);
     return bRet;
 }
 
@@ -236,6 +242,7 @@ void AScanMeasure::copy(const AScanMeasure &p_value)
     m_thicknessMmMultiEcho    = p_value.m_thicknessMmMultiEcho;
     m_thicknessMm1Echo        = p_value.m_thicknessMm1Echo;
     m_listPicsIndex           = p_value.m_listPicsIndex;
+    m_indexSecondEchoGate0    = p_value.m_indexSecondEchoGate0;
 }
 
 bool AScanMeasure::customLoadParam(QDomElement * p_pParent)
@@ -299,6 +306,11 @@ SensorSettings * AScan::getSensorSettings()
 }
 
 AScanMeasure * AScan::getAScanMeasure()
+{
+    return &m_ascanMeasure;
+}
+
+const AScanMeasure * AScan::getAScanMeasure() const
 {
     return &m_ascanMeasure;
 }

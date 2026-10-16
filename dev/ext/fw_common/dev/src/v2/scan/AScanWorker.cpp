@@ -149,12 +149,6 @@ qreal dSinc(double x)
 
 void AScanWorker::computeEnhancedAScan()
 {
-//
-//    // for now, just copy datas
-//    memcpy(m_pAScanTreated->getAScanEnhancedSample()->m_enhancedSamples,
-//           m_pAScanTreated->getAScanRawSample()->m_rawSamples,
-//           AScanRawSample::ASCAN_SAMPLE_SIZE);
-
     // -- Function imported from project <<DATASCAN 4.x>> (AScanFilter.cpp)
     // constants
     static const qreal frequenceCoupure = 800000;
@@ -162,6 +156,12 @@ void AScanWorker::computeEnhancedAScan()
     // data
     quint8 *entree = m_pAScanTreated->getAScanRawSample()->m_rawSamples;
     quint8 *sortie = m_pAScanTreated->getAScanEnhancedSample()->m_enhancedSamples;
+
+    // RF mode: pass raw samples through without rectification
+    if (m_pAScanTreated->getAScanEnhancedSample()->m_paramDWaveType == 3) {
+        memcpy(sortie, entree, AScanRawSample::ASCAN_SAMPLE_SIZE);
+        return;
+    }
 
     if(m_pAScanTreated->getAScanEnhancedSample()->m_paramLLowPassFilter>5)
     {
@@ -244,63 +244,243 @@ void AScanWorker::computeMeasures()
         }
     }
 
-    //On va maintenant chercher le premier pic.
-    //Un pic est définit comme étant un point où le précédant ET le suivant lui sont inférieur.
-    //Une source d'erreur ici est qu'on prend le premier trouvé et non le maximum.
+    // RF mode: samples are bipolar centered at 127 (range 0..255).
+    // Graphical mapping: y_display = (sample - 127) / 255 * 100  → range -50..+50, center = 0
+    // Inverse:          sample_threshold = height * 2.55 + 127
+    // Gate height >= 0 → gate is above center → detect positive peak (sample > threshold)
+    // Gate height <  0 → gate is below center → detect negative peak (sample < threshold)
+    bool isRF = (m_pAScanTreated->getAScanEnhancedSample()->m_paramDWaveType == 3);
+
+    qreal height0   = m_pAScanTreated->getAScanMeasure()->m_paramGates0->m_paramLHeight;
+    bool  rfGate0Positive = (height0 >= 0.0);
+    qreal rfThreshold0 = qBound(0.0, height0 * 2.55 + 127.0, 255.0);
+
+    qreal height1   = m_pAScanTreated->getAScanMeasure()->m_paramGates1->m_paramLHeight;
+    bool  rfGate1Positive = (height1 >= 0.0);
+    qreal rfThreshold1 = qBound(0.0, height1 * 2.55 + 127.0, 255.0);
+
+    // -- Gate 0: search first echo according to option
+    // 0 = Premier maximum, 1 = Maximum absolu, 2 = Front Montant
     int indexPremierEcho = 0;
     int indexPremierEchoValue = 0;
-    for(int i=debut1Pic;i<fin1Pic;i++)
-    {
-        if(signal[i]>signal[i-1] && signal[i]>=signal[i+1] && signal[i] > seuil1Pic && signal[i] > indexPremierEchoValue)
-        {
-            indexPremierEcho = i;
-            indexPremierEchoValue = signal[i];
+    quint8 optGate0 = m_pAScanTreated->getAScanMeasure()->m_paramGates0->m_paramDOption;
+
+    if (isRF) {
+        if (rfGate0Positive) {
+            // RF positive peak: local maximum above rfThreshold0
+            if (optGate0 == 2) {
+                for (int i = debut1Pic + 1; i < fin1Pic; i++) {
+                    if (signal[i] >= rfThreshold0 && signal[i-1] < rfThreshold0) {
+                        indexPremierEcho = i;
+                        indexPremierEchoValue = signal[i];
+                        break;
+                    }
+                }
+            } else {
+                for (int i = debut1Pic; i < fin1Pic; i++) {
+                    if (signal[i] > signal[i-1] && signal[i] >= signal[i+1]
+                        && signal[i] > rfThreshold0 && signal[i] > indexPremierEchoValue) {
+                        indexPremierEcho = i;
+                        indexPremierEchoValue = signal[i];
+                    }
+                    if (signal[i] < rfThreshold0 && indexPremierEcho != 0 && optGate0 == 0)
+                        break;
+                }
+            }
+        } else {
+            // RF negative peak: local minimum below rfThreshold0
+            indexPremierEchoValue = 255;
+            if (optGate0 == 2) {
+                for (int i = debut1Pic + 1; i < fin1Pic; i++) {
+                    if (signal[i] <= rfThreshold0 && signal[i-1] > rfThreshold0) {
+                        indexPremierEcho = i;
+                        indexPremierEchoValue = signal[i];
+                        break;
+                    }
+                }
+            } else {
+                for (int i = debut1Pic; i < fin1Pic; i++) {
+                    if (signal[i] < signal[i-1] && signal[i] <= signal[i+1]
+                        && signal[i] < rfThreshold0 && signal[i] < indexPremierEchoValue) {
+                        indexPremierEcho = i;
+                        indexPremierEchoValue = signal[i];
+                    }
+                    if (signal[i] > rfThreshold0 && indexPremierEcho != 0 && optGate0 == 0)
+                        break;
+                }
+            }
         }
-        // Continue to find a max only if not found, or found but still over thresold Gate1
-        if( signal[i] < seuil1Pic && indexPremierEcho != 0 ) {
-            // Do not find max anymore
-            break;
+    } else {
+        if(optGate0 == 2) {
+            // Crête graissant: first rising-edge crossing of the threshold
+            for(int i = debut1Pic + 1; i < fin1Pic; i++) {
+                if(signal[i] >= seuil1Pic && signal[i-1] < seuil1Pic) {
+                    indexPremierEcho = i;
+                    indexPremierEchoValue = signal[i];
+                    break;
+                }
+            }
+        } else {
+            // Premier maximum (0): stop at first signal drop below threshold
+            // Maximum absolu  (1): scan entire gate, keep highest peak
+            for(int i = debut1Pic; i < fin1Pic; i++) {
+                if(signal[i] > signal[i-1] && signal[i] >= signal[i+1]
+                   && signal[i] > seuil1Pic && signal[i] > indexPremierEchoValue) {
+                    indexPremierEcho = i;
+                    indexPremierEchoValue = signal[i];
+                }
+                if(signal[i] < seuil1Pic && indexPremierEcho != 0) {
+                    if(optGate0 == 0)
+                        break;
+                }
+            }
         }
     }
-    if(indexPremierEcho != 0)
-        //Si un premier pic est trouvé alors on l'ajoute dans une liste et on recherche tous les suivants après.
-    {
+
+    if(indexPremierEcho != 0) {
         listePics.append(indexPremierEcho);
     }
 
-    if(listePics.size() > 0)
-        //On cherche tous les pics présents dans le signal :
+    // -- Gate 0: search the 2nd echo (used by "Auto Sync Porte" to place Gate 1 on it)
+    // An echo is a lobe of the signal beyond the Gate 0 threshold, located at its extremum.
+    // Lobes closer than distanceMiniEntrePic to the previous echo belong to the same echo
+    // (RF oscillations, split peaks): only the strongest one is kept.
     {
-        qint32 indexListe = 1;
-        for(int i = debutSignal +1; i<finSignal-1;i++)
-        {
-            if(signal[i] > signal[i - 1] && signal[i] >= signal[i+1] &&
-                    signal[i] > seuilBruit && ((i- listePics.at(indexListe-1) > distanceMiniEntrePic) || signal[i]>signal[listePics.at(indexListe-1)]))
-                //On cherche tous les pics à condition qu'il soit séparé d'une distance minimale. Cependant, on peut accepter un pic proche d'un autre s'il est plus grand que le précédant.
-            {
-                if(indexListe>2)
-                {
-                    if(i-listePics.at(indexListe-1) < distanceMiniEntrePic && signal[i] > signal[listePics.at(indexListe-1)])
-                        //Si plusieurs pics sont proches les uns des autres, on ne garde que le plus grand d'entre eux.
-                    {
-                        listePics.removeAt(listePics.size()-1);
-                        indexListe--;
+        const bool  rfNegative = isRF && !rfGate0Positive;
+        const qreal threshold  = isRF ? rfThreshold0 : seuil1Pic;
+        QList<qint32> echoes;
+        qint32 lobeIndex = -1;
+        for(int i = debut1Pic; i <= fin1Pic && echoes.size() <= 2; i++) {
+            bool beyond = (i < fin1Pic) && (rfNegative ? signal[i] < threshold : signal[i] > threshold);
+            if(beyond) {
+                if(lobeIndex < 0 || (rfNegative ? signal[i] < signal[lobeIndex] : signal[i] > signal[lobeIndex])) {
+                    lobeIndex = i;
+                }
+            } else if(lobeIndex >= 0) {
+                if(echoes.isEmpty() || lobeIndex - echoes.last() > distanceMiniEntrePic) {
+                    echoes.append(lobeIndex);
+                } else if(rfNegative ? signal[lobeIndex] < signal[echoes.last()] : signal[lobeIndex] > signal[echoes.last()]) {
+                    echoes.last() = lobeIndex;
+                }
+                lobeIndex = -1;
+            }
+        }
+        m_pAScanTreated->getAScanMeasure()->m_indexSecondEchoGate0 = (echoes.size() >= 2) ? echoes.at(1) : -1;
+    }
+
+    // -- Gate 1: search subsequent echoes according to option
+    // 0 = Premier maximum, 1 = Maximum absolu, 2 = Crête graissant
+    if(listePics.size() > 0) {
+        quint8 optGate1 = m_pAScanTreated->getAScanMeasure()->m_paramGates1->m_paramDOption;
+
+        if (isRF) {
+            if (rfGate1Positive) {
+                // RF Gate 1 positive peaks
+                if (optGate1 == 2) {
+                    for (int i = debutSignal + 1; i < finSignal; i++) {
+                        if (signal[i] >= rfThreshold1 && signal[i-1] < rfThreshold1) {
+                            if (i - listePics.last() > distanceMiniEntrePic)
+                                listePics.append(i);
+                        }
+                    }
+                } else {
+                    qint32 indexListe = 1;
+                    for (int i = debutSignal + 1; i < finSignal - 1; i++) {
+                        if (signal[i] > signal[i-1] && signal[i] >= signal[i+1] &&
+                            signal[i] > rfThreshold1 &&
+                            ((i - listePics.at(indexListe-1) > distanceMiniEntrePic) || signal[i] > signal[listePics.at(indexListe-1)])) {
+                            if (indexListe > 2 && i - listePics.at(indexListe-1) < distanceMiniEntrePic
+                                && signal[i] > signal[listePics.at(indexListe-1)]) {
+                                listePics.removeAt(listePics.size()-1);
+                                indexListe--;
+                            }
+                            listePics.append(i);
+                            indexListe++;
+                            if (qAbs(listePics.at(indexListe-1) - listePics.at(indexListe-2)) < distanceMiniEntrePic) {
+                                if (listePics.at(indexListe-1) < listePics.at(indexListe-2))
+                                    listePics.removeAt(indexListe-1);
+                                else
+                                    listePics.removeAt(indexListe-2);
+                                indexListe--;
+                            }
+                        }
                     }
                 }
-
-                listePics.append(i);
-                indexListe++;
-
-                if(qAbs(listePics.at(indexListe-1) - listePics.at(indexListe-2)) < distanceMiniEntrePic)
-                {
-                    if(listePics.at(indexListe-1) < listePics.at(indexListe-2))
-                    {
-                        listePics.removeAt(indexListe-1);
-                    }else
-                    {
-                        listePics.removeAt(indexListe-2);
+            } else {
+                // RF Gate 1 negative peaks
+                if (optGate1 == 2) {
+                    for (int i = debutSignal + 1; i < finSignal; i++) {
+                        if (signal[i] <= rfThreshold1 && signal[i-1] > rfThreshold1) {
+                            if (i - listePics.last() > distanceMiniEntrePic)
+                                listePics.append(i);
+                        }
                     }
-                    indexListe--;
+                } else {
+                    qint32 indexListe = 1;
+                    for (int i = debutSignal + 1; i < finSignal - 1; i++) {
+                        if (signal[i] < signal[i-1] && signal[i] <= signal[i+1] &&
+                            signal[i] < rfThreshold1 &&
+                            ((i - listePics.at(indexListe-1) > distanceMiniEntrePic) || signal[i] < signal[listePics.at(indexListe-1)])) {
+                            if (indexListe > 2 && i - listePics.at(indexListe-1) < distanceMiniEntrePic
+                                && signal[i] < signal[listePics.at(indexListe-1)]) {
+                                listePics.removeAt(listePics.size()-1);
+                                indexListe--;
+                            }
+                            listePics.append(i);
+                            indexListe++;
+                            if (qAbs(listePics.at(indexListe-1) - listePics.at(indexListe-2)) < distanceMiniEntrePic) {
+                                // Keep the more negative peak (lower sample value)
+                                if (signal[listePics.at(indexListe-1)] < signal[listePics.at(indexListe-2)])
+                                    listePics.removeAt(indexListe-2);
+                                else
+                                    listePics.removeAt(indexListe-1);
+                                indexListe--;
+                            }
+                        }
+                    }
+                }
+            }
+        } else {
+            if(optGate1 == 2) {
+                // Crête graissant: rising-edge threshold crossings in Gate 1
+                for(int i = debutSignal + 1; i < finSignal; i++) {
+                    if(signal[i] >= seuilBruit && signal[i-1] < seuilBruit) {
+                        if(i - listePics.last() > distanceMiniEntrePic) {
+                            listePics.append(i);
+                        }
+                    }
+                }
+            } else {
+                // Premier maximum (0) or Maximum absolu (1): peak search for multi-echo
+                qint32 indexListe = 1;
+                for(int i = debutSignal + 1; i < finSignal - 1; i++)
+                {
+                    if(signal[i] > signal[i - 1] && signal[i] >= signal[i+1] &&
+                            signal[i] > seuilBruit && ((i - listePics.at(indexListe-1) > distanceMiniEntrePic) || signal[i] > signal[listePics.at(indexListe-1)]))
+                    {
+                        if(indexListe > 2)
+                        {
+                            if(i - listePics.at(indexListe-1) < distanceMiniEntrePic && signal[i] > signal[listePics.at(indexListe-1)])
+                            {
+                                listePics.removeAt(listePics.size()-1);
+                                indexListe--;
+                            }
+                        }
+
+                        listePics.append(i);
+                        indexListe++;
+
+                        if(qAbs(listePics.at(indexListe-1) - listePics.at(indexListe-2)) < distanceMiniEntrePic)
+                        {
+                            if(listePics.at(indexListe-1) < listePics.at(indexListe-2))
+                            {
+                                listePics.removeAt(indexListe-1);
+                            } else {
+                                listePics.removeAt(indexListe-2);
+                            }
+                            indexListe--;
+                        }
+                    }
                 }
             }
         }

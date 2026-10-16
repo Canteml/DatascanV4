@@ -72,6 +72,7 @@ public :
     Q_INVOKABLE void emergencyStop() const; ///< request an emergency stop for all devices
 
     void clearAScan();///< remove all remaining data in AScan functions
+    void activateStandalone();
 
     // -- List of functions
     Q_INVOKABLE VectorFuncAScan * funcAScan0() const;

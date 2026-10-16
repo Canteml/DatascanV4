@@ -16,6 +16,7 @@
 #include <v2/scan/Surface1d.h>
 #include <v2/scan/Location1d.h>
 #include <v2/exam/ExportCsv.h>
+#include <v2/exam/ImportToml.h>
 #include <v2/vector/VectorManager.h>
 #include <v2/vector/VectorFuncPosition.h>
 #include <v2/scan/MepMatrix.h>
@@ -25,6 +26,10 @@
 #include <QtMath>
 #include <QFileInfo>
 #include <QDir>
+#include <QUrl>
+#include <QDebug>
+#include <QDate>
+#include <QRegularExpression>
 
 ExamManager* ExamManager::m_pMyInstance = nullptr;
 
@@ -43,12 +48,32 @@ ExamManager::ExamManager() : XmlSettingsLoggable("ExamManager")
     m_isMepAutoMode = false;
     m_measureDisplay = MEASURE_ME;
     m_examStep = EXAM_STOPPED;
-    m_examWriteProgress = 0;
     m_mepZoom = 1.0;
 
+    m_objectRobeDiameter = 0;
+    m_objectTuyauterieDiametreMm = 0;
+    m_objectTuyauterieDiametreIn = 0;
+    m_objectTuyauterieEpaisseur = 0;
+    m_objectTuyauterieLingueur = 0;
+    m_objectCoqueLongueur = 0;
+    m_objectFondDiametre = 0;
+    m_objectFondNbAnnulaires = 0;
+    m_objectFondNbCentrales = 0;
+    m_objectToitDiametre = 0;
+    m_objectToitEpNominale = 0;
+
+    m_firstImport = false;
+    m_securityPlannedMissing = false;
+    m_securityMissingFile = false;
+    m_securityModifiedFile = false;
+    m_securityIncompatibleDate = false;
+    m_securityNonReadable = false;
+    m_importFileImported = false;
+    m_importKeyMismatch = false;
+    m_plannerSnapshotValid = false;
+
     m_pExportCsv = new ExportCsv();
-    connect(m_pExportCsv, &ExportCsv::evProgessChanged, this, &ExamManager::onExportProgressChanged, Qt::QueuedConnection);
-    connect(m_pExportCsv, &ExportCsv::evExportTerminated, this, &ExamManager::onExportTerminatedChanged, Qt::QueuedConnection);
+    connect(m_pExportCsv, &ExportCsv::evError, this, &ExamManager::onExportError, Qt::QueuedConnection);
 }
 
 ExamManager::~ExamManager()
@@ -73,8 +98,7 @@ ExamManager::~ExamManager()
     delete m_pMepMatrix;
     m_pMepMatrix = nullptr;
 
-    m_pExportCsv->cancelExport();
-    delete m_pExportCsv;
+    delete m_pExportCsv;    // close the CSV if an acquisition is running
     m_pExportCsv = nullptr;
 }
 
@@ -268,6 +292,476 @@ void ExamManager::setExamOrigin(const QString& p_value)
         m_examOrigin = p_value;
         emit evExamOriginChanged(m_examOrigin);
     }
+}
+
+
+// -- Planner import (TOML) setters
+
+QString ExamManager::getEquipmentNom() const
+{
+    return m_equipmentNom;
+}
+
+void ExamManager::setEquipmentNom(const QString& p_value)
+{
+    if(p_value != m_equipmentNom) {
+        m_equipmentNom = p_value;
+        emit evEquipmentNomChanged(m_equipmentNom);
+    }
+}
+
+QString ExamManager::equipmentNumero() const
+{
+    return m_equipmentNumero;
+}
+
+void ExamManager::setEquipmentNumero(const QString& p_value)
+{
+    if(p_value != m_equipmentNumero) {
+        m_equipmentNumero = p_value;
+        emit equipmentNumeroChanged(m_equipmentNumero);
+    }
+}
+
+QString ExamManager::equipmentDate() const
+{
+    return m_equipmentDate;
+}
+
+void ExamManager::setEquipmentDate(const QString& p_value)
+{
+    if(m_equipmentDate == p_value)
+        return;
+    m_equipmentDate = p_value;
+    equipmentDateCheck(m_equipmentDate);
+    emit equipmentDateChanged(m_equipmentDate);
+}
+
+bool ExamManager::getDateValide() const
+{
+    return m_dateValide;
+}
+
+void ExamManager::equipmentDateCheck(const QString& p_date)
+{
+    const QDate date = QDate::fromString(p_date.trimmed(), "dd/MM/yyyy");
+
+    bool bValide = false;
+    if (!date.isValid()){
+        qDebug() << "[ExamManager] [equipmentDateCheck] Formato data non valido dd/MM/yyyy";
+    } else if(date < QDate::currentDate()){
+        qDebug() << "Licenza scaduta";
+    } else {
+        qDebug() << "Licenza valida";
+        bValide = true;
+    }
+
+    if(bValide != m_dateValide) {
+        m_dateValide = bValide;
+        emit evDateValideChanged(m_dateValide);
+    }
+}
+
+double ExamManager::equipmentFrequency() const
+{
+    return m_equipmentFrequency;
+}
+
+void ExamManager::setEquipmentFrequency(double p_value)
+{
+    if(p_value != m_equipmentFrequency) {
+        m_equipmentFrequency = p_value;
+        emit equipmentFrequencyChanged(m_equipmentFrequency);
+    }
+}
+
+QString ExamManager::sondeNbVoies() const
+{
+    return m_sondeNbVoies;
+}
+
+void ExamManager::setSondeNbVoies(const QString& p_value)
+{
+    if(p_value != m_sondeNbVoies) {
+        m_sondeNbVoies = p_value;
+        emit sondeNbVoiesChanged(m_sondeNbVoies);
+    }
+}
+
+QString ExamManager::sondeNumero() const
+{
+    return m_sondeNumero;
+}
+
+void ExamManager::setSondeNumero(const QString& p_value)
+{
+    if(p_value != m_sondeNumero) {
+        m_sondeNumero = p_value;
+        if(p_value == "multi"){
+        }
+        emit sondeNumeroChanged(m_sondeNumero);
+    }
+}
+
+QString ExamManager::controlleurNom() const
+{
+    return m_controlleurNom;
+}
+
+void ExamManager::setControlleurNom(const QString& p_value)
+{
+    if(p_value != m_controlleurNom) {
+        m_controlleurNom = p_value;
+        if(p_value == "multi"){
+        }
+        emit controlleurNomChanged(m_controlleurNom);
+    }
+}
+
+QString ExamManager::sondeAnee() const
+{
+    return m_sondeAnee;
+}
+
+void ExamManager::setSondeAnee(const QString& p_value)
+{
+    if(p_value != m_sondeAnee) {
+        m_sondeAnee = p_value;
+        sondeDateCheck(m_sondeAnee);
+        emit sondeAneeChanged(m_sondeAnee);
+    }
+}
+
+bool ExamManager::getSondeDateValide() const
+{
+    return m_sondeDateValide;
+}
+
+void ExamManager::sondeDateCheck(const QString& p_date)
+{
+    const QDate date = QDate::fromString(p_date.trimmed(), "dd/MM/yyyy");
+
+    bool bValide = false;
+    if (!date.isValid()){
+        qDebug() << "[ExamManager] [sondeDateCheck] Formato data non valido dd/MM/yyyy";
+    } else if(date < QDate::currentDate()){
+        qDebug() << "Licenza scaduta";
+    } else {
+        qDebug() << "Licenza valida";
+        bValide = true;
+    }
+
+    if(bValide != m_sondeDateValide) {
+        m_sondeDateValide = bValide;
+        emit evSondeDateValideChanged(m_sondeDateValide);
+    }
+}
+
+// USer Name Control
+QString ExamManager::inputUserName() const
+{
+    return m_inputUserName;
+}
+
+void ExamManager::setInputUserName(const QString& p_value)
+{
+    if(m_inputUserName == p_value)
+        return;
+    m_inputUserName = p_value;
+    emit inputUserNameChanged();
+}
+
+QString ExamManager::inputUSerPassword() const
+{
+    return m_inputUSerPassword;
+}
+
+void ExamManager::setInputUSerPassword(const QString& p_value)
+{
+    if(m_inputUSerPassword == p_value)
+        return;
+    m_inputUSerPassword = p_value;
+    emit inputUSerPasswordChanged();
+}
+
+bool ExamManager::inputValidCheck() const
+{
+    return m_inputValidCheck;
+}
+
+void ExamManager::setInputValidCheck(bool value)
+{
+    if(m_inputValidCheck == value)
+        return;
+    m_inputValidCheck = value;
+    emit inputValidCheckChanged();
+}
+
+void ExamManager::inputUserControl()
+{
+    QString name = inputUserName();
+    QString password = inputUSerPassword();
+
+    setInputValidCheck(name == "Roboplanet" && password == "Roboplanet");
+}
+
+void ExamManager::setObjectType(const QString& p_value)          { m_objectType = p_value; }
+void ExamManager::setObjectProduit(const QString& p_value)       { m_objectProduit = p_value; }
+void ExamManager::setObjectRobeDiameter(double p_value)          { m_objectRobeDiameter = p_value; }
+void ExamManager::setObjectTuyauterieDiametreMm(double p_value)  { m_objectTuyauterieDiametreMm = p_value; }
+void ExamManager::setObjectTuyauterieDiametreIn(double p_value)  { m_objectTuyauterieDiametreIn = p_value; }
+void ExamManager::setObjectTuyauterieEpaisseur(double p_value)   { m_objectTuyauterieEpaisseur = p_value; }
+void ExamManager::setObjectTuyauterieLingueur(double p_value)    { m_objectTuyauterieLingueur = p_value; }
+void ExamManager::setObjectCoquePosition(const QString& p_value) { m_objectCoquePosition = p_value; }
+void ExamManager::setObjectCoqueOrientation(const QString& p_value) { m_objectCoqueOrientation = p_value; }
+void ExamManager::setObjectCoqueLongueur(double p_value)         { m_objectCoqueLongueur = p_value; }
+void ExamManager::setObjectFondDiametre(double p_value)          { m_objectFondDiametre = p_value; }
+void ExamManager::setObjectFondNbAnnulaires(int p_value)         { m_objectFondNbAnnulaires = p_value; }
+void ExamManager::setObjectFondNbCentrales(int p_value)          { m_objectFondNbCentrales = p_value; }
+void ExamManager::setObjectToitDiametre(double p_value)          { m_objectToitDiametre = p_value; }
+void ExamManager::setObjectToitEpNominale(double p_value)        { m_objectToitEpNominale = p_value; }
+void ExamManager::setObjectToitType(const QString& p_value)      { m_objectToitType = p_value; }
+
+void ExamManager::setInspProductDensity(const QString& p_value)  { m_inspProductDensity = p_value; }
+void ExamManager::setInspFillingHeight(const QString& p_value)   { m_inspFillingHeight = p_value; }
+
+void ExamManager::setInspSectionCount(const QString& p_value)
+{
+    m_inspSectionCount = p_value;
+
+    // -- keep the per-virole table sized to the section count
+    const int count = qMax(0, p_value.toInt());
+    while( m_inspViroleLengths.size() > count )     m_inspViroleLengths.removeLast();
+    while( m_inspViroleThicknesses.size() > count ) m_inspViroleThicknesses.removeLast();
+    while( m_inspViroleSteelGrades.size() > count ) m_inspViroleSteelGrades.removeLast();
+    while( m_inspViroleLengths.size() < count )     m_inspViroleLengths.append(QString());
+    while( m_inspViroleThicknesses.size() < count ) m_inspViroleThicknesses.append(QString());
+    while( m_inspViroleSteelGrades.size() < count ) m_inspViroleSteelGrades.append(QString());
+}
+
+void ExamManager::setInspViroleLength(int p_index, const QString& p_value)
+{
+    if( p_index >= 0 && p_index < m_inspViroleLengths.size() ) {
+        m_inspViroleLengths[p_index] = p_value;
+    }
+}
+
+void ExamManager::setInspViroleThickness(int p_index, const QString& p_value)
+{
+    if( p_index >= 0 && p_index < m_inspViroleThicknesses.size() ) {
+        m_inspViroleThicknesses[p_index] = p_value;
+    }
+}
+
+void ExamManager::setInspViroleSteelGrade(int p_index, const QString& p_value)
+{
+    if( p_index >= 0 && p_index < m_inspViroleSteelGrades.size() ) {
+        m_inspViroleSteelGrades[p_index] = p_value;
+    }
+}
+
+void ExamManager::setMepVerticalDirection(const QString& p_value)   { m_mepVerticalDirection = p_value; }
+void ExamManager::setMepHorizontalDirection(const QString& p_value) { m_mepHorizontalDirection = p_value; }
+
+QMap<QString, QString> ExamManager::captureTrackedParams() const
+{
+    QMap<QString, QString> p;
+
+    // -- [equipment] block
+    p.insert("equipmentNom",               m_equipmentNom);
+
+    // -- [object] block
+    p.insert("objectType",                 m_objectType);
+    p.insert("structName",                 m_structName);
+    p.insert("siteName",                   m_site);
+    p.insert("objectProduit",              m_objectProduit);
+    p.insert("objectRobeDiameter",         QString::number(m_objectRobeDiameter));
+    p.insert("objectTuyauterieDiametreMm", QString::number(m_objectTuyauterieDiametreMm));
+    p.insert("objectTuyauterieDiametreIn", QString::number(m_objectTuyauterieDiametreIn));
+    p.insert("objectTuyauterieEpaisseur",  QString::number(m_objectTuyauterieEpaisseur));
+    p.insert("objectTuyauterieLingueur",   QString::number(m_objectTuyauterieLingueur));
+    p.insert("objectCoquePosition",        m_objectCoquePosition);
+    p.insert("objectCoqueOrientation",     m_objectCoqueOrientation);
+    p.insert("objectCoqueLongueur",        QString::number(m_objectCoqueLongueur));
+    p.insert("objectFondDiametre",         QString::number(m_objectFondDiametre));
+    p.insert("objectFondNbAnnulaires",     QString::number(m_objectFondNbAnnulaires));
+    p.insert("objectFondNbCentrales",      QString::number(m_objectFondNbCentrales));
+    p.insert("objectToitDiametre",         QString::number(m_objectToitDiametre));
+    p.insert("objectToitEpNominale",       QString::number(m_objectToitEpNominale));
+    p.insert("objectToitType",             m_objectToitType);
+
+    // -- Inspection parameters
+    p.insert("inspDiameter",             m_inspDiameter);
+    p.insert("inspHeight",               m_inspHeight);
+    p.insert("inspLength",               m_inspLength);
+    p.insert("inspProductDensity",       m_inspProductDensity);
+    p.insert("inspFillingHeight",        m_inspFillingHeight);
+    p.insert("inspPressure",             m_inspPressure);
+    p.insert("inspSectionCount",         m_inspSectionCount);
+    p.insert("inspSteelQuality",         m_inspSteelQuality);
+    p.insert("inspOriginalThickness",    m_inspOriginalThickness);
+    p.insert("inspGeneratricesCount",    m_inspGeneratricesCount);
+    p.insert("inspRaysCount",            m_inspRaysCount);
+    p.insert("inspFirstGeneratricePos",  m_inspFirstGeneratricePos);
+    p.insert("inspAnnotations",          m_inspAnnotations);
+
+    // -- Per-virole table
+    for (int i = 0; i < m_inspViroleLengths.size(); ++i)
+        p.insert(QStringLiteral("inspViroleLength[%1]").arg(i), m_inspViroleLengths.at(i));
+    for (int i = 0; i < m_inspViroleThicknesses.size(); ++i)
+        p.insert(QStringLiteral("inspViroleThickness[%1]").arg(i), m_inspViroleThicknesses.at(i));
+    for (int i = 0; i < m_inspViroleSteelGrades.size(); ++i)
+        p.insert(QStringLiteral("inspViroleSteelGrade[%1]").arg(i), m_inspViroleSteelGrades.at(i));
+
+    // -- [acquisition] / [grille] block
+    p.insert("controlType", QString::number(m_controlType));
+    p.insert("mepNbRow",    QString::number(m_mepNbRow));
+    p.insert("mepNbCol",    QString::number(m_mepNbCol));
+
+    return p;
+}
+
+bool ExamManager::importPlannerToml(const QString& p_filePath)
+{
+    QString filePath = p_filePath;
+    const QUrl url(filePath);
+    if( url.isLocalFile() ) {
+        filePath = url.toLocalFile();
+    }
+
+    // -- Loading a planner leaves the free session mode
+    setFreeSession(false);
+
+    ImportToml importer(filePath);
+    const bool ok = importer.read();
+
+    // -- security check results -> QML (CentralPage0.qml)
+    m_firstImport              = importer.firstImport();
+    m_securityPlannedMissing   = importer.securityPlannedMissing();
+    m_securityMissingFile      = importer.securityMissingFile();
+    m_securityModifiedFile     = importer.securityModifiedFile();
+    m_securityIncompatibleDate = importer.securityIncompatibleDate();
+    m_securityNonReadable      = importer.securityNonReadable();
+    m_importMessages           = importer.messages();
+    emit securityCheckChanged();
+
+    // -- planner key state captured now, replayed into the manifest at export time
+    m_importFileImported = importer.fileIsImported();
+    m_importKeyMismatch  = importer.keyIsValid();
+    m_importComputedKey  = importer.computedKey();
+    m_importOriginalKey  = importer.originalKey();
+    m_importFileName     = importer.importedFileName();
+
+    if( !ok ) {
+        return false;
+    }
+
+    // -- [schema] block -> "Nom de la structure" (CentralPage0.qml)
+    setStructName(importer.tomlSchemaNom());
+    setSiteName(importer.tomlSchemaSite());
+    setSondeNumero(importer.sondeNumero());
+    setControlleurNom(importer.controlleurNom());
+
+    // -- [equipment] block
+    setEquipmentNom(importer.tomlEquipmentNom());
+    setEquipmentNumero(importer.tomlEquipmentNumero());
+    setEquipmentDate(importer.tomlEquipmentDate());
+
+    // -- [object] block -> exam parameters
+    setObjectType(importer.objectType());
+    if( importer.objectType() == "robe" ) {
+        setObjectProduit(importer.objectProduit());
+        setObjectRobeDiameter(importer.robeDiametre());
+        setInspProductDensity(importer.objectDensity());
+        setInspFillingHeight(importer.objectHauter());
+    }else if(importer.objectType() == "tuyauterie") {
+        setObjectTuyauterieDiametreMm(importer.tuyauterieDiametreMm());
+        setObjectTuyauterieDiametreIn(importer.tuyauterieDiametreIn());
+        setObjectTuyauterieEpaisseur(importer.tuyauterieEpaisseur());
+        setObjectTuyauterieLingueur(importer.tuyauterieLongueur());
+    }else if( importer.objectType() == "coque" ) {
+        setObjectCoquePosition(importer.coquePositionX());
+        setObjectCoqueOrientation(importer.coqueOrientation());
+        setObjectCoqueLongueur(importer.coqueLongueur());
+    }else if( importer.objectType() == "fond" ) {
+        setObjectFondDiametre(importer.fondDiametre());
+        setObjectFondNbAnnulaires(static_cast<int>(importer.fondNbAnnulair()));
+        setObjectFondNbCentrales(static_cast<int>(importer.fondNbCentrale()));
+    }else if( importer.objectType() == "toit" ) {
+        setObjectToitDiametre(importer.toitDiametre());
+        setObjectToitEpNominale(importer.toitEpNominale());
+        setObjectToitType(importer.toitType());
+    }
+
+    // -- [geometrie.robe].nb_viroles + [[virole]] -> per-virole table
+    const QVector<ImportToml::Virole> viroles = importer.viroles();
+    setInspSectionCount(QString::number(viroles.size()));
+    for( int i = 0; i < viroles.size(); ++i ) {
+        const ImportToml::Virole &v = viroles.at(i);
+        setInspViroleLength(i, QString::number(v.viroleHauteur));
+        setInspViroleThickness(i, QString::number(v.viroleEpNominale));
+        setInspViroleSteelGrade(i, v.viroleNuance);
+    }
+
+    // -- [acquisition] block -> Plan de controle
+    // "bscan"          -> CONTROL_BSCAN_GENERATRIX (controlType 0)
+    // "point_par_point" -> CONTROL_BSCAN_MEP        (controlType 1)
+    const QString acquisitionMode = importer.geometrieReferentiel().trimmed().toLower();
+    if( acquisitionMode == "libre" ) {
+        setControlType(CONTROL_BSCAN_MEP);
+
+        if(importer.objectType() == "robe") {
+            setMepPerimeter((importer.robeDiametre() * 3.14));
+            setMepDiameter(importer.robeDiametre());
+        }
+
+        // -- [Grille] block -> MEP grid size (P3BottomMepView)
+        // nb_lignes  -> mepNbRow (rows), nb_colonnes -> mepNbCol (columns)
+        if( importer.geometrieGeneratrices() > 0 ) {
+            setMepNbRow(static_cast<quint32>(importer.geometrieGeneratrices()));
+        }
+        if( importer.grilleNbColonnes() > 0 ) {
+            setMepNbCol(static_cast<quint32>(importer.grilleNbColonnes()));
+        }
+
+        // -- [Reperage] block -> MEP direction (CentralPage6.qml)
+        // sens_acquisition -> mepVerticalDirection, sens_rotation -> mepHorizontalDirection
+        if( !importer.reperageSensAcquisition().isEmpty() ) {
+            setMepVerticalDirection(importer.reperageSensAcquisition());
+        }
+        if( !importer.reperageSensRotation().isEmpty() ) {
+            setMepHorizontalDirection(importer.reperageSensRotation());
+        }
+
+    } else {
+        setControlType(CONTROL_BSCAN_GENERATRIX);
+    }
+
+    // -- Baseline for the [[modification]] tracking: every tracked parameter as
+    // it stands right after the planner values have been applied.
+    m_plannerSnapshot      = captureTrackedParams();
+    m_plannerSnapshotValid = true;
+
+    return true;
+}
+
+bool ExamManager::isImportConforme() const
+{
+    for( const QVariant &msg : m_importMessages ) {
+        if( msg.toMap().value("level").toString() != "ok" ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void ExamManager::setFreeSession(bool p_freeSession)
+{
+    if( m_freeSession == p_freeSession ) {
+        return;
+    }
+    m_freeSession = p_freeSession;
+    emit evFreeSessionChanged();
 }
 
 quint32 ExamManager::getControlType(void) const
@@ -626,7 +1120,13 @@ void ExamManager::setExamStep(qint32 p_value)
         if( EXAM_STOPPED == oldExamStep ) {
             if( CONTROL_BSCAN_GENERATRIX == m_controlType ) {
                 examStartBScan();
+                startCsvRecording();
             }
+        }
+
+        if( EXAM_EXPORTING == m_examStep || EXAM_STOPPED == m_examStep ) {
+            // end of acquisition : lines already queued are written, then the CSV is closed
+            m_pExportCsv->close();
         }
 
         if( EXAM_EXPORTING == m_examStep ) {
@@ -653,41 +1153,61 @@ bool ExamManager::isRecording() const
     return (EXAM_STOPPED == m_examStep || EXAM_RECORDING == m_examStep );
 }
 
-qint32 ExamManager::getExamWriteProgress() const
+void ExamManager::startCsvRecording()
 {
-    return m_examWriteProgress;
-}
+    m_exportFullFileName.clear();
+    m_journalFullFileName.clear();
 
-void ExamManager::setExamWriteProgress(qint32 p_value)
-{
-    m_examWriteProgress = p_value;
-    emit evExamWriteProgressChanged(m_examWriteProgress);
-}
-
-QString ExamManager::makeExamFullFileName(const QString &p_file) const
-{
-    QString fullFileName = QString("%1/%2").arg(m_exportFolder).arg(p_file);
-    if( fullFileName.right(4) != ".csv" ) {
-        fullFileName.append(".csv");
+    if( !QDir(m_exportFolder).exists() ) {
+        fLogError(QString("Invalid export folder : %1. CSV not created.").arg(m_exportFolder));
+        emit evExportErrorChanged(m_exportFolder);
+        return;
     }
-    return fullFileName;
+
+    // folder and file have the same name. Replace characters forbidden in file names.
+    QString baseName = getExamGeneratedFileName();
+    baseName.replace(QRegularExpression("[\\\\/:*?\"<>|]"), "_");
+    if( baseName.isEmpty() ) {
+        baseName = "exam";
+    }
+
+    // do not overwrite a previous acquisition : add a suffix _2, _3 ...
+    QDir exportDir(m_exportFolder);
+    QString name = baseName;
+    for(int i=2; exportDir.exists(name); i++) {
+        name = QString("%1_%2").arg(baseName).arg(i);
+    }
+
+    if( !exportDir.mkdir(name) ) {
+        fLogError(QString("Fail to create folder %1/%2. CSV not created.").arg(m_exportFolder).arg(name));
+        emit evExportErrorChanged(exportDir.filePath(name));
+        return;
+    }
+
+    QString folder = exportDir.filePath(name);
+    m_exportFullFileName = QString("%1/%2.csv").arg(folder).arg(name);
+    m_pExportCsv->open(m_exportFullFileName);
+    fLogInfo(QString("Export CSV : %1").arg(m_exportFullFileName));
+
+    // -- Journal of the acquisition, next to the CSV
+    m_journalFullFileName = QString("%1/journal.txt").arg(folder);
+    appendJournal("Fichier CSV", QString("%1.csv").arg(name));
+    appendJournal("Date de création", QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
+    appendJournal("Emplacement", QDir::toNativeSeparators(folder));
 }
 
-void ExamManager::startExamWrite(const QString &p_file)
+void ExamManager::appendJournal(const QString& p_key, const QString& p_value)
 {
-    // reset progress
-    setExamWriteProgress(0);
-    // make filename
-    QString fullFileName = makeExamFullFileName(p_file);
-    // start write
-    m_pExportCsv->startExport(fullFileName);
-    setExamStep(EXAM_EXPORTING);
-    fLogInfo(QString("Export CSV : %1").arg(fullFileName));
-}
-
-void ExamManager::cancelExamWrite()
-{
-    m_pExportCsv->cancelExport();
+    if( m_journalFullFileName.isEmpty() ) {
+        return;
+    }
+    QFile file(m_journalFullFileName);
+    if( !file.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text) ) {
+        fLogError("Fail to write journal file : " + m_journalFullFileName);
+        return;
+    }
+    QTextStream flux(&file);
+    flux << p_key << " = " << p_value << "\n";
 }
 
 QString ExamManager::getExamGeneratedFileName() const
@@ -699,26 +1219,9 @@ QString ExamManager::getExamGeneratedFileName() const
     return sRet;
 }
 
-qint32 ExamManager::checkFileName(const QString &p_file) const
-{
-    /////< return 0 if npo error, 1 if directory is invalid, 2 if the file already exists
-    qint32 iRet = 0;
-    // check path
-    if( !QDir(m_exportFolder).exists() ) {
-        iRet = 1;
-    } else {
-        // Check if the file name is not already used :
-        QString fullFileName = makeExamFullFileName(p_file);
-        if( QFileInfo::exists(fullFileName) ) {
-            iRet = 2;
-        }
-    }
-    return iRet;
-}
-
 QString ExamManager::getExportFullFileName() const
 {
-    return m_pExportCsv->getFileName();
+    return m_exportFullFileName;
 }
 
 // --
@@ -729,6 +1232,10 @@ void ExamManager::pushAScan(AScan *p_pAscan)
     if( nullptr != m_pSelectedLocation1d ) {    // BSCAN
         // For now, we only manage 1 BScan (for source 0)
         if( 0 == p_pAscan->m_source ) {
+            // write the measure in the CSV before giving the ASCAN to the location (it may delete it)
+            if( EXAM_RECORDING == m_examStep && CONTROL_BSCAN_GENERATRIX == m_controlType ) {
+                m_pExportCsv->appendAScan(p_pAscan);
+            }
             m_pSelectedLocation1d->pushAScan(p_pAscan);
         } else {
             delete p_pAscan;
@@ -1068,14 +1575,9 @@ void ExamManager::onLocationZoneChanged(Location1d * p_location)
     }
 }
 
-void ExamManager::onExportProgressChanged(qint32 p_value)
+void ExamManager::onExportError(QString p_fileName)
 {
-    setExamWriteProgress(p_value);
-}
-
-void ExamManager::onExportTerminatedChanged(bool p_success)
-{
-    emit evExportTerminatedChanged(p_success);
+    emit evExportErrorChanged(p_fileName);
 }
 
 void ExamManager::startWaitingForMepAScan()

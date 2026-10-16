@@ -27,6 +27,9 @@ class ExamPipeManager;
 class ClipboardAdapter;
 class MepExporter;
 class ProductLimiter;
+class UsKeyController;
+class AltiscanController;
+class EncoderController;
 
 class CoreApp : public CoreUiQml
 {
@@ -77,6 +80,15 @@ private :
 
     ProductLimiter* m_pProductLimiter;
 
+    UsKeyController* m_pUsKeyController;
+
     SoftwareLicenceChecker m_licence;
+
+    AltiscanController* m_pAltiscanController = nullptr;
+    QString m_encoderPort;
+
+    void updateReservedSerialPorts();
+
+    EncoderController* m_pEncoderController = nullptr;
 };
 

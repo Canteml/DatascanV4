@@ -77,6 +77,7 @@ public:
     Q_INVOKABLE QString getMainCameraId() const;
     bool getMainCameraIsAlarm() const;
     Q_INVOKABLE void assignPreviewAs(qint32 p_role);
+    Q_INVOKABLE void assignCameraToRole(qint32 p_role, qint32 p_cameraIndex);    ///< p_cameraIndex = -1 to un-assign
     bool getMainCameraSelectAuto() const;
     void setMainCameraSelectAuto(bool p_value);
 
@@ -193,4 +194,5 @@ private:
     VlcVideoSink* m_pPreviewVlcSink = nullptr;
 
     void startUsbPreview(QVideoSink* sink = nullptr);
+    void startMainUsbCamera();
 };

@@ -23,6 +23,9 @@ public:
     Q_INVOKABLE void setProdIndex(qint32 p_u32Index);
     Q_INVOKABLE qint32 getCurrentIndex();
 
+    Q_INVOKABLE void setProdId(qint32 p_s32ProdId);
+    Q_INVOKABLE qint32 getCurrentProdId();
+
     bool isPipeEnabled();
 
     QString getEquipmentFilePath();

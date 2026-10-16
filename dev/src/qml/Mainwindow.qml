@@ -32,7 +32,6 @@ Item {
     readonly property int page2_supervise : 2;
     readonly property int page3_scan: 3;
     readonly property int page4_licence: 4;
-    readonly property int page5_help: 5;
 
     property var displayMenu: false
 
@@ -43,38 +42,24 @@ Item {
 
         LicenceWarning {}
 
-        RowLayout {
+        Rectangle {
             id: rowBanner
             Layout.preferredHeight: 70
             Layout.minimumHeight: 70
             Layout.fillHeight: false
             Layout.fillWidth: true
-            spacing: 0
+            color: "#0D2B38"
+            border.color: Design.colBlackBorder
 
-            Button {
-                id: btMainMenu
-                Layout.preferredWidth: rowBanner.height
-                Layout.preferredHeight: rowBanner.height
-                highlighted: true
+            RowLayout {
+                anchors.fill: parent
+                spacing: 0
 
-                icon.source: "qrc:///img/icons/btMainMenuNormal.png"
-                icon.width: rowBanner.height
-                icon.height: rowBanner.height
-                icon.color: "transparent"
-
-                background: Rectangle {
-                    color: Design.colButtonSelectedBackground
-                    border.width: 1
-                    border.color: "black"
+                BannerVectorInfo {
+                    id: bannerVectorInfo
                 }
 
-                padding: 0
-
-                onHoveredChanged: checkMainMenuHovered();
             }
-
-            BannerVectorInfo {}
-
         }
 
         Rectangle {
@@ -94,7 +79,6 @@ Item {
                 CentralPage2 {}
                 CentralPage3 {}
                 CentralPage4 {}
-                CentralPage5 {}
             }
 
             ColumnLayout {
@@ -126,7 +110,6 @@ Item {
                         color: btCentralPage0.hovered ? Design.colButtonDarkHoveredText : slCentral.currentIndex === 0 ? Design.colButtonDarkSelectedText : Design.colButtonDarkText
                     }
 
-                    onHoveredChanged: checkMainMenuHovered();
                     onPressed: {globalManager.guiPage = page0_project; displayMenu = false;}
                 }
 
@@ -147,7 +130,6 @@ Item {
                         color: btCentralPage1.hovered ? Design.colButtonDarkHoveredText : slCentral.currentIndex === 1 ? Design.colButtonDarkSelectedText : Design.colButtonDarkText
                     }
 
-                    onHoveredChanged: checkMainMenuHovered();
                     onPressed: {globalManager.guiPage = page1_prepare; displayMenu = false;}
                 }
 
@@ -168,7 +150,6 @@ Item {
                         color: btCentralPage2.hovered ? Design.colButtonDarkHoveredText : slCentral.currentIndex === 2 ? Design.colButtonDarkSelectedText : Design.colButtonDarkText
                     }
 
-                    onHoveredChanged: checkMainMenuHovered();
                     onPressed: {globalManager.guiPage = page2_supervise; displayMenu = false;}
                 }
 
@@ -189,7 +170,6 @@ Item {
                         color: btCentralPage3.hovered ? Design.colButtonDarkHoveredText : slCentral.currentIndex === 3 ? Design.colButtonDarkSelectedText : Design.colButtonDarkText
                     }
 
-                    onHoveredChanged: checkMainMenuHovered();
                     onPressed: {globalManager.guiPage = page3_scan; displayMenu = false;}
                 }
 
@@ -210,31 +190,7 @@ Item {
                         color: btCentralPage4.hovered ? Design.colButtonDarkHoveredText : slCentral.currentIndex === 4 ? Design.colButtonDarkSelectedText : Design.colButtonDarkText
                     }
 
-                    onHoveredChanged: checkMainMenuHovered();
                     onPressed: {globalManager.guiPage = page4_licence; displayMenu = false;}
-                }
-
-                Button {
-
-                    id: btCentralPage5
-                    Layout.preferredWidth: 140
-                    Layout.preferredHeight: 60
-                    text: qsTr("AIDE")
-                    font.pointSize: 12
-                    background: Rectangle {
-                        color: Design.colButtonDarkBackground
-                    }
-                    contentItem: Text {
-                        text: btCentralPage5.text
-                        font: btCentralPage5.font
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        color: btCentralPage5.hovered ? Design.colButtonDarkHoveredText : slCentral.currentIndex === 5 ? Design.colButtonDarkSelectedText : Design.colButtonDarkText
-                    }
-
-
-                    onHoveredChanged: checkMainMenuHovered();
-                    onPressed: {globalManager.guiPage = page5_help; displayMenu = false;}
                 }
             }
         }
@@ -242,12 +198,12 @@ Item {
 
     onDisplayMenuChanged: {
         if( displayMenu ) {
-            btMainMenu.icon.source = "qrc:///img/icons/btMainMenuClicked.png"
-            btMainMenu.background.color = Design.colButtonDarkBackground
+            bannerVectorInfo.btMainMenu.icon.source = "qrc:///img/icons/btMainMenu.png"
+            bannerVectorInfo.btMainMenu.background.color = Design.colButtonSelectedBackground
 
         } else {
-            btMainMenu.icon.source = "qrc:///img/icons/btMainMenuNormal.png"
-            btMainMenu.background.color = Design.colButtonDarkHoveredBackground
+            bannerVectorInfo.btMainMenu.icon.source = "qrc:///img/icons/btMainMenu.png"
+            bannerVectorInfo.btMainMenu.background.color = Design.colButtonSelectedBackground
         }
 
         btCentralPage0.visible = displayMenu;
@@ -255,7 +211,6 @@ Item {
         btCentralPage2.visible = displayMenu;
         btCentralPage3.visible = displayMenu;
         btCentralPage4.visible = displayMenu;
-        btCentralPage5.visible = false;
     }
 
     Connections {
@@ -271,24 +226,22 @@ Item {
         btCentralPage2.background.color = globalManager.guiPage === page2_supervise ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
         btCentralPage3.background.color = globalManager.guiPage === page3_scan ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
         btCentralPage4.background.color = globalManager.guiPage === page4_licence ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
-        btCentralPage5.background.color = globalManager.guiPage === page5_help ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
         slCentral.currentIndex = globalManager.guiPage;
     }
 
-    function checkMainMenuHovered() {
-        var h = btMainMenu.hovered;
-        h +=  btCentralPage0.hovered;
-        h +=  btCentralPage1.hovered;
-        h +=  btCentralPage2.hovered;
-        h +=  btCentralPage3.hovered;
-        h +=  btCentralPage4.hovered;
-        h +=  btCentralPage5.hovered;
+    function toggleMainMenu() {
+        displayMenu = !displayMenu;
+    }
 
-        displayMenu = h;
+    Connections {
+        target: bannerVectorInfo.btMainMenu
+        function onPressed() {
+            toggleMainMenu();
+        }
     }
 
     Component.onCompleted: {
-        checkMainMenuHovered();
+        displayMenuChanged();
         slCentral.currentIndex = 1;
         Qt.callLater(function() {
             updateCentralPage();

@@ -12,17 +12,23 @@
         <file>DeviceLinkConfigForm.ui.qml</file>
         <file>imports/Design/Design.qml</file>
         <file>imports/Design/qmldir</file>
-        <file>P3/P3TopAscanCtrl.qml</file>
+        <file>imports/Fonts/Fonts.qml</file>
+        <file>imports/Fonts/qmldir</file>
+        <file>P3/P3AscanCtrl.qml</file>
+        <file>P3/P3SettingsBar.qml</file>
         <file>P3/P3TopAscan.qml</file>
-        <file>P3/P3TopCamSettings.qml</file>
         <file>P3/P3TopCam.qml</file>
-        <file>P3/P3TopSettingsAscan.qml</file>
         <file>P3/P3Top.qml</file>
         <file>P3/P3Bottom.qml</file>
+        <file>P3/P3BottomSettingsAScan.qml</file>
+        <file>P3/P3BottomSettingsBScan.qml</file>
+        <file>P3/P3BottomSettingsMep.qml</file>
+        <file>P3/P3BottomSensorsDisplay.qml</file>
+        <file>P3/P3RepeatButton.qml</file>
         <file>P3/P3BottomBScanCtrl.qml</file>
         <file>P3/P3BottomBScanView.qml</file>
+        <file>P3/P3VectorIO.qml</file>
         <file>P3/P3BottomVectorIO.qml</file>
-        <file>P3/P3TopSettingsBscan.qml</file>
         <file>rp_components/RpSpinBox.qml</file>
         <file>BannerBottomNavigate.qml</file>
         <file>rp_components/FormSection.qml</file>
@@ -31,14 +37,12 @@
         <file>P3/P3BottomPipeCtrl.qml</file>
         <file>P3/P3BottomPipeView.qml</file>
         <file>rp_components/PipeSensor.qml</file>
-        <file>CentralPage5.qml</file>
         <file>LicenceWarning.qml</file>
-        <file>P3/P3TopSensorsDisplay.qml</file>
         <file>P3/P3BottomMepView.qml</file>
-        <file>P3/P3TopSettingsMep.qml</file>
     </qresource>
     <qresource prefix="/img">
         <file>logo.png</file>
+        <file>icons/btMainMenu.png</file>
         <file>icons/btMainMenuClicked.png</file>
         <file>icons/btMainMenuNormal.png</file>
         <file>icons/btEmergencyStop.png</file>
@@ -72,6 +76,9 @@
         <file>icons/iconOk.png</file>
         <file>icons/iconOkDisabled.png</file>
         <file>icons/iconUndo.png</file>
+        <file>icons/new_column_left.png</file>
+        <file>icons/new_column_right.png</file>
+        <file>icons/delite_column.png</file>
         <file>icons/iconReport.png</file>
         <file>icons/iconUndoDisabled.png</file>
         <file>icons/iconReportDisabled.png</file>
@@ -107,5 +114,11 @@
         <file>icons/btAutoMove.png</file>
         <file>icons/btManualMove.png</file>
 	<file>icons/no_camera.png</file>
+	<file>icons/new_column_left.png</file>
+	<file>icons/new_column_right.png</file>
+	<file>icons/add_line_up.png</file>
+	<file>icons/add_line_down.png</file>
+	<file>icons/delite_line.png</file>
+	<file>icons/delite_column.png</file>
     </qresource>
 </RCC>

@@ -40,6 +40,12 @@ public:
 
     void updateAScan(AScan *);
 
+    // AutoGain param
+    void setAutoGainParams(bool enabled, qint16 threshold, quint16 noiseStart, quint16 noiseWidth);
+
+    // Measurement gate (used by AutoGain to restrict peak search)
+    void setMeasureGate(qreal startMm, qreal widthMm);
+
     MyJkQtPlotter * getPlot() const;
 
     void initAfterItemAdded();
@@ -81,6 +87,7 @@ private slots :
 private :
     void needRefresh(bool p_force);
     void draw();
+    int mmToDisplayIndex(qreal mm, AScan* pAScan) const;
 
     MyJkQtPlotter *m_pPlotAScan;
     JKQTPDatastore* m_dsAScan;
@@ -105,10 +112,23 @@ private :
     qreal m_mouseClickPressAxeXMin;
     qreal m_mouseClickPressAxeXMax;
 
+    // -- AutoGain Parameters
+    bool    m_autoGainEnabled       = false;
+    qint16  m_autoGainThreshold     = 5;
+    quint16 m_noiseGateStart        = 0;
+    quint16 m_noiseGateWidth        = 10;
+    qreal   m_lastValidScaleFactor  = 1.0;
+
+    // -- Measurement gate (Gate 0, in mm — same units as X axis)
+    qreal m_measureGateStart = 100.0;
+    qreal m_measureGateWidth = 200.0;
 
     // -- Settings
     qreal m_AxeXMin;
     qreal m_AxeXMax;
+    qreal m_AxeYMin = 0.0;     ///< -50 in RF mode (paramDWaveType == 3), 0 otherwise
+    qreal m_AxeYMax = 100.0;   ///< +50 in RF mode, 100 otherwise
+    QMetaObject::Connection m_waveTypeConnection;
 
     // -- Render
     AScanGraphWorker * m_pAScanGraphWorker;

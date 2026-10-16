@@ -366,7 +366,7 @@ Rectangle {
 
                     background: Rectangle {
                         color: (currentVector.funcMove().IsManualMode === false) ?
-                                   Design.colGreen : Design.colButtonBackground
+                                   Design.colGreen : "white"
                         border.color: Design.colFrameBorder
                         radius: 10
                     }
@@ -419,7 +419,7 @@ Rectangle {
 
                     background: Rectangle {
                        id: arrow_upRect
-                       color: (currentVector.funcMove().moveDir & 0b0100 ) ? Design.colBlueSelected : parent.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                       color: (currentVector.funcMove().moveDir & 0b0100 ) ? Design.colBlueSelected : parent.hovered ? Design.colButtonHoveredBackground : "white" //Design.colButtonBackground
                        border.color: Design.colFrameBorder
                        border.width: 1
                        radius: 4
@@ -458,7 +458,7 @@ Rectangle {
 
                    background: Rectangle {
                        id: arrow_leftRect
-                       color: (currentVector.funcMove().moveDir & 0b0001 ) ? Design.colBlueSelected : parent.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                       color: (currentVector.funcMove().moveDir & 0b0001 ) ? Design.colBlueSelected : parent.hovered ? Design.colButtonHoveredBackground : "white" //Design.colButtonBackground
                        border.color: Design.colFrameBorder
                        border.width: 1
                        radius: 4
@@ -482,7 +482,7 @@ Rectangle {
 
                    background: Rectangle {
                        id: arrow_downRect
-                       color: (currentVector.funcMove().moveDir & 0b1000 ) ? Design.colBlueSelected : parent.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                       color: (currentVector.funcMove().moveDir & 0b1000 ) ? Design.colBlueSelected : parent.hovered ? Design.colButtonHoveredBackground : "white" //Design.colButtonBackground
                        border.color: Design.colFrameBorder
                        border.width: 1
                        radius: 4
@@ -508,7 +508,7 @@ Rectangle {
 
                    background: Rectangle {
                        id: arrow_rightRect
-                       color: (currentVector.funcMove().moveDir & 0b0010 ) ? Design.colBlueSelected : parent.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                       color: (currentVector.funcMove().moveDir & 0b0010 ) ? Design.colBlueSelected : parent.hovered ? Design.colButtonHoveredBackground : "white" //Design.colButtonBackground
                        border.color: Design.colFrameBorder
                        border.width: 1
                        radius: 4

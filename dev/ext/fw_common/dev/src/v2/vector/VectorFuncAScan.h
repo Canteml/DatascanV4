@@ -50,6 +50,23 @@ class VectorFuncAScan : public GenVectorFunc {
     FUNC_PARAM_PRE_P_D(m_ascan.getAScanMeasure()->m_paramGates1->m_param, LGate1Width, LWidth, qreal, 8, FUNC_ASCAN_PARAM_L_GATE1_WIDTH, 200)
     FUNC_PARAM_PRE_P_D(m_ascan.getAScanMeasure()->m_paramGates1->m_param, LGate1Height, LHeight, qreal, 8, FUNC_ASCAN_PARAM_L_GATE1_HEIGHT, 40)
 
+    // Option AutoGain function
+    Q_PROPERTY(bool paramDAutoGain READ paramDAutoGain WRITE setParamDAutoGain NOTIFY paramDAutoGainChanged)
+    Q_PROPERTY(qint16 paramDAutoGainThreshold READ paramDAutoGainThreshold WRITE setParamDAutoGainThreshold NOTIFY paramDAutoGainThresholdChanged)
+    Q_PROPERTY(quint16 paramLGateNoiseStart READ paramLGateNoiseStart WRITE setParamLGateNoiseStart NOTIFY paramLGateNoiseStartChanged)
+    Q_PROPERTY(quint16 paramLGateNoiseWidth READ paramLGateNoiseWidth WRITE setParamLGateNoiseWidth NOTIFY paramLGateNoiseWidthChanged)
+
+    // UsKey Mode Params
+    Q_PROPERTY(quint8 paramDFilterMode READ getParamDFilterMode WRITE setParamDFilterMode NOTIFY paramDFilterModeChanged)
+    Q_PROPERTY(quint8 paramDWaveType   READ getParamDWaveType   WRITE setParamDWaveType   NOTIFY paramDWaveTypeChanged)
+
+    // Option Parametrization des portes 1 et 2
+    Q_PROPERTY(quint8 paramDGate0Option   READ getParamDGate0Option   WRITE setParamDGate0Option   NOTIFY paramDGate0OptionChanged)
+    Q_PROPERTY(quint8 paramDGate1Option   READ getParamDGate1Option   WRITE setParamDGate1Option   NOTIFY paramDGate1OptionChanged)
+
+    // Option Auto Sync Porte : la porte 2 se cale automatiquement sur le 2e echo de la porte 1
+    Q_PROPERTY(bool paramDAutoSyncGates READ paramDAutoSyncGates WRITE setParamDAutoSyncGates NOTIFY paramDAutoSyncGatesChanged)
+
 public :
 
     enum ASCAN_SAMPLE_FREQUENCY {
@@ -57,6 +74,83 @@ public :
         SAMPLE_FREQUENCY_40MHZ,
         SAMPLE_FREQUENCY_20MHZ
     };
+
+    bool paramDAutoGain() const { return m_autoGainEnabled; }
+    void setParamDAutoGain(bool value) {
+        if(m_autoGainEnabled == value)
+            return;
+        m_autoGainEnabled = value;
+        emit paramDAutoGainChanged(value);
+    }
+
+    qint16 paramDAutoGainThreshold() const { return m_autoGainThreshold; }
+    void setParamDAutoGainThreshold(qint16 value){
+        if(m_autoGainThreshold == value)
+            return;
+        m_autoGainThreshold = value;
+        emit paramDAutoGainThresholdChanged(value);
+    }
+
+    quint16 paramLGateNoiseStart() const { return m_gateNoiseStart; }
+    void setParamLGateNoiseStart(quint16 value){
+        if(m_gateNoiseStart == value)
+            return;
+        m_gateNoiseStart = value;
+        emit paramLGateNoiseStartChanged(value);
+    }
+
+    quint16 paramLGateNoiseWidth() const { return m_gateNoiseWidth; }
+    void setParamLGateNoiseWidth(quint16 value){
+        if(m_gateNoiseWidth == value)
+            return;
+        m_gateNoiseWidth = value;
+        emit paramLGateNoiseWidthChanged(value);
+    }
+
+    quint8 getParamDFilterMode() const { return m_filterMode; }
+    void setParamDFilterMode(quint8 value) {
+        if (m_filterMode != value) {
+            m_filterMode = value;
+            emit paramDFilterModeChanged(value);
+        }
+    }
+
+    quint8 getParamDWaveType() const { return m_waveType; }
+    void setParamDWaveType(quint8 value) {
+        if (m_waveType != value) {
+            m_waveType = value;
+            m_ascan.getAScanEnhancedSample()->m_paramDWaveType = value;
+            emit paramDWaveTypeChanged(value);
+        }
+    }
+
+    quint8 getParamDGate0Option() const {
+        return m_ascan.getAScanMeasure()->m_paramGates0->m_paramDOption;
+    }
+    void setParamDGate0Option(quint8 value) {
+        if (m_ascan.getAScanMeasure()->m_paramGates0->m_paramDOption != value) {
+            m_ascan.getAScanMeasure()->m_paramGates0->m_paramDOption = value;
+            emit paramDGate0OptionChanged(value);
+        }
+    }
+
+    quint8 getParamDGate1Option() const {
+        return m_ascan.getAScanMeasure()->m_paramGates1->m_paramDOption;
+    }
+    void setParamDGate1Option(quint8 value) {
+        if (m_ascan.getAScanMeasure()->m_paramGates1->m_paramDOption != value) {
+            m_ascan.getAScanMeasure()->m_paramGates1->m_paramDOption = value;
+            emit paramDGate1OptionChanged(value);
+        }
+    }
+
+    bool paramDAutoSyncGates() const { return m_autoSyncGatesEnabled; }
+    void setParamDAutoSyncGates(bool value) {
+        if(m_autoSyncGatesEnabled == value)
+            return;
+        m_autoSyncGatesEnabled = value;
+        emit paramDAutoSyncGatesChanged(value);
+    }
 
     VectorFuncAScan(VectorStd *p_pVectorStd, quint32 p_instance); ///< p_instance in 0-3
     ~VectorFuncAScan();
@@ -72,11 +166,22 @@ public :
 
     void clearAScan();///< delete all pending ASCAN
 
+    void injectRawSamples(const quint8* samples, qint64 timestampMs); ///< inject raw 8-bit samples bypassing ProtMsg (used by USB standalone devices)
 
     static const qint32 ASCAN_BUFFER_SIZE_MAX = 100;
 signals :
     void evNewAScanTreated(AScan *);
     void evPrivateAScanTreated();
+
+    void paramDAutoGainChanged(bool value);
+    void paramDAutoGainThresholdChanged(qint16 value);
+    void paramLGateNoiseStartChanged(quint16 value);
+    void paramLGateNoiseWidthChanged(quint16 value);
+    void paramDFilterModeChanged(quint8 value);
+    void paramDWaveTypeChanged(quint8 value);
+    void paramDGate0OptionChanged(quint8 value);
+    void paramDGate1OptionChanged(quint8 value);
+    void paramDAutoSyncGatesChanged(bool value);
 
 protected  :
     // -- Inherited from XmlProject
@@ -90,6 +195,9 @@ protected  :
 
 private :
     void resetAScanPart();
+    void syncGate1OnSecondEcho(AScan *p_pAScan); ///< "Auto Sync Porte" : center Gate 1 on the 2nd echo found in Gate 0
+
+    static constexpr qreal AUTO_SYNC_GATE_HYSTERESIS_MM = 0.1; ///< minimal shift before moving Gate 1 (avoids jitter and device msg flood)
 
 private slots :
     void onAScanTreated();
@@ -100,6 +208,16 @@ private :
 
     AScan* m_pAScanRx;    ///< current ASCAN received
     quint32 m_AScanRxPart;
+
+    bool m_autoGainEnabled = false;
+    qint16 m_autoGainThreshold = 5;
+    quint16 m_gateNoiseStart = 0;
+    quint16 m_gateNoiseWidth = 10;
+
+    bool m_autoSyncGatesEnabled = false;
+
+    quint8 m_filterMode = 0;
+    quint8 m_waveType   = 0;
 
     //QList<AScan *> m_lAScanToTreat;
     //mutable QMutex m_mAScanToTreat;

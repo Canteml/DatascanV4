@@ -63,6 +63,7 @@ public :
     void deleteLink(GenComLink* p_link);
     void keepLinks(const QList<GenComLink *>& p_lLinks);
     GenComLink* getLinkName(const QString p_name) const;
+    QStringList getAuthentifiedLinkNames() const;   ///< names of authenticated links (ex: "192.168.0.50:2110")
 
     QStringList comPortList() const;
     quint16 getTcpServerPort() const;
@@ -83,6 +84,8 @@ public :
     Q_INVOKABLE void setComPort(const QString & p_linkName, QString p_portName /*integer, not 'COMx'*/);
     Q_INVOKABLE QString getComPort(const QString & p_linkName);
 
+    void setReservedSerialPorts(const QStringList& ports);
+
 private :
     GenComLink * findLinkFromName(const QString & p_linkName);
 
@@ -90,6 +93,8 @@ private :
     QList<GenComLink *> m_lLink;
     ComLinkModel * m_pComLinkModel; ///< QML : list of links
     void addLink(GenComLink*);
+
+    QStringList m_reservedSerialPorts;
 
 private slots :
     void onLinkStateChanged(GenComLink*, quint32 p_old, qint32 p_new);

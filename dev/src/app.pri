@@ -43,12 +43,23 @@ HEADERS += $$files($$PWD/adapter/*.h)
 SOURCES += $$files($$PWD/limit/*.cpp)
 HEADERS += $$files($$PWD/limit/*.h)
 
+SOURCES += $$files($$PWD/uskey/*.cpp)
+HEADERS += $$files($$PWD/uskey/*.h)
+
+SOURCES += $$files($$PWD/altiscan/*.cpp)
+HEADERS += $$files($$PWD/altiscan/*.h)
+
+SOURCES += $$files($$PWD/encoder/*.cpp)
+HEADERS += $$files($$PWD/encoder/*.h)
+
 # JK PLOTTER COMPONENTS
 SOURCES += $$files($$PWD/jkPlot/*.cpp)
 HEADERS += $$files($$PWD/jkPlot/*.h)
 
 ## -- PATHS
 INCLUDEPATH += $$PWD
+INCLUDEPATH += $$PWD/uskey
+INCLUDEPATH += $$PWD/encoder
 INCLUDEPATH += $$PWD/../ext/fw_common/dev/src/v2/com
 INCLUDEPATH += $$PWD/../ext/fw_common/dev/src/v2/vector
 

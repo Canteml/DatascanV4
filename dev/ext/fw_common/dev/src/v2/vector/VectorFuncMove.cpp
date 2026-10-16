@@ -89,6 +89,7 @@ void VectorFuncMove::setJoyXY(qint8 p_x, qint8 p_y)
         }
         m_moveDir = dir;
         emit moveDirChanged(dir);
+        emit evLocalJoyXY(p_x, p_y);
 
 // PATCH : Do not manage CMD ANSWER because of no answers sometimes from vector
 //        if( !m_tCmdAnsTimeout->isActive() ) {
