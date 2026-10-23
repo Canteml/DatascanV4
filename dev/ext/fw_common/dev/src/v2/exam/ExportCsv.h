@@ -14,52 +14,37 @@
 
 // -- Internal includes
 #include <log/Loggable.h>
-class AScan;
+class Location1d;
+class Surface1d;
 
 // -- Qt Includes
 #include <QObject>
 #include <QThread>
-#include <QFile>
-#include <QTextStream>
 
-/**
- * @brief The ExportCsv class
- *
- * Streaming CSV writer for a BSCAN acquisition : the file is created (with its header)
- * when the acquisition starts, then one line is appended for each ASCAN received.
- * All file accesses are done in a dedicated thread; requests are queued so they are
- * processed in the order they were emitted (open -> lines -> close).
- */
 class ExportCsv : public QObject, public Loggable
 {
-    Q_OBJECT
+    Q_OBJECT       
 
 public :
     ExportCsv();
     ~ExportCsv();
 
-    void open(const QString& p_fileName);   ///< create the file and write the header
-    void appendAScan(AScan* p_pAScan);      ///< format one line from the ASCAN (caller thread) and queue it
-    void close();                           ///< close the file once all queued lines are written
+    void startExport(const QString& p_fileName);
+    void cancelExport();
     QString getFileName() const;
 
 signals :
-    void evError(QString);                  ///< emitted when the file can't be created or written
-
-    void evPrivateOpen(QString);
-    void evPrivateWriteLine(QString);
-    void evPrivateClose();
+    void evProgessChanged(qint32);
+    void evExportTerminated(bool);      ///< signaled at the end of the write, after an error => state in argument
+    void evPrivateStartExport();
 
 private slots :
-    void onPrivateOpen(QString p_fileName);
-    void onPrivateWriteLine(QString p_line);
-    void onPrivateClose();
+    void onPrivateStartExport();
 
 private :
 
     QString m_fileName;
-    QFile m_file;
-    QTextStream m_flux;
+    volatile bool m_requestCancel;
 
     QThread * m_pThread;
 };

@@ -1,252 +1,589 @@
 import QtQuick 2.4
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
+import QtQuick.Dialogs
 import Design 1.0
 
-// End of a BSCAN acquisition : the CSV has been written while measuring (see ExportCsv).
-// Show the file and choose the next generatrix.
 ColumnLayout {
     id: idP3TopP1
     Layout.fillWidth: true
     Layout.fillHeight: true
 
-    // called by P3Top when the page is shown
-    function init() {
-        var file = examManager.getExportFullFileName();
-        if( file === "" ) {
-            idTxtExamFileName.text = qsTr("Aucun fichier CSV n'a été créé (voir le dossier d'export).")
-            idTxtExamFileName.color = "#AA2020"
-        } else {
-            idTxtExamFileName.text = file
-            idTxtExamFileName.color = "black"
-        }
-        updateGeneratrixNumber();
-    }
+    property alias exportStep: idSLExport.currentIndex
 
-    function updateGeneratrixNumber() {
-        var s = "";
-        if( examManager.getGeneratrixNumberPrevious()+1 < 10 ) {
-            s = "0"
-        } else {
-            s = ""
-        }
-        idTxtLeftGene.text =  qsTr("GAUCHE")+" (#"+s+(examManager.getGeneratrixNumberNext()+1)+")";
-        if( examManager.getGeneratrixNumberNext()+1 < 10 ) {
-            s = "0"
-        } else {
-            s = ""
-        }
-        idTxtRightVirole.text =  qsTr("DROITE")+" (#"+s+(examManager.getGeneratrixNumberPrevious()+1)+")";
-        if( examManager.selectedBScanGeneratrix+1 < 10 ) {
-            s = "0"
-        } else {
-            s = ""
-        }
-        idTxtCurrentGene.text =  qsTr("ACTUELLE")+" (#"+s+(examManager.selectedBScanGeneratrix+1)+")";
-    }
+    StackLayout {
+        id: idSLExport
 
-    // SPACER vertical
-    Item {
-        Layout.fillHeight: true
-    }
+        Connections {
+            target: examManager
+            function onEvExportTerminatedChanged(p_success) {
+                if( p_success ) {
+                    idSLExport.updateGeneratrixNumber();
+                    idSLExport.currentIndex = 2;
+                }
+            }
+        }
 
-    RowLayout {
-        Layout.fillWidth: true
+        onCurrentIndexChanged: {
+            // init pages at index change
+            if( 1 === currentIndex ) {
+                idTxtFileName.checkFileName
+            }
+        }
 
-        // SPACER horizontal
-        Item {
+        // -- PAGE 0
+        ColumnLayout {
             Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: exportStep === 0
+
+            // SPACER vertical
+            Item {
+                Layout.fillHeight: true
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+
+
+                // SPACER horizontal
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                // Button Cancel
+                Button {
+                    id: btCancel
+
+                    Layout.preferredWidth: 200
+                    Layout.preferredHeight: 200
+
+                    hoverEnabled: true
+                    ToolTip.text: qsTr("Supprimer l'acquisition et la recommencer.")
+                    ToolTip.delay: 1000
+                    ToolTip.visible: hovered
+
+                    icon.source: "qrc:///img/icons/iconCancel.png"
+                    icon.width: 150
+                    icon.height: 150
+                    icon.color: "transparent"
+
+                    antialiasing: true
+
+                    background: Rectangle {
+                        color: btCancel.pressed ? Design.colButtonSelectedBackground : btCancel.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                        border.width: 2
+                        border.color: Design.colButtonBorder
+                        radius: 40
+                    }
+
+                    onPressed: {
+                        examManager.selectCurrentGeneratrix()
+                        examManager.examStep = 0; // STOPPED
+                    }
+                }
+
+
+                // SPACER horizontal
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                // Button ok
+                Button {
+                    id: btOk
+
+                    Layout.preferredWidth: 200
+                    Layout.preferredHeight: 200
+
+                    hoverEnabled: true
+                    ToolTip.text: qsTr("Exporter l'acquisition.")
+                    ToolTip.delay: 1000
+                    ToolTip.visible: hovered
+
+                    icon.source: enabled ? "qrc:///img/icons/iconOk.png" : "qrc:///img/icons/iconOkDisabled.png"
+                    icon.width: 150
+                    icon.height: 150
+                    icon.color: "transparent"
+
+                    antialiasing: true
+
+                    background: Rectangle {
+                        color: btOk.pressed ? Design.colButtonSelectedBackground : btOk.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                        border.width: 2
+                        border.color: Design.colButtonBorder
+                        radius: 40
+                    }
+
+                    MessageDialog {
+                        id: dialogFileExists
+                        title: qsTr("Fichier CSV existant")
+                        buttons: MessageDialog.Yes | MessageDialog.Cancel
+                        onAccepted: {
+                            examManager.startExamWrite(idTxtFileName.text)
+                            txtExamFileName.text = examManager.getExportFullFileName()
+                            idSLExport.currentIndex = 1;
+                        }
+                    }
+
+                    onPressed: {
+                        var err = examManager.checkFileName(idTxtFileName.text)
+                        if( 0 === err ) {
+                            examManager.startExamWrite(idTxtFileName.text)
+                            txtExamFileName.text = examManager.getExportFullFileName()
+                            idSLExport.currentIndex = 1;
+                        } else if( 1 === err ) {
+                            idTxtFileName.checkFileName();
+                        } else {
+                            dialogFileExists.text = qsTr("Voulez-vous ecraser le fichier suivant? : \n")+examManager.makeExamFullFileName(idTxtFileName.text)
+                            dialogFileExists.visible = true
+                        }
+                    }
+                }
+
+                // SPACER horizontal
+                Item {
+                    Layout.fillWidth: true
+                }
+            }
+
+            // SPACER vertical
+            Item {
+                Layout.fillHeight: true
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+
+                // SPACER horizontal
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Text {
+                    text: qsTr("Nom du CSV : ")
+                    font.bold: true
+                    font.pointSize: 12
+                }
+
+                TextField {
+                    id: idTxtFileName
+                    selectByMouse: true
+                    Layout.preferredHeight: 40
+                    Layout.preferredWidth: idP3Top.width/3
+                    font.pointSize: 12
+
+
+                    Component.onCompleted: {
+                        idTxtFileName.text = examManager.bscanPerimeter.toFixed(2)
+                    }
+
+                    Connections {
+                        target : examManager
+                        function onExamStepChanged() {
+                            idTxtFileName.text = examManager.getExamGeneratedFileName();
+                        }
+                    }
+
+                    Connections {
+                        target : examManager
+                        function onExportFolderChanged() {
+                            idTxtFileName.checkFileName();
+                        }
+                    }
+
+                    onTextChanged: {
+                        checkFileName()
+                    }
+
+                    function checkFileName() {
+                        var err = examManager.checkFileName(idTxtFileName.text)
+                        if( 1 === err ) {
+                            idTxtFileNameErrorMsg.text = qsTr("Dossier d'export non valide : ")+examManager.exportFolder
+                        } else if( 2 === err ) {
+                            idTxtFileNameErrorMsg.text = qsTr("Le fichier existe déjà : ")+examManager.makeExamFullFileName(idTxtFileName.text)
+                        } else {
+                            idTxtFileNameErrorMsg.text = ""
+                        }
+                        //btOk.enabled = ( 1 !== err );
+                    }
+
+                }
+
+                // SPACER horizontal
+                Item {
+                    Layout.fillWidth: true
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+
+                // SPACER horizontal
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Text {
+                    id: idTxtFileNameErrorMsg
+                    text: ""
+                    font.bold: true
+                    color: "#AA2020"
+                    font.pointSize: 12
+                }
+
+                // SPACER horizontal
+                Item {
+                    Layout.fillWidth: true
+                }
+            }
+            // SPACER vertical
+            Item {
+                Layout.fillHeight: true
+            }
         }
 
-        Text {
-            text: qsTr("Sauvegarde du BSCAN : ")
-            font.bold: true
-            font.pointSize: 14
-        }
-
-        Text {
-            id: idTxtExamFileName
-            font.pointSize: 14
-        }
-
-        // SPACER horizontal
-        Item {
+        // -- STEP 1 : WRITE PROGRESS
+        ColumnLayout {
             Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: exportStep === 1
+
+            // SPACER vertical
+            Item {
+                Layout.fillHeight: true
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+
+                // SPACER horizontal
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                Text {
+                    text: qsTr("Sauvegarde du BSCAN : ")
+                    font.bold: true
+                    font.pointSize: 14
+                }
+
+                Text {
+                    id: txtExamFileName
+                    font.pointSize: 14
+                }
+
+                // SPACER horizontal
+                Item {
+                    Layout.fillWidth: true
+                }
+            }
+
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 10
+
+                // SPACER horizontal
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                ProgressBar {
+                    id: idPbExport
+                    Layout.preferredWidth: 400
+                    Layout.minimumHeight: 50
+                    from: 0
+                    to: 100
+                    value: examManager.examWriteProgress
+
+                    background: Rectangle {
+                        implicitWidth: 400
+                        implicitHeight: 50
+                        color: Design.colButtonHoveredBackground
+                        radius: 3
+                    }
+
+                    contentItem: Item {
+                        implicitWidth: 400
+                        implicitHeight: 48
+
+                        Rectangle {
+                            width: idPbExport.visualPosition * parent.width
+                            height: parent.height
+                            radius: 2
+                            color: Design.colBlueSelected
+                        }
+                    }
+                }
+
+                Button {
+                    id: idBtCancelExport
+                    text: qsTr("Annuler")
+                    Layout.minimumHeight: 50
+                    font.pointSize: 14
+
+                    visible: examManager.examWriteProgress >= 0
+
+                    background: Rectangle {
+                        color: idBtCancelExport.pressed ? Design.colButtonSelectedBackground : idBtCancelExport.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                        border.width: 2
+                        border.color: Design.colButtonBorder
+                        radius: 5
+                    }
+
+                    onClicked: {
+                        examManager.cancelExamWrite()
+                    }
+                }
+
+                // Button Cancel
+                Button {
+                    id: btWriteErrorCancel
+                    visible: examManager.examWriteProgress === -1
+
+                    Layout.preferredWidth: 50
+                    Layout.preferredHeight: 50
+
+                    hoverEnabled: true
+                    ToolTip.text: qsTr("Revenir à l'écran d'enregistrement du rapport")
+                    ToolTip.delay: 1000
+                    ToolTip.visible: hovered
+
+                    icon.source: "qrc:///img/icons/iconCancel.png"
+                    icon.width: 40
+                    icon.height: 40
+                    icon.color: "transparent"
+
+                    antialiasing: true
+
+                    background: Rectangle {
+                        color: btWriteErrorCancel.pressed ? Design.colButtonSelectedBackground : btWriteErrorCancel.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                        border.width: 2
+                        border.color: Design.colButtonBorder
+                        radius: 10
+                    }
+
+                    onPressed: {
+                        idSLExport.currentIndex = 0
+                    }
+                }
+
+                // SPACER horizontal
+                Item {
+                    Layout.fillWidth: true
+                }
+            }
+
+            // SPACER vertical
+            Item {
+                Layout.fillHeight: true
+            }
         }
-    }
 
-    // SPACER vertical
-    Item {
-        Layout.fillHeight: true
-    }
+        // -- STEP 2 : WRITE DONE
 
-    Text {
-        Layout.fillWidth: true
-        text: qsTr("Choix de la prochaine génératrice :")
-        font.bold: true
-        font.pointSize: 12
-        horizontalAlignment: Text.AlignHCenter
-    }
-
-    // SPACER vertical
-    Item {
-        Layout.fillHeight: true
-    }
-
-    RowLayout {
-        Layout.fillWidth: true
-
-
-        // SPACER horizontal
-        Item {
-            Layout.fillWidth: true
+        function updateGeneratrixNumber() {
+            var s = "";
+            if( examManager.getGeneratrixNumberPrevious()+1 < 10 ) {
+                s = "0"
+            } else {
+                s = ""
+            }
+            idTxtLeftGene.text =  qsTr("GAUCHE")+" (#"+s+(examManager.getGeneratrixNumberNext()+1)+")";
+            if( examManager.getGeneratrixNumberNext()+1 < 10 ) {
+                s = "0"
+            } else {
+                s = ""
+            }
+            idTxtRightVirole.text =  qsTr("DROITE")+" (#"+s+(examManager.getGeneratrixNumberPrevious()+1)+")";
+            if( examManager.selectedBScanGeneratrix+1 < 10 ) {
+                s = "0"
+            } else {
+                s = ""
+            }
+            idTxtCurrentGene.text =  qsTr("ACTUELLE")+" (#"+s+(examManager.selectedBScanGeneratrix+1)+")";
         }
 
         ColumnLayout {
+            Layout.fillWidth: true
+            Layout.fillHeight: true
+            visible: exportStep === 1
 
-            spacing: 10
-
-            // Button Left
-            Button {
-                id: btLeft
-                Layout.alignment: Qt.AlignHCenter
-
-                Layout.preferredWidth: 200
-                Layout.preferredHeight: 200
-
-                icon.source: "qrc:///img/icons/iconPrevious.png"
-                icon.width: 150
-                icon.height: 150
-                icon.color: "transparent"
-
-                antialiasing: true
-
-                background: Rectangle {
-                    color: btLeft.pressed ? Design.colButtonSelectedBackground : btLeft.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
-                    border.width: 2
-                    border.color: Design.colButtonBorder
-                    radius: 40
-                }
-
-                onPressed: {
-                    examManager.selectNextGeneratrix();
-                    examManager.examStep = 0; // STOPPED
-                }
+            // SPACER vertical
+            Item {
+                Layout.fillHeight: true
             }
 
             Text {
                 Layout.fillWidth: true
-                id: idTxtLeftGene
-                text: qsTr("GAUCHE")
+                text: qsTr("Choix de la prochaine génératrice :")
                 font.bold: true
                 font.pointSize: 12
                 horizontalAlignment: Text.AlignHCenter
             }
-        }
 
-
-        // SPACER horizontal
-        Item {
-            Layout.fillWidth: true
-        }
-
-        ColumnLayout {
-
-            spacing: 10
-
-            // Button Current
-            Button {
-                id: btAgain
-                Layout.alignment: Qt.AlignHCenter
-
-                Layout.preferredWidth: 200
-                Layout.preferredHeight: 200
-
-                hoverEnabled: true
-                ToolTip.text: qsTr("Recommencer l'acquisition sur la même génératrice (le fichier CSV est conservé).")
-                ToolTip.delay: 1000
-                ToolTip.visible: hovered
-
-                icon.source: "qrc:///img/icons/iconAgain.png"
-                icon.width: 150
-                icon.height: 150
-                icon.color: "transparent"
-
-                antialiasing: true
-
-                background: Rectangle {
-                    color: btAgain.pressed ? Design.colButtonSelectedBackground : btAgain.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
-                    border.width: 2
-                    border.color: Design.colButtonBorder
-                    radius: 40
-                }
-
-                onPressed: {
-                    examManager.selectCurrentGeneratrix();
-                    examManager.examStep = 0; // STOPPED
-                }
+            // SPACER vertical
+            Item {
+                Layout.fillHeight: true
             }
 
-            Text {
+            RowLayout {
                 Layout.fillWidth: true
-                id: idTxtCurrentGene
-                text: qsTr("ACTUELLE")
-                font.bold: true
-                font.pointSize: 14
-                horizontalAlignment: Text.AlignHCenter
-            }
-        }
 
-        // SPACER horizontal
-        Item {
-            Layout.fillWidth: true
-        }
 
-        ColumnLayout {
-
-            spacing: 10
-
-            // Button Next
-            Button {
-                id: btRight
-                Layout.alignment: Qt.AlignHCenter
-
-                Layout.preferredWidth: 200
-                Layout.preferredHeight: 200
-
-                icon.source: "qrc:///img/icons/iconNext.png"
-                icon.width: 150
-                icon.height: 150
-                icon.color: "transparent"
-
-                antialiasing: true
-
-                background: Rectangle {
-                    color: btRight.pressed ? Design.colButtonSelectedBackground : btRight.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
-                    border.width: 2
-                    border.color: Design.colButtonBorder
-                    radius: 40
+                // SPACER horizontal
+                Item {
+                    Layout.fillWidth: true
                 }
 
-                onPressed: {
-                    examManager.selectPreviousGeneratrix();
-                    examManager.examStep = 0; // STOPPED
+                ColumnLayout {
+
+                    spacing: 10
+
+                    // Button Left
+                    Button {
+                        id: btLeft
+                        Layout.alignment: Qt.AlignHCenter
+
+                        Layout.preferredWidth: 200
+                        Layout.preferredHeight: 200
+
+                        icon.source: "qrc:///img/icons/iconPrevious.png"
+                        icon.width: 150
+                        icon.height: 150
+                        icon.color: "transparent"
+
+                        antialiasing: true
+
+                        background: Rectangle {
+                            color: btLeft.pressed ? Design.colButtonSelectedBackground : btLeft.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                            border.width: 2
+                            border.color: Design.colButtonBorder
+                            radius: 40
+                        }
+
+                        onPressed: {
+                            examManager.selectNextGeneratrix();
+                            examManager.examStep = 0; // STOPPED
+                        }
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        id: idTxtLeftGene
+                        text: qsTr("GAUCHE")
+                        font.bold: true
+                        font.pointSize: 12
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+                }
+
+
+                // SPACER horizontal
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                ColumnLayout {
+
+                    spacing: 10
+
+                    // Button Current
+                    Button {
+                        id: btAgain
+                        Layout.alignment: Qt.AlignHCenter
+
+                        Layout.preferredWidth: 200
+                        Layout.preferredHeight: 200
+
+                        icon.source: "qrc:///img/icons/iconAgain.png"
+                        icon.width: 150
+                        icon.height: 150
+                        icon.color: "transparent"
+
+                        antialiasing: true
+
+                        background: Rectangle {
+                            color: btAgain.pressed ? Design.colButtonSelectedBackground : btAgain.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                            border.width: 2
+                            border.color: Design.colButtonBorder
+                            radius: 40
+                        }
+
+                        onPressed: {
+                            examManager.selectCurrentGeneratrix();
+                            examManager.examStep = 0; // STOPPED
+                        }
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        id: idTxtCurrentGene
+                        text: qsTr("ACTUELLE")
+                        font.bold: true
+                        font.pointSize: 14
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+                }
+
+                // SPACER horizontal
+                Item {
+                    Layout.fillWidth: true
+                }
+
+                ColumnLayout {
+
+                    spacing: 10
+
+                    // Button Next
+                    Button {
+                        id: btRight
+                        Layout.alignment: Qt.AlignHCenter
+
+                        Layout.preferredWidth: 200
+                        Layout.preferredHeight: 200
+
+                        icon.source: "qrc:///img/icons/iconNext.png"
+                        icon.width: 150
+                        icon.height: 150
+                        icon.color: "transparent"
+
+                        antialiasing: true
+
+                        background: Rectangle {
+                            color: btRight.pressed ? Design.colButtonSelectedBackground : btRight.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                            border.width: 2
+                            border.color: Design.colButtonBorder
+                            radius: 40
+                        }
+
+                        onPressed: {
+                            examManager.selectPreviousGeneratrix();
+                            examManager.examStep = 0; // STOPPED
+                        }
+                    }
+
+                    Text {
+                        Layout.fillWidth: true
+                        id: idTxtRightVirole
+                        text: qsTr("DROITE")
+                        font.bold: true
+                        font.pointSize: 14
+                        horizontalAlignment: Text.AlignHCenter
+                    }
+                }
+
+                // SPACER horizontal
+                Item {
+                    Layout.fillWidth: true
                 }
             }
 
-            Text {
-                Layout.fillWidth: true
-                id: idTxtRightVirole
-                text: qsTr("DROITE")
-                font.bold: true
-                font.pointSize: 14
-                horizontalAlignment: Text.AlignHCenter
+            // SPACER vertical
+            Item {
+                Layout.fillHeight: true
             }
-        }
-
-        // SPACER horizontal
-        Item {
-            Layout.fillWidth: true
         }
     }
 
@@ -254,4 +591,5 @@ ColumnLayout {
     Item {
         Layout.fillHeight: true
     }
+
 }
