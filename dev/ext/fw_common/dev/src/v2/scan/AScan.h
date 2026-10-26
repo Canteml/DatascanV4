@@ -52,6 +52,7 @@ public :
     quint8 m_enhancedSamples[ASCAN_SAMPLE_SIZE];
     quint8 m_paramLLowPassFilter = 0;
     quint8 m_paramDWaveType      = 0;
+    bool   m_hwRectified         = false;   ///< true = samples already rectified by the US-Key (A-scan mode)
 
     void copyParam(const AScanEnhancedSample& p_value); ///< copy only parameters
     void copy(const AScanEnhancedSample& p_value);      ///< copy data and parameters
@@ -97,7 +98,7 @@ public :
     qreal m_paramLStart     = 0;
     qreal m_paramLWidth     = 0;
     qreal m_paramLHeight    = 0;
-    quint8  m_paramDOption  = 0; // 0 = Premier maximum, 1 = Maximum absolu, 2 = Flanc montant, 3 = Smart gate
+    quint8  m_paramDOption  = 0; // 0 = Premier maximum, 1 = Maximum absolu, 2 = Flanc montant, 3 = Custom Roboplanet
 
     qint32 m_gateId;
 

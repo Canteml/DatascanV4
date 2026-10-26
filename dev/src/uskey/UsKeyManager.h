@@ -14,6 +14,7 @@
 
 #include <QObject>
 #include <QVector>
+#include <functional>
 
 class UsKeyDriver;
 class UsKeyAcquisitionThread;
@@ -59,7 +60,7 @@ public:
     // dataType:  0 = HF (raw RF), 1 = A-scan (rectified)
     // waveType:  0 = full rectified, 1 = negative, 2 = positive
     void startAcquisition(int nbSamples = 4000, int dataType = 0, int waveType = 0);
-    void stopAcquisition();
+    void stopAcquisition(bool waitForThread = true);   ///< waitForThread=false: do not block on the DLL call in progress
     bool isAcquiring() const;
 
     // -- Transmitter parameters
@@ -73,7 +74,8 @@ public:
     // filter: 0=1.25MHz 1=2.5MHz 2=5MHz 3=10MHz 4=BroadBand
     // mode:   0=T/R connected  1=T/R disconnected
     void setWave(double waveType);
-    // waveType: 0=redressée  1=négative  2=positive
+    // waveType: 0=redressée  1=négative  2=positive  (A-scan acquisition, dataType=1)
+    //           3=RF (HF raw acquisition, dataType=0, hardware wave kept at 0)
     void setGain(double dB);           // 0–79.9 dB
     void setScaleDelay(double us);
     void setSamplingFreqMode(double freq, double mode);
@@ -87,7 +89,7 @@ public:
 
 signals:
     void evConnected();
-    void evDisconnected();
+    void evDisconnected();      ///< device stopped by the app, or really absent (a reconnection attempt did not find it)
     // Raw 16-bit samples (12-bit ADC values, convert to 8-bit with >> 4)
     void evNewRawAScan(QVector<unsigned short> data, qint64 timestampMs);
     void evError(const QString& msg);
@@ -102,6 +104,10 @@ private slots:
 private:
     friend class UsbDeviceFilter;
     void startRetryTimer();
+
+    // Runs a parameter write on the acquisition thread while acquiring (the latest
+    // value per key wins), directly otherwise - see the .cpp for why.
+    void postParam(const QString& key, std::function<void()> fn);
 
     // Runs UsKeyDriver::initUsb()/loadConfiguration() on m_connectThread.
     // These block on the vendor ap_int_usb.dll (and its 32-bit helper process)
@@ -131,6 +137,7 @@ private:
     QThread*                  m_connectThread = nullptr;
     int                       m_deviceNum     = 0;
     bool                      m_connected     = false;
+    bool                      m_absentReported = false;  ///< evDisconnected already emitted for the current absence
     bool                      m_connecting    = false;   ///< a background connect attempt is in flight
     int                       m_lastNbSamples = 4000;
     int                       m_lastDataType  = 0;

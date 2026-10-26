@@ -75,8 +75,28 @@ void VectorFuncAScan::sendAScanRawSample(AScanRawSample *p_pAScan)
 //    return pRet;
 //}
 
+void VectorFuncAScan::setLocalSourceActive(bool p_value)
+{
+    if( m_localSourceActive != p_value ) {
+        m_localSourceActive = p_value;
+        m_ignoredMsgCount = 0;
+        fLogInfo(QString("AScan local source (US-Key) %1 : AScan params/samples from v2 devices are %2")
+                 .arg(p_value ? "active" : "inactive", p_value ? "ignored" : "accepted"));
+    }
+}
+
 void VectorFuncAScan::processReceivedMsg(ProtMsg *p_pMsg)
 {
+    // The local device (US-Key) is the AScan source : ignore the values and samples
+    // sent by v2 devices (a GET is still answered, it does not change anything here)
+    if( m_localSourceActive && ProtMsg::MSG_TYPE_PARAM_GET != p_pMsg->m_msgType ) {
+        if( 0 == (m_ignoredMsgCount++ % 100) ) {
+            fLogInfo(QString("AScan msg ignored (local source active) : link '%1' type %2 obj %3 (count %4)")
+                     .arg(m_pVectorStd->getRxLinkName()).arg(p_pMsg->m_msgType).arg(p_pMsg->m_msgObj).arg(m_ignoredMsgCount));
+        }
+        return;
+    }
+
     if( ProtMsg::MSG_TYPE_PARAM_GET == p_pMsg->m_msgType || ProtMsg::MSG_TYPE_PARAM_SET == p_pMsg->m_msgType || ProtMsg::MSG_TYPE_PARAM_VALUE == p_pMsg->m_msgType) {
         // -- PARAM
         DECODE_MSG_PARAM_PRE(m_ascan.getSensorSettings()->m_param, DGain, quint8, 1, FUNC_ASCAN_PARAM_D_GAIN);
@@ -194,6 +214,8 @@ void VectorFuncAScan::injectRawSamples(const quint8* samples, qint64 timestampMs
 {
     AScan* pAScan = new AScan();
     pAScan->copyParam(m_ascan);
+    // US-Key : redressée/negative/positive are acquired in A-scan mode (already rectified), RF in HF mode
+    pAScan->getAScanEnhancedSample()->m_hwRectified = (pAScan->getAScanEnhancedSample()->m_paramDWaveType != 3);
     memcpy(pAScan->getAScanRawSample()->m_rawSamples, samples, AScanRawSample::ASCAN_SAMPLE_SIZE);
     pAScan->getAScanRawSample()->m_epocTimeMs = timestampMs;
     pAScan->getAScanRawSample()->m_position   = QPointF(m_pVectorStd->funcPosition()->getParamLBscanPosMmX(), 0);
@@ -210,9 +232,9 @@ void VectorFuncAScan::syncGate1OnSecondEcho(AScan *p_pAScan)
     // index -> mm (inverse of AScan::mmToIndex), using the settings the sample was acquired with
     qreal echoMm = indexEcho * p_pAScan->getSensorSettings()->getSampleStepMM() - p_pAScan->getAScanMeasure()->m_paramLProbeDelayMm;
 
-    // center Gate 1 on the echo, keeping the width chosen by the user. Round 2 decimals (as JkGate)
+    // center Gate 1 on the echo, keeping the width chosen by the user. Gate start is integer-only (mm)
     qreal start = qMax(0.0, echoMm - getParamLGate1Width() / 2);
-    start = static_cast<double>(static_cast<int>(start*100+0.5))/100.0;
+    start = static_cast<qreal>(qRound(start));
 
     if( qAbs(start - getParamLGate1Start()) >= AUTO_SYNC_GATE_HYSTERESIS_MM ) {
         setParamLGate1Start(start);
@@ -297,8 +319,8 @@ bool VectorFuncAScan::customSaveParam(QDomDocument * p_pDoc, QDomElement * p_pPa
 
 void VectorFuncAScan::onDeviceConnected()
 {
-    // request Params
-    if( m_pVectorStd->isMpc() ) {
+    // request Params (not when the local device is the AScan source : the answers would overwrite its params)
+    if( m_pVectorStd->isMpc() && !m_localSourceActive ) {
         sendMsg(newMsgParam(ProtMsg::MSG_TYPE_PARAM_GET, ProtMsg::FUNC_ASCAN_PARAM_D_GAIN));
         sendMsg(newMsgParam(ProtMsg::MSG_TYPE_PARAM_GET, ProtMsg::FUNC_ASCAN_PARAM_D_VOLTAGE));
         sendMsg(newMsgParam(ProtMsg::MSG_TYPE_PARAM_GET, ProtMsg::FUNC_ASCAN_PARAM_D_UT_ELEMENT));

@@ -168,6 +168,12 @@ public :
 
     void injectRawSamples(const quint8* samples, qint64 timestampMs); ///< inject raw 8-bit samples bypassing ProtMsg (used by USB standalone devices)
 
+    // While a local USB device (US-Key) is the AScan source, the AScan parameters and
+    // samples sent by the v2 devices are ignored, and their parameters are not requested
+    // on connection : they would overwrite the parameters of the local device.
+    void setLocalSourceActive(bool p_value);
+    bool isLocalSourceActive() const { return m_localSourceActive; }
+
     static const qint32 ASCAN_BUFFER_SIZE_MAX = 100;
 signals :
     void evNewAScanTreated(AScan *);
@@ -208,6 +214,9 @@ private :
 
     AScan* m_pAScanRx;    ///< current ASCAN received
     quint32 m_AScanRxPart;
+
+    bool m_localSourceActive = false;   ///< see setLocalSourceActive()
+    quint32 m_ignoredMsgCount = 0;      ///< v2 messages ignored while m_localSourceActive (log only)
 
     bool m_autoGainEnabled = false;
     qint16 m_autoGainThreshold = 5;

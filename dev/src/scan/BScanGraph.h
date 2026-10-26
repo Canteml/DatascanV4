@@ -70,6 +70,10 @@ public:
     qreal getAxeYMaxMm(void) const;
     void setAxeYMaxMm(qreal p_value);
 
+    qint32 getAxeXType(void) const;
+    void setAxeXType(qint32 p_value);
+    void pushTimeMeasure(qint64 p_epochMs, qreal p_measureMe, qreal p_measure1e);
+
     // -- Actions
 
 //    void axeXScaleIn();
@@ -91,9 +95,16 @@ public:
         VIEW_Y_FULL     ///< scale from 0 to measure max
     };
 
+    enum AXE_X_TYPE {
+        AXE_X_DISTANCE,
+        AXE_X_TIME
+    };
+
     static const qreal SCALE_X_M_MIN;
     static const qreal SCALE_X_M_MAX;
     static const qreal SCALE_Y_MM_MAX;
+    static const qreal TIME_WINDOW_S;
+    static const qint32 TIME_BUFFER_MAX;
 
 signals :
     void evPrivateNeedRefresh();
@@ -102,6 +113,7 @@ signals :
     void evAxeXScaleMmChanged(qreal);
     void evAxeYMinMmChanged(qreal);
     void evAxeYMaxMmChanged(qreal);
+    void evAxeXTypeChanged(qint32);
 
 protected:
     void routeMouseEvents( QMouseEvent* event);
@@ -143,6 +155,7 @@ private :
     void draw();
     void resetFlags();
     void deleteZones();
+    void processTimeBuffer();
 
     volatile bool m_updateRequested;
     volatile bool m_updateInProgress;
@@ -184,6 +197,12 @@ private :
     qint32 m_viewXMode; ///< value in VIEW_X_MODE
     qint32 m_viewYMode; ///< value in VIEW_Y_MODE
 
+    qint32 m_axeXType;
+    qint64 m_timeStartEpochMs;
+    QVector<qreal> m_timeX;
+    QVector<qreal> m_timeMe;
+    QVector<qreal> m_time1e;
+
     qreal m_axeXUserMinM;   ///< used if VIEW_X_MODE = VIEW_X_USER, completed by m_axeXScaleM
     qreal m_axeYUserMinM;   ///< used if VIEW_Y_MODE = VIEW_Y_USER
     qreal m_axeYUserMaxM;
@@ -203,6 +222,7 @@ private :
     volatile bool m_drawFlagUserAxeY;          ///< Mouse has moved Axe Y
     volatile bool m_drawFlagScaleX;          ///< m_axeXScaleM has been changed
     volatile bool m_drawFlagScaleY;          ///< m_axeYMinMm or m_axeYMaxMm have been changed
+    volatile bool m_drawFlagTime;
 
 
     // -- Render

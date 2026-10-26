@@ -19,6 +19,7 @@
 // -- Qt Includes
 #include <QObject>
 #include <QThread>
+#include <QVector>
 /**
  * @brief The AScanWorker class
  *
@@ -50,6 +51,7 @@ private :
 
     void computeEnhancedAScan();
     void computeMeasures();
+    void computeEnhancedAScanRF();
 
     // Behaviour
     volatile bool m_isBusy;  ///< if true, do not try to start an other treatment
@@ -59,6 +61,7 @@ private :
     QList<AScan*> m_lAscanToTreat;  ///< in
     QList<AScan*> m_lAscanTreated;  ///< out
     QMutex m_lAScan;
+    QVector<qreal> computeRFCoefficients(int p_lissage, qreal p_sampFreq);
 };
 
 

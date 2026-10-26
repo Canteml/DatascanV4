@@ -1017,7 +1017,7 @@ Rectangle {
                                             id: idBtOrdreFiltreMinusMinus
                                             Layout.preferredWidth: 25
                                             Layout.preferredHeight: 25
-                                            enabled: scanManager.SelectedFuncAScan.paramDPulseWidth > 18
+                                            enabled: scanManager.SelectedFuncAScan.paramDPulseWidth > 1
 
                                             background: Rectangle {
                                                 color: "white"
@@ -1036,8 +1036,8 @@ Rectangle {
                                             }
 
                                             onStepped: {
-                                                if(scanManager.SelectedFuncAScan.paramDPulseWidth - 100 < 18){
-                                                    scanManager.SelectedFuncAScan.paramDPulseWidth = 18
+                                                if(scanManager.SelectedFuncAScan.paramDPulseWidth - 100 < 1){
+                                                    scanManager.SelectedFuncAScan.paramDPulseWidth = 1
                                                 }
                                                 else
                                                     scanManager.SelectedFuncAScan.paramDPulseWidth = scanManager.SelectedFuncAScan.paramDPulseWidth - 100
@@ -1048,7 +1048,7 @@ Rectangle {
                                             id: idBtOrdreFiltreMinus
                                             Layout.preferredWidth: 25
                                             Layout.preferredHeight: 25
-                                            enabled: scanManager.SelectedFuncAScan.paramDPulseWidth > 18
+                                            enabled: scanManager.SelectedFuncAScan.paramDPulseWidth > 1
 
                                             background: Rectangle {
                                                 color: "white"
@@ -1067,8 +1067,8 @@ Rectangle {
                                             }
 
                                             onStepped: {
-                                                if(scanManager.SelectedFuncAScan.paramDPulseWidth - 1 < 18){
-                                                    scanManager.SelectedFuncAScan.paramDPulseWidth = 18
+                                                if(scanManager.SelectedFuncAScan.paramDPulseWidth - 1 < 1){
+                                                    scanManager.SelectedFuncAScan.paramDPulseWidth = 1
                                                 }
                                                 else
                                                     scanManager.SelectedFuncAScan.paramDPulseWidth = scanManager.SelectedFuncAScan.paramDPulseWidth - 1
@@ -1123,7 +1123,7 @@ Rectangle {
                                                     verticalAlignment: Text.AlignVCenter
                                                     maximumLength: 4
                                                     selectByMouse: true
-                                                    validator: IntValidator { bottom: 18; top: 1600 }
+                                                    validator: IntValidator { bottom: 0; top: 1600 }
 
                                                     // Only emitted when the text satisfies the validator
                                                     onAccepted: {
@@ -2794,7 +2794,7 @@ Rectangle {
                                         font.pixelSize: 12
                                         font.bold: true
                                         font.family: Fonts.robotoCondensed
-                                        model: ["PREMIERE MAXIMUM", "MAXIMUM ABSOLU", "FLANC MONTANT"]
+                                        model: ["PREMIERE MAXIMUM", "MAXIMUM ABSOLU", "FLANC MONTANT", "CUSTOM ROBOPLANET"]
                                         currentIndex: scanManager.SelectedFuncAScan.paramDGate0Option
                                         onActivated: {
                                             scanManager.SelectedFuncAScan.paramDGate0Option = index
@@ -2916,11 +2916,8 @@ Rectangle {
                                             }
 
                                             onStepped: {
-                                                if(scanManager.SelectedFuncAScan.paramLGate1Start - 10 < 1){
-                                                    scanManager.SelectedFuncAScan.paramLGate1Start = 1
-                                                }
-                                                else
-                                                    scanManager.SelectedFuncAScan.paramLGate1Start = scanManager.SelectedFuncAScan.paramLGate1Start - 10
+                                                // Integer-only : round the current value (AUTO SYNC may leave decimals)
+                                                scanManager.SelectedFuncAScan.paramLGate1Start = Math.max(Math.round(scanManager.SelectedFuncAScan.paramLGate1Start) - 10, 1)
                                             }
                                         }
 
@@ -2947,11 +2944,8 @@ Rectangle {
                                             }
 
                                             onStepped: {
-                                                if(scanManager.SelectedFuncAScan.paramLGate1Start - 1 < 1){
-                                                    scanManager.SelectedFuncAScan.paramLGate1Start = 1
-                                                }
-                                                else
-                                                    scanManager.SelectedFuncAScan.paramLGate1Start = scanManager.SelectedFuncAScan.paramLGate1Start - 1
+                                                // Integer-only : round the current value (AUTO SYNC may leave decimals)
+                                                scanManager.SelectedFuncAScan.paramLGate1Start = Math.max(Math.round(scanManager.SelectedFuncAScan.paramLGate1Start) - 1, 1)
                                             }
                                         }
 
@@ -2966,7 +2960,7 @@ Rectangle {
                                             Text {
                                                 anchors.fill: parent
                                                 visible: !idStartRedValue.editing
-                                                text: scanManager.SelectedFuncAScan.paramLGate1Start
+                                                text: Math.round(scanManager.SelectedFuncAScan.paramLGate1Start)
                                                 font.family: Fonts.robotoCondensed
                                                 font.pixelSize: 10
                                                 font.bold: true
@@ -2978,7 +2972,7 @@ Rectangle {
                                                 anchors.fill: parent
                                                 enabled: !idStartRedValue.editing && !scanManager.SelectedFuncAScan.paramDAutoSyncGates
                                                 onDoubleClicked: {
-                                                    idStartRedInput.text = scanManager.SelectedFuncAScan.paramLGate1Start
+                                                    idStartRedInput.text = Math.round(scanManager.SelectedFuncAScan.paramLGate1Start)
                                                     idStartRedValue.editing = true
                                                     idStartRedInput.forceActiveFocus()
                                                     idStartRedInput.selectAll()
@@ -3049,7 +3043,7 @@ Rectangle {
                                             }
 
                                             onStepped: {
-                                                scanManager.SelectedFuncAScan.paramLGate1Start = Math.min(scanManager.SelectedFuncAScan.paramLGate1Start + 1, 10000)
+                                                scanManager.SelectedFuncAScan.paramLGate1Start = Math.min(Math.round(scanManager.SelectedFuncAScan.paramLGate1Start) + 1, 10000)
                                             }
                                         }
 
@@ -3077,7 +3071,7 @@ Rectangle {
                                             }
 
                                             onStepped: {
-                                                scanManager.SelectedFuncAScan.paramLGate1Start = Math.min(scanManager.SelectedFuncAScan.paramLGate1Start + 10, 10000)
+                                                scanManager.SelectedFuncAScan.paramLGate1Start = Math.min(Math.round(scanManager.SelectedFuncAScan.paramLGate1Start) + 10, 10000)
                                             }
                                         }
                                     }
@@ -3502,7 +3496,7 @@ Rectangle {
                                         font.pixelSize: 12
                                         font.bold: true
                                         font.family: Fonts.robotoCondensed
-                                        model: ["PREMIERE MAXIMUM", "MAXIMUM ABSOLU", "FLANC MONTANT"]
+                                        model: ["PREMIERE MAXIMUM", "MAXIMUM ABSOLU", "FLANC MONTANT", "CUSTOM ROBOPLANET"]
                                         currentIndex: scanManager.SelectedFuncAScan.paramDGate1Option
                                         onActivated: {
                                             scanManager.SelectedFuncAScan.paramDGate1Option = index
@@ -3567,14 +3561,6 @@ Rectangle {
                                         }
                                     }
 
-                                    Text {
-                                        text: qsTr("AUTO SYNC PORTE")
-                                        font.family: Fonts.robotoCondensed
-                                        font.pixelSize: 10
-                                        font.bold: true
-                                        Layout.alignment: Qt.AlignHCenter
-                                    }
-
                                     Button {
                                         id: idBtActiveAutoSync
                                         Layout.preferredWidth: rowDebutNoise0.width
@@ -3588,9 +3574,9 @@ Rectangle {
 
                                         contentItem: Text {
                                             text: if(scanManager.SelectedFuncAScan.paramDAutoSyncGates){
-                                                      return qsTr("ACTIF")
+                                                      return qsTr("AUTO SYNC: ON")
                                                   }else{
-                                                      return qsTr("INACTIF")
+                                                      return qsTr("AUTO SYNC: OFF")
                                                   }
                                             font.family: Fonts.robotoCondensed
                                             font.pointSize: 12
@@ -4256,14 +4242,6 @@ Rectangle {
                                         }
                                     }
 
-                                    Text {
-                                        text: qsTr("NOISE GATE")
-                                        font.family: Fonts.robotoCondensed
-                                        font.pixelSize: 10
-                                        font.bold: true
-                                        Layout.alignment: Qt.AlignHCenter
-                                    }
-
                                     Button {
                                         id: idBtActiveNoiseGate
                                         Layout.preferredWidth: rowDebutNoise0.width
@@ -4277,9 +4255,9 @@ Rectangle {
 
                                         contentItem: Text {
                                             text: if(scanManager.SelectedFuncAScan.paramDAutoGain){
-                                                      return qsTr("ACTIF")
+                                                      return qsTr("NOISE GATE: ON")
                                                   }else{
-                                                      return qsTr("INACTIF")
+                                                      return qsTr("NOISE GATE: OFF")
                                                   }
                                             font.family: Fonts.robotoCondensed
                                             font.pointSize: 12

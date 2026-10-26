@@ -34,7 +34,7 @@ Rectangle {
         id: idCameraRoleCombo
         property var cameraRoleItem
 
-        model: [qsTr("Aucune")].concat(typeof modelCameraList !== "undefined" ? modelCameraList : [])
+        model: [qsTr("AUCUNE")].concat(typeof modelCameraList !== "undefined" ? modelCameraList : [])
         enabled: cameraRoleItem.isEnabled
         font.family: Fonts.robotoCondensed
 
@@ -58,8 +58,56 @@ Rectangle {
 
         background: Rectangle {
             color: idCameraRoleCombo.enabled ? "white" : "#EEEEEE"
-            border.width: 2
+            border.width: 1
             border.color: Design.colFrameBorder
+        }
+        contentItem: Text {
+            font.family: "Roboto Condensed"
+            text: idCameraRoleCombo.displayText
+            font.pixelSize: 12
+            font.bold: true
+            leftPadding: 6
+            color: "#0D2B38"
+            verticalAlignment: Text.AlignVCenter
+            elide: Text.ElideRight
+        }
+
+        popup: Popup {
+            y: idCameraRoleCombo.height
+            width: idCameraRoleCombo.width
+            implicitHeight: contentItem.implicitHeight
+            padding: 1
+
+            contentItem: ListView {
+                clip: true
+                implicitHeight: contentHeight
+                model: idCameraRoleCombo.popup.visible ? idCameraRoleCombo.delegateModel : null
+                currentIndex: idCameraRoleCombo.highlightedIndex
+                ScrollIndicator.vertical: ScrollIndicator {}
+            }
+
+            background: Rectangle {
+                color: "#FFFFFF"
+                border.color: "#C7CBD1"
+                border.width: 1
+            }
+        }
+        delegate: ItemDelegate {
+            id: idCameraRoleComboDelegate
+            width: idCameraRoleCombo.width
+            highlighted: idCameraRoleCombo.highlightedIndex === index
+            contentItem: Text {
+                font.family: "Roboto Condensed"
+                text: idCameraRoleCombo.textAt(index)
+                font.pixelSize: 12
+                font.bold: true
+                color: "#0D2B38"
+                verticalAlignment: Text.AlignVCenter
+                elide: Text.ElideRight
+            }
+            background: Rectangle {
+                color: idCameraRoleComboDelegate.highlighted ? "#E6EFF3" : "#FFFFFF"
+            }
         }
     }
 
@@ -429,8 +477,56 @@ Rectangle {
 
                             background: Rectangle {
                                 color: "white"
-                                border.width: 2
+                                border.width: 1
                                 border.color: Design.colFrameBorder
+                            }
+                            contentItem: Text {
+                                font.family: "Roboto Condensed"
+                                text: idCbProduct.displayText
+                                font.pixelSize: 12
+                                font.bold: true
+                                leftPadding: 6
+                                color: "#0D2B38"
+                                verticalAlignment: Text.AlignVCenter
+                                elide: Text.ElideRight
+                            }
+
+                            popup: Popup {
+                                y: idCbProduct.height
+                                width: idCbProduct.width
+                                implicitHeight: contentItem.implicitHeight
+                                padding: 1
+
+                                contentItem: ListView {
+                                    clip: true
+                                    implicitHeight: contentHeight
+                                    model: idCbProduct.popup.visible ? idCbProduct.delegateModel : null
+                                    currentIndex: idCbProduct.highlightedIndex
+                                    ScrollIndicator.vertical: ScrollIndicator {}
+                                }
+
+                                background: Rectangle {
+                                    color: "#FFFFFF"
+                                    border.color: "#C7CBD1"
+                                    border.width: 1
+                                }
+                            }
+                            delegate: ItemDelegate {
+                                id: idCbProductDelegate
+                                width: idCbProduct.width
+                                highlighted: idCbProduct.highlightedIndex === index
+                                contentItem: Text {
+                                    font.family: "Roboto Condensed"
+                                    text: idCbProduct.textAt(index)
+                                    font.pixelSize: 12
+                                    font.bold: true
+                                    color: "#0D2B38"
+                                    verticalAlignment: Text.AlignVCenter
+                                    elide: Text.ElideRight
+                                }
+                                background: Rectangle {
+                                    color: idCbProductDelegate.highlighted ? "#E6EFF3" : "#FFFFFF"
+                                }
                             }
 
                             onActivated: function(index) {
@@ -438,6 +534,99 @@ Rectangle {
                             }
                             Component.onCompleted: {
                                 currentIndex = indexOfValue(products.getCurrentProdId())
+                            }
+                        }
+
+                        Text {
+                            text: qsTr("Baudrate")
+                            font.pixelSize: 14
+                            font.family: Fonts.robotoCondensed
+                            Layout.row: 1
+                            Layout.column: 0
+                        }
+
+                        // Baud rate of the encoder serial link, applied immediately
+                        ComboBox {
+                            id: idCbEncoderBaudrate
+                            Layout.row: 1
+                            Layout.column: 1
+                            Layout.fillWidth: true
+                            Layout.preferredWidth: 220
+                            Layout.preferredHeight: 30
+                            font.family: Fonts.robotoCondensed
+                            model: [
+                                { text: "9600",   baud: 9600 },
+                                { text: "115200", baud: 115200 }
+                            ]
+                            textRole: "text"
+                            valueRole: "baud"
+
+                            Component.onCompleted: currentIndex = indexOfValue(encoderController.baudRate)
+
+                            Connections {
+                                target: encoderController
+                                function onBaudRateChanged(value) {
+                                    idCbEncoderBaudrate.currentIndex = idCbEncoderBaudrate.indexOfValue(value)
+                                }
+                            }
+
+                            onActivated: function(index) {
+                                encoderController.baudRate = valueAt(index)
+                            }
+
+                            background: Rectangle {
+                                color: "white"
+                                border.width: 1
+                                border.color: Design.colFrameBorder
+                            }
+
+                            contentItem: Text {
+                                font.family: "Roboto Condensed"
+                                text: idCbEncoderBaudrate.displayText
+                                font.pixelSize: 12
+                                font.bold: true
+                                leftPadding: 6
+                                color: "#0D2B38"
+                                verticalAlignment: Text.AlignVCenter
+                                elide: Text.ElideRight
+                            }
+
+                            popup: Popup {
+                                y: idCbEncoderBaudrate.height
+                                width: idCbEncoderBaudrate.width
+                                implicitHeight: contentItem.implicitHeight
+                                padding: 1
+
+                                contentItem: ListView {
+                                    clip: true
+                                    implicitHeight: contentHeight
+                                    model: idCbEncoderBaudrate.popup.visible ? idCbEncoderBaudrate.delegateModel : null
+                                    currentIndex: idCbEncoderBaudrate.highlightedIndex
+                                    ScrollIndicator.vertical: ScrollIndicator {}
+                                }
+
+                                background: Rectangle {
+                                    color: "#FFFFFF"
+                                    border.color: "#C7CBD1"
+                                    border.width: 1
+                                }
+                            }
+                            delegate: ItemDelegate {
+                                id: idCbEncoderBaudrateDelegate
+                                width: idCbEncoderBaudrate.width
+                                highlighted: idCbEncoderBaudrate.highlightedIndex === index
+                                contentItem: Text {
+                                    font.family: "Roboto Condensed"
+                                    text: idCbEncoderBaudrate.textAt(index)
+                                    font.pixelSize: 12
+                                    font.bold: true
+                                    color: "#0D2B38"
+                                    verticalAlignment: Text.AlignVCenter
+                                    elide: Text.ElideRight
+                                }
+                                background: Rectangle {
+                                    color: idCbEncoderBaudrateDelegate.highlighted ? "#E6EFF3" : "#FFFFFF"
+                                }
                             }
                         }
 
@@ -464,35 +653,6 @@ Rectangle {
                         }*/
 
                         Text {
-                            text: qsTr("Liaison")
-                            font.pixelSize: 14
-                            Layout.row: 1
-                            Layout.column: 0
-                            font.family: Fonts.robotoCondensed
-                        }
-
-                        TextField {
-                            text: examManager.structName
-                            font.family: Fonts.robotoCondensed
-                            selectByMouse: true
-                            color: "black"
-                            Layout.row: 1
-                            Layout.column: 1
-                            Layout.fillWidth: true
-                            Layout.preferredWidth: 220
-                            Layout.preferredHeight: 30
-                            onTextChanged: {examManager.structName = text}
-                            Keys.onReturnPressed: {
-                                console.log("Captured !")
-                            }
-                            background: Rectangle {
-                                color: "white"
-                                border.width: 2
-                                border.color: Design.colFrameBorder
-                            }
-                        }
-
-                        Text {
                             text: qsTr("Port série de secours")
                             font.pixelSize: 14
                             font.family: Fonts.robotoCondensed
@@ -500,37 +660,108 @@ Rectangle {
                             Layout.column: 0
                         }
 
-                        TextField {
-                            text: examManager.structName
-                            font.family: Fonts.robotoCondensed
-                            selectByMouse: true
-                            color: "black"
+                        ComboBox {
+                            id: idCbBackupSerialPort
                             Layout.row: 2
                             Layout.column: 1
                             Layout.fillWidth: true
                             Layout.preferredWidth: 220
                             Layout.preferredHeight: 30
-                            onTextChanged: {examManager.structName = text}
-                            Keys.onReturnPressed: {
-                                console.log("Captured !")
+                            font.family: Fonts.robotoCondensed
+                            textRole: "text"
+                            valueRole: "address"
+
+                            function refreshPorts() {
+                                model = serialPortRouter.availablePorts()
+                                currentIndex = indexOfValue(serialPortRouter.portName)
                             }
+
+                            Component.onCompleted: refreshPorts()
+
+                            // Rescan ports each time the list is opened (hot-plug)
+                            Connections {
+                                target: idCbBackupSerialPort.popup
+                                function onAboutToShow() {
+                                    idCbBackupSerialPort.refreshPorts()
+                                }
+                            }
+
+                            Connections {
+                                target: serialPortRouter
+                                function onPortNameChanged() {
+                                    idCbBackupSerialPort.refreshPorts()
+                                }
+                            }
+
+                            onActivated: function(index) {
+                                serialPortRouter.portName = valueAt(index)
+                            }
+
                             background: Rectangle {
                                 color: "white"
-                                border.width: 2
+                                border.width: 1
                                 border.color: Design.colFrameBorder
+                            }
+
+                            contentItem: Text {
+                                font.family: "Roboto Condensed"
+                                text: idCbBackupSerialPort.displayText
+                                font.pixelSize: 12
+                                font.bold: true
+                                leftPadding: 6
+                                color: "#0D2B38"
+                                verticalAlignment: Text.AlignVCenter
+                                elide: Text.ElideRight
+                            }
+
+                            popup: Popup {
+                                y: idCbBackupSerialPort.height
+                                width: idCbBackupSerialPort.width
+                                implicitHeight: contentItem.implicitHeight
+                                padding: 1
+
+                                contentItem: ListView {
+                                    clip: true
+                                    implicitHeight: contentHeight
+                                    model: idCbBackupSerialPort.popup.visible ? idCbBackupSerialPort.delegateModel : null
+                                    currentIndex: idCbBackupSerialPort.highlightedIndex
+                                    ScrollIndicator.vertical: ScrollIndicator {}
+                                }
+
+                                background: Rectangle {
+                                    color: "#FFFFFF"
+                                    border.color: "#C7CBD1"
+                                    border.width: 1
+                                }
+                            }
+
+                            delegate: ItemDelegate {
+                                id: idCbBackupSerialPortDelegate
+                                width: idCbBackupSerialPort.width
+                                highlighted: idCbBackupSerialPort.highlightedIndex === index
+                                contentItem: Text {
+                                    font.family: "Roboto Condensed"
+                                    text: idCbBackupSerialPort.textAt(index)
+                                    font.pixelSize: 12
+                                    font.bold: true
+                                    color: "#0D2B38"
+                                    verticalAlignment: Text.AlignVCenter
+                                    elide: Text.ElideRight
+                                }
+                                background: Rectangle {
+                                    color: idCbBackupSerialPortDelegate.highlighted ? "#E6EFF3" : "#FFFFFF"
+                                }
                             }
                         }
 
                         Text {
-                            text: qsTr("Adresse IP de l'encodeur")
+                            text: qsTr("Source du B-Scan")
                             font.pixelSize: 14
                             font.family: Fonts.robotoCondensed
                             Layout.row: 3
                             Layout.column: 0
                         }
 
-                        // List of USB devices an encoder can be connected to.
-                        // Selection has no effect yet.
                         ComboBox {
                             id: idCbEncoderDevice
                             Layout.row: 3
@@ -541,13 +772,14 @@ Rectangle {
                             font.family: Fonts.robotoCondensed
                             textRole: "text"
                             valueRole: "address"
-                            displayText: count > 0 ? currentText : qsTr("Aucun appareil détecté")
 
                             function refreshDevices() {
-                                const previous = currentValue
                                 model = encoderController.availableDevices()
-                                const idx = indexOfValue(previous)
-                                currentIndex = idx >= 0 ? idx : (count > 0 ? 0 : -1)
+                                currentIndex = indexOfValue(encoderController.bscanSource)
+                            }
+
+                            onActivated: function(index) {
+                                encoderController.bscanSource = valueAt(index)
                             }
 
                             Component.onCompleted: refreshDevices()
@@ -560,18 +792,70 @@ Rectangle {
                                 }
                             }
 
-                            // Network device authenticated / disconnected
+                            // Network device authenticated / disconnected, source changed
                             Connections {
                                 target: encoderController
                                 function onAvailableDevicesChanged() {
+                                    idCbEncoderDevice.refreshDevices()
+                                }
+                                function onBscanSourceChanged() {
                                     idCbEncoderDevice.refreshDevices()
                                 }
                             }
 
                             background: Rectangle {
                                 color: "white"
-                                border.width: 2
+                                border.width: 1
                                 border.color: Design.colFrameBorder
+                            }
+
+                            contentItem: Text {
+                                font.family: "Roboto Condensed"
+                                text: idCbEncoderDevice.displayText
+                                font.pixelSize: 12
+                                font.bold: true
+                                leftPadding: 6
+                                color: "#0D2B38"
+                                verticalAlignment: Text.AlignVCenter
+                                elide: Text.ElideRight
+                            }
+
+                            popup: Popup {
+                                y: idCbEncoderDevice.height
+                                width: idCbEncoderDevice.width
+                                implicitHeight: contentItem.implicitHeight
+                                padding: 1
+
+                                contentItem: ListView {
+                                    clip: true
+                                    implicitHeight: contentHeight
+                                    model: idCbEncoderDevice.popup.visible ? idCbEncoderDevice.delegateModel : null
+                                    currentIndex: idCbEncoderDevice.highlightedIndex
+                                    ScrollIndicator.vertical: ScrollIndicator {}
+                                }
+
+                                background: Rectangle {
+                                    color: "#FFFFFF"
+                                    border.color: "#C7CBD1"
+                                    border.width: 1
+                                }
+                            }
+                            delegate: ItemDelegate {
+                                id: idCbEncoderDeviceDelegate
+                                width: idCbEncoderDevice.width
+                                highlighted: idCbEncoderDevice.highlightedIndex === index
+                                contentItem: Text {
+                                    font.family: "Roboto Condensed"
+                                    text: idCbEncoderDevice.textAt(index)
+                                    font.pixelSize: 12
+                                    font.bold: true
+                                    color: "#0D2B38"
+                                    verticalAlignment: Text.AlignVCenter
+                                    elide: Text.ElideRight
+                                }
+                                background: Rectangle {
+                                    color: idCbEncoderDeviceDelegate.highlighted ? "#E6EFF3" : "#FFFFFF"
+                                }
                             }
                         }
                     }
@@ -819,13 +1103,13 @@ Rectangle {
                             }
                             background: Rectangle {
                                 color: "white"
-                                border.width: 2
+                                border.width: 1
                                 border.color: Design.colFrameBorder
                             }
                         }
 
                         Text {
-                            text: qsTr("Sonde · n° de série")
+                            text: qsTr("Nom du UT3 · Numéro du UT3")
                             font.family: Fonts.robotoCondensed
                             font.pixelSize: 14
                             Layout.row: 0
@@ -833,7 +1117,7 @@ Rectangle {
                         }
 
                         TextField {
-                            text: examManager.sondeNumero
+                            text: examManager.inspecteurNom + " · " + examManager.inspecteurNumero
                             font.family: Fonts.robotoCondensed
                             selectByMouse: true
                             color: "black"
@@ -847,7 +1131,7 @@ Rectangle {
                             }
                             background: Rectangle {
                                 color: "white"
-                                border.width: 2
+                                border.width: 1
                                 border.color: Design.colFrameBorder
                             }
                         }
@@ -881,7 +1165,7 @@ Rectangle {
                                     }else{
                                         "#F7E6E6"
                                     }
-                                border.width: 2
+                                border.width: 1
                                 border.color:
                                     if(examManager.dateValide){
                                         Design.colFrameBorder
@@ -892,7 +1176,7 @@ Rectangle {
                         }
 
                         Text {
-                            text: qsTr("Certificat d'étalonnage bloc")
+                            text: qsTr("Date d'expiration certificat UT3")
                             font.family: Fonts.robotoCondensed
                             font.pixelSize: 14
                             Layout.row: 1
@@ -900,7 +1184,7 @@ Rectangle {
                         }
 
                         TextField {
-                            text: examManager.sondeAnee
+                            text: examManager.inspecteurDate
                             font.family: Fonts.robotoCondensed
                             selectByMouse: true
                             color: "black"
@@ -909,20 +1193,20 @@ Rectangle {
                             Layout.fillWidth: true
                             Layout.preferredWidth: 220
                             Layout.preferredHeight: 30
-                            onTextChanged: {examManager.sondeAnee = text}
+                            onTextChanged: {examManager.inspecteurDate = text}
                             Keys.onReturnPressed: {
                                 console.log("Captured !")
                             }
                             background: Rectangle {
                                 color:
-                                    if(examManager.sondeDateValide){
+                                    if(examManager.inspecteurValide){
                                         "white"
                                     }else{
                                         "#F7E6E6"
                                     }
-                                border.width: 2
+                                border.width: 1
                                 border.color:
-                                    if(examManager.sondeDateValide){
+                                    if(examManager.inspecteurValide){
                                         Design.colFrameBorder
                                     }else{
                                         "#8E1B1B"
@@ -941,7 +1225,10 @@ Rectangle {
 
                         Rectangle {
                             id: rectCertificatWarning
-                            visible: !examManager.dateValide || !examManager.sondeDateValide
+                            readonly property int nbEchus: (examManager.dateValide ? 0 : 1)
+                                                           + (examManager.sondeDateValide ? 0 : 1)
+                                                           + (examManager.inspecteurValide ? 0 : 1)
+                            visible: nbEchus > 0
                             color: "#F7E6E6"
                             border.width: 3
                             border.color: "#8E1B1B"
@@ -952,8 +1239,8 @@ Rectangle {
                                 anchors.fill: parent
                                 anchors.leftMargin: 10
                                 Text {
-                                    text: (!examManager.dateValide && !examManager.sondeDateValide)
-                                          ? qsTr("2 certificats échus")
+                                    text: rectCertificatWarning.nbEchus > 1
+                                          ? qsTr("%1 certificats échus").arg(rectCertificatWarning.nbEchus)
                                           : qsTr("1 certificat échu")
                                     font.family: Fonts.robotoCondensed
                                     font.pixelSize: 18
@@ -971,6 +1258,14 @@ Rectangle {
                                 Text {
                                     visible: !examManager.sondeDateValide
                                     text: qsTr("Certificat d'étalonnage bloc expiré")
+                                    font.family: Fonts.robotoCondensed
+                                    font.pixelSize: 14
+                                    font.bold: true
+                                    color: "#8E1B1B"
+                                }
+                                Text {
+                                    visible: !examManager.inspecteurValide
+                                    text: qsTr("Certificat UT3 expiré")
                                     font.family: Fonts.robotoCondensed
                                     font.pixelSize: 14
                                     font.bold: true

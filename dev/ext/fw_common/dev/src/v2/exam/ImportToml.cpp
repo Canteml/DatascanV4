@@ -203,7 +203,7 @@ void ImportToml::readEquipmentBlock()
     m_supervisorNumero  = m_values.value("equipment.numero_superviseur");
     m_supervisorDate    = m_values.value("equipment.control_date");
     m_sondeNumero       = m_values.value("equipment.sonde_numero");
-    m_controlleurNom    = m_values.value("equipment.nom_controlleur");
+    m_controlleurNom    = m_values.value("equipment.nom_ controlleur");
 
 
     qDebug() << "[ImportToml] [equipment] nom                   =" << m_equipmentNom;
@@ -215,8 +215,8 @@ void ImportToml::readEquipmentBlock()
     qDebug() << "[ImportToml] [equipment] nom_superviseur       =" << m_supervisorNom;
     qDebug() << "[ImportToml] [equipment] numero_superviseur    =" << m_supervisorNumero;
     qDebug() << "[ImportToml] [equipment] control_date          =" << m_supervisorDate;
-    qDebug() << "[ImportToml] [equipment] control_date          =" << m_sondeNumero;
-    qDebug() << "[ImportToml] [equipment] control_date          =" << m_controlleurNom;
+    qDebug() << "[ImportToml] [equipment] sonde_numero          =" << m_sondeNumero;
+    qDebug() << "[ImportToml] [equipment] nom_ controlleur      =" << m_controlleurNom;
 }
 
 // -- [object] block : type / numero / site / client

@@ -87,14 +87,17 @@ private slots :
 private :
     void needRefresh(bool p_force);
     void draw();
-    int mmToDisplayIndex(qreal mm, AScan* pAScan) const;
+    int mmToDisplayIndex(qreal mm, AScan* pAScan, int p_decim = 4) const;
 
     MyJkQtPlotter *m_pPlotAScan;
     JKQTPDatastore* m_dsAScan;
-    JKQTPXYLineGraph* m_graphAScan;
+    JKQTPXYLineGraph* m_graphAScan;     ///< 1000 points (samples averaged by 4): non RF modes, RF with LISSAGE <= 5
+    JKQTPXYLineGraph* m_graphAScanRF;   ///< 4000 points (full resolution): RF with LISSAGE > 5
 
     size_t m_columnX;
     size_t m_columnY;
+    size_t m_columnXRF;   ///< same arrays as m_columnX/Y, full length
+    size_t m_columnYRF;
     qreal m_pAScanXData[AScanRawSample::ASCAN_SAMPLE_SIZE];
     qreal m_pAScanYData[AScanRawSample::ASCAN_SAMPLE_SIZE];
 

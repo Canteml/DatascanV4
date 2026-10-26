@@ -48,6 +48,7 @@ ExamManager::ExamManager() : XmlSettingsLoggable("ExamManager")
     m_isMepAutoMode = false;
     m_measureDisplay = MEASURE_ME;
     m_examStep = EXAM_STOPPED;
+    m_examWriteProgress = 0;
     m_mepZoom = 1.0;
 
     m_objectRobeDiameter = 0;
@@ -73,7 +74,8 @@ ExamManager::ExamManager() : XmlSettingsLoggable("ExamManager")
     m_plannerSnapshotValid = false;
 
     m_pExportCsv = new ExportCsv();
-    connect(m_pExportCsv, &ExportCsv::evError, this, &ExamManager::onExportError, Qt::QueuedConnection);
+    connect(m_pExportCsv, &ExportCsv::evProgessChanged, this, &ExamManager::onExportProgressChanged, Qt::QueuedConnection);
+    connect(m_pExportCsv, &ExportCsv::evExportTerminated, this, &ExamManager::onExportTerminatedChanged, Qt::QueuedConnection);
 }
 
 ExamManager::~ExamManager()
@@ -98,7 +100,8 @@ ExamManager::~ExamManager()
     delete m_pMepMatrix;
     m_pMepMatrix = nullptr;
 
-    delete m_pExportCsv;    // close the CSV if an acquisition is running
+    m_pExportCsv->cancelExport();
+    delete m_pExportCsv;
     m_pExportCsv = nullptr;
 }
 
@@ -375,6 +378,71 @@ void ExamManager::setEquipmentFrequency(double p_value)
     }
 }
 
+QString ExamManager::inspecteurNom() const
+{
+    return m_inspecteurNom;
+}
+
+void ExamManager::setInspecteurNom(const QString& p_value)
+{
+    if(p_value != m_inspecteurNom) {
+        m_inspecteurNom = p_value;
+        emit inspecteurNomChanged(m_inspecteurNom);
+    }
+}
+
+QString ExamManager::inspecteurNumero() const
+{
+    return m_inspecteurNumero;
+}
+
+void ExamManager::setInspecteurNumero(const QString& p_value)
+{
+    if(p_value != m_inspecteurNumero) {
+        m_inspecteurNumero = p_value;
+        emit inspecteurNumeroChanged(m_inspecteurNumero);
+    }
+}
+
+QString ExamManager::inspecteurDate() const
+{
+    return m_inspecteurDate;
+}
+
+void ExamManager::setInspecteurDate(const QString& p_value)
+{
+    if(m_inspecteurDate == p_value)
+        return;
+    m_inspecteurDate = p_value;
+    inspecteurDateCheck(m_inspecteurDate);
+    emit inspecteurDateChanged(m_inspecteurDate);
+}
+
+bool ExamManager::inspecteurValide() const
+{
+    return m_inspecteurValide;
+}
+
+void ExamManager::inspecteurDateCheck(const QString& p_date)
+{
+    const QDate date = QDate::fromString(p_date.trimmed(), "dd/MM/yyyy");
+
+    bool bValide = false;
+    if (!date.isValid()){
+        qDebug() << "[ExamManager] [inspecteurDateCheck] Formato data non valido dd/MM/yyyy";
+    } else if(date < QDate::currentDate()){
+        qDebug() << "UT3 certification scaduta";
+    } else {
+        qDebug() << "UT3 certification valida";
+        bValide = true;
+    }
+
+    if(bValide != m_inspecteurValide) {
+        m_inspecteurValide = bValide;
+        emit inspecteurValideChanged(m_inspecteurValide);
+    }
+}
+
 QString ExamManager::sondeNbVoies() const
 {
     return m_sondeNbVoies;
@@ -560,7 +628,13 @@ void ExamManager::setInspViroleSteelGrade(int p_index, const QString& p_value)
     }
 }
 
-void ExamManager::setMepVerticalDirection(const QString& p_value)   { m_mepVerticalDirection = p_value; }
+void ExamManager::setMepVerticalDirection(const QString& p_value)
+{
+    if( m_mepVerticalDirection != p_value ) {
+        m_mepVerticalDirection = p_value;
+        resetMepMatrix(); // re-apply the starting cell / direction
+    }
+}
 void ExamManager::setMepHorizontalDirection(const QString& p_value) { m_mepHorizontalDirection = p_value; }
 
 QMap<QString, QString> ExamManager::captureTrackedParams() const
@@ -666,6 +740,9 @@ bool ExamManager::importPlannerToml(const QString& p_filePath)
     setEquipmentNom(importer.tomlEquipmentNom());
     setEquipmentNumero(importer.tomlEquipmentNumero());
     setEquipmentDate(importer.tomlEquipmentDate());
+    setInspecteurNom(importer.inspectorNom());
+    setInspecteurNumero(importer.inspectorNumero());
+    setInspecteurDate(importer.inspectorDate());
 
     // -- [object] block -> exam parameters
     setObjectType(importer.objectType());
@@ -726,9 +803,8 @@ bool ExamManager::importPlannerToml(const QString& p_filePath)
 
         // -- [Reperage] block -> MEP direction (CentralPage6.qml)
         // sens_acquisition -> mepVerticalDirection, sens_rotation -> mepHorizontalDirection
-        if( !importer.reperageSensAcquisition().isEmpty() ) {
-            setMepVerticalDirection(importer.reperageSensAcquisition());
-        }
+        // always overwritten so that a previous import's value does not leak (empty = default top-down)
+        setMepVerticalDirection(importer.reperageSensAcquisition());
         if( !importer.reperageSensRotation().isEmpty() ) {
             setMepHorizontalDirection(importer.reperageSensRotation());
         }
@@ -1011,7 +1087,20 @@ void ExamManager::resetMepMatrix()
     if(m_pMepMatrix != nullptr) {
         m_waitForMepAScan = false;
         m_pMepMatrix->resetSize({ m_mepNbRow, m_mepNbCol});
-        setMepRow(0);
+        // sens_acquisition : "bas_vers_haut" starts from the bottom cell (1-A) going up,
+        // "haut_vers_bas" (and default) starts from the top cell (N-A) going down.
+        // goToNextMepCell() then alternates the direction at each column change.
+        VectorFuncPosition *funcPos = VectorManager::getInstance()->getVectorStd()->funcPosition();
+        const QString sens = m_mepVerticalDirection.trimmed().toLower();
+        if( sens == "bas_vers_haut" ) {
+            setMepRow(m_mepNbRow - 1);
+            funcPos->setParamLVectorDirX(0); // 0 = up
+        } else {
+            setMepRow(0);
+            if( sens == "haut_vers_bas" ) {
+                funcPos->setParamLVectorDirX(1); // 1 = down
+            }
+        }
         setMepCol(0);
     }
 }
@@ -1120,13 +1209,7 @@ void ExamManager::setExamStep(qint32 p_value)
         if( EXAM_STOPPED == oldExamStep ) {
             if( CONTROL_BSCAN_GENERATRIX == m_controlType ) {
                 examStartBScan();
-                startCsvRecording();
             }
-        }
-
-        if( EXAM_EXPORTING == m_examStep || EXAM_STOPPED == m_examStep ) {
-            // end of acquisition : lines already queued are written, then the CSV is closed
-            m_pExportCsv->close();
         }
 
         if( EXAM_EXPORTING == m_examStep ) {
@@ -1153,61 +1236,41 @@ bool ExamManager::isRecording() const
     return (EXAM_STOPPED == m_examStep || EXAM_RECORDING == m_examStep );
 }
 
-void ExamManager::startCsvRecording()
+qint32 ExamManager::getExamWriteProgress() const
 {
-    m_exportFullFileName.clear();
-    m_journalFullFileName.clear();
-
-    if( !QDir(m_exportFolder).exists() ) {
-        fLogError(QString("Invalid export folder : %1. CSV not created.").arg(m_exportFolder));
-        emit evExportErrorChanged(m_exportFolder);
-        return;
-    }
-
-    // folder and file have the same name. Replace characters forbidden in file names.
-    QString baseName = getExamGeneratedFileName();
-    baseName.replace(QRegularExpression("[\\\\/:*?\"<>|]"), "_");
-    if( baseName.isEmpty() ) {
-        baseName = "exam";
-    }
-
-    // do not overwrite a previous acquisition : add a suffix _2, _3 ...
-    QDir exportDir(m_exportFolder);
-    QString name = baseName;
-    for(int i=2; exportDir.exists(name); i++) {
-        name = QString("%1_%2").arg(baseName).arg(i);
-    }
-
-    if( !exportDir.mkdir(name) ) {
-        fLogError(QString("Fail to create folder %1/%2. CSV not created.").arg(m_exportFolder).arg(name));
-        emit evExportErrorChanged(exportDir.filePath(name));
-        return;
-    }
-
-    QString folder = exportDir.filePath(name);
-    m_exportFullFileName = QString("%1/%2.csv").arg(folder).arg(name);
-    m_pExportCsv->open(m_exportFullFileName);
-    fLogInfo(QString("Export CSV : %1").arg(m_exportFullFileName));
-
-    // -- Journal of the acquisition, next to the CSV
-    m_journalFullFileName = QString("%1/journal.txt").arg(folder);
-    appendJournal("Fichier CSV", QString("%1.csv").arg(name));
-    appendJournal("Date de création", QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss"));
-    appendJournal("Emplacement", QDir::toNativeSeparators(folder));
+    return m_examWriteProgress;
 }
 
-void ExamManager::appendJournal(const QString& p_key, const QString& p_value)
+void ExamManager::setExamWriteProgress(qint32 p_value)
 {
-    if( m_journalFullFileName.isEmpty() ) {
-        return;
+    m_examWriteProgress = p_value;
+    emit evExamWriteProgressChanged(m_examWriteProgress);
+}
+
+QString ExamManager::makeExamFullFileName(const QString &p_file) const
+{
+    QString fullFileName = QString("%1/%2").arg(m_exportFolder).arg(p_file);
+    if( fullFileName.right(4) != ".csv" ) {
+        fullFileName.append(".csv");
     }
-    QFile file(m_journalFullFileName);
-    if( !file.open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text) ) {
-        fLogError("Fail to write journal file : " + m_journalFullFileName);
-        return;
-    }
-    QTextStream flux(&file);
-    flux << p_key << " = " << p_value << "\n";
+    return fullFileName;
+}
+
+void ExamManager::startExamWrite(const QString &p_file)
+{
+    // reset progress
+    setExamWriteProgress(0);
+    // make filename
+    QString fullFileName = makeExamFullFileName(p_file);
+    // start write
+    m_pExportCsv->startExport(fullFileName);
+    setExamStep(EXAM_EXPORTING);
+    fLogInfo(QString("Export CSV : %1").arg(fullFileName));
+}
+
+void ExamManager::cancelExamWrite()
+{
+    m_pExportCsv->cancelExport();
 }
 
 QString ExamManager::getExamGeneratedFileName() const
@@ -1219,9 +1282,26 @@ QString ExamManager::getExamGeneratedFileName() const
     return sRet;
 }
 
+qint32 ExamManager::checkFileName(const QString &p_file) const
+{
+    /////< return 0 if npo error, 1 if directory is invalid, 2 if the file already exists
+    qint32 iRet = 0;
+    // check path
+    if( !QDir(m_exportFolder).exists() ) {
+        iRet = 1;
+    } else {
+        // Check if the file name is not already used :
+        QString fullFileName = makeExamFullFileName(p_file);
+        if( QFileInfo::exists(fullFileName) ) {
+            iRet = 2;
+        }
+    }
+    return iRet;
+}
+
 QString ExamManager::getExportFullFileName() const
 {
-    return m_exportFullFileName;
+    return m_pExportCsv->getFileName();
 }
 
 // --
@@ -1232,9 +1312,8 @@ void ExamManager::pushAScan(AScan *p_pAscan)
     if( nullptr != m_pSelectedLocation1d ) {    // BSCAN
         // For now, we only manage 1 BScan (for source 0)
         if( 0 == p_pAscan->m_source ) {
-            // write the measure in the CSV before giving the ASCAN to the location (it may delete it)
-            if( EXAM_RECORDING == m_examStep && CONTROL_BSCAN_GENERATRIX == m_controlType ) {
-                m_pExportCsv->appendAScan(p_pAscan);
+            if( m_waitForMepAScan ) { // DEBUG MEP (temporary)
+                fLogInfo("[MEP DEBUG] AScan sent to the BSCAN location instead of the MEP matrix");
             }
             m_pSelectedLocation1d->pushAScan(p_pAscan);
         } else {
@@ -1242,6 +1321,8 @@ void ExamManager::pushAScan(AScan *p_pAscan)
         }
     } else if( nullptr != m_pMepMatrix ) {      // MEP
         if( 0 == p_pAscan->m_source && m_waitForMepAScan ) {
+            // DEBUG MEP (temporary)
+            fLogInfo(QString("[MEP DEBUG] AScan written in row=%1 col=%2").arg(m_currentMepRow).arg(m_currentMepColumn));
             m_pMepMatrix->pushAScan(p_pAscan, m_currentMepRow, m_currentMepColumn);
             onDirectionChanged(VectorManager::getInstance()->getVectorStd()->funcPosition()->getParamLVectorDirX());
             m_waitForMepAScan = false;
@@ -1575,13 +1656,23 @@ void ExamManager::onLocationZoneChanged(Location1d * p_location)
     }
 }
 
-void ExamManager::onExportError(QString p_fileName)
+void ExamManager::onExportProgressChanged(qint32 p_value)
 {
-    emit evExportErrorChanged(p_fileName);
+    setExamWriteProgress(p_value);
+}
+
+void ExamManager::onExportTerminatedChanged(bool p_success)
+{
+    emit evExportTerminatedChanged(p_success);
 }
 
 void ExamManager::startWaitingForMepAScan()
 {
+    // DEBUG MEP (temporary)
+    fLogInfo(QString("[MEP DEBUG] Enter : controlType=%1 matrix=%2 location=%3 row=%4/%5 col=%6/%7 sens='%8'")
+             .arg(m_controlType).arg(m_pMepMatrix != nullptr).arg(m_pSelectedLocation1d != nullptr)
+             .arg(m_currentMepRow).arg(m_mepNbRow).arg(m_currentMepColumn).arg(m_mepNbCol)
+             .arg(m_mepVerticalDirection));
     m_waitForMepAScan = true;
 }
 

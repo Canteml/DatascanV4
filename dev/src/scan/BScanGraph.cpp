@@ -19,15 +19,18 @@
 #include <jkqtplotter/graphs/jkqtpgeometric.h>
 
 #include <QtGlobal>
+#include <algorithm>
 
 #include <v2/vector/VectorManager.h>
 #include <v2/vector/VectorStd.h>
 #include <v2/vector/VectorFuncPosition.h>
 #include <v2/exam/ExamManager.h>
 
-const qreal BScanGraph::SCALE_X_M_MIN = 1;
-const qreal BScanGraph::SCALE_X_M_MAX = 10;
-const qreal BScanGraph::SCALE_Y_MM_MAX = 200;
+const qreal  BScanGraph::SCALE_X_M_MIN   = 1;
+const qreal  BScanGraph::SCALE_X_M_MAX   = 10;
+const qreal  BScanGraph::SCALE_Y_MM_MAX  = 200;
+const qreal  BScanGraph::TIME_WINDOW_S   = 20;
+const qint32 BScanGraph::TIME_BUFFER_MAX = 5000;
 
 #define FREQ_REFRESH_BSCAN_ON_IHM   20
 
@@ -48,6 +51,8 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_axeYMaxMm = 10;
     m_viewXMode = VIEW_X_AUTO;
     m_viewYMode = VIEW_Y_USER;
+    m_axeXType = AXE_X_DISTANCE;
+    m_timeStartEpochMs = 0;
     m_pLastSurface1d = nullptr;
     m_mouseDoubleClicked = false;
 
@@ -200,6 +205,9 @@ void BScanGraph::onUpdateBScan(Surface1d* p_surface)
 
 void BScanGraph::processLastSurface()
 {
+    if(AXE_X_TIME == m_axeXType) {
+        return;
+    }
     if( !m_mouseClicked ) {
         if( nullptr != m_pLastSurface1d ) {
             qint32 nbCell =  m_pLastSurface1d->getNbCell();
@@ -391,6 +399,90 @@ void BScanGraph::setAxeYMaxMm(qreal p_value)
     }
 }
 
+qint32 BScanGraph::getAxeXType(void) const
+{
+    return m_axeXType;
+}
+
+void BScanGraph::setAxeXType(qint32 p_value)
+{
+    if( m_axeXType != p_value ) {
+        m_axeXType = p_value;
+        if( AXE_X_TIME == m_axeXType ) {
+            // restart the time axis from 0
+            m_timeX.clear();
+            m_timeMe.clear();
+            m_time1e.clear();
+            m_timeStartEpochMs = 0;
+            processTimeBuffer();
+        } else {
+            processLastSurface();
+        }
+
+        m_pPositionLine->setVisible(AXE_X_DISTANCE == m_axeXType);
+        for(auto i : m_lZoneLine) {
+            i->setVisible(AXE_X_DISTANCE == m_axeXType);
+        }
+
+        m_drawFlagViewXMode = true;
+        m_drawFlagViewYMode = true;
+        needRefresh();
+        emit evAxeXTypeChanged(m_axeXType);
+    }
+}
+
+void BScanGraph::pushTimeMeasure(qint64 p_epochMs, qreal p_measureMe, qreal p_measure1e)
+{
+    if( AXE_X_TIME != m_axeXType ) {
+        return;
+    }
+    if( 0 == m_timeStartEpochMs ) {
+        m_timeStartEpochMs = p_epochMs;
+    }
+    m_timeX.append((p_epochMs - m_timeStartEpochMs) / 1000.0);
+    m_timeMe.append(p_measureMe);
+    m_time1e.append(p_measure1e);
+
+    const qreal tMin = m_timeX.last() - TIME_WINDOW_S;
+    qint32 nbOld = 0;
+    while( nbOld < m_timeX.size()
+           && (m_timeX.at(nbOld) < tMin || m_timeX.size() - nbOld > TIME_BUFFER_MAX) ) {
+        nbOld++;
+    }
+    if( nbOld > 0 ) {
+        m_timeX.remove(0, nbOld);
+        m_timeMe.remove(0, nbOld);
+        m_time1e.remove(0, nbOld);
+    }
+
+    processTimeBuffer();
+    needRefresh(false);
+}
+
+void BScanGraph::processTimeBuffer()
+{
+    if( m_timeX.isEmpty() ) {
+        QVector<qreal> v;
+        v.append(0);
+        m_dsBScan->setColumnData(m_columnX, v);
+        m_dsBScan->setColumnData(m_columnY, v);
+        return;
+    }
+
+    const QVector<qreal>& y = (m_pExamManager->getMeasureDisplay() == ExamManager::MEASURE_1E) ? m_time1e : m_timeMe;
+    m_dsBScan->setColumnData(m_columnX, m_timeX);
+    m_dsBScan->setColumnData(m_columnY, y);
+    m_graphBScan->setXColumn(m_columnX);
+    m_graphBScan->setYColumn(m_columnY);
+
+    const auto minMax = std::minmax_element(y.begin(), y.end());
+    m_surfaceYMinMm = *minMax.first;
+    m_surfaceYMaxMm = *minMax.second;
+    m_drawFlagSurfaceRange = true;
+    m_drawFlagTime = true;
+}
+
+
 void BScanGraph::clearBScan()
 {
     onUpdateBScan(nullptr);
@@ -468,20 +560,24 @@ void BScanGraph::draw()
             //processLastSurface(); // multithread
             updateAxes();
 
-            // update line width function to window size, x scale and resolution :
-            if( nullptr != m_pLastSurface1d ) {
+            qreal dpi = QGuiApplication::primaryScreen()->logicalDotsPerInch();
+            if(AXE_X_TIME == m_axeXType){
+                if(m_timeX.size() > 1){
+                    qreal r = m_pPlotBScan->getPlotter()->getPlotWidth() / m_timeX.size();
+                    r = r*72/dpi;
+                    if(r != m_graphBScan->getLineWidth()){
+                        m_graphBScan->setLineWidth(r);
+                    }
+                }
+            }else if(nullptr != m_pLastSurface1d){
                 qreal wp = m_pPlotBScan->getPlotter()->getPlotWidth();
 
                 qreal wM = m_pPlotBScan->getPlotter()->getXMax() - m_pPlotBScan->getPlotter()->getXMin();
 
-                // on cherche une largeur donnant des barres jointives sans recouvrement pour avoir
-                // un rendu uniforme sans utiliser l'anti-aliasing :
                 qreal r = wp/((wM*1000)/m_pLastSurface1d->getResolution());
-                // take care of DPI because line width is set in Point (not in pixel as we want)
-                qreal dpi = QGuiApplication::primaryScreen()->logicalDotsPerInch();
-                r= r*72/dpi;
-                if( r != m_graphBScan->getLineWidth() ) {
-                    m_graphBScan->setLineWidth(r);
+                r = r*72/dpi;
+                if(r != m_graphBScan->getLineWidth()){
+                        m_graphBScan->setLineWidth(r);
                 }
             }
 
@@ -521,6 +617,7 @@ void BScanGraph::resetFlags()
     m_drawFlagUserAxeY = false;
     m_drawFlagScaleX = false;
     m_drawFlagScaleY = false;
+    m_drawFlagTime = false;
 }
 
 void BScanGraph::deleteZones()
@@ -621,7 +718,8 @@ void BScanGraph::onUpdateLocationZone(Location1d *p_location)
             for(auto i : *pLZ) {
                 qreal pos = i->getOriginXMm()/1000;
                 JKQTPGeoLine * pLine = new JKQTPGeoLine(m_pPlotBScan, pos, 0, pos, SCALE_Y_MM_MAX);
-                pLine->setStyle(QColor("#DD00DD"), 2); // Orange : FF8200
+                pLine->setStyle(QColor("#DD00DD"), 2);
+                pLine->setVisible(AXE_X_DISTANCE == m_axeXType);
                 m_pPlotBScan->addGraph(pLine);
                 m_lZoneLine.append(pLine);
 
@@ -629,6 +727,7 @@ void BScanGraph::onUpdateLocationZone(Location1d *p_location)
                     qreal pos = (i->getOriginXMm() + i->getSizeXMm())/1000;
                     JKQTPGeoLine * pLine = new JKQTPGeoLine(m_pPlotBScan, pos, 0, pos, SCALE_Y_MM_MAX);
                     pLine->setStyle(QColor("#DD00DD"), 2);
+                    pLine->setVisible(AXE_X_DISTANCE == m_axeXType);
                     m_pPlotBScan->addGraph(pLine);
                     m_lZoneLine.append(pLine);
                 }
@@ -661,7 +760,11 @@ void BScanGraph::onBScanReplotted()
 
 void BScanGraph::onMeasureDisplayChanged(quint32)
 {
-    processLastSurface();
+    if(AXE_X_TIME == m_axeXType){
+        processTimeBuffer();
+    }else{
+        processLastSurface();
+    }
     needRefresh();
 }
 
@@ -681,7 +784,13 @@ void BScanGraph::updateAxes()
     qreal xMin = m_pPlotBScan->getXMin(), xMax = m_pPlotBScan->getXMax(), yMin = m_pPlotBScan->getYMin(), yMax = m_pPlotBScan->getYMax();
     bool updateView = false;
 
-    if( VIEW_X_AUTO == m_viewXMode ) {
+    if(AXE_X_TIME == m_axeXType ){
+        if(m_drawFlagTime || m_drawFlagViewXMode){
+            xMax = m_timeX.isEmpty() ? TIME_WINDOW_S : qMax(TIME_WINDOW_S, m_timeX.last());
+            xMin = xMax - TIME_WINDOW_S;
+            updateView = true;
+        }
+    } else if( VIEW_X_AUTO == m_viewXMode ) {
         if( m_drawFlagPosition || m_drawFlagScaleX || m_drawFlagViewXMode ) {
             // first compute x bounds
             xMin = m_pPlotBScan->getXMin();
@@ -791,6 +900,7 @@ bool BScanGraph::customLoadSettings(QDomElement * p_pParent)
     bRet &= XML_READ_UNIQUE_DEFAULT(qreal, m_axeXScaleM, 4);
     bRet &= XML_READ_UNIQUE_DEFAULT(qreal, m_axeYMinMm, 0);
     bRet &= XML_READ_UNIQUE_DEFAULT(qreal, m_axeYMaxMm, 10);
+    bRet &= XML_READ_UNIQUE_DEFAULT(qint32, m_axeXType, AXE_X_DISTANCE);
 
     return bRet;
 }
@@ -803,6 +913,7 @@ bool BScanGraph::customLoadDefaultSettings()
     m_axeYMaxMm = 10;
     m_viewXMode = VIEW_X_AUTO;
     m_viewYMode = VIEW_Y_USER;
+    m_axeXType  = AXE_X_DISTANCE;
     return bRet;
 }
 
@@ -815,6 +926,9 @@ bool BScanGraph::customApplySettings()
     emit evAxeYMaxMmChanged(m_axeYMaxMm);
     emit evViewXModeChanged(m_viewXMode);
     emit evViewYModeChanged(m_viewYMode);
+
+    m_pPositionLine->setVisible(AXE_X_DISTANCE == m_axeXType);
+    emit evAxeXTypeChanged(m_axeXType);
     return bRet;
 }
 
@@ -824,6 +938,7 @@ bool BScanGraph::customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pPare
     bRet &= XML_WRITE_UNIQUE(m_axeXScaleM);
     bRet &= XML_WRITE_UNIQUE(m_axeYMinMm);
     bRet &= XML_WRITE_UNIQUE(m_axeYMaxMm);
+    bRet &= XML_WRITE_UNIQUE(m_axeXType);
     return bRet;
 }
 
@@ -869,6 +984,10 @@ void BScanGraph::onPlotMouseMove(double x, double y)
 void BScanGraph::onPlotMouseClicked(double x, double y, Qt::KeyboardModifiers, Qt::MouseButton p_Bt)
 {
     m_mouseLastPos = QPointF(x,y);
+
+    if(AXE_X_TIME == m_axeXType){
+        return;
+    }
 
     if( ! m_mouseDoubleClicked ) {
         if(VIEW_X_FULL != m_viewXMode) {

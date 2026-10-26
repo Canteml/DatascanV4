@@ -157,11 +157,15 @@ void AScanWorker::computeEnhancedAScan()
     quint8 *entree = m_pAScanTreated->getAScanRawSample()->m_rawSamples;
     quint8 *sortie = m_pAScanTreated->getAScanEnhancedSample()->m_enhancedSamples;
 
-    // RF mode: pass raw samples through without rectification
+    // RF mode: bipolar smoothing, no rectification
     if (m_pAScanTreated->getAScanEnhancedSample()->m_paramDWaveType == 3) {
-        memcpy(sortie, entree, AScanRawSample::ASCAN_SAMPLE_SIZE);
+        computeEnhancedAScanRF();
         return;
     }
+
+
+    // Samples already rectified by the hardware (US-Key A-scan mode): no software rectification
+    const bool hwRect = m_pAScanTreated->getAScanEnhancedSample()->m_hwRectified;
 
     if(m_pAScanTreated->getAScanEnhancedSample()->m_paramLLowPassFilter>5)
     {
@@ -183,7 +187,7 @@ void AScanWorker::computeEnhancedAScan()
             somme = 0.;
             for(int j=0;j<attenuation_locale-1;j++)
             {                
-                qreal entre = (abs(entree[j+i]-127)*2);
+                qreal entre = hwRect ? entree[j+i] : (abs(entree[j+i]-127)*2);
                 somme += ((coeff[attenuation_locale-j]) * entre*10);
             }
 
@@ -200,8 +204,72 @@ void AScanWorker::computeEnhancedAScan()
     }else {
         for(int i=0;i<AScanRawSample::ASCAN_SAMPLE_SIZE;i++)
         {
-            sortie[i]=qMin(255,(abs(entree[i]-127)*2));
+            sortie[i]=hwRect ? entree[i] : qMin(255,(abs(entree[i]-127)*2));
         }
+    }
+}
+
+QVector<qreal> AScanWorker::computeRFCoefficients(int p_lissage, qreal p_sampFreq)
+{
+    // Cutoff range where the filter visibly acts on the signal of a 5 MHz probe:
+    // above 12 MHz there is nearly nothing to remove, below 4 MHz the carrier vanishes
+    static const qreal RF_CUTOFF_MAX_HZ = 12000000;
+    static const qreal RF_CUTOFF_MIN_HZ = 4000000;
+    static const int   RF_LISSAGE_MIN   = 6;
+    static const int   RF_LISSAGE_MAX   = 50;
+    static const int   RF_TAPS_MAX      = 151;
+
+    // Cutoff must stay below Nyquist (fs/2)
+    const qreal fcMax = qMin(RF_CUTOFF_MAX_HZ, 0.45 * p_sampFreq);
+    const qreal fcMin = qMin(RF_CUTOFF_MIN_HZ, fcMax);
+
+    const qreal t  = qreal(qBound(RF_LISSAGE_MIN, p_lissage, RF_LISSAGE_MAX) - RF_LISSAGE_MIN)
+                    / (RF_LISSAGE_MAX - RF_LISSAGE_MIN);
+    const qreal fc = fcMax * qPow(fcMin / fcMax, t);
+    const qreal fn = 2. * fc / p_sampFreq;
+
+    int n = qBound(7, qCeil(8. * p_sampFreq / fc), RF_TAPS_MAX);
+    if( n % 2 == 0 ) n++;
+    const int M = (n - 1) / 2;
+
+    QVector<qreal> h(n);
+    qreal sum = 0.;
+    for( int m = 0; m < n; m++ ) {
+        const qreal tt = fn * (m - M);
+        const qreal sinc = (tt == 0.) ? 1. : qSin(M_PI * tt) / (M_PI * tt);
+        const qreal w = 0.42 - 0.5 * qCos(2. * M_PI * m / (n - 1)) + 0.08 * qCos(4. * M_PI * m / (n - 1));
+        h[m] = w * sinc;
+        sum += h[m];
+    }
+    for( int m = 0; m < n; m++ ) {
+        h[m] /= sum;
+    }
+    return h;
+}
+
+
+void AScanWorker::computeEnhancedAScanRF()
+{
+    quint8 *entree = m_pAScanTreated->getAScanRawSample()->m_rawSamples;
+    quint8 *sortie = m_pAScanTreated->getAScanEnhancedSample()->m_enhancedSamples;
+    const int size = AScanRawSample::ASCAN_SAMPLE_SIZE;
+    const int lissage = m_pAScanTreated->getAScanEnhancedSample()->m_paramLLowPassFilter;
+
+    if( lissage <= 5 ) {
+        memcpy(sortie, entree, size);
+        return;
+    }
+
+    const QVector<qreal> h = computeRFCoefficients(lissage, m_pAScanTreated->getSensorSettings()->getSampleFrequency());
+    const int M = (h.size() - 1) / 2;
+
+    for( int k = 0; k < size; k++ ) {
+        qreal y = 0.;
+        for( int m = 0; m < h.size(); m++ ) {
+            int idx = qBound(0, k + m - M, size - 1);
+            y += h[m] * (entree[idx] - 127.);
+        }
+        sortie[k] = static_cast<quint8>(qBound(0, qRound(127. + y), 255));
     }
 }
 
@@ -260,7 +328,8 @@ void AScanWorker::computeMeasures()
     qreal rfThreshold1 = qBound(0.0, height1 * 2.55 + 127.0, 255.0);
 
     // -- Gate 0: search first echo according to option
-    // 0 = Premier maximum, 1 = Maximum absolu, 2 = Front Montant
+    // 0 = Premier maximum, 1 = Maximum absolu, 2 = Front Montant, 3 = Custom Roboplanet
+    // Custom Roboplanet: imported from project <<DATASCAN 4.x>> (calculmesure.cpp : cherchePics_MAX_GATE)
     int indexPremierEcho = 0;
     int indexPremierEchoValue = 0;
     quint8 optGate0 = m_pAScanTreated->getAScanMeasure()->m_paramGates0->m_paramDOption;
@@ -268,7 +337,15 @@ void AScanWorker::computeMeasures()
     if (isRF) {
         if (rfGate0Positive) {
             // RF positive peak: local maximum above rfThreshold0
-            if (optGate0 == 2) {
+            if (optGate0 == 3) {
+                // Custom Roboplanet: highest sample above rfThreshold0 in the whole gate
+                for (int i = debut1Pic; i < fin1Pic; i++) {
+                    if (signal[i] > rfThreshold0 && signal[i] > indexPremierEchoValue) {
+                        indexPremierEcho = i;
+                        indexPremierEchoValue = signal[i];
+                    }
+                }
+            } else if (optGate0 == 2) {
                 for (int i = debut1Pic + 1; i < fin1Pic; i++) {
                     if (signal[i] >= rfThreshold0 && signal[i-1] < rfThreshold0) {
                         indexPremierEcho = i;
@@ -290,7 +367,15 @@ void AScanWorker::computeMeasures()
         } else {
             // RF negative peak: local minimum below rfThreshold0
             indexPremierEchoValue = 255;
-            if (optGate0 == 2) {
+            if (optGate0 == 3) {
+                // Custom Roboplanet: lowest sample below rfThreshold0 in the whole gate
+                for (int i = debut1Pic; i < fin1Pic; i++) {
+                    if (signal[i] < rfThreshold0 && signal[i] < indexPremierEchoValue) {
+                        indexPremierEcho = i;
+                        indexPremierEchoValue = signal[i];
+                    }
+                }
+            } else if (optGate0 == 2) {
                 for (int i = debut1Pic + 1; i < fin1Pic; i++) {
                     if (signal[i] <= rfThreshold0 && signal[i-1] > rfThreshold0) {
                         indexPremierEcho = i;
@@ -311,7 +396,15 @@ void AScanWorker::computeMeasures()
             }
         }
     } else {
-        if(optGate0 == 2) {
+        if(optGate0 == 3) {
+            // Custom Roboplanet: highest sample above the threshold in the whole gate
+            for(int i = debut1Pic; i < fin1Pic; i++) {
+                if(signal[i] > seuil1Pic && signal[i] > indexPremierEchoValue) {
+                    indexPremierEcho = i;
+                    indexPremierEchoValue = signal[i];
+                }
+            }
+        } else if(optGate0 == 2) {
             // Crête graissant: first rising-edge crossing of the threshold
             for(int i = debut1Pic + 1; i < fin1Pic; i++) {
                 if(signal[i] >= seuil1Pic && signal[i-1] < seuil1Pic) {
@@ -369,11 +462,28 @@ void AScanWorker::computeMeasures()
     }
 
     // -- Gate 1: search subsequent echoes according to option
-    // 0 = Premier maximum, 1 = Maximum absolu, 2 = Crête graissant
+    // 0 = Premier maximum, 1 = Maximum absolu, 2 = Crête graissant, 3 = Custom Roboplanet
     if(listePics.size() > 0) {
         quint8 optGate1 = m_pAScanTreated->getAScanMeasure()->m_paramGates1->m_paramDOption;
 
-        if (isRF) {
+        if (optGate1 == 3) {
+            // Custom Roboplanet: only one echo in Gate 1, the extremum beyond the threshold,
+            // searched from the first echo (multi-echo = distance between the two gate maxima)
+            const bool  rfNegative = isRF && !rfGate1Positive;
+            const qreal threshold  = isRF ? rfThreshold1 : seuilBruit;
+            int index2ndEcho = 0;
+            int index2ndEchoValue = rfNegative ? 255 : 0;
+            for (int i = qMax<int>(debutSignal, listePics.at(0)); i < finSignal - 1; i++) {
+                if (rfNegative ? (signal[i] < threshold && signal[i] < index2ndEchoValue)
+                               : (signal[i] > threshold && signal[i] > index2ndEchoValue)) {
+                    index2ndEcho = i;
+                    index2ndEchoValue = signal[i];
+                }
+            }
+            if (index2ndEcho != 0) {
+                listePics.append(index2ndEcho);
+            }
+        } else if (isRF) {
             if (rfGate1Positive) {
                 // RF Gate 1 positive peaks
                 if (optGate1 == 2) {

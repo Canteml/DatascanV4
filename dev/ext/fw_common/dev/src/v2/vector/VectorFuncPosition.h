@@ -39,7 +39,7 @@ class VectorFuncPosition : public GenVectorFunc {
     FUNC_PARAM(DWheelSpacingMm, quint16, 2, FUNC_POSITION_PARAM_D_WHEEL_SPACING_MM, 0)
     FUNC_PARAM(DMinTurningRadius, quint16, 2, FUNC_POSITION_PARAM_D_MIN_TURNING_RADIUS_MM, 0)
     FUNC_PARAM(LBscanPosMmX, qreal, 8, FUNC_POSITION_PARAM_L_BSCAN_POS_MM_X, 0)
-    FUNC_PARAM(LVectorDirX, quint8, 1, FUNC_POSITION_PARAM_L_VECTOR_DIR_X, 0) ///< 0 : incrément, 1 = décrément from last m_refBscanPosMmX
+    FUNC_PARAM(LVectorDirX, quint8, 1, FUNC_POSITION_PARAM_L_VECTOR_DIR_X, 0)
 
 
 public :
@@ -51,11 +51,16 @@ public :
     virtual void configureFunction(quint32 p_prodId) override;
 
     // -- BscanPosMmX
-    Q_INVOKABLE void bscanPosMmXAddMm(qint32 p_value);  ///< Offset added to m_refBscanPosMmX to compute m_paramLBscanPosMmX
+    Q_INVOKABLE void bscanPosMmXAddMm(qint32 p_value);
     Q_INVOKABLE QString getBScanPosMeterWith2Decimals() const;
     Q_INVOKABLE void setParamLBscanPosMmXFromString(const QString& p_value);
 
     void injectEncoderPositionMm(qreal mm);
+
+    static const QString BSCAN_SOURCE_ALL;
+    static const QString BSCAN_SOURCE_SERIAL;
+    void setBScanSource(const QString& p_value);
+    QString getBScanSource() const { return m_bscanSource; }
 
 private slots :
     void onDOdoPosMmXChanged(qint32 p_value);
@@ -70,7 +75,7 @@ protected :
     virtual bool customSaveParam(QDomDocument * p_pDoc, QDomElement * p_pParent) override;
 
     // -- inherited
-    virtual void onDeviceConnected() override; ///< read device parameters when a device is just connected (called only for Ground Station)
+    virtual void onDeviceConnected() override;
 
 
 private :
@@ -78,13 +83,19 @@ private :
 
 
     // -- CONF
-    quint8 m_confPosX;  ///< 0 : m_paramLBscanPosMmX computed from odometry
+    quint8 m_confPosX;
 
     // -- Behavior
-    qreal m_refOdoMmX;      ///< reference of Odometry for current m_refPosX
-    qreal m_refBscanPosMmX; ///< value of m_refBscanPosMmX when m_refOdoMmX was changed
-    bool m_refOdoDone;      ///< if false, the next received m_paramDOdoPosMmX will be the ref of the current m_refBscanPosMmX
+    qreal m_refOdoMmX;
+    qreal m_refBscanPosMmX;
+    bool m_refOdoDone;
     bool m_firstConnected;
+    QString m_bscanSource;
+
+    // -- DEBUG : trace of the BScan position origin
+    QString m_posOrigin;            // origin of the update being processed (empty = direct set, QML...)
+    qreal m_lastTracedPosMmX = 0;
+    quint32 m_ignoredPosMsgCount = 0;
 
 };
 

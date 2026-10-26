@@ -20,16 +20,20 @@ Rectangle {
     }
 
 
-    StackLayout {
+    // No StackLayout here : it hides the ASCAN page (visible = false) during the export,
+    // so AScanGraph::paint() is no longer called and its refresh handshake
+    // (m_updateInProgress / worker m_processing) stays locked => ASCAN frozen/blank on return.
+    // The ASCAN page stays always visible, the export page is drawn over it.
+    Item {
         id: idSlTop
         anchors.fill: parent
-        currentIndex: 0 //examManager.examStep === 3 /*EXAM_EXPORTING*/? 1 : 0
+        property int currentIndex: 0 //examManager.examStep === 3 /*EXAM_EXPORTING*/? 1 : 0
 
         Connections {
             target : examManager
             function onExamStepChanged() {
                 if( examManager.examStep === 3 ) {
-                    idP3TopExportBscan.init();
+                    idP3TopExportBscan.exportStep = 0;  // init step
                     idSlTop.currentIndex = 1;
                 } else {
                     idSlTop.currentIndex = 0;
@@ -40,8 +44,7 @@ Rectangle {
         // -- PAGE ASCAN
         RowLayout {
             id: idP3TopP0
-            Layout.fillWidth: true
-            Layout.fillHeight: true
+            anchors.fill: parent
 
             spacing: 0
 
@@ -67,10 +70,23 @@ Rectangle {
             }
         }
 
-        // -- PAGE EXPORT EXAM
-        P3TopExportBscan {
-            id: idP3TopExportBscan
+        // -- PAGE EXPORT EXAM (over the ASCAN page)
+        Rectangle {
+            anchors.fill: parent
+            visible: idSlTop.currentIndex === 1
+            color: "white"
 
+            // block mouse / wheel events to the ASCAN page below
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                onWheel: function(wheel) { wheel.accepted = true }
+            }
+
+            P3TopExportBscan {
+                id: idP3TopExportBscan
+                anchors.fill: parent
+            }
         }
     }
 
@@ -79,17 +95,6 @@ Rectangle {
         function onControlTypeChanged() {
             idSettingsSelection.currentIndex = 0
         }
-        // the CSV written during the acquisition can't be created / written
-        function onEvExportErrorChanged(p_fileName) {
-            dialogExportError.text = qsTr("Impossible d'écrire le fichier CSV de l'acquisition :\n") + p_fileName
-            dialogExportError.visible = true
-        }
-    }
-
-    MessageDialog {
-        id: dialogExportError
-        title: qsTr("Erreur fichier CSV")
-        buttons: MessageDialog.Ok
     }
 
     Component.onCompleted: {

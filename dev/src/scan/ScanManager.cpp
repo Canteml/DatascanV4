@@ -29,6 +29,8 @@
 #include <QDomDocument>
 #include <QDir>
 #include <QRegularExpression>
+#include <QDateTime>
+#include <QElapsedTimer>
 
 
 ScanManager* ScanManager::m_pMyInstance = nullptr;
@@ -138,6 +140,7 @@ void ScanManager::initQmlObject(QObject * p_pQmlTopLevel)
         connect(m_pBScanGraphMain, &BScanGraph::evAxeXScaleMmChanged, this, &ScanManager::onPrivateBScanAxeXScaleMChanged);
         connect(m_pBScanGraphMain, &BScanGraph::evAxeYMinMmChanged, this, &ScanManager::onPrivateBScanAxeYMinMmChanged);
         connect(m_pBScanGraphMain, &BScanGraph::evAxeYMaxMmChanged, this, &ScanManager::onPrivateBScanAxeYMaxMmChanged);
+        connect(m_pBScanGraphMain, &BScanGraph::evAxeXTypeChanged, this, &ScanManager::onPrivateBScanAxeXTypeChanged);
 
         m_pBScanGraphMain->setParent(this);
         m_pBScanGraphMain->initAfterItemAdded();
@@ -156,6 +159,7 @@ void ScanManager::stop()
         disconnect(m_pBScanGraphMain, &BScanGraph::evAxeXScaleMmChanged, this, &ScanManager::onPrivateBScanAxeXScaleMChanged);
         disconnect(m_pBScanGraphMain, &BScanGraph::evAxeYMinMmChanged, this, &ScanManager::onPrivateBScanAxeYMinMmChanged);
         disconnect(m_pBScanGraphMain, &BScanGraph::evAxeYMaxMmChanged, this, &ScanManager::onPrivateBScanAxeYMaxMmChanged);
+        disconnect(m_pBScanGraphMain, &BScanGraph::evAxeXTypeChanged, this, &ScanManager::onPrivateBScanAxeXTypeChanged);
     }
 }
 
@@ -231,21 +235,26 @@ void ScanManager::ascanResetDefaultParams()
     if( nullptr == m_pVector ) return;
     VectorFuncAScan* pAscan = getSelectedFuncAScan();
     if( nullptr == pAscan ) return;
-    pAscan->setParamDGain(10);
+    pAscan->setParamDGain(7);
     pAscan->setParamDVoltage(100);
-    pAscan->setParamDUtElement(1);
-    pAscan->setParamDPulseWidth(0);
+    pAscan->setParamDUtElement(2);
+    pAscan->setParamDSampleFreq(0);
+    pAscan->setParamDPulseWidth(18);
     pAscan->setParamLCelerity(5940);
-    pAscan->setParamLProbeDelayMm(0);
-    pAscan->setParamLLowPassFilter(0);
-    pAscan->setParamDFilterMode(0);
+    pAscan->setParamLProbeDelayMm(14.4);
+    pAscan->setParamLLowPassFilter(25);
+    pAscan->setParamDFilterMode(2);
     pAscan->setParamDWaveType(0);
-    pAscan->setParamLGate0Start(100);
-    pAscan->setParamLGate0Width(200);
-    pAscan->setParamLGate0Height(20);
-    pAscan->setParamLGate1Start(300);
-    pAscan->setParamLGate1Width(200);
-    pAscan->setParamLGate1Height(40);
+    pAscan->setParamDGate0Option(0);
+    pAscan->setParamDGate1Option(0);
+    pAscan->setParamLGate0Start(4);
+    pAscan->setParamLGate0Width(37);
+    pAscan->setParamLGate0Height(11);
+    pAscan->setParamLGate1Start(6);
+    pAscan->setParamLGate1Width(35);
+    pAscan->setParamLGate1Height(10);
+
+    emit evSelectedFuncAScanChanged(pAscan);
 }
 
 static const QString ASCAN_PRESETS_DIR = "/ascan_presets";
@@ -539,14 +548,54 @@ void ScanManager::setBScanAxeYMaxMm(qreal p_value)
     }
 }
 
+qint32 ScanManager::getBScanAxeXType(void) const
+{
+    if( nullptr != m_pBScanGraphMain ) {
+        return m_pBScanGraphMain->getAxeXType();
+    }
+    return BScanGraph::AXE_X_DISTANCE;
+}
+
+void ScanManager::setBScanAxeXType(quint32 p_value)
+{
+    if( nullptr != m_pBScanGraphMain ) {
+        m_pBScanGraphMain->setAxeXType(p_value);
+    }
+}
+
 void ScanManager::onNewAScanTreated(AScan * p_pAscan)
 {
+    {
+        static QElapsedTimer s_window;
+        static qint64 s_maxAgeMs = 0;
+        static int    s_count    = 0;
+        const qint64 ageMs = QDateTime::currentMSecsSinceEpoch() - p_pAscan->getAScanRawSample()->m_epocTimeMs;
+        s_maxAgeMs = qMax(s_maxAgeMs, ageMs);
+        ++s_count;
+        if( !s_window.isValid() ) {
+            s_window.start();
+        } else if( s_window.elapsed() >= 1000 ) {
+            fLogInfo(QString("[AScanLatency] %1 A-scans/s, last age=%2 ms, max age=%3 ms")
+                     .arg(s_count).arg(ageMs).arg(s_maxAgeMs));
+            s_maxAgeMs = 0;
+            s_count    = 0;
+            s_window.restart();
+        }
+    }
+
     if( p_pAscan->m_source == m_selectedAScanIndex && nullptr != m_pAScanGraphMain ) {
         m_pAScan[p_pAscan->m_source].copy(*p_pAscan);
         m_pAScanGraphMain->updateAScan(&m_pAScan[p_pAscan->m_source]);
         emitUpdateAScanTimed();
     }
-    //fLogDebug1(QString("ASCAN X = %1").arg(p_pAscan->getAScanRawSample()->m_position.x()));
+
+    if(0 == p_pAscan->m_source && nullptr != m_pBScanGraphMain
+        && ExamManager::EXAM_PAUSED != m_pExamManager->getExamStep()
+        && ExamManager::EXAM_EXPORTING != m_pExamManager->getExamStep() ){
+        m_pBScanGraphMain->pushTimeMeasure(p_pAscan->getAScanRawSample()->m_epocTimeMs,
+                                           p_pAscan->getAScanMeasure()->m_thicknessMmMultiEcho,
+                                           p_pAscan->getAScanMeasure()->m_thicknessMm1Echo);
+    }
     m_pExamManager->pushAScan(p_pAscan);
 }
 
@@ -585,10 +634,17 @@ void ScanManager::onPrivateBScanAxeYMaxMmChanged(qreal p_value)
     emit evBScanAxeYMaxMmChanged(p_value);
 }
 
+void ScanManager::onPrivateBScanAxeXTypeChanged(qint32 p_value)
+{
+    emit evBScanAxeXTypeChanged(p_value);
+}
+
 void ScanManager::onExamManagerStepChanged(qint32 p_value)
 {
     if( p_value == ExamManager::EXAM_EXPORTING ) {
-        // Go to view FULL
+        if(m_pBScanGraphMain->getAxeXType() != BScanGraph::AXE_X_DISTANCE){
+            m_pBScanGraphMain->setAxeXType(BScanGraph::AXE_X_DISTANCE);
+        }
         if( m_pBScanGraphMain->getViewXMode() != BScanGraph::VIEW_X_FULL ) {
             m_pBScanGraphMain->setViewXMode(BScanGraph::VIEW_X_FULL);
         }

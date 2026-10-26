@@ -47,6 +47,7 @@
 #include <uskey/UsKeyController.h>
 #include <altiscan/AltiscanController.h>
 #include <encoder/EncoderController.h>
+#include <encoder/SerialPortRouter.h>
 
 #include <v2/camera/IpCamera.h>
 
@@ -123,79 +124,29 @@ bool CoreApp::initApp()
     m_pCameraManager->start();
     m_pExamPipeManager->init();
 
-    bool altiscanActive = false;
-    {
-        m_pAltiscanController = new AltiscanController(this);
-        connect(m_pAltiscanController, &AltiscanController::evError, this,
-                [this](const QString& msg) { fLogError(QString("[Altiscan] %1").arg(msg)); });
+    m_pAltiscanController = new AltiscanController(this);
+    connect(m_pAltiscanController, &AltiscanController::evError, this,
+            [this](const QString& msg) { fLogError(QString("[Altiscan] %1").arg(msg)); });
 
-        altiscanActive = m_pAltiscanController->activate(m_pVectorStd, "COM6");
-        if (altiscanActive) {
-            fLogInfo("[CoreApp] Altiscan active on COM6");
-        } else {
-            fLogInfo("[CoreApp] Altiscan not found on COM6, position from Altiscan disabled");
-        }
+    m_pEncoderController = new EncoderController(this);
+    connect(m_pEncoderController, &EncoderController::evError, this,
+            [this](const QString& msg) { fLogError(QString("[Encoder] %1").arg(msg)); });
+    m_pScanManager->setEncoderController(m_pEncoderController);
+    m_pEncoderController->setLinkManager(m_pVectorStd->getLinkManager());
+    connect(m_pEncoderController, &EncoderController::odometryChanged, m_pAltiscanController, &AltiscanController::setOdometry);
+    connect(m_pEncoderController, &EncoderController::encoderReverseChanged, m_pAltiscanController, &AltiscanController::setEncoderReverse);
+    m_pEncoderController->setPositionVector(m_pVectorStd);
+
+    // -- "Port série de secours" (CentralPage1) : given to the Altiscan or to the
+    // UT POLE encoder according to the selected product, see SerialPortRouter
+    for (const QSerialPortInfo& p : QSerialPortInfo::availablePorts()) {
+        fLogInfo(QString("[CoreApp] Available port: %1 | %2 | VID:0x%3 PID:0x%4")
+                 .arg(p.portName(), p.description())
+                 .arg(p.hasVendorIdentifier()  ? QString::number(p.vendorIdentifier(),  16).toUpper() : QString("----"))
+                 .arg(p.hasProductIdentifier() ? QString::number(p.productIdentifier(), 16).toUpper() : QString("----")));
     }
-
-    QString encoderPort;
-    {
-        m_pEncoderController = new EncoderController(this);
-        connect(m_pEncoderController, &EncoderController::evError, this,
-                [this](const QString& msg) { fLogError(QString("[Encoder] %1").arg(msg)); });
-
-        fLogInfo("[CoreApp] initApp - EncoderController::activate() - scanning available COM ports");
-
-        QList<QSerialPortInfo> availablePorts = QSerialPortInfo::availablePorts();
-
-        for (const QSerialPortInfo& p : availablePorts) {
-            fLogInfo(QString("[CoreApp] Available port: %1 | %2 | VID:0x%3 PID:0x%4")
-                     .arg(p.portName(), p.description())
-                     .arg(p.hasVendorIdentifier()  ? QString::number(p.vendorIdentifier(),  16).toUpper() : QString("----"))
-                     .arg(p.hasProductIdentifier() ? QString::number(p.productIdentifier(), 16).toUpper() : QString("----")));
-        }
-
-        std::sort(availablePorts.begin(), availablePorts.end(),
-                  [](const QSerialPortInfo& a, const QSerialPortInfo& b) {
-                      if (a.hasVendorIdentifier() != b.hasVendorIdentifier())
-                          return a.hasVendorIdentifier();
-                      return a.portName().mid(3).toInt() < b.portName().mid(3).toInt();
-                  });
-
-        static constexpr quint16 VID_INTEL = 0x8086;
-
-        bool encoderFound = false;
-        for (const QSerialPortInfo& portInfo : availablePorts) {
-            if (portInfo.hasVendorIdentifier() && portInfo.vendorIdentifier() == VID_INTEL) {
-                fLogInfo(QString("[CoreApp] Skipping system port %1 (%2, VID:0x%3)")
-                         .arg(portInfo.portName(), portInfo.description())
-                         .arg(portInfo.vendorIdentifier(), 0, 16));
-                continue;
-            }
-            const QString port = portInfo.portName();
-            fLogInfo(QString("[CoreApp] Trying encoder on %1 (%2)").arg(port, portInfo.description()));
-            if (m_pEncoderController->activate(m_pVectorStd, port)) {
-                fLogInfo(QString("[CoreApp] Encoder active on %1 (%2)").arg(port, portInfo.description()));
-                encoderFound = true;
-                encoderPort = port;
-                break;
-            }
-        }
-        if (!encoderFound)
-            fLogInfo("[CoreApp] Encoder not found on any available COM port, position from encoder disabled");
-
-        m_pScanManager->setEncoderController(m_pEncoderController);
-        m_pEncoderController->setLinkManager(m_pVectorStd->getLinkManager());
-    }
-
-    {
-        QStringList reservedPorts;
-        if (altiscanActive)
-            reservedPorts << "COM6";
-        if (!encoderPort.isEmpty())
-            reservedPorts << encoderPort;
-        if (!reservedPorts.isEmpty())
-            m_pVectorStd->getLinkManager()->setReservedSerialPorts(reservedPorts);
-    }
+    m_pSerialPortRouter = new SerialPortRouter(m_pVectorStd, m_pVectorStd->getLinkManager(),
+                                               m_pAltiscanController, m_pEncoderController, this);
 
     // -- load settings of my managers
     bRet &= m_pVectorManager->loadSettings();
@@ -228,11 +179,13 @@ bool CoreApp::startApp()
     bool bRet = true;
 
     // -- start my managers
-    if( ProtMsg::PROD_UNDEF == m_pVectorStd->getProdId()
-        || (m_pAltiscanController && m_pAltiscanController->isActive()) ) {
+    if( ProtMsg::PROD_UNDEF == m_pVectorStd->getProdId() ) {
         fLogInfo("Make default Product : ALTISCAN");
         m_pVectorStd->setProdIdDeviceAd(ProtMsg::PROD_ALTISCAN_V2, ProtMsg::DEVICE_AD_MPC);
     }
+
+    // -- give the backup serial port to the controller of the selected product
+    m_pSerialPortRouter->apply();
 
     static QtMessageHandler s_previousHandler = nullptr;
     s_previousHandler = qInstallMessageHandler([](QtMsgType type, const QMessageLogContext& ctx, const QString& msg) {
@@ -427,6 +380,7 @@ bool CoreApp::initQmlContext()
     m_pQmlApplicationEngine->rootContext()->setContextProperty("clipboard", m_pClipboardAdapter);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("products", m_pProductLimiter);
     m_pQmlApplicationEngine->rootContext()->setContextProperty("encoderController", m_pEncoderController);
+    m_pQmlApplicationEngine->rootContext()->setContextProperty("serialPortRouter", m_pSerialPortRouter);
 
     m_pQmlApplicationEngine->rootContext()->setContextProperty(
         "modelCameraList", QVariant::fromValue(QStringList()));
@@ -464,8 +418,8 @@ void CoreApp::initCppFromQml()
 
     m_pScanManager->loadSettings();
 
-    fLogInfo("[CoreApp] initCppFromQml - ascanLoadUserParams + UsKey sync");
-    m_pScanManager->ascanLoadUserParams();
+    fLogInfo("[CoreApp] initCppFromQml - ascanResetDefaultParams + UsKey sync");
+    m_pScanManager->ascanResetDefaultParams();
 }
 
 QString CoreApp::getWindowTitle() const

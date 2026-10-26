@@ -18,31 +18,35 @@
 UtPoleEncoderReader::UtPoleEncoderReader(QObject* parent)
     : QObject(parent)
     , m_port(this)
+    , m_timRequestPosition(this)
 {
+    const char req[7] = { '#', 0x02, 0x01, 'c', 0x00, 0x01, 0x00 };
+    m_frameRequestPosition = QByteArray(req, sizeof(req));
+
+    m_timRequestPosition.setInterval(REQUEST_PERIOD_MS);
+    m_timRequestPosition.setSingleShot(false);
+
     connect(&m_port, &QSerialPort::readyRead,
             this,   &UtPoleEncoderReader::onReadyRead);
     connect(&m_port, &QSerialPort::errorOccurred,
             this,   &UtPoleEncoderReader::onSerialError);
+    connect(&m_timRequestPosition, &QTimer::timeout,
+            this,   &UtPoleEncoderReader::onRequestPosition);
 }
 
-bool UtPoleEncoderReader::open(const QString& portName)
+bool UtPoleEncoderReader::open(const QString& portName, qint32 baudRate)
 {
     m_port.setPortName(portName);
-    m_port.setBaudRate(9600);
+    m_port.setBaudRate(baudRate);
     m_port.setDataBits(QSerialPort::Data8);
     m_port.setParity(QSerialPort::NoParity);
     m_port.setStopBits(QSerialPort::OneStop);
-    // Do NOT call setFlowControl(NoFlowControl): on Windows that sets
-    // fDtrControl=DTR_CONTROL_DISABLE in the DCB, keeping DTR low from
-    // port-open and preventing the SAMD21 USB-CDC from sending real frames.
-    // Leave the Windows DCB default (DTR_CONTROL_ENABLE = DTR high).
 
     if (!m_port.open(QIODevice::ReadWrite)) {
         emit evError(QString("Cannot open %1: %2").arg(portName, m_port.errorString()));
         return false;
     }
 
-    // Flush the stale zero-filled USB CDC buffer, then confirm DTR is high.
     m_port.clear(QSerialPort::Input);
     m_port.setDataTerminalReady(true);
 
@@ -50,14 +54,23 @@ bool UtPoleEncoderReader::open(const QString& portName)
     m_firstFrame   = true;
     m_lastRaw      = INIT_RAW;
     m_accumulated  = INIT_RAW;
+
+    m_timRequestPosition.start();
     return true;
 }
 
 void UtPoleEncoderReader::close()
 {
+    m_timRequestPosition.stop();
     if (m_port.isOpen())
         m_port.close();
     m_buffer.clear();
+}
+
+void UtPoleEncoderReader::onRequestPosition()
+{
+    if (m_port.isOpen())
+        m_port.write(m_frameRequestPosition);
 }
 
 bool UtPoleEncoderReader::isOpen() const
@@ -65,7 +78,11 @@ bool UtPoleEncoderReader::isOpen() const
     return m_port.isOpen();
 }
 
-// ----------------------------------------------------------------------------
+void UtPoleEncoderReader::setPulsesPerMm(qreal value)
+{
+    if (value > 0.0)
+        m_pulsesPerMm = value;
+}
 
 void UtPoleEncoderReader::onReadyRead()
 {
@@ -119,7 +136,7 @@ void UtPoleEncoderReader::onReadyRead()
         }
 
         // 46 units = 0.1 mm  →  460 units = 1 mm
-        qreal mm = static_cast<qreal>(m_accumulated - INIT_RAW) / 460.0;
+        qreal mm = static_cast<qreal>(m_accumulated - INIT_RAW) / m_pulsesPerMm;
 
         ++m_frameCount;
         if (m_frameCount == 1 || m_frameCount % 100 == 0)

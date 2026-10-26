@@ -44,6 +44,10 @@ class ExamManager : public QObject, public XmlSettingsLoggable
     Q_PROPERTY(QString equipmentDate READ equipmentDate WRITE setEquipmentDate NOTIFY equipmentDateChanged)
     Q_PROPERTY(bool dateValide READ getDateValide NOTIFY evDateValideChanged)
     Q_PROPERTY(double equipmentFrequency READ equipmentFrequency WRITE setEquipmentFrequency NOTIFY equipmentFrequencyChanged)
+    Q_PROPERTY(QString inspecteurNom READ inspecteurNom WRITE setInspecteurNom NOTIFY inspecteurNomChanged)
+    Q_PROPERTY(QString inspecteurNumero READ inspecteurNumero WRITE setInspecteurNumero NOTIFY inspecteurNumeroChanged)
+    Q_PROPERTY(QString inspecteurDate READ inspecteurDate WRITE setInspecteurDate NOTIFY inspecteurDateChanged)
+    Q_PROPERTY(bool inspecteurValide READ inspecteurValide NOTIFY inspecteurValideChanged)
     Q_PROPERTY(QString sondeNbVoies READ sondeNbVoies WRITE setSondeNbVoies NOTIFY sondeNbVoiesChanged)
     Q_PROPERTY(QString sondeNumero READ sondeNumero WRITE setSondeNumero NOTIFY sondeNumeroChanged)
     Q_PROPERTY(QString controlleurNom READ controlleurNom WRITE setControlleurNom NOTIFY controlleurNomChanged)
@@ -88,6 +92,7 @@ class ExamManager : public QObject, public XmlSettingsLoggable
     Q_PROPERTY(QString currentExamName READ getCurrentExamName NOTIFY evCurrentExamNameChanged)
 
     Q_PROPERTY(qint32 examStep READ getExamStep WRITE setExamStep NOTIFY evExamStepChanged)
+    Q_PROPERTY(qint32 examWriteProgress READ getExamWriteProgress WRITE setExamWriteProgress NOTIFY evExamWriteProgressChanged)
 
     // Execution
     Q_PROPERTY(quint32 selectedBScanGeneratrix READ getSelectedBScanGeneratrix WRITE setSelectedBScanGeneratrix NOTIFY evSelectedBScanGeneratrixChanged)
@@ -244,8 +249,15 @@ public :
     void setExamStep(qint32 p_value);
     bool isRecording() const; ///< true in steps EXAM_STOPPED and EXAM_RECORDING
 
+    qint32 getExamWriteProgress() const;
+    void setExamWriteProgress(qint32 p_value);
+
+    Q_INVOKABLE QString makeExamFullFileName(const QString &p_file) const;
+    Q_INVOKABLE void startExamWrite(const QString &p_file);
+    Q_INVOKABLE void cancelExamWrite();
     Q_INVOKABLE QString getExamGeneratedFileName() const;   ///< return file name function to structure, piece ...
-    Q_INVOKABLE QString getExportFullFileName() const;        ///< return Path+File name of the CSV of the current / last acquisition. Empty if not created.
+    Q_INVOKABLE QString getExportFullFileName() const;        ///< return Path+File name
+    Q_INVOKABLE qint32 checkFileName(const QString &p_file) const;        ///< return 0 if npo error, 1 if directory is invalid, 2 if the file already exists
 
     // ASCAN
     void pushAScan(AScan* p_pAscan);
@@ -286,6 +298,13 @@ public :
     bool getDateValide() const;
     double equipmentFrequency() const;
     void setEquipmentFrequency(double p_value);
+    QString inspecteurNom() const;
+    void setInspecteurNom(const QString& p_value);
+    QString inspecteurNumero() const;
+    void setInspecteurNumero(const QString& p_value);
+    QString inspecteurDate() const;
+    void setInspecteurDate(const QString& p_value);
+    bool inspecteurValide() const;
     QString sondeNbVoies() const;
     void setSondeNbVoies(const QString& p_value);
     QString sondeNumero() const;
@@ -344,6 +363,7 @@ private :
     QMap<QString, QString> captureTrackedParams() const;
 
     void equipmentDateCheck(const QString& p_date);
+    void inspecteurDateCheck(const QString& p_date);
     void sondeDateCheck(const QString& p_date);
 
 signals :
@@ -351,6 +371,9 @@ signals :
     void equipmentNumeroChanged(QString);
     void equipmentDateChanged(QString);
     void  equipmentFrequencyChanged(double);
+    void inspecteurNomChanged(QString);
+    void inspecteurNumeroChanged(QString);
+    void inspecteurDateChanged(QString);
     void sondeNbVoiesChanged(QString);
     void sondeAneeChanged(QString);
     void evStructNameChanged(QString);
@@ -398,7 +421,8 @@ signals :
     void evRequestLocationZoneUpdate(Location1d*);
 
     void evExamStepChanged(qint32 p_value);
-    void evExportErrorChanged(QString p_fileName);   ///< the CSV of the acquisition can't be created / written
+    void evExamWriteProgressChanged(bool p_success);
+    void evExportTerminatedChanged(bool);
 
     void evMepUpdated(MepMatrix*);
     void evMepHeaderUpdated();
@@ -408,6 +432,7 @@ signals :
     void evFreeSessionChanged();
 
     void evDateValideChanged(bool);
+    void inspecteurValideChanged(bool);
     void evSondeDateValideChanged(bool);
 
     // User Session Control
@@ -419,7 +444,8 @@ private slots :
     void onRequestSurfaceUpdate(Surface1d*);
     void onLocationZoneChanged(Location1d*);
 
-    void onExportError(QString);
+    void onExportProgressChanged(qint32);
+    void onExportTerminatedChanged(bool);
 
     void onMepDataChanged();
     void onNewPosition(qreal rMmXPosition);
@@ -427,8 +453,6 @@ private slots :
 
 private :
     void examStartBScan();
-    void startCsvRecording();   ///< create <exportFolder>/<name>/<name>.csv and write its header
-    void appendJournal(const QString& p_key, const QString& p_value);  ///< append "key = value" to the journal of the current acquisition
 
 private :
     ExamManager();
@@ -480,8 +504,7 @@ private :
     bool m_isMepAutoMode;
 
     qint32 m_examStep;              ///< value in EXAM_STEP, manage state chart of recording
-    QString m_exportFullFileName;   ///< CSV of the current / last acquisition. Empty if not created.
-    QString m_journalFullFileName;  ///< journal.txt of the current / last acquisition (next to the CSV). Empty if not created.
+    qint32 m_examWriteProgress;     ///< signal to GUI the progress while writing stored measures. Value : 0..100% / -1 = error
 
     ExportCsv * m_pExportCsv;
 
@@ -499,6 +522,10 @@ private :
     QString m_equipmentDate;
     bool m_dateValide = true;
     double m_equipmentFrequency = 1000;
+    QString m_inspecteurNom;
+    QString m_inspecteurNumero;
+    QString m_inspecteurDate;
+    bool m_inspecteurValide = true;
     QString m_sondeNbVoies;
     QString m_sondeAnee;
     bool m_sondeDateValide = true;

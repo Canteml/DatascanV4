@@ -45,6 +45,7 @@ class ScanManager : public QObject, public XmlSettingsLoggable
     Q_PROPERTY(qreal BScanAxeXScaleM READ getBScanAxeXScaleM WRITE setBScanAxeXScaleM NOTIFY evBScanAxeXScaleMChanged)
     Q_PROPERTY(qreal BScanAxeYMinMm READ getBScanAxeYMinMm WRITE setBScanAxeYMinMm NOTIFY evBScanAxeYMinMmChanged)
     Q_PROPERTY(qreal BScanAxeYMaxMm READ getBScanAxeYMaxMm WRITE setBScanAxeYMaxMm NOTIFY evBScanAxeYMaxMmChanged)
+    Q_PROPERTY(quint32 BScanAxeXType READ getBScanAxeXType WRITE setBScanAxeXType NOTIFY evBScanAxeXTypeChanged)
 
 public :
 
@@ -104,6 +105,9 @@ public :
     qreal getBScanAxeYMaxMm(void) const;
     void setBScanAxeYMaxMm(qreal p_value);
 
+    qint32 getBScanAxeXType(void) const;
+    void setBScanAxeXType(quint32 p_value);
+
     void setEncoderController(EncoderController* p_pEncoder);
 
     static const qint32 ASCAN_MEASURE_REFRESH_DELAY = 100;
@@ -119,6 +123,7 @@ signals :
     void evBScanAxeXScaleMChanged(qreal);
     void evBScanAxeYMinMmChanged(qreal);
     void evBScanAxeYMaxMmChanged(qreal);
+    void evBScanAxeXTypeChanged(qint32);
 
     void evAScanPresetChanged();
     void evBScanPresetChanged();
@@ -136,6 +141,7 @@ private slots :
     void onPrivateBScanAxeYMaxMmChanged(qreal);
 
     void onExamManagerStepChanged(qint32);
+    void onPrivateBScanAxeXTypeChanged(qint32);
 
     void onUpdateAScanTimed();
 

@@ -33,10 +33,25 @@ public:
 
     bool isActive() const { return m_active; }
 
-    // Network devices (authenticated links) are listed first, then serial ports.
-    // Each entry: { "text": label shown, "address": "192.168.0.50:2110" or "COM4" }
     void setLinkManager(ComLinkManager* linkManager);
+    void setPositionVector(VectorStd* vectorStd);
     Q_INVOKABLE QVariantList availableDevices() const;
+
+    Q_PROPERTY(QString bscanSource
+               READ  bscanSource
+               WRITE setBScanSource
+               NOTIFY bscanSourceChanged)
+
+    QString bscanSource() const { return m_bscanSource; }
+    void    setBScanSource(const QString& value);
+
+    Q_PROPERTY(qint32 baudRate
+               READ  baudRate
+               WRITE setBaudRate
+               NOTIFY baudRateChanged)
+
+    qint32 baudRate() const { return m_baudRate; }
+    void   setBaudRate(qint32 value);
 
     Q_PROPERTY(qreal calibrationRealMm
                READ  calibrationRealMm
@@ -46,6 +61,9 @@ public:
                READ  calibrationEstimatedMm
                WRITE setCalibrationEstimatedMm
                NOTIFY calibrationEstimatedMmChanged)
+    Q_PROPERTY(qreal wheelDiameterMm READ wheelDiameterMm WRITE setWheelDiameterMm NOTIFY wheelDiameterMmChanged)
+    Q_PROPERTY(qint32 coderResolution READ coderResolution WRITE setCoderResolution NOTIFY coderResolutionChanged)
+    Q_PROPERTY(bool encoderReverse READ encoderReverse WRITE setEncoderReverse NOTIFY encoderReverseChanged)
 
     // -- Calibration
 
@@ -73,17 +91,33 @@ public:
         }
     }
 
+    qreal   wheelDiameterMm() const { return m_wheelDiameterMm; }
+    void    setWheelDiameterMm(qreal value);
+    qint32  coderResolution() const { return m_coderResolution; }
+    void    setCoderResolution(qint32 value);
+    bool    encoderReverse() const { return m_encoderReverse; }
+    void    setEncoderReverse(bool value);
+
 signals:
     void evError(const QString& msg);
     void evActivated();
     void evDeactivated();
     void availableDevicesChanged();
+    void baudRateChanged(qint32);
+    void bscanSourceChanged(const QString&);
     void calibrationRealMmChanged(qreal);
     void calibrationEstimatedMmChanged(qreal);
+    void wheelDiameterMmChanged(qreal);
+    void coderResolutionChanged(qint32);
+    void encoderReverseChanged(bool reverse);
+    void odometryChanged(qreal wheelDiameterMm, qint32 coderResolution);
+
 
 private slots:
     void onPositionMm(qreal mm);
     void onReaderError(const QString& msg);
+
+    void onProdIdChanged(quint32 prodId);
 
 private:
     qreal calibratedPosition(qreal rawMm) const;
@@ -92,6 +126,10 @@ private:
     VectorStd*           m_vectorStd      = nullptr;
     ComLinkManager*      m_linkManager    = nullptr;
     bool           m_active        = false;
+    QString        m_portName;
+    qint32         m_baudRate      = 115200;
+    VectorStd*     m_positionVector = nullptr;
+    QString        m_bscanSource;
     quint32        m_positionCount = 0;
     qreal          m_lastRawMm     = 0.0;
 
@@ -101,4 +139,15 @@ private:
     qreal  m_scaleFactor            = 1.0;
     qreal  m_calibrationRealMm      = 100.0;
     qreal  m_calibrationEstimatedMm = 100.0;
+
+    bool    isUtPoleProfile() const;
+    QString odometryKey(const char* name) const;
+    qreal   utPolePulsesPerMm() const;
+    void    loadOdometry();
+    void    applyOdometry();
+
+    // Odometry
+    qreal   m_wheelDiameterMm = 56.8;
+    qint32  m_coderResolution = 82084;
+    bool    m_encoderReverse  = false;
 };

@@ -39,6 +39,8 @@ bool AltiscanController::activate(VectorStd* vectorStd, const QString& portName)
     connect(m_pLink, &AltiscanSerialLink::evPressureRaw, this, &AltiscanController::onPressureRaw);
     connect(m_pLink, &AltiscanSerialLink::evInertialRaw, this, &AltiscanController::onInertialRaw);
 
+    m_pLink->setOdometry(m_wheelDiameterMm, static_cast<quint32>(m_coderResolution));
+
     if (!m_pLink->open(portName)) {
         delete m_pLink;
         m_pLink = nullptr;
@@ -76,10 +78,25 @@ void AltiscanController::deactivate()
     emit evDeactivated();
 }
 
+void AltiscanController::setOdometry(qreal wheelDiameterMm, qint32 coderResolution)
+{
+    m_wheelDiameterMm = wheelDiameterMm;
+    m_coderResolution = coderResolution;
+    if (m_pLink)
+        m_pLink->setOdometry(m_wheelDiameterMm, static_cast<quint32>(m_coderResolution));
+}
+
+void AltiscanController::setEncoderReverse(bool reverse)
+{
+    m_encoderReverse = reverse;
+}
+
 // ----------------------------------------------------------------------------
 
 void AltiscanController::onPositionMm(qreal mm)
 {
+    if (m_encoderReverse)
+        mm = -mm;
     ++m_positionCount;
 
     if (m_positionCount == 1 || m_positionCount % 200 == 0)

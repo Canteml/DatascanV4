@@ -23,14 +23,9 @@ AltiscanSerialLink::AltiscanSerialLink(QObject* parent)
     : QObject(parent)
     , m_port(this)
 {
-    // Request-position frame, built once: # SRC DST CMD FLAGS LEN
     char f[7] = { (char)SYNC_BYTE, (char)0x02, (char)0x01, (char)CMD_POSITION, (char)0x00, (char)0x01, (char)0x00 };
     m_frameRequestPosition.append(f, 7);
 
-    // Joystick frame template: # SRC DST CMD FLAGS LEN MOVE TURN
-    // MOVE/TURN start at STOP_BYTE (127) and are overwritten in place by
-    // sendJoystickFrame() on every cycle, same pattern as the legacy
-    // m_protMsgJoystick.
     char j[8] = { (char)SYNC_BYTE, (char)0x02, (char)0x01, (char)CMD_JOYSTICK, (char)0x00, (char)0x02, (char)STOP_BYTE, (char)STOP_BYTE };
     m_frameJoystick.append(j, 8);
 
@@ -153,6 +148,17 @@ void AltiscanSerialLink::setCoefStepToMm(qreal mmPerPulse)
     m_coefStepToMm = mmPerPulse;
 }
 
+void AltiscanSerialLink::setOdometry(qreal wheelDiameterMm, quint32 coderResolution)
+{
+    if (wheelDiameterMm <= 0.0 || 0 == coderResolution)
+        return;
+
+    setCoefStepToMm((PI_VALUE * wheelDiameterMm) / static_cast<qreal>(coderResolution * DEFAULT_MOTOR_REDUCTION));
+
+    Logger::logInfo(QString("[AltiscanSerialLink] odometry: wheel = %1 mm resolution = %2 coef = %3 mm/pulse")
+                        .arg(wheelDiameterMm, 0, 'f', 2).arg(coderResolution).arg(m_coefStepToMm, 0, 'f',6));
+}
+
 void AltiscanSerialLink::setJoystick(qint8 x, qint8 y)
 {
     m_joyX = x;
@@ -217,7 +223,8 @@ void AltiscanSerialLink::sendJoystickFrame()
 
 void AltiscanSerialLink::onReadyRead()
 {
-    m_rxBuffer.append(m_port.readAll());
+    m_lastRxChunk = m_port.readAll();
+    m_rxBuffer.append(m_lastRxChunk);
     processBuffer();
 }
 
@@ -226,11 +233,17 @@ void AltiscanSerialLink::processBuffer()
     for (;;) {
         const int syncIdx = m_rxBuffer.indexOf(static_cast<char>(SYNC_BYTE));
         if (syncIdx < 0) {
+            // DEBUG : bytes dropped while looking for the sync byte
+            Logger::logWarning(QString("[AltiscanSerialLink] no sync, dropped %1 bytes : %2")
+                               .arg(m_rxBuffer.size()).arg(QString(m_rxBuffer.toHex(' '))));
             m_rxBuffer.clear();
             return;
         }
-        if (syncIdx > 0)
+        if (syncIdx > 0) {
+            Logger::logWarning(QString("[AltiscanSerialLink] dropped %1 bytes before sync : %2")
+                               .arg(syncIdx).arg(QString(m_rxBuffer.left(syncIdx).toHex(' '))));
             m_rxBuffer.remove(0, syncIdx);
+        }
 
         if (m_rxBuffer.size() < HEADER_SIZE)
             return; // wait for the rest of the header
@@ -244,6 +257,8 @@ void AltiscanSerialLink::processBuffer()
         if (src != SRC_ROBOT || dst != DST_SOFTWARE) {
             // Not a valid header at this sync position - drop the sync byte
             // and look for the next one instead of discarding everything.
+            Logger::logWarning(QString("[AltiscanSerialLink] invalid header, resync : %1")
+                               .arg(QString(m_rxBuffer.left(HEADER_SIZE).toHex(' '))));
             m_rxBuffer.remove(0, 1);
             continue;
         }
@@ -253,6 +268,7 @@ void AltiscanSerialLink::processBuffer()
             return; // wait for the rest of the payload
 
         const QByteArray payload = m_rxBuffer.mid(HEADER_SIZE, len);
+        m_currentFrame = m_rxBuffer.left(frameSize);
         handleFrame(cmd, payload);
 
         m_rxBuffer.remove(0, frameSize);
@@ -276,6 +292,13 @@ void AltiscanSerialLink::handleFrame(quint8 cmd, const QByteArray& payload)
             | (static_cast<quint32>(b1) << 8)
             | (static_cast<quint32>(b2) << 16)
             | (static_cast<quint32>(b3) << 24));
+
+        // DEBUG : dump the raw frame when the payload size is unexpected or the position jumps
+        if (4 != payload.size() || (m_replyCount > 0 && qAbs(static_cast<qint64>(posInt) - m_lastPositionRaw) > 20000)) {
+            Logger::logWarning(QString("[AltiscanSerialLink] suspicious 'r' reply #%1 : raw=%2 (last %3) len=%4 | frame : %5 | rx chunk : %6 | buffer : %7")
+                               .arg(m_replyCount + 1).arg(posInt).arg(m_lastPositionRaw).arg(payload.size())
+                               .arg(QString(m_currentFrame.toHex(' ')), QString(m_lastRxChunk.toHex(' ')), QString(m_rxBuffer.toHex(' '))));
+        }
 
         m_lastPositionRaw = posInt;
         ++m_replyCount;

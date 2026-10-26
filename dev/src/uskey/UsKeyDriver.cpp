@@ -25,21 +25,6 @@ UsKeyDriver::UsKeyDriver(QObject* parent)
 
 UsKeyDriver::~UsKeyDriver()
 {
-    // Deliberately NOT sending "KillExeX32" here. It forcibly kills the
-    // 32-bit ExeUSB2X86.exe helper out from under lvrt.dll, which still
-    // holds IPC state (handles/hooks) toward it - two independent crash
-    // dumps from this app's shutdown faulted at the exact same address
-    // inside lvrt.dll, reached through two unrelated call paths (a Winsock
-    // hook via Qt6Network -> WS2_32/mswsock, and a USER32 window-message
-    // hook). Both landing on the same instruction only makes sense if
-    // lvrt.dll's own state is corrupted before either fires, which points
-    // at KillExeX32 as the trigger: the legacy datascan-develop app
-    // (src/robot/gestionuskey.cpp) never calls "KillExeX32" or "RunExeX32"
-    // at all - it just calls QLibrary::unload() - and never crashes on
-    // close. Cleanup of the helper process no longer depends on this call:
-    // main.cpp assigns the process to a Windows Job Object with
-    // JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE, which kills ExeUSB2X86.exe
-    // unconditionally when this process ends, however it ends.
     if (m_lib.isLoaded())
         m_lib.unload();
 }
@@ -69,11 +54,6 @@ bool UsKeyDriver::isLoaded() const
     return m_fn != nullptr;
 }
 
-// ----------------------------------------------------------------------------
-// -- Private helper
-//
-// x64 API: ProductNumber = 1 (US-Key product type, fixed)
-//          ChannelNumber = deviceNum (device index, 0 = first)
 
 long UsKeyDriver::call(int deviceNum, const char* cmd,
                        double i1, double i2, double i3,
@@ -82,20 +62,12 @@ long UsKeyDriver::call(int deviceNum, const char* cmd,
                        short* o4, short* o5, short* o6,
                        unsigned short* arr, long* len)
 {
-    // Serializes every call into ApintUsb across all three threads that call
-    // this object (GUI thread, UsKeyManager's connect-thread, and the
-    // acquisition thread's tight getAscan() loop) - see the class doc in
-    // UsKeyDriver.h for why this is required, not defensive.
     QMutexLocker locker(&m_mutex);
 
     short          dummy[6]  = {};
     unsigned short dummyArr  = 0;
     long           dummyLen  = 0;
 
-    // DEBUG: bracket every blocking call into ap_int_usb.dll so a freeze at
-    // startup can be pinned to the exact vendor command and its duration.
-    // "A-scan" is excluded: it runs in a tight loop on the acquisition thread
-    // and would flood the log once acquisition starts.
     const bool bTraceCall = (0 != strcmp(cmd, "A-scan"));
     if (bTraceCall)
         Logger::logInfo(QString("[UsKeyDriver] call - ENTER cmd='%1' device=%2").arg(cmd).arg(deviceNum));
@@ -103,8 +75,8 @@ long UsKeyDriver::call(int deviceNum, const char* cmd,
     timer.start();
 
     long ret = m_fn(
-        1,                                          // productNumber = 1 (US-Key)
-        static_cast<unsigned long>(deviceNum),      // channelNumber = device index
+        1,
+        static_cast<unsigned long>(deviceNum),
         const_cast<char*>(cmd),
         i1, i2, i3, i4, i5, i6,
         o1 ? o1 : &dummy[0],
@@ -142,7 +114,8 @@ bool UsKeyDriver::initUsb(int deviceNum)
 
 bool UsKeyDriver::loadConfiguration(int deviceNum)
 {
-    return call(deviceNum, "load configuration", 1) == 0;
+    // Same convention as "Init usb": the x64 DLL returns non-zero (1) on success
+    return call(deviceNum, "load configuration", 1) != 0;
 }
 
 // ----------------------------------------------------------------------------

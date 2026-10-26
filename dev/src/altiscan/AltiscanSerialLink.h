@@ -63,44 +63,22 @@ class AltiscanSerialLink : public QObject
 public:
     explicit AltiscanSerialLink(QObject* parent = nullptr);
 
-    // Attempts to open portName once. Returns false and does NOT retry if
-    // the robot is not there yet (e.g. at application startup) - the caller
-    // decides what to do (see AltiscanController::activate()). Once a
-    // connection has been established successfully, a later loss of that
-    // connection IS retried automatically (see class doc above).
     bool open(const QString& portName = "COM6");
     void close();
     bool isOpen() const;
 
-    // -- Position scale (mm per encoder pulse), legacy default for Altiscan:
-    //    coderResolution=1024, wheelDiameter=52.5mm, motorReduction=103.
-    //    These are the legacy XML defaults, not verified against the specific
-    //    physical robot on COM6 - override with setCoefStepToMm() if the real
-    //    hardware calibration differs.
     void setCoefStepToMm(qreal mmPerPulse);
     qreal coefStepToMm() const { return m_coefStepToMm; }
+    void setOdometry(qreal wheelDiameterMm, quint32 coderResolution);
 
-    // -- Joystick command, cached and sent on the next 100ms cycle.
-    // x: -127(left)..127(right), y: -127(backward)..127(forward). Defaults
-    // to (0,0) = stop until first call, and stays at the last value between
-    // calls (fire-and-forget protocol, no acknowledgement from the robot).
     void setJoystick(qint8 x, qint8 y);
 
 signals:
-    void evPositionRaw(qint32 pulses);   ///< raw decoded position, signed pulse count
-    void evPositionMm(qreal mm);         ///< pulses converted via coefStepToMm()
+    void evPositionRaw(qint32 pulses);
+    void evPositionMm(qreal mm);
 
-    // -- Pressure ('p'): raw uint16, legacy convention 1000 units = 1 bar
-    // (same convention as VectorFuncPressureSensor::paramDPressureB).
     void evPressureRaw(quint16 milliBar);
 
-    // -- Orientation/IMU ('o'): aX/aY/aZ = raw accelerometer counts
-    // (legacy divides by 1000.0 for m/s^2 display; kept raw here, unscaled,
-    // since VectorFuncInertialSensor::paramDInertialSensor is qint16 XYZ and
-    // the direction angle derived from it - atan2(y,x) - is scale-invariant).
-    // oX/oY/oZ = second raw triplet (magnetometer-like per the legacy code,
-    // exact nature undocumented) - parsed and emitted for completeness, but
-    // has no destination in the current app model yet.
     void evInertialRaw(qint16 aX, qint16 aY, qint16 aZ, qint16 oX, qint16 oY, qint16 oZ);
 
     void evError(const QString& msg);
@@ -148,6 +126,8 @@ private:
 
     qreal   m_coefStepToMm;
     qint32  m_lastPositionRaw = 0;
+    QByteArray m_lastRxChunk;           // DEBUG : last bytes read from the port
+    QByteArray m_currentFrame;          // DEBUG : whole frame being handled (header + payload)
     quint32 m_requestCount    = 0;
     quint32 m_replyCount      = 0;
 

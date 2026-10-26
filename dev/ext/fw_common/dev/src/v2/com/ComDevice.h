@@ -49,13 +49,10 @@ public :
         COM_LINKED_CONNECTED
     };
 
-    //ComDevice(IntComMsg * p_pIntComMsg, quint32 p_prodId, quint32 p_deviceAd);   ///< Device made by simu
-    //ComDevice(GenComLink * p_pComLink, quint32 p_prodId, quint32 p_deviceAd);    ///< Device discovered (by MPC), with a connected link
-    ComDevice(IntComMsg * p_pIntComMsg, GenComLink * p_pComLink, const VectorFuncGeneralAuth& p_param);    ///< Device discovered (by MPC), with a connected link
+    ComDevice(IntComMsg * p_pIntComMsg, GenComLink * p_pComLink, const VectorFuncGeneralAuth& p_param);
 
     ~ComDevice();
 
-    // -- Function General
     qint32 getParamDProdId() const;
     void setParamDProdId(qint32 p_value, bool b_syncProt = true);
 
@@ -84,7 +81,7 @@ public :
     void resetFunctions();
 
     // -- Behaviour
-    void isUsed(void) const;    ///< return true if the IntComMsg is set
+    void isUsed(void) const;
     quint32 getComState() const;
 
     QString getDeviceName() const;
@@ -127,15 +124,14 @@ protected :
     virtual bool customSaveParam(QDomDocument * p_pDoc, QDomElement * p_pParent) override;
 
 private :
-    // -- Properties (used to identiy this device, get with a message : MSG_CMD_WHO_ARE_YOU)
-    GenComLink * m_pComLink;                ///< reference to the link
-    IntComMsg* m_pIntComMsg;                ///< Vector where incoming messages are treated (dispatched by functions). set only if this Device is used in the system
+    GenComLink * m_pComLink;
+    IntComMsg* m_pIntComMsg;
 
-    QString m_deviceName;   ///< used to match with a link name. Defined in same time that m_deviceAd
-    quint32 m_comState;     ///< value in COM_STATE
+    QString m_deviceName;
+    quint32 m_comState;
 
     // Parameters (Function General)
     VectorFuncGeneralAuth m_paramFuncGeneralAuth;
 
-    QMutex * m_mLink;   ///< protect link access
+    QMutex * m_mLink;
 };

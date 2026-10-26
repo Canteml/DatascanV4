@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(APP VERSION 3.0.0 LANGUAGES CXX)
+project(APP VERSION 3.0.1 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -44,4 +44,4 @@ qt_add_resources(RES_SOURCES
 target_sources(APP PRIVATE ${RES_SOURCES])
 
 # --- Defines ---
-target_compile_definitions(APP PRIVATE APP_VERSION="rev_3.0.0-FR")
+target_compile_definitions(APP PRIVATE APP_VERSION="rev_3.0.1-FR")

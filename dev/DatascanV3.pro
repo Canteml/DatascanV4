@@ -10,10 +10,10 @@
 #
 # ============================================================================
 ## -- VERSION
-DEF_VERSION = rev_3.0.0-FR
-//DEF_VERSION = rev_3.0.0-ENG
-//DEF_VERSION = rev_3.0.0-ES
-//DEF_VERSION = rev_3.0.0-EDF-LIMULE-BUGGY
+DEF_VERSION = rev_3.0.1-FR
+//DEF_VERSION = rev_3.0.1-ENG
+//DEF_VERSION = rev_3.0.1-ES
+//DEF_VERSION = rev_3.0.1-EDF-LIMULE-BUGGY
 CONFIG(debug, debug|release) {
     DEF_VERSION = $$DEF_VERSION"-DEV"
 }

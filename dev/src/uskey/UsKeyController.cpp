@@ -23,10 +23,6 @@
 // ----------------------------------------------------------------------------
 
 namespace {
-    // paramDUtElement follows ProtMsg (FUNC_ASCAN_PARAM_D_UT_ELEMENT):
-    // 1 = mono-element, 2 = bi-element (0 = not set yet, treated as mono).
-    // The DLL "filter/mode" command expects mode 0 = T/R connected (mono),
-    // 1 = T/R disconnected (bi).
     double utElementToHwMode(quint8 element)
     {
         return (2 == element) ? 1.0 : 0.0;
@@ -68,8 +64,16 @@ bool UsKeyController::activate(VectorStd* vectorStd)
 
     m_adapter->bind(m_manager, m_vectorStd->funcAScan0());
 
-    // On reconnection (m_active already true) re-push all hardware parameters.
-    // At first connection m_active is still false, so the lambda is a no-op.
+    m_vectorStd->funcAScan0()->setLocalSourceActive(true);
+    connect(m_manager, &UsKeyManager::evConnected, this, [this]() {
+        if (m_vectorStd)
+            m_vectorStd->funcAScan0()->setLocalSourceActive(true);
+    });
+    connect(m_manager, &UsKeyManager::evDisconnected, this, [this]() {
+        if (m_vectorStd)
+            m_vectorStd->funcAScan0()->setLocalSourceActive(false);
+    });
+
     connect(m_manager, &UsKeyManager::evConnected, this, [this]() {
         if (!m_active)
             return;
@@ -109,8 +113,8 @@ bool UsKeyController::activate(VectorStd* vectorStd)
 
     connect(m_vectorStd->funcAScan0(), &VectorFuncAScan::paramDWaveTypeChanged,
             this, [this](quint8 waveType) {
-                // waveType 3 = RF mode (software-only): keep hardware at full-rectified (0)
-                m_manager->setWave(waveType < 3 ? static_cast<double>(waveType) : 0.0);
+                // 0..2 = A-scan rectified/negative/positive, 3 = RF (HF raw) : mapped by the manager
+                m_manager->setWave(static_cast<double>(waveType));
             });
 
     connect(m_vectorStd->funcAScan0(), &VectorFuncAScan::paramLProbeDelayMmChanged,
@@ -128,16 +132,15 @@ bool UsKeyController::activate(VectorStd* vectorStd)
                 m_manager->setWidth(us * 0.625);
             });
 
-    // Synchronisation initiale
     m_manager->setVoltage(static_cast<double>(m_vectorStd->funcAScan0()->getParamDVoltage()));
     m_manager->setGain(static_cast<double>(m_vectorStd->funcAScan0()->getParamDGain()));
     m_manager->setWidth(static_cast<double>(m_vectorStd->funcAScan0()->getParamDPulseWidth()) / 1.6);
 
-    // freq=1 → 80MHz, mode=0 → T/R connected
     m_manager->setSamplingFreqMode(1.0, 0.0);
 
-    // 4000 samples, dataType=0 (HF raw), waveType=0 (full rectified)
-    m_manager->startAcquisition(4000, 0, 0);
+    quint8 waveType = m_vectorStd->funcAScan0()->getParamDWaveType();
+    m_manager->setWave(static_cast<double>(waveType));
+    m_manager->startAcquisition(4000, waveType == 3 ? 0 : 1, waveType == 3 ? 0 : waveType);
 
     m_active = true;
     emit evActivated();
@@ -157,7 +160,7 @@ void UsKeyController::syncToHardware()
     m_manager->setWidth(static_cast<double>(ascan->getParamDPulseWidth()) * 0.625);
 
     quint8 waveType = ascan->getParamDWaveType();
-    m_manager->setWave(waveType < 3 ? static_cast<double>(waveType) : 0.0);
+    m_manager->setWave(static_cast<double>(waveType));
 
     m_manager->setFilterMode(static_cast<double>(ascan->getParamDFilterMode()),
                              utElementToHwMode(ascan->getParamDUtElement()));
@@ -174,6 +177,8 @@ void UsKeyController::deactivate()
     m_adapter->unbind();
     m_manager->stopAcquisition();
     m_manager->disconnectDevice();
+    if (m_vectorStd)
+        m_vectorStd->funcAScan0()->setLocalSourceActive(false);
 
     m_active = false;
     emit evDeactivated();

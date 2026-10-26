@@ -24,17 +24,6 @@
 // ----------------------------------------------------------------------------
 // -- ComDevice
 
-//ComDevice::ComDevice(IntComMsg *p_pIntComMsg, quint32 p_prodId, quint32 p_deviceAd): XmlProjectLoggable("ComDevice")
-//{
-//    m_pComLink = nullptr;
-//    m_pIntComMsg = p_pIntComMsg;
-//    m_comState = COM_NOT_LINKED;
-//    m_paramFuncGeneralAuth.m_paramDProdId = p_prodId;
-//    m_paramFuncGeneralAuth.m_paramDDeviceAd = p_deviceAd;
-
-//    m_deviceName = "Device";
-//}
-
 ComDevice::ComDevice(IntComMsg* p_pIntComMsg, GenComLink * p_pComLink, const VectorFuncGeneralAuth &p_param): XmlProjectLoggable("ComDevice")
 {
     m_pComLink = nullptr;
@@ -273,7 +262,7 @@ void ComDevice::setLink(GenComLink * p_pComLink)
     m_mLink->unlock();
 
     if( nullptr != m_pComLink ) {
-        onLinkStateChanged(m_pComLink, state);// update (can lock GUI, so not in mutexed section)
+        onLinkStateChanged(m_pComLink, state);
     }
 
     emit evLinkChanged(m_pComLink);
@@ -299,7 +288,6 @@ void ComDevice::sendMsg(ProtMsg * p_pMsg)
 
 void ComDevice::emergencyStop()
 {
-    // send msg to device
     ProtMsg * pMsg = new ProtMsg();
     pMsg->m_deviceAd = m_paramFuncGeneralAuth.m_paramDDeviceAd;
     pMsg->m_msgType = ProtMsg::MSG_TYPE_CMD;
@@ -320,7 +308,6 @@ void ComDevice::onNewLinkMsg()
 
     while( nullptr != pMsg ) {
         bool msgTreated = false;
-        // Process General function
 
         if( ProtMsg::DEVICE_FUNC_GENERAL == pMsg->m_deviceFunc ) {
             if( ProtMsg::MSG_TYPE_CMD == pMsg->m_msgType &&
@@ -382,7 +369,10 @@ void ComDevice::onNewLinkMsg()
         }
 
         if( !msgTreated ) {
+            // let the vector know where the message comes from (BScan source selection)
+            m_pIntComMsg->setRxLinkName(nullptr != m_pComLink ? m_pComLink->getName() : QString());
             m_pIntComMsg->processReceivedMsg(pMsg);
+            m_pIntComMsg->setRxLinkName(QString());
         }
         delete pMsg;
 

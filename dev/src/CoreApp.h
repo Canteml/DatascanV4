@@ -30,6 +30,7 @@ class ProductLimiter;
 class UsKeyController;
 class AltiscanController;
 class EncoderController;
+class SerialPortRouter;
 
 class CoreApp : public CoreUiQml
 {
@@ -85,10 +86,7 @@ private :
     SoftwareLicenceChecker m_licence;
 
     AltiscanController* m_pAltiscanController = nullptr;
-    QString m_encoderPort;
-
-    void updateReservedSerialPorts();
-
     EncoderController* m_pEncoderController = nullptr;
+    SerialPortRouter* m_pSerialPortRouter = nullptr;
 };
 

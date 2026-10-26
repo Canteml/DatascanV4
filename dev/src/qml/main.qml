@@ -118,6 +118,9 @@ Window  {
                     ( event.key === Qt.Key_Up || event.key === Qt.Key_Down || event.key === Qt.Key_Left || event.key === Qt.Key_Right )
               ) examManager.isMepAutoMode = false
 
+            if( event.key === Qt.Key_Return ) // DEBUG MEP (temporary)
+                console.log("[MEP DEBUG] Return pressed : controlType=" + examManager.controlType
+                            + " hasReceivedMessage=" + currentVector.funcAScan0().hasReceivedMessage)
             if( (event.key === Qt.Key_Return) && (examManager.controlType === 1) ) {
                 if(currentVector.funcAScan0().hasReceivedMessage)
                     examManager.startWaitingForMepAScan();

@@ -143,7 +143,6 @@ const VectorFuncGeneralAuth& IntComMsg::getFuncGeneralParam() const
 void IntComMsg::signalEmergencyStopFromDevice(ComDevice *p_pDevice)
 {
     fLogInfo(QString("Received Emergency Stop from : %1").arg(p_pDevice->getDeviceName()));
-    // TODO : handle the Emergency Stop ?
 }
 
 void IntComMsg::timeoutAlert(quint32 alertLevel)
@@ -202,7 +201,6 @@ bool IntComMsg::customLoadParam(QDomElement * p_pParent)
 {
     bool bRet = true;
     m_funcGeneral.loadParam(p_pParent);
-    //m_pComLinkManager->loadParam(p_pParent);
     return bRet;
 }
 

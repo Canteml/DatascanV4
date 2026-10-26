@@ -59,8 +59,11 @@ public :
     Q_INVOKABLE ComDeviceManager * getDeviceManager() const;
 
     // Interface with devices :
-    void sendMsg(ProtMsg* p_pMsg, bool p_isEcho = false);  ///< will send the message to the destination device.
-    virtual void processReceivedMsg(ProtMsg* p_pMsg) = 0;   ///< this method will be called be all devices with theire received messages. (TODO : private method)
+    void sendMsg(ProtMsg* p_pMsg, bool p_isEcho = false);
+    virtual void processReceivedMsg(ProtMsg* p_pMsg) = 0;
+
+    void setRxLinkName(const QString& p_value) { m_rxLinkName = p_value; }
+    const QString& getRxLinkName() const { return m_rxLinkName; }
 
     qint32 getProdId() const;
     qint32 getDeviceAd() const;
@@ -68,7 +71,7 @@ public :
     Q_INVOKABLE void setProdIdDeviceAd(qint32 p_prodId, qint32 p_deviceAd);
     Q_INVOKABLE void setDeviceAd(qint32 p_value);
 
-    bool isPanelControl(void) const;    ///< return true is this device is a control panel    
+    bool isPanelControl(void) const;
     bool isMpc() const;
 
     virtual void setFuncGeneralParam(const VectorFuncGeneralAuth& p_value);
@@ -100,16 +103,16 @@ protected :
     virtual bool customSaveParam(QDomDocument * p_pDoc, QDomElement * p_pParent) override;
 
     // -- Model
-    virtual void configureProduct(quint32 p_prodId, quint32 p_deviceAd) = 0;   ///< this method will be called be all devices with theire received messages. (TODO : private method)
+    virtual void configureProduct(quint32 p_prodId, quint32 p_deviceAd) = 0;
 
     // -- Behaviour
     ComLinkManager * m_pComLinkManager;
     ComDeviceManager * m_pComDeviceManager;
 
     // -- Properties
-//    quint32 m_prodId;      ///< ID of the product, value in PROD_ID
-//    quint32 m_deviceAd;      ///< AD of the device
-    VectorFuncGeneralAuth m_funcGeneral; ///< contains informations about this vector
+
+    VectorFuncGeneralAuth m_funcGeneral;
     QTimer* m_aAlertsTimeouts[3];
+    QString m_rxLinkName;
 
 };

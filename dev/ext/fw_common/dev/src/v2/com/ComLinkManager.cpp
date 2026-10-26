@@ -530,4 +530,12 @@ void ComLinkManager::setReservedSerialPorts(const QStringList& ports)
 {
     m_reservedSerialPorts = ports;
     fLogInfo(QString("[ComLingManager] reserved serial ports: [%1]").arg(ports.join(", ")));
+
+    // Release the ports already opened by the discovery
+    const QList<ComLinkSerial*> discovered = m_lDiscoverLinkSerial;
+    for(auto pSerial : discovered) {
+        if( m_reservedSerialPorts.contains(QString("COM%1").arg(pSerial->getPortNumber())) ) {
+            deleteLink(pSerial);
+        }
+    }
 }

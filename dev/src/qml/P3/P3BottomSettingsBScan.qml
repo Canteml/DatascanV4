@@ -738,71 +738,27 @@ Rectangle {
                                         Layout.alignment: Qt.AlignHCenter
                                     }
 
-                                    RowLayout{
-                                        Layout.alignment: Qt.AlignHCenter
-                                        spacing: 8
+                                    Button {
+                                        id: idBtAxeTemps
+                                        Layout.preferredWidth: 165
+                                        Layout.preferredHeight: 25
 
-                                        Button {
-                                            id: idBtAxeDistance
-                                            Layout.preferredWidth: 165
-                                            Layout.preferredHeight: 25
-
-                                            background: Rectangle {
-                                                color: Design.colButtonBackground
-                                                border.width: 2
-                                                border.color: Design.colFrameBorder
-                                            }
-
-                                            contentItem: Text {
-                                                text: qsTr("DISTANCE")
-                                                font.family: Fonts.robotoCondensed
-                                                font.pointSize: 12
-                                                font.bold: true
-                                                color: "white"
-                                                horizontalAlignment: Text.AlignHCenter
-                                                verticalAlignment: Text.AlignVCenter
-                                            }
-
-                                            /*
-                                            onPressed: {
-                                                if(scanManager.SelectedFuncAScan.paramLGate1Start - 10 < 1){
-                                                    scanManager.SelectedFuncAScan.paramLGate1Start = 1
-                                                }
-                                                else
-                                                    scanManager.SelectedFuncAScan.paramLGate1Start = scanManager.SelectedFuncAScan.paramLGate1Start - 10
-                                            }*/
+                                        background: Rectangle {
+                                            color: scanManager.BScanAxeXType === 1 ? Design.colButtonBackground : "white"
+                                            border.width: 2
+                                            border.color: Design.colFrameBorder
                                         }
 
-                                        Button {
-                                            id: idBtAxeTemps
-                                            Layout.preferredWidth: 165
-                                            Layout.preferredHeight: 25
-
-                                            background: Rectangle {
-                                                color: "white"
-                                                border.width: 2
-                                                border.color: Design.colFrameBorder
-                                            }
-
-                                            contentItem: Text {
-                                                text: qsTr("TEMPS")
-                                                font.family: Fonts.robotoCondensed
-                                                font.pointSize: 12
-                                                font.bold: true
-                                                color: Design.colButtonDarkBackground
-                                                horizontalAlignment: Text.AlignHCenter
-                                                verticalAlignment: Text.AlignVCenter
-                                            }
-
-                                            /*
-                                            onPressed: {
-                                                if(scanManager.SelectedFuncAScan.paramLGate1Start - 1 < 1){
-                                                    scanManager.SelectedFuncAScan.paramLGate1Start = 1
-                                                }
-                                                else
-                                                    scanManager.SelectedFuncAScan.paramLGate1Start = scanManager.SelectedFuncAScan.paramLGate1Start - 1
-                                            }*/
+                                        contentItem: Text {
+                                            text: scanManager.BScanAxeXType === 1 ? qsTr("TEMPS") : qsTr("DISTANCE")
+                                            font.family: Fonts.robotoCondensed
+                                            font.pointSize: 12
+                                            font.bold: true
+                                            color: scanManager.BScanAxeXType === 1 ? "white" : Design.colButtonDarkBackground
+                                            horizontalAlignment: Text.AlignHCenter
+                                            verticalAlignment: Text.AlignVCenter
                                         }
+                                        onClicked: scanManager.BScanAxeXType = 1 - scanManager.BScanAxeXType
                                     }
                                 }
 
@@ -1423,6 +1379,14 @@ Rectangle {
                                     Layout.fillWidth: true
                                 }
 
+                                TextMetrics {
+                                    id: idBcColumn1Value
+                                    font.family: Fonts.robotoCondensed
+                                    font.pixelSize: 10
+                                    font.bold: true
+                                    text: "1000.00 mm"
+                                }
+
                                 ColumnLayout {
                                     id: idRhightColumn1
                                     Layout.alignment: Qt.AlignTop
@@ -1432,7 +1396,7 @@ Rectangle {
                                     // Debut POrte 1 Setting
                                     // COLUMN 1 - RAW 2
                                     Text {
-                                        text: qsTr("DIAMÈTRE ROUE  mm")
+                                        text: qsTr("DIAMÈTRE ROUE")
                                         font.family: Fonts.robotoCondensed
                                         font.pixelSize: 10
                                         font.bold: true
@@ -1447,10 +1411,11 @@ Rectangle {
                                             id: idBtDiametreMinusMinus
                                             Layout.preferredWidth: 25
                                             Layout.preferredHeight: 25
+                                            enabled: encoderController.wheelDiameterMm > 1
 
                                             background: Rectangle {
                                                 color: "white"
-                                                border.width: 2
+                                                border.width: idBtDiametreMinusMinus.enabled ? 2 : 0.5
                                                 border.color: Design.colFrameBorder
                                             }
 
@@ -1464,24 +1429,18 @@ Rectangle {
                                                 verticalAlignment: Text.AlignVCenter
                                             }
 
-                                            /*
-                                            onStepped: {
-                                                if(scanManager.SelectedFuncAScan.paramLGate0Start - 10 < 1){
-                                                    scanManager.SelectedFuncAScan.paramLGate0Start = 1
-                                                }
-                                                else
-                                                    scanManager.SelectedFuncAScan.paramLGate0Start = scanManager.SelectedFuncAScan.paramLGate0Start - 10
-                                            }*/
+                                            onStepped: encoderController.wheelDiameterMm = encoderController.wheelDiameterMm - 1
                                         }
 
                                         P3RepeatButton {
                                             id: idBtDiametreMinus
                                             Layout.preferredWidth: 25
                                             Layout.preferredHeight: 25
+                                            enabled: encoderController.wheelDiameterMm > 1
 
                                             background: Rectangle {
                                                 color: "white"
-                                                border.width: 2
+                                                border.width: idBtDiametreMinus.enabled ? 2 : 0.5
                                                 border.color: Design.colFrameBorder
                                             }
 
@@ -1494,34 +1453,96 @@ Rectangle {
                                                 horizontalAlignment: Text.AlignHCenter
                                                 verticalAlignment: Text.AlignVCenter
                                             }
-                                            /*
-                                            onStepped: {
-                                                if(scanManager.SelectedFuncAScan.paramLGate0Start - 1 < 1){
-                                                    scanManager.SelectedFuncAScan.paramLGate0Start = 1
-                                                }
-                                                else
-                                                    scanManager.SelectedFuncAScan.paramLGate0Start = scanManager.SelectedFuncAScan.paramLGate0Start - 1
-                                            }*/
+
+                                            onStepped: encoderController.wheelDiameterMm = encoderController.wheelDiameterMm - 0.1
                                         }
 
-                                        Text {
-                                            text: "- -"
-                                            font.family: Fonts.robotoCondensed
-                                            font.pixelSize: 10
-                                            font.bold: true
+                                        Item {
+                                            id: idDiametreValue
+                                            property bool editing: false
+
                                             Layout.alignment: Qt.AlignHCenter
-                                            Layout.preferredWidth: idCodeurColumn2Value.width
-                                            horizontalAlignment: Text.AlignHCenter
+                                            Layout.preferredWidth: idBcColumn1Value.width
+                                            Layout.preferredHeight: 25
+
+                                            Text {
+                                                anchors.fill: parent
+                                                visible: !idDiametreValue.editing
+                                                text: encoderController.wheelDiameterMm.toFixed(2) + " mm"
+                                                font.family: Fonts.robotoCondensed
+                                                font.pixelSize: 10
+                                                font.bold: true
+                                                horizontalAlignment: Text.AlignHCenter
+                                                verticalAlignment: Text.AlignVCenter
+                                            }
+
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                enabled: !idDiametreValue.editing
+                                                onDoubleClicked: {
+                                                    idDiametreInput.text = encoderController.wheelDiameterMm.toFixed(2)
+                                                    idDiametreValue.editing = true
+                                                    idDiametreInput.forceActiveFocus()
+                                                    idDiametreInput.selectAll()
+                                                }
+                                            }
+
+                                            Rectangle {
+                                                anchors.fill: parent
+                                                visible: idDiametreValue.editing
+                                                color: "white"
+                                                border.width: 2
+                                                border.color: idDiametreInput.acceptableInput ? Design.colFrameBorder : "#C62828"
+
+                                                TextInput {
+                                                    id: idDiametreInput
+                                                    anchors.fill: parent
+                                                    anchors.margins: 2
+                                                    font.family: Fonts.robotoCondensed
+                                                    font.pixelSize: 10
+                                                    font.bold: true
+                                                    horizontalAlignment: Text.AlignHCenter
+                                                    verticalAlignment: Text.AlignVCenter
+                                                    maximumLength: 4
+                                                    selectByMouse: true
+                                                    validator: IntValidator { bottom: 1; top: 1000 }
+
+                                                    readonly property real value: parseFloat(text.replace(",", "."))
+                                                    readonly property bool valid: /^\d{1,4}([.,]\d)?$/.test(text)
+                                                                                  && value >= 1 && value <= 1000
+
+                                                    // Only emitted when the text satisfies the validator
+                                                    onAccepted: {
+                                                        if(!valid)
+                                                            return
+
+                                                        encoderController.wheelDiameterMm = Math.round(value * 10) / 10
+                                                        idDiametreValue.editing = false
+                                                        focus = false
+                                                    }
+
+                                                    Keys.onEscapePressed: {
+                                                        idDiametreValue.editing = false
+                                                        focus = false
+                                                    }
+
+                                                    onActiveFocusChanged: {
+                                                        if(!activeFocus)
+                                                            idDiametreValue.editing = false
+                                                    }
+                                                }
+                                            }
                                         }
 
                                         P3RepeatButton {
                                             id: idBtDiametrePlus
                                             Layout.preferredWidth: 25
                                             Layout.preferredHeight: 25
+                                            enabled: encoderController.wheelDiameterMm < 1000
 
                                             background: Rectangle {
                                                 color: "white"
-                                                border.width: 2
+                                                border.width: idBtDiametrePlus.enabled ? 2 : 0.5
                                                 border.color: Design.colFrameBorder
                                             }
 
@@ -1534,20 +1555,19 @@ Rectangle {
                                                 horizontalAlignment: Text.AlignHCenter
                                                 verticalAlignment: Text.AlignVCenter
                                             }
-                                            /*
-                                            onStepped: {
-                                                scanManager.SelectedFuncAScan.paramLGate0Start = scanManager.SelectedFuncAScan.paramLGate0Start + 1
-                                            }*/
+
+                                            onStepped: encoderController.wheelDiameterMm = encoderController.wheelDiameterMm + 0.1
                                         }
 
                                         P3RepeatButton {
                                             id: idBtDiametrePlusPlus
                                             Layout.preferredWidth: 25
                                             Layout.preferredHeight: 25
+                                            enabled: encoderController.wheelDiameterMm < 1000
 
                                             background: Rectangle {
                                                 color: "white"
-                                                border.width: 2
+                                                border.width: idBtDiametrePlusPlus.enabled ? 2 : 0.5
                                                 border.color: Design.colFrameBorder
                                             }
 
@@ -1560,10 +1580,8 @@ Rectangle {
                                                 horizontalAlignment: Text.AlignHCenter
                                                 verticalAlignment: Text.AlignVCenter
                                             }
-                                            /*
-                                            onStepped: {
-                                                scanManager.SelectedFuncAScan.paramLGate0Start = scanManager.SelectedFuncAScan.paramLGate0Start + 10
-                                            }*/
+
+                                            onStepped: encoderController.wheelDiameterMm = encoderController.wheelDiameterMm + 1
                                         }
                                     }
 
@@ -1585,10 +1603,11 @@ Rectangle {
                                             id: idBtPasCodeurMinusMinus
                                             Layout.preferredWidth: 25
                                             Layout.preferredHeight: 25
+                                            enabled: encoderController.coderResolution > 1
 
                                             background: Rectangle {
                                                 color: "white"
-                                                border.width: 2
+                                                border.width: idBtPasCodeurMinusMinus.enabled ? 2 : 0.5
                                                 border.color: Design.colFrameBorder
                                             }
 
@@ -1602,24 +1621,18 @@ Rectangle {
                                                 verticalAlignment: Text.AlignVCenter
                                             }
 
-                                            /*
-                                            onStepped: {
-                                                if(scanManager.SelectedFuncAScan.paramLGate0Width - 10 < 1){
-                                                    scanManager.SelectedFuncAScan.paramLGate0Width = 1
-                                                }
-                                                else
-                                                    scanManager.SelectedFuncAScan.paramLGate0Width = scanManager.SelectedFuncAScan.paramLGate0Width - 10
-                                            }*/
+                                            onStepped: encoderController.coderResolution = encoderController.coderResolution - 100
                                         }
 
                                         P3RepeatButton {
                                             id: idBtPasCodeurMinus
                                             Layout.preferredWidth: 25
                                             Layout.preferredHeight: 25
+                                            enabled: encoderController.coderResolution > 1
 
                                             background: Rectangle {
                                                 color: "white"
-                                                border.width: 2
+                                                border.width: idBtPasCodeurMinus.enabled ? 2 : 0.5
                                                 border.color: Design.colFrameBorder
                                             }
 
@@ -1633,34 +1646,89 @@ Rectangle {
                                                 verticalAlignment: Text.AlignVCenter
                                             }
 
-                                            /*
-                                            onStepped: {
-                                                if(scanManager.SelectedFuncAScan.paramLGate0Width - 1 < 1){
-                                                    scanManager.SelectedFuncAScan.paramLGate0Width = 1
-                                                }
-                                                else
-                                                    scanManager.SelectedFuncAScan.paramLGate0Width = scanManager.SelectedFuncAScan.paramLGate0Width - 1
-                                            }*/
+                                            onStepped: encoderController.coderResolution = encoderController.coderResolution - 1
                                         }
 
-                                        Text {
-                                            text: "- -"
-                                            font.family: Fonts.robotoCondensed
-                                            font.pixelSize: 10
-                                            font.bold: true
+
+                                        Item {
+                                            id: idDPasCodeurValue
+                                            property bool editing: false
+
                                             Layout.alignment: Qt.AlignHCenter
-                                            Layout.preferredWidth: idCodeurColumn2Value.width
-                                            horizontalAlignment: Text.AlignHCenter
+                                            Layout.preferredWidth: idBcColumn1Value.width
+                                            Layout.preferredHeight: 25
+
+                                            Text {
+                                                anchors.fill: parent
+                                                visible: !idDPasCodeurValue.editing
+                                                text: encoderController.coderResolution
+                                                font.family: Fonts.robotoCondensed
+                                                font.pixelSize: 10
+                                                font.bold: true
+                                                horizontalAlignment: Text.AlignHCenter
+                                                verticalAlignment: Text.AlignVCenter
+                                            }
+
+                                            MouseArea {
+                                                anchors.fill: parent
+                                                enabled: !idDPasCodeurValue.editing
+                                                onDoubleClicked: {
+                                                    idPasCodeurInput.text = encoderController.coderResolution
+                                                    idDPasCodeurValue.editing = true
+                                                    idPasCodeurInput.forceActiveFocus()
+                                                    idPasCodeurInput.selectAll()
+                                                }
+                                            }
+
+                                            Rectangle {
+                                                anchors.fill: parent
+                                                visible: idDPasCodeurValue.editing
+                                                color: "white"
+                                                border.width: 2
+                                                border.color: idPasCodeurInput.acceptableInput ? Design.colFrameBorder : "#C62828"
+
+                                                TextInput {
+                                                    id: idPasCodeurInput
+                                                    anchors.fill: parent
+                                                    anchors.margins: 2
+                                                    font.family: Fonts.robotoCondensed
+                                                    font.pixelSize: 10
+                                                    font.bold: true
+                                                    horizontalAlignment: Text.AlignHCenter
+                                                    verticalAlignment: Text.AlignVCenter
+                                                    maximumLength: 6
+                                                    selectByMouse: true
+                                                    validator: IntValidator { bottom: 1; top: 200000 }
+
+                                                    // Only emitted when the text satisfies the validator
+                                                    onAccepted: {
+                                                        encoderController.coderResolution = parseInt(text)
+                                                        idDPasCodeurValue.editing = false
+                                                        focus = false
+                                                    }
+
+                                                    Keys.onEscapePressed: {
+                                                        idDPasCodeurValue.editing = false
+                                                        focus = false
+                                                    }
+
+                                                    onActiveFocusChanged: {
+                                                        if(!activeFocus)
+                                                            idDPasCodeurValue.editing = false
+                                                    }
+                                                }
+                                            }
                                         }
 
                                         P3RepeatButton {
                                             id: idBtPasCodeurPlus
                                             Layout.preferredWidth: 25
                                             Layout.preferredHeight: 25
+                                            enabled: encoderController.coderResolution < 200000
 
                                             background: Rectangle {
                                                 color: "white"
-                                                border.width: 2
+                                                border.width: idBtPasCodeurPlus.enabled ? 2 : 0.5
                                                 border.color: Design.colFrameBorder
                                             }
 
@@ -1674,20 +1742,18 @@ Rectangle {
                                                 verticalAlignment: Text.AlignVCenter
                                             }
 
-                                            /*
-                                            onStepped: {
-                                                scanManager.SelectedFuncAScan.paramLGate0Width = scanManager.SelectedFuncAScan.paramLGate0Width + 1
-                                            }*/
+                                            onStepped: encoderController.coderResolution = encoderController.coderResolution + 1
                                         }
 
                                         P3RepeatButton {
                                             id: idBtPasCodeurPlusPlus
                                             Layout.preferredWidth: 25
                                             Layout.preferredHeight: 25
+                                            enabled: encoderController.coderResolution < 200000
 
                                             background: Rectangle {
                                                 color: "white"
-                                                border.width: 2
+                                                border.width: idBtPasCodeurPlusPlus.enabled ? 2 : 0.5
                                                 border.color: Design.colFrameBorder
                                             }
 
@@ -1701,151 +1767,40 @@ Rectangle {
                                                 verticalAlignment: Text.AlignVCenter
                                             }
 
-                                            /*
-                                            onStepped: {
-                                                scanManager.SelectedFuncAScan.paramLGate0Width = scanManager.SelectedFuncAScan.paramLGate0Width + 10
-                                            }*/
+                                            onStepped: encoderController.coderResolution = encoderController.coderResolution + 100
                                         }
                                     }
 
-
-                                    // ORDRE DU FILTRE
-                                    // COLUMN 3 - RAW 1
                                     Text {
-                                        text: qsTr("OFFSET CODEUR")
+                                        text: qsTr("SENS DU CODEUR")
                                         font.family: Fonts.robotoCondensed
                                         font.pixelSize: 10
                                         font.bold: true
                                         Layout.alignment: Qt.AlignHCenter
                                     }
 
-                                    RowLayout{
-                                        Layout.alignment: Qt.AlignHCenter
-                                        spacing: 8
+                                    Button {
+                                        id: idBtSenseCodeur
+                                        Layout.preferredWidth: 193
+                                        Layout.preferredHeight: 25
 
-                                        P3RepeatButton {
-                                            id: idBtOffsetCodeurMinusMinus
-                                            Layout.preferredWidth: 25
-                                            Layout.preferredHeight: 25
-                                            //enabled: scanManager.SelectedFuncAScan.paramDGain > 0
-
-                                            background: Rectangle {
-                                                color: "white"
-                                                border.width: 2
-                                                border.color: Design.colFrameBorder
-                                            }
-
-                                            contentItem: Text {
-                                                text: qsTr("- -")
-                                                font.family: Fonts.robotoCondensed
-                                                font.pointSize: 12
-                                                font.bold: true
-                                                color: Design.colButtonDarkBackground
-                                                horizontalAlignment: Text.AlignHCenter
-                                                verticalAlignment: Text.AlignVCenter
-                                            }
-
-                                            //onStepped: {
-                                            //    if(scanManager.SelectedFuncAScan.paramDGain - 10 < 0){
-                                            //        scanManager.SelectedFuncAScan.paramDGain = 0
-                                            //    }
-                                            //    else
-                                            //        scanManager.SelectedFuncAScan.paramDGain = scanManager.SelectedFuncAScan.paramDGain - 10
-                                            //}
+                                        background: Rectangle {
+                                            color: encoderController.encoderReverse ? Design.colButtonBackground : "white"
+                                            border.width: 2
+                                            border.color: Design.colFrameBorder
                                         }
 
-                                        P3RepeatButton {
-                                            id: idBtOffsetCodeurMinus
-                                            Layout.preferredWidth: 25
-                                            Layout.preferredHeight: 25
-                                            //enabled: scanManager.SelectedFuncAScan.paramDGain > 0
-
-                                            background: Rectangle {
-                                                color: "white"
-                                                border.width: 2
-                                                border.color: Design.colFrameBorder
-                                            }
-
-                                            contentItem: Text {
-                                                text: qsTr("-")
-                                                font.family: Fonts.robotoCondensed
-                                                font.pointSize: 12
-                                                font.bold: true
-                                                color: Design.colButtonDarkBackground
-                                                horizontalAlignment: Text.AlignHCenter
-                                                verticalAlignment: Text.AlignVCenter
-                                            }
-
-                                            //onStepped: {
-                                            //    if(scanManager.SelectedFuncAScan.paramDGain - 1 < 0){
-                                            //        scanManager.SelectedFuncAScan.paramDGain = 0
-                                            //    }
-                                            //    else
-                                            //        scanManager.SelectedFuncAScan.paramDGain = scanManager.SelectedFuncAScan.paramDGain - 1
-                                            //}
-                                        }
-
-                                        Text {
-                                            text: "- -"
+                                        contentItem: Text {
+                                            text: encoderController.encoderReverse ? qsTr("INVERSÉ") : qsTr("NORMAL")
                                             font.family: Fonts.robotoCondensed
-                                            font.pixelSize: 10
+                                            font.pointSize: 12
                                             font.bold: true
-                                            Layout.alignment: Qt.AlignHCenter
-                                            Layout.preferredWidth: idCodeurColumn2Value.width
+                                            color: encoderController.encoderReverse ? "white" : Design.colButtonDarkBackground
                                             horizontalAlignment: Text.AlignHCenter
+                                            verticalAlignment: Text.AlignVCenter
                                         }
 
-                                        P3RepeatButton {
-                                            id: idBtOffsetCodeurPlus
-                                            Layout.preferredWidth: 25
-                                            Layout.preferredHeight: 25
-
-                                            background: Rectangle {
-                                                color: "white"
-                                                border.width: 2
-                                                border.color: Design.colFrameBorder
-                                            }
-
-                                            contentItem: Text {
-                                                text: qsTr("+")
-                                                font.family: Fonts.robotoCondensed
-                                                font.pointSize: 12
-                                                font.bold: true
-                                                color: Design.colButtonDarkBackground
-                                                horizontalAlignment: Text.AlignHCenter
-                                                verticalAlignment: Text.AlignVCenter
-                                            }
-
-                                            //onStepped: {
-                                            //    scanManager.SelectedFuncAScan.paramDGain = scanManager.SelectedFuncAScan.paramDGain + 1
-                                            //}
-                                        }
-
-                                        P3RepeatButton {
-                                            id: idBtOffsetCodeurPlusPlus
-                                            Layout.preferredWidth: 25
-                                            Layout.preferredHeight: 25
-
-                                            background: Rectangle {
-                                                color: "white"
-                                                border.width: 2
-                                                border.color: Design.colFrameBorder
-                                            }
-
-                                            contentItem: Text {
-                                                text: qsTr("++")
-                                                font.family: Fonts.robotoCondensed
-                                                font.pointSize: 12
-                                                font.bold: true
-                                                color: Design.colButtonDarkBackground
-                                                horizontalAlignment: Text.AlignHCenter
-                                                verticalAlignment: Text.AlignVCenter
-                                            }
-
-                                            //onStepped: {
-                                            //    scanManager.SelectedFuncAScan.paramDGain = scanManager.SelectedFuncAScan.paramDGain + 10
-                                            //}
-                                        }
+                                        onClicked: encoderController.encoderReverse = !encoderController.encoderReverse
                                     }
                                 }
 
@@ -1874,148 +1829,6 @@ Rectangle {
 
                                     Layout.alignment: Qt.AlignTop
                                     spacing: 8
-
-
-                                    // SEUIL PORTE 1
-                                    // COLUMN 3 - RAW 2
-                                    Text {
-                                        text: qsTr("ÉCART ÉTALONNAGE")
-                                        font.family: Fonts.robotoCondensed
-                                        font.pixelSize: 10
-                                        font.bold: true
-                                        Layout.alignment: Qt.AlignHCenter
-                                    }
-
-                                    RowLayout{
-                                        Layout.alignment: Qt.AlignHCenter
-                                        spacing: 8
-
-                                        P3RepeatButton {
-                                            id: idBtEAcartEtallonageMinusMinus
-                                            Layout.preferredWidth: 25
-                                            Layout.preferredHeight: 25
-
-                                            background: Rectangle {
-                                                color: "white"
-                                                border.width: 2
-                                                border.color: Design.colFrameBorder
-                                            }
-
-                                            contentItem: Text {
-                                                text: qsTr("- -")
-                                                font.family: Fonts.robotoCondensed
-                                                font.pointSize: 12
-                                                font.bold: true
-                                                color: Design.colButtonDarkBackground
-                                                horizontalAlignment: Text.AlignHCenter
-                                                verticalAlignment: Text.AlignVCenter
-                                            }
-
-                                            /*
-                                            onStepped: {
-                                                if(scanManager.SelectedFuncAScan.paramLGate0Height - 10 < 1){
-                                                    scanManager.SelectedFuncAScan.paramLGate0Height = 1
-                                                }
-                                                else
-                                                    scanManager.SelectedFuncAScan.paramLGate0Height = scanManager.SelectedFuncAScan.paramLGate0Height - 10
-                                            }*/
-                                        }
-
-                                        P3RepeatButton {
-                                            id: idBtEAcartEtallonageMinus
-                                            Layout.preferredWidth: 25
-                                            Layout.preferredHeight: 25
-
-                                            background: Rectangle {
-                                                color: "white"
-                                                border.width: 2
-                                                border.color: Design.colFrameBorder
-                                            }
-
-                                            contentItem: Text {
-                                                text: qsTr("-")
-                                                font.family: Fonts.robotoCondensed
-                                                font.pointSize: 12
-                                                font.bold: true
-                                                color: Design.colButtonDarkBackground
-                                                horizontalAlignment: Text.AlignHCenter
-                                                verticalAlignment: Text.AlignVCenter
-                                            }
-
-                                            /*
-                                            onStepped: {
-                                                if(scanManager.SelectedFuncAScan.paramLGate0Height - 1 < 1){
-                                                    scanManager.SelectedFuncAScan.paramLGate0Height = 1
-                                                }
-                                                else
-                                                    scanManager.SelectedFuncAScan.paramLGate0Height = scanManager.SelectedFuncAScan.paramLGate0Height - 1
-                                            }*/
-                                        }
-
-                                        Text {
-                                            text: "- -"
-                                            font.family: Fonts.robotoCondensed
-                                            font.pixelSize: 10
-                                            font.bold: true
-                                            Layout.alignment: Qt.AlignHCenter
-                                            Layout.preferredWidth: idCodeurColumn2Value.width
-                                            horizontalAlignment: Text.AlignHCenter
-                                        }
-
-                                        P3RepeatButton {
-                                            id: idBtEAcartEtallonagePlus
-                                            Layout.preferredWidth: 25
-                                            Layout.preferredHeight: 25
-
-                                            background: Rectangle {
-                                                color: "white"
-                                                border.width: 2
-                                                border.color: Design.colFrameBorder
-                                            }
-
-                                            contentItem: Text {
-                                                text: qsTr("+")
-                                                font.family: Fonts.robotoCondensed
-                                                font.pointSize: 12
-                                                font.bold: true
-                                                color: Design.colButtonDarkBackground
-                                                horizontalAlignment: Text.AlignHCenter
-                                                verticalAlignment: Text.AlignVCenter
-                                            }
-
-                                            /*
-                                            onStepped: {
-                                                scanManager.SelectedFuncAScan.paramLGate0Height = scanManager.SelectedFuncAScan.paramLGate0Height + 1
-                                            }*/
-                                        }
-
-                                        P3RepeatButton {
-                                            id: idBtEAcartEtallonagePlusPlus
-                                            Layout.preferredWidth: 25
-                                            Layout.preferredHeight: 25
-
-                                            background: Rectangle {
-                                                color: "white"
-                                                border.width: 2
-                                                border.color: Design.colFrameBorder
-                                            }
-
-                                            contentItem: Text {
-                                                text: qsTr("++")
-                                                font.family: Fonts.robotoCondensed
-                                                font.pointSize: 12
-                                                font.bold: true
-                                                color: Design.colButtonDarkBackground
-                                                horizontalAlignment: Text.AlignHCenter
-                                                verticalAlignment: Text.AlignVCenter
-                                            }
-
-                                            /*
-                                            onStepped: {
-                                                scanManager.SelectedFuncAScan.paramLGate0Height = scanManager.SelectedFuncAScan.paramLGate0Height + 10
-                                            }*/
-                                        }
-                                    }
 
                                     Text {
                                         text: qsTr("VALEUR RÉELLE")

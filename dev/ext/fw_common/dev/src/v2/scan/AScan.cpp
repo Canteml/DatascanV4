@@ -73,6 +73,7 @@ void AScanEnhancedSample::copyParam(const AScanEnhancedSample &p_value)
 {
     m_paramLLowPassFilter = p_value.m_paramLLowPassFilter;
     m_paramDWaveType        = p_value.m_paramDWaveType;
+    m_hwRectified           = p_value.m_hwRectified;
 }
 
 void AScanEnhancedSample::copy(const AScanEnhancedSample &p_value)
