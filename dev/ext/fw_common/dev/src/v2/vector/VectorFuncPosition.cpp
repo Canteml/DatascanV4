@@ -124,19 +124,6 @@ void VectorFuncPosition::onDOdoPosMmXChanged(qint32 p_value)
 
 void VectorFuncPosition::onLBscanPosMmXChanged(qreal p_value)
 {
-    // DEBUG : trace every change of the BScan position with its origin
-    const qreal delta = p_value - m_lastTracedPosMmX;
-    const QString trace = QString("[BSCAN POS] %1 -> %2 mm (delta %3) | origin : %4 | odo %5 refOdo %6 refBscan %7 dir %8")
-            .arg(m_lastTracedPosMmX, 0, 'f', 2).arg(p_value, 0, 'f', 2).arg(delta, 0, 'f', 2)
-            .arg(m_posOrigin.isEmpty() ? QString("direct set (QML / other)") : m_posOrigin)
-            .arg(m_paramDOdoPosMmX).arg(m_refOdoMmX, 0, 'f', 2).arg(m_refBscanPosMmX, 0, 'f', 2).arg(static_cast<int>(m_paramLVectorDirX));
-    if( qAbs(delta) >= 5.0 ) {
-        fLogWarning(trace + "  <<< JUMP");
-    } else {
-        fLogInfo(trace);
-    }
-    m_lastTracedPosMmX = p_value;
-
     m_refOdoMmX = m_paramDOdoPosMmX;
     m_refBscanPosMmX = p_value;
 }

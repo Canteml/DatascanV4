@@ -177,6 +177,7 @@ private :
     AScan m_pAScan[VectorStd::NB_FUNC_ASCAN];
     AScanGraph* m_pAScanGraphMain;
     BScanGraph* m_pBScanGraphMain;
+    BScanGraph* m_pBScanGraphExport = nullptr;    ///< BSCAN shown in the export page (P3BottomExportBscan)
     VectorFuncAScan* m_pConnectedAutoGainAScan = nullptr;
     VectorStd * m_pVector;
     ExamManager * m_pExamManager;

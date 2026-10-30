@@ -14,6 +14,7 @@
 #include "BScanGraph.h"
 #include <v2/scan/Surface1d.h>
 #include <v2/scan/Location1d.h>
+#include <v2/scan/DisplaySurface.h>
 #include <v2/scan/Zone1d.h>
 
 #include <jkqtplotter/graphs/jkqtpgeometric.h>
@@ -79,6 +80,7 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     connect( this, &QQuickPaintedItem::heightChanged, this, &BScanGraph::onUpdateWidgetSize, Qt::QueuedConnection );
     connect( this, &BScanGraph::widthChanged, this, &BScanGraph::onUpdateWidgetSize, Qt::QueuedConnection );
     connect( this, &BScanGraph::heightChanged, this, &BScanGraph::onUpdateWidgetSize, Qt::QueuedConnection );
+    connect( this, &BScanGraph::visibleChanged, this, &BScanGraph::onUpdateWidgetSize, Qt::QueuedConnection );
 
     connect( VectorManager::getInstance()->getVectorStd()->funcPosition(), &VectorFuncPosition::paramLBscanPosMmXChanged, this, &BScanGraph::onPositionChanged);
 
@@ -137,6 +139,9 @@ BScanGraph::BScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_pPlotBScan->getPlotter()->setPlotBorder(-10,0,10,5); // top > 0 : keep the top X axis tick labels inside the widget
 
     connect(m_pPlotBScan, &MyJkQtPlotter::evRequestUpdate, this, &BScanGraph::onPrivateNeedRefresh, Qt::QueuedConnection);
+    // JKQTPlotter rebuilds its image buffer after a delay (jkqtp_RESIZE_DELAY) : until then the plot is drawn
+    // in the old buffer (clipped) then stretched. Redraw once the buffer has the new size.
+    connect(m_pPlotBScan, &JKQTPlotter::widgetResized, this, &BScanGraph::onPrivateNeedRefresh, Qt::QueuedConnection);
     connect(this, &BScanGraph::evPrivateNeedRefresh, this, &BScanGraph::onPrivateNeedRefresh);
 
     // -- Timer
@@ -188,7 +193,23 @@ void BScanGraph::stop()
 
 void BScanGraph::paint(QPainter *painter)
 {
-    m_pPlotBScan->render(painter);
+    // Render the plot directly at the item size (instead of QWidget::render of the hidden JKQTPlotter widget,
+    // whose internal image buffer can have an old size => plot clipped and stretched)
+    const QSize itemSize = size().toSize();
+    if( !itemSize.isEmpty() ) {
+        const qreal dpr = (nullptr != window()) ? window()->effectiveDevicePixelRatio() : 1.0;
+        QImage img(itemSize * dpr, QImage::Format_ARGB32_Premultiplied);
+        img.setDevicePixelRatio(dpr);
+        img.fill(Qt::white);
+        {
+            JKQTPEnhancedPainter p(&img);
+            p.setRenderHint(JKQTPEnhancedPainter::Antialiasing);
+            p.setRenderHint(JKQTPEnhancedPainter::TextAntialiasing);
+            m_pPlotBScan->getPlotter()->setWidgetSize(itemSize.width(), itemSize.height());
+            m_pPlotBScan->getPlotter()->drawNonGrid(p, QRect(QPoint(0, 0), itemSize));
+        }
+        painter->drawImage(QRectF(QPointF(0, 0), QSizeF(itemSize)), img);
+    }
     //painter->drawImage(QRect(0,0, width(), height()),m_buffer);
     m_updateInProgress = false;
 //    if( nullptr != m_pBScanWorker ) {
@@ -488,6 +509,20 @@ void BScanGraph::clearBScan()
     onUpdateBScan(nullptr);
 }
 
+void BScanGraph::showLocationFull(Location1d *p_location)
+{
+    m_axeXType = AXE_X_DISTANCE;
+    m_pPositionLine->setVisible(true);
+    m_viewXMode = VIEW_X_FULL;
+    m_viewYMode = VIEW_Y_FULL;
+    m_drawFlagViewXMode = true;
+    m_drawFlagViewYMode = true;
+
+    onUpdateLocationZone(p_location);
+    onUpdateBScan(nullptr != p_location ? p_location->getDisplaySurface(0) : nullptr);
+    needRefresh(true);
+}
+
 // -- Actions
 
 //void BScanGraph::axeXScaleIn()
@@ -528,6 +563,12 @@ void BScanGraph::routeMouseEvents(QMouseEvent *event)
 
 void BScanGraph::needRefresh(bool p_force)
 {
+    // item not visible => paint() is never called, so m_updateInProgress would stay true and block next draws.
+    // The draw flags are kept : the draw is done when the item becomes visible (see visibleChanged)
+    if( !isVisible() ) {
+        return;
+    }
+
     qint64 curEpoc = QDateTime::currentMSecsSinceEpoch();
     // timer active => already an update programmed
     if( !m_timeRefresh->isActive() || p_force) {

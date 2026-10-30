@@ -80,6 +80,7 @@ public:
 //    void axeXScaleOut();
 
     void clearBScan();
+    void showLocationFull(Location1d* p_location);   ///< show the whole BSCAN of a location (used by export view). nullptr => clear
 
     void updateAxes();
 

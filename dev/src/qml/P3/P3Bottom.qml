@@ -11,15 +11,24 @@ import Design 1.0
 Rectangle {
     id: idP3Bottom
 
-    // StackLayout controlled by P3SettingsBar / P3Top, set externally
     property var slCamSettings: null
+    property int currentIndex: 0 // 1 => PAGE EXPORT EXAM visible
 
     Layout.fillWidth: true
     Layout.fillHeight : true
 
-    // Full-window catcher, active only while a "Valider ?" is shown: a press
-    // anywhere outside the confirm/toggle buttons cancels the pending removal.
-    // The press is not accepted, so it still reaches the item underneath.
+
+    Connections {
+        target : examManager
+        function onExamStepChanged() {
+            if( examManager.examStep === 3 ) {
+                idP3Bottom.currentIndex = 1;
+            } else {
+                idP3Bottom.currentIndex = 0;
+            }
+        }
+    }
+
     MouseArea {
         id: idCancelConfirm
         parent: Window.window ? Window.window.contentItem : idP3Bottom
@@ -48,19 +57,16 @@ Rectangle {
         id: idSlBottomMain
         anchors.fill: parent
 
-        // Page 1 (A-SCAN settings) / Page 2 (B-SCAN settings) only while that button is the active selection
         currentIndex: (slCamSettings && slCamSettings.visible && slCamSettings.currentIndex === 1) ? 1
-                    : (slCamSettings && slCamSettings.visible && slCamSettings.currentIndex === 2) ? 2
                     : (slCamSettings && slCamSettings.visible && slCamSettings.currentIndex === 3) ? 3
                     : (slCamSettings && slCamSettings.visible && slCamSettings.currentIndex === 4) ? 4
                     : 0
 
         // --------------------------------------------------------------------
-        // -- PAGE 0 : NORMAL VIEW (BScan / MEP / Pipe, driven by exam control type)
+
         RowLayout {
             spacing: 0
 
-            // Stack function to Exam control type
             StackLayout {
                 id: idSlBottom
                 currentIndex: examManager.controlType
@@ -93,7 +99,6 @@ Rectangle {
                     spacing: 0
                     Layout.fillWidth: true
 
-                    // Left panel (MEP only)
                     Rectangle {
                         Layout.preferredWidth: 115
                         Layout.fillHeight: true
@@ -209,8 +214,6 @@ Rectangle {
                                 }
                             }
 
-                            // Fixed slot for the confirm buttons, always reserved so that
-                            // showing "Valider ?" never shifts the zoom buttons below.
                             Item {
                                 Layout.column: 0
                                 Layout.row: 3
@@ -344,7 +347,7 @@ Rectangle {
                 // ----------------------------------------------------------------
                 // -- PAGE PIPE
                 RowLayout {
-                    id: idPipe // panda vol 3
+                    id: idPipe
                     spacing: 0
                     Layout.fillWidth: true
 
@@ -368,27 +371,44 @@ Rectangle {
         }
 
         // --------------------------------------------------------------------
-        // -- PAGE 1 : A-SCAN SETTINGS (new screen, placeholder for now)
+
         P3BottomSettingsAScan {
             slCamSettings: idP3Bottom.slCamSettings
         }
 
         // --------------------------------------------------------------------
-        // -- PAGE 2 : B-SCAN SETTINGS
-        P3BottomSettingsBScan {
-            slCamSettings: idP3Bottom.slCamSettings
-        }
+
+        Item { }
 
         // --------------------------------------------------------------------
-        // -- PAGE 3 : MEP SETTINGS
+
         P3BottomSettingsMep {
             slCamSettings: idP3Bottom.slCamSettings
         }
 
         // --------------------------------------------------------------------
-        // -- PAGE 4 : MEP SETTINGS
+
         P3BottomSensorsDisplay {
             slCamSettings: idP3Bottom.slCamSettings
+        }
+    }
+
+    // -- PAGE EXPORT EXAM (over the BSCAN / MEP / PIPE page)
+    Rectangle {
+        anchors.fill: parent
+        visible: idP3Bottom.currentIndex === 1
+        color: "white"
+
+        // block mouse / wheel events to the page below
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            onWheel: function(wheel) { wheel.accepted = true }
+        }
+
+        P3BottomExportBscan {
+            id: idP3BottomExportBscan
+            anchors.fill: parent
         }
     }
 }

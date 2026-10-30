@@ -20,10 +20,6 @@ Rectangle {
     }
 
 
-    // No StackLayout here : it hides the ASCAN page (visible = false) during the export,
-    // so AScanGraph::paint() is no longer called and its refresh handshake
-    // (m_updateInProgress / worker m_processing) stays locked => ASCAN frozen/blank on return.
-    // The ASCAN page stays always visible, the export page is drawn over it.
     Item {
         id: idSlTop
         anchors.fill: parent
@@ -33,7 +29,7 @@ Rectangle {
             target : examManager
             function onExamStepChanged() {
                 if( examManager.examStep === 3 ) {
-                    idP3TopExportBscan.exportStep = 0;  // init step
+                    idP3TopExportBscan.exportStep = 0;
                     idSlTop.currentIndex = 1;
                 } else {
                     idSlTop.currentIndex = 0;
@@ -67,6 +63,26 @@ Rectangle {
                 Layout.fillWidth: true
                 Layout.preferredWidth: (idP3TopP0.width - 70) / 2
                 Layout.fillHeight: true
+            }
+        }
+
+        // -- MENU B-SCAN (over the ASCAN page, moved here from P3Bottom), shown while B-SCAN of P3SettingsBar is selected.
+        // "FERMER" sets currentIndex = 0 => closed
+        Rectangle {
+            anchors.fill: parent
+            visible: idSettingsSelection.visible && idSettingsSelection.currentIndex === 2
+            color: "white"
+
+            // block mouse / wheel events to the ASCAN page below
+            MouseArea {
+                anchors.fill: parent
+                hoverEnabled: true
+                onWheel: function(wheel) { wheel.accepted = true }
+            }
+
+            P3BottomSettingsBScan {
+                anchors.fill: parent
+                slCamSettings: idSettingsSelection
             }
         }
 

@@ -48,6 +48,9 @@ class ExamManager : public QObject, public XmlSettingsLoggable
     Q_PROPERTY(QString inspecteurNumero READ inspecteurNumero WRITE setInspecteurNumero NOTIFY inspecteurNumeroChanged)
     Q_PROPERTY(QString inspecteurDate READ inspecteurDate WRITE setInspecteurDate NOTIFY inspecteurDateChanged)
     Q_PROPERTY(bool inspecteurValide READ inspecteurValide NOTIFY inspecteurValideChanged)
+    Q_PROPERTY(QString supervisorName READ supervisorName WRITE setSupervisorName NOTIFY supervisorNameChanged)
+    Q_PROPERTY(QString supervisorNumber READ supervisorNumber WRITE setSupervisorNumber NOTIFY supervisorNumberChanged)
+    Q_PROPERTY(QString supervisorDate READ supervisorDate WRITE setSupervisorDate NOTIFY supervisorDateChanged)
     Q_PROPERTY(QString sondeNbVoies READ sondeNbVoies WRITE setSondeNbVoies NOTIFY sondeNbVoiesChanged)
     Q_PROPERTY(QString sondeNumero READ sondeNumero WRITE setSondeNumero NOTIFY sondeNumeroChanged)
     Q_PROPERTY(QString controlleurNom READ controlleurNom WRITE setControlleurNom NOTIFY controlleurNomChanged)
@@ -107,7 +110,10 @@ class ExamManager : public QObject, public XmlSettingsLoggable
     Q_PROPERTY(bool freeSession READ isFreeSession WRITE setFreeSession NOTIFY evFreeSessionChanged)
 
     // User Session Control
+    Q_PROPERTY(QString inputProfil READ inputProfil WRITE setInputProfil NOTIFY inputProfilChanged)
     Q_PROPERTY(QString inputUserName READ inputUserName WRITE setInputUserName NOTIFY inputUserNameChanged)
+    Q_PROPERTY(QString inputUserPrenom READ inputUserPrenom WRITE setInputUserPrenom NOTIFY inputUserPrenomChanged)
+    Q_PROPERTY(QString inputCarteNumero READ inputCarteNumero WRITE setInputCarteNumero NOTIFY inputCarteNumeroChanged)
     Q_PROPERTY(QString inputUSerPassword READ inputUSerPassword WRITE setInputUSerPassword NOTIFY inputUSerPasswordChanged)
     Q_PROPERTY(bool inputValidCheck READ inputValidCheck WRITE setInputValidCheck NOTIFY inputValidCheckChanged)
 
@@ -207,8 +213,14 @@ public :
     void setFreeSession(bool p_freeSession);
 
     // User Session Control
+    QString inputProfil() const;
+    void setInputProfil(const QString& p_value);
     QString inputUserName() const;
     void setInputUserName(const QString& p_value);
+    QString inputUserPrenom() const;
+    void setInputUserPrenom(const QString& p_value);
+    QString inputCarteNumero() const;
+    void setInputCarteNumero(const QString& p_value);
     QString inputUSerPassword() const;
     void setInputUSerPassword(const QString& p_value);
     bool inputValidCheck() const;
@@ -305,6 +317,12 @@ public :
     QString inspecteurDate() const;
     void setInspecteurDate(const QString& p_value);
     bool inspecteurValide() const;
+    QString supervisorName() const;
+    void setSupervisorName(const QString& p_value);
+    QString supervisorNumber() const;
+    void setSupervisorNumber(const QString& p_value);
+    QString supervisorDate() const;
+    void setSupervisorDate(const QString& p_value);
     QString sondeNbVoies() const;
     void setSondeNbVoies(const QString& p_value);
     QString sondeNumero() const;
@@ -374,6 +392,9 @@ signals :
     void inspecteurNomChanged(QString);
     void inspecteurNumeroChanged(QString);
     void inspecteurDateChanged(QString);
+    void supervisorNameChanged(QString);
+    void supervisorNumberChanged(QString);
+    void supervisorDateChanged(QString);
     void sondeNbVoiesChanged(QString);
     void sondeAneeChanged(QString);
     void evStructNameChanged(QString);
@@ -436,7 +457,10 @@ signals :
     void evSondeDateValideChanged(bool);
 
     // User Session Control
+    void inputProfilChanged();
     void inputUserNameChanged();
+    void inputUserPrenomChanged();
+    void inputCarteNumeroChanged();
     void inputUSerPasswordChanged();
     void inputValidCheckChanged();
 
@@ -526,6 +550,9 @@ private :
     QString m_inspecteurNumero;
     QString m_inspecteurDate;
     bool m_inspecteurValide = true;
+    QString m_supervisorName;
+    QString m_supervisorNumber;
+    QString m_supervisorDate;
     QString m_sondeNbVoies;
     QString m_sondeAnee;
     bool m_sondeDateValide = true;
@@ -594,7 +621,10 @@ private :
     bool m_plannerSnapshotValid;
 
     // User Session Control
+    QString m_inputProfil;
     QString m_inputUserName;
+    QString m_inputUserPrenom;
+    QString m_inputCarteNumero;
     QString m_inputUSerPassword;
     bool m_inputValidCheck = false;
 };

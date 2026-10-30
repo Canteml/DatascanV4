@@ -133,6 +133,7 @@ Item {
                     onPressed: {globalManager.guiPage = page1_prepare; displayMenu = false;}
                 }
 
+                /*
                 Button {
                     id: btCentralPage2
                     Layout.preferredWidth: 140
@@ -151,7 +152,7 @@ Item {
                     }
 
                     onPressed: {globalManager.guiPage = page2_supervise; displayMenu = false;}
-                }
+                }*/
 
                 Button {
                     id: btCentralPage3
@@ -208,7 +209,7 @@ Item {
 
         btCentralPage0.visible = displayMenu;
         btCentralPage1.visible = displayMenu;
-        btCentralPage2.visible = displayMenu;
+        //btCentralPage2.visible = displayMenu;
         btCentralPage3.visible = displayMenu;
         btCentralPage4.visible = displayMenu;
     }
@@ -223,7 +224,7 @@ Item {
     function updateCentralPage() {
         btCentralPage0.background.color = globalManager.guiPage === page0_project ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
         btCentralPage1.background.color = globalManager.guiPage === page1_prepare ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
-        btCentralPage2.background.color = globalManager.guiPage === page2_supervise ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
+        //btCentralPage2.background.color = globalManager.guiPage === page2_supervise ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
         btCentralPage3.background.color = globalManager.guiPage === page3_scan ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
         btCentralPage4.background.color = globalManager.guiPage === page4_licence ? Design.colButtonDarkSelectedBackground: Design.colButtonDarkBackground
         slCentral.currentIndex = globalManager.guiPage;

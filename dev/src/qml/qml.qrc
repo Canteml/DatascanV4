@@ -33,6 +33,7 @@
         <file>BannerBottomNavigate.qml</file>
         <file>rp_components/FormSection.qml</file>
         <file>P3/P3TopExportBscan.qml</file>
+        <file>P3/P3BottomExportBscan.qml</file>
         <file>rp_components/CameraParam.qml</file>
         <file>P3/P3BottomPipeCtrl.qml</file>
         <file>P3/P3BottomPipeView.qml</file>

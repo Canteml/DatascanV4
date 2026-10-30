@@ -3,6 +3,7 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
 import QtQuick.Dialogs
 import Design 1.0
+import Fonts 1.0
 
 ColumnLayout {
     id: idP3TopP1
@@ -164,15 +165,23 @@ ColumnLayout {
                     text: qsTr("Nom du CSV : ")
                     font.bold: true
                     font.pointSize: 12
+                    font.family: Fonts.robotoCondensed
                 }
 
                 TextField {
                     id: idTxtFileName
                     selectByMouse: true
-                    Layout.preferredHeight: 40
+                    Layout.preferredHeight: 30
                     Layout.preferredWidth: idP3Top.width/3
+                    font.family: Fonts.robotoCondensed
                     font.pointSize: 12
+                    color: "black"
 
+                    background: Rectangle {
+                        color: "white"
+                        border.width: 1
+                        border.color: Design.colFrameBorder
+                    }
 
                     Component.onCompleted: {
                         idTxtFileName.text = examManager.bscanPerimeter.toFixed(2)

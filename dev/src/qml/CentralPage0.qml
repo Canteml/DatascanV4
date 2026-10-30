@@ -45,7 +45,92 @@ Rectangle {
                 font.family: "Roboto Condensed"
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
-                text: qsTr("User Name")
+                text: qsTr("Profil")
+            }
+
+            ComboBox {
+                id: idCbProfil
+                Layout.fillWidth: true
+                Layout.preferredWidth: 220
+                Layout.preferredHeight: 30
+                font.family: Fonts.robotoCondensed
+                Layout.row: 0
+                Layout.column: 1
+                model: [
+                    { text: "",                    value: "" },
+                    { text: qsTr("OPERATEUR"),     value: "operateur" },
+                    { text: qsTr("ADMINISTRATEUR"), value: "administrateur" }
+                ]
+                textRole: "text"
+                valueRole: "value"
+
+                background: Rectangle {
+                    color: "white"
+                    border.width: 1
+                    border.color: Design.colFrameBorder
+                }
+                contentItem: Text {
+                    font.family: "Roboto Condensed"
+                    text: idCbProfil.displayText
+                    font.pixelSize: 12
+                    font.bold: true
+                    leftPadding: 6
+                    color: "#0D2B38"
+                    verticalAlignment: Text.AlignVCenter
+                    elide: Text.ElideRight
+                }
+
+                popup: Popup {
+                    y: idCbProfil.height
+                    width: idCbProfil.width
+                    implicitHeight: contentItem.implicitHeight
+                    padding: 1
+
+                    contentItem: ListView {
+                        clip: true
+                        implicitHeight: contentHeight
+                        model: idCbProfil.popup.visible ? idCbProfil.delegateModel : null
+                        currentIndex: idCbProfil.highlightedIndex
+                        ScrollIndicator.vertical: ScrollIndicator {}
+                    }
+
+                    background: Rectangle {
+                        color: "#FFFFFF"
+                        border.color: "#C7CBD1"
+                        border.width: 1
+                    }
+                }
+                delegate: ItemDelegate {
+                    id: idCbProfilDelegate
+                    width: idCbProfil.width
+                    highlighted: idCbProfil.highlightedIndex === index
+                    contentItem: Text {
+                        font.family: "Roboto Condensed"
+                        text: idCbProfil.textAt(index)
+                        font.pixelSize: 12
+                        font.bold: true
+                        color: "#0D2B38"
+                        verticalAlignment: Text.AlignVCenter
+                        elide: Text.ElideRight
+                    }
+                    background: Rectangle {
+                        color: idCbProfilDelegate.highlighted ? "#E6EFF3" : "#FFFFFF"
+                    }
+                }
+
+                onActivated: function(index) {
+                    examManager.inputProfil = valueAt(index)
+                }
+                Component.onCompleted: {
+                    currentIndex = indexOfValue(examManager.inputProfil)
+                }
+            }
+
+            Text {
+                font.family: "Roboto Condensed"
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("Nom")
             }
 
             TextField {
@@ -53,7 +138,7 @@ Rectangle {
                 font.family: Fonts.robotoCondensed
                 selectByMouse: true
                 color: "black"
-                Layout.row: 0
+                Layout.row: 1
                 Layout.column: 1
                 Layout.fillWidth: true
                 Layout.preferredWidth: 220
@@ -67,14 +152,13 @@ Rectangle {
                     border.width: 2
                     border.color: Design.colFrameBorder
                 }
-
             }
 
             Text {
                 font.family: "Roboto Condensed"
                 Layout.fillWidth: true
                 wrapMode: Text.WordWrap
-                text: qsTr("Mot de passe")
+                text: qsTr("Prenom")
             }
 
             TextField {
@@ -82,7 +166,68 @@ Rectangle {
                 font.family: Fonts.robotoCondensed
                 selectByMouse: true
                 color: "black"
-                Layout.row: 0
+                Layout.row: 1
+                Layout.column: 1
+                Layout.fillWidth: true
+                Layout.preferredWidth: 220
+                Layout.preferredHeight: 30
+                onTextChanged: {examManager.inputUserPrenom = text}
+                Keys.onReturnPressed: {
+                    console.log("Captured !")
+                }
+                background: Rectangle {
+                    color: "white"
+                    border.width: 2
+                    border.color: Design.colFrameBorder
+                }
+            }
+
+            Text {
+                font.family: "Roboto Condensed"
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("Numéro de carte")
+            }
+
+            TextField {
+                text: ""
+                font.family: Fonts.robotoCondensed
+                selectByMouse: true
+                color: "black"
+                Layout.row: 1
+                Layout.column: 1
+                Layout.fillWidth: true
+                Layout.preferredWidth: 220
+                Layout.preferredHeight: 30
+                onTextChanged: {examManager.inputCarteNumero = text}
+                Keys.onReturnPressed: {
+                    console.log("Captured !")
+                }
+                background: Rectangle {
+                    color: "white"
+                    border.width: 2
+                    border.color: Design.colFrameBorder
+                }
+            }
+
+            Text {
+                font.family: "Roboto Condensed"
+                Layout.fillWidth: true
+                wrapMode: Text.WordWrap
+                text: qsTr("Mot de passe")
+                visible: examManager.inputProfil === "administrateur"
+            }
+
+            TextField {
+                id: idTfPassword
+                text: ""
+                visible: examManager.inputProfil === "administrateur"
+                echoMode: TextInput.Password
+                onVisibleChanged: { if (!visible) text = "" }
+                font.family: Fonts.robotoCondensed
+                selectByMouse: true
+                color: "black"
+                Layout.row: 2
                 Layout.column: 1
                 Layout.fillWidth: true
                 Layout.preferredWidth: 220
@@ -194,7 +339,7 @@ Rectangle {
                         spacing: 5
 
                         Text {
-                            text: qsTr("CHARGER UN PLAN")
+                            text: qsTr("CHARGER UN PROJET")
                             font.family: Fonts.robotoCondensed
                             font.pixelSize: 12
                             font.bold: Design.colFrameBorder
@@ -369,7 +514,29 @@ Rectangle {
                         }
                         Text {
                             visible: examManager.inputValidCheck
-                            text: qsTr("Identifiant utilisateur : ")
+                            text:
+                                if(examManager.inputProfil === "administrateur"){
+                                    return qsTr("ADMINISTRATEUR")
+                                }else if(examManager.inputProfil === "operateur"){
+                                    return qsTr("OPERATEUR")
+                                }else{
+                                    return qsTr("")
+                                }
+                            font.family: Fonts.robotoCondensed
+                            font.pixelSize: 14
+                            font.bold: true
+                            color:
+                                if(examManager.inputProfil === "administrateur"){
+                                    return "#12603F"
+                                }else{
+                                    return "#E07B00"
+                                }
+                            Layout.fillWidth: true
+                            Layout.leftMargin: 5
+                        }
+                        Text {
+                            visible: examManager.inputValidCheck
+                            text: qsTr("Identifiant utilisateur")
                             font.family: Fonts.robotoCondensed
                             font.pixelSize: 14
                             font.bold: true
@@ -379,7 +546,7 @@ Rectangle {
                         }
                         Text {
                             visible: examManager.inputValidCheck
-                            text: examManager.inputUserName
+                            text: examManager.inputUserPrenom + " " + examManager.inputUserName
                             font.family: Fonts.robotoCondensed
                             font.pixelSize: 14
                             color: Design.colMainInk
@@ -415,7 +582,7 @@ Rectangle {
                     spacing: 5
 
                     Text {
-                        text: qsTr("CARACTÉRISTIQUES DE LÉQUIPEMENT")
+                        text: qsTr("CARACTÉRISTIQUES DE L'ÉQUIPEMENT")
                         font.family: Fonts.robotoCondensed
                         font.pixelSize: 12
                         font.bold: Design.colFrameBorder
@@ -447,7 +614,7 @@ Rectangle {
                     // -- Ligne 0 : Nom de la structure / Dossier exports
 
                     Text {
-                        text: qsTr("Nom de la structure")
+                        text: qsTr("Nom")
                         font.pixelSize: 14
                         font.family: Fonts.robotoCondensed
                         Layout.row: 0
@@ -512,13 +679,13 @@ Rectangle {
                                 text: "..."
                                 font.bold: true
                                 font.family: Fonts.robotoCondensed
-                                color: "white"
+                                color: "black"
                                 horizontalAlignment: Text.AlignHCenter
                                 verticalAlignment: Text.AlignVCenter
                             }
 
                             background: Rectangle {
-                                color: "#0D2B38"
+                                color: "white"
                                 border.color: Design.colBlackBorder
                                 border.width: 2
                             }
@@ -584,34 +751,6 @@ Rectangle {
                         Layout.preferredWidth: 220
                         Layout.preferredHeight: 30
                         onTextChanged: {examManager.sectorName = text}
-                        background: Rectangle {
-                            color: "white"
-                            border.width: 2
-                            border.color: Design.colFrameBorder
-                        }
-                    }
-
-                    // -- Ligne 3 : Origine
-
-                    Text {
-                        text: qsTr("Origine")
-                        font.family: Fonts.robotoCondensed
-                        font.pixelSize: 14
-                        Layout.row: 2
-                        Layout.column: 0
-                    }
-
-                    TextField {
-                        text: examManager.examOrigin
-                        font.family: Fonts.robotoCondensed
-                        selectByMouse: true
-                        color: "black"
-                        Layout.row: 2
-                        Layout.column: 1
-                        Layout.fillWidth: true
-                        Layout.preferredWidth: 220
-                        Layout.preferredHeight: 30
-                        onTextChanged: {examManager.examOrigin = text}
                         background: Rectangle {
                             color: "white"
                             border.width: 2

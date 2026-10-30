@@ -84,6 +84,10 @@ ScanManager::~ScanManager()
         delete m_pBScanGraphMain;
         m_pBScanGraphMain = nullptr;
     }
+    if( nullptr != m_pBScanGraphExport ) {
+        delete m_pBScanGraphExport;
+        m_pBScanGraphExport = nullptr;
+    }
 }
 
 
@@ -145,6 +149,14 @@ void ScanManager::initQmlObject(QObject * p_pQmlTopLevel)
         m_pBScanGraphMain->setParent(this);
         m_pBScanGraphMain->initAfterItemAdded();
     }
+
+    // BSCAN of the export page : not connected to the live surface updates, filled at EXAM_EXPORTING only
+    m_pBScanGraphExport = p_pQmlTopLevel->findChild<BScanGraph*>("BScanGraphExport");
+    if( nullptr == m_pBScanGraphExport ) {
+        fLogError("Fail to found m_pBScanGraphExport");
+    } else {
+        m_pBScanGraphExport->setParent(this);
+    }
 }
 
 void ScanManager::stop()
@@ -160,6 +172,9 @@ void ScanManager::stop()
         disconnect(m_pBScanGraphMain, &BScanGraph::evAxeYMinMmChanged, this, &ScanManager::onPrivateBScanAxeYMinMmChanged);
         disconnect(m_pBScanGraphMain, &BScanGraph::evAxeYMaxMmChanged, this, &ScanManager::onPrivateBScanAxeYMaxMmChanged);
         disconnect(m_pBScanGraphMain, &BScanGraph::evAxeXTypeChanged, this, &ScanManager::onPrivateBScanAxeXTypeChanged);
+    }
+    if( nullptr != m_pBScanGraphExport ) {
+        m_pBScanGraphExport->stop();
     }
 }
 
@@ -339,8 +354,12 @@ bool ScanManager::bscanWriteParamsToFile(const QString& p_fileName)
     XmlHelper::xmlWriteUniqueParameter(&doc, &root, "BScanAxeYMinMm",     QVariant(getBScanAxeYMinMm()));
     XmlHelper::xmlWriteUniqueParameter(&doc, &root, "BScanAxeYMaxMm",     QVariant(getBScanAxeYMaxMm()));
     XmlHelper::xmlWriteUniqueParameter(&doc, &root, "ZoneAutoHoleSizeMm", QVariant(m_pExamManager->getZoneAutoHoleSizeMm()));
+    XmlHelper::xmlWriteUniqueParameter(&doc, &root, "BScanAxeXType",      QVariant(getBScanAxeXType()));
 
     if( nullptr != m_pEncoderController ) {
+        XmlHelper::xmlWriteUniqueParameter(&doc, &root, "EncoderWheelDiameterMm", QVariant(m_pEncoderController->wheelDiameterMm()));
+        XmlHelper::xmlWriteUniqueParameter(&doc, &root, "EncoderCoderResolution", QVariant(m_pEncoderController->coderResolution()));
+        XmlHelper::xmlWriteUniqueParameter(&doc, &root, "EncoderReverse",         QVariant(m_pEncoderController->encoderReverse()));
         XmlHelper::xmlWriteUniqueParameter(&doc, &root, "EncoderZeroMm",         QVariant(m_pEncoderController->zeroMm()));
         XmlHelper::xmlWriteUniqueParameter(&doc, &root, "EncoderCalibRealMm",     QVariant(m_pEncoderController->calibrationRealMm()));
         XmlHelper::xmlWriteUniqueParameter(&doc, &root, "EncoderCalibEstimatedMm",QVariant(m_pEncoderController->calibrationEstimatedMm()));
@@ -372,19 +391,33 @@ bool ScanManager::bscanReadParamsFromFile(const QString& p_fileName)
     qreal yMin       = getBScanAxeYMinMm();
     qreal yMax       = getBScanAxeYMaxMm();
     qreal zoneHoleMm = m_pExamManager->getZoneAutoHoleSizeMm();
+    quint32 BScanAxeXType = getBScanAxeXType();
 
     XmlHelper::xmlReadUniqueParameter<qreal>(&root, xScale,     "BScanAxeXScaleM");
     XmlHelper::xmlReadUniqueParameter<qreal>(&root, yMin,       "BScanAxeYMinMm");
     XmlHelper::xmlReadUniqueParameter<qreal>(&root, yMax,       "BScanAxeYMaxMm");
     XmlHelper::xmlReadUniqueParameter<qreal>(&root, zoneHoleMm, "ZoneAutoHoleSizeMm");
+    XmlHelper::xmlReadUniqueParameter<quint32>(&root, BScanAxeXType, "BScanAxeXType");
 
     setBScanAxeXScaleM(xScale);
     setBScanAxeYMinMm(0);
     setBScanAxeYMaxMm(yMax);
     setBScanAxeYMinMm(yMin);
     m_pExamManager->setZoneAutoHoleSizeMm(zoneHoleMm);
+    setBScanAxeXType(BScanAxeXType);
 
     if( nullptr != m_pEncoderController ) {
+        // Odométrie appliquée avant la calibration
+        qreal  encWheelMm  = m_pEncoderController->wheelDiameterMm();
+        qint32 encCoderRes = m_pEncoderController->coderResolution();
+        bool   encReverse  = m_pEncoderController->encoderReverse();
+        XmlHelper::xmlReadUniqueParameter<qreal>(&root, encWheelMm,  "EncoderWheelDiameterMm");
+        XmlHelper::xmlReadUniqueParameter<qint32>(&root, encCoderRes, "EncoderCoderResolution");
+        XmlHelper::xmlReadUniqueParameter<bool>(&root, encReverse,   "EncoderReverse");
+        m_pEncoderController->setWheelDiameterMm(encWheelMm);
+        m_pEncoderController->setCoderResolution(encCoderRes);
+        m_pEncoderController->setEncoderReverse(encReverse);
+
         qreal encZero      = m_pEncoderController->zeroMm();
         qreal encRealMm    = m_pEncoderController->calibrationRealMm();
         qreal encEstimMm   = m_pEncoderController->calibrationEstimatedMm();
@@ -641,6 +674,12 @@ void ScanManager::onPrivateBScanAxeXTypeChanged(qint32 p_value)
 
 void ScanManager::onExamManagerStepChanged(qint32 p_value)
 {
+    // export page BSCAN : whole BSCAN of the selected location during export, cleared otherwise
+    // (the locations are deleted at the next initControl : do not keep a pointer on their surface)
+    if( nullptr != m_pBScanGraphExport ) {
+        m_pBScanGraphExport->showLocationFull(p_value == ExamManager::EXAM_EXPORTING ? m_pExamManager->getSelectedLocation() : nullptr);
+    }
+
     if( p_value == ExamManager::EXAM_EXPORTING ) {
         if(m_pBScanGraphMain->getAxeXType() != BScanGraph::AXE_X_DISTANCE){
             m_pBScanGraphMain->setAxeXType(BScanGraph::AXE_X_DISTANCE);

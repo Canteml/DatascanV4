@@ -1,4 +1,4 @@
-import QtQuick 2.4
+import QtQuick 2.15
 import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
 import Design 1.0
@@ -6,45 +6,6 @@ import Fonts 1.0
 
 Rectangle {
     id: idRectBottomSettingsBScan
-
-    readonly property var savedParamList: [
-        { owner: "scan", name: "BScanAxeXScaleM" },
-        { owner: "scan", name: "BScanAxeYMaxMm" },
-        { owner: "scan", name: "BScanAxeYMinMm" },
-        { owner: "scan", name: "BScanAxeYMaxMm" },
-        { owner: "exam", name: "zoneAutoHoleSizeMm" }
-    ]
-    property var savedParams: null
-
-    function paramOwner(p_owner) {
-        if( p_owner === "scan" ) return scanManager;
-        if( p_owner === "exam" ) return examManager;
-        return null;
-    }
-
-    function saveParams() {
-        var snapshot = {};
-        for( var i = 0; i < savedParamList.length; i++ ) {
-            var p = savedParamList[i];
-            var obj = paramOwner(p.owner);
-            if( obj && obj[p.name] !== undefined ) snapshot[p.owner + "." + p.name] = obj[p.name];
-        }
-        savedParams = snapshot;
-        scanManager.bscanSaveUserParams();
-    }
-
-    function loadParams() {
-        if( !savedParams ) {
-            scanManager.bscanLoadUserParams();
-            return;
-        }
-        for( var i = 0; i < savedParamList.length; i++ ) {
-            var p = savedParamList[i];
-            var obj = paramOwner(p.owner);
-            var value = savedParams[p.owner + "." + p.name];
-            if( obj && value !== undefined ) obj[p.name] = value;
-        }
-    }
 
     // Shared state with P3SettingsBar / P3Top, set externally
     property var slCamSettings: null
@@ -71,7 +32,7 @@ Rectangle {
         onOpened: {
             confirmOverwrite = false;
             idPresetNameField.text = "";
-            idPresetNameField.fonrceActiveFocus();
+            idPresetNameField.forceActiveFocus();
         }
 
         function doSave() {
@@ -1503,20 +1464,20 @@ Rectangle {
                                                     font.bold: true
                                                     horizontalAlignment: Text.AlignHCenter
                                                     verticalAlignment: Text.AlignVCenter
-                                                    maximumLength: 4
+                                                    maximumLength: 7    // "1000.00"
                                                     selectByMouse: true
-                                                    validator: IntValidator { bottom: 1; top: 1000 }
+                                                    // up to 2 decimals, "." or "," ; "56." is Intermediate so it can still be typed
+                                                    validator: RegularExpressionValidator { regularExpression: /^\d{1,4}([.,]\d{1,2})?$/ }
 
                                                     readonly property real value: parseFloat(text.replace(",", "."))
-                                                    readonly property bool valid: /^\d{1,4}([.,]\d)?$/.test(text)
-                                                                                  && value >= 1 && value <= 1000
+                                                    readonly property bool valid: acceptableInput && value >= 1 && value <= 1000
 
                                                     // Only emitted when the text satisfies the validator
                                                     onAccepted: {
                                                         if(!valid)
                                                             return
 
-                                                        encoderController.wheelDiameterMm = Math.round(value * 10) / 10
+                                                        encoderController.wheelDiameterMm = Math.round(value * 100) / 100
                                                         idDiametreValue.editing = false
                                                         focus = false
                                                     }
@@ -1781,7 +1742,7 @@ Rectangle {
 
                                     Button {
                                         id: idBtSenseCodeur
-                                        Layout.preferredWidth: 193
+                                        Layout.preferredWidth: 212
                                         Layout.preferredHeight: 25
 
                                         background: Rectangle {
@@ -1801,6 +1762,68 @@ Rectangle {
                                         }
 
                                         onClicked: encoderController.encoderReverse = !encoderController.encoderReverse
+                                    }
+
+                                    Rectangle {
+                                        id: idCodeurValues
+                                        Layout.preferredWidth: 212
+                                        Layout.preferredHeight: 75
+
+                                        color: "white"
+                                        border.color: "black"
+                                        border.width: 1
+
+                                        ColumnLayout {
+                                            anchors.fill: parent
+                                            anchors.margins: 5
+                                            spacing: 8
+
+                                            Text {
+                                                text: {
+                                                    switch (currentVector.prodId) {
+                                                    case 1:  return qsTr("UT POLE")
+                                                    case 2:
+                                                    case 6:  return qsTr("ALTISCAN")
+                                                    default: return ""
+                                                    }
+                                                }
+                                                font.family: Fonts.robotoCondensed
+                                                font.pixelSize: 10
+                                                font.bold: true
+                                                Layout.alignment: Qt.AlignHCenter
+                                            }
+
+                                            Text {
+                                                text: {
+                                                    switch (currentVector.prodId) {
+                                                    case 1:  return qsTr("Diamètre roue : 56.80 mm")
+                                                    case 2:
+                                                    case 6:  return qsTr("Diamètre roue : 52.50 mm")
+                                                    default: return ""
+                                                    }
+                                                }
+                                                font.family: Fonts.robotoCondensed
+                                                font.pixelSize: 10
+                                                font.bold: true
+                                                Layout.alignment: Qt.AlignHCenter
+                                            }
+
+                                            Text {
+                                                text: {
+                                                    switch (currentVector.prodId) {
+                                                    case 1:  return qsTr("Pas codeur : 8192")
+                                                    case 2:
+                                                    case 6:  return qsTr("Pas codeur : 1024")
+                                                    default: return ""
+                                                    }
+                                                }
+                                                font.family: Fonts.robotoCondensed
+                                                font.pixelSize: 10
+                                                font.bold: true
+                                                Layout.alignment: Qt.AlignHCenter
+                                            }
+                                        }
+
                                     }
                                 }
 

@@ -25,7 +25,7 @@ QtObject {
     readonly property color colSeparator: "#9C9B9B"
 
 
-    readonly property color colGreen: "#00B223"
+    readonly property color colGreen: "#12603F"
     readonly property color colRed: "#D10A0A"
 
     // NUovi Colori: Verranno poi eliminati tutti gli altri non utilizzati!!

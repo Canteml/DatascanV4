@@ -28,8 +28,6 @@ Rectangle {
         }
     }
 
-    // ComboBox assigning a camera to a role as soon as it is selected
-    // index 0 = no camera, index n = camera n-1 of modelCameraList
     component CameraRoleCombo: ComboBox {
         id: idCameraRoleCombo
         property var cameraRoleItem
@@ -121,278 +119,9 @@ Rectangle {
         anchors.fill: parent
         anchors.margins: 5
 
-        /*
-
-
-        // -- EQUIPEMENT
-        RowLayout {
-            id: idP1EqLy
-            Layout.fillWidth: true
-
-            FormSection {
-                text: qsTr("Equipement")
-            }
-        }
-
-        RowLayout {
-            id: idRowProduct
-            Layout.fillWidth: true
-            Layout.leftMargin: 20
-
-            Text {
-                id: lbProduct
-                text: qsTr("Appareil :")
-                font.pixelSize: 14
-                verticalAlignment: Text.AlignVCenter
-                Layout.preferredWidth: 100
-
-                Layout.preferredHeight: idRowProduct.height
-
-            }
-
-            ComboBox {
-                id: idCbProduct
-                Layout.preferredHeight: 30
-                Layout.preferredWidth: 200
-                model: products.enabledProducts //[qsTr("UT POLE"), qsTr("ALTISCAN"), qsTr("ROVER"), qsTr("ROVER IP68"), //qsTr("ROVER CLEANER"),
-                    //qsTr("PANDA Vol.3"), qsTr("MULTISCAN")]
-                property var ready : false
-
-                onCurrentIndexChanged: {
-                    if( ready ) {
-                        products.setProdIndex(currentIndex)
-                    }
-                }
-                Component.onCompleted: {
-                    currentIndex = products.getCurrentIndex()
-                    ready = true;
-                }
-            }
-        }
-
-        ListView {
-            // lsit of devices
-            id: idlvListDevices
-            Layout.fillWidth: true
-            Layout.leftMargin: 130
-            model: modelDeviceList
-            delegate: Rectangle {
-                height: 40
-                Text {
-                     text: modelData
-                     font.pixelSize: 14
-                }
-            }
-
-            Connections {
-                // Change the size of the listview function to the number of items
-                target: currentVector.getDeviceManager()
-                function onEvDeviceListChanged(p_value) {
-                    //console.log("value " + p_value);
-                    idlvListDevices.Layout.preferredHeight = (p_value) * 35;
-                    idlvListDevices.height = (p_value) * 35;
-                }
-            }
-        }
-
-        // -- CAMERA
-        RowLayout {
-            id: idP1CamLy
-            Layout.fillWidth: true
-
-            FormSection {
-                text: qsTr("Caméra")
-            }
-        }
-
-        RowLayout {
-            id: idRwCam
-            Layout.fillWidth: true
-            Layout.leftMargin: 20
-            ColumnLayout {
-                id: idClCam
-                Layout.alignment: Qt.AlignTop
-                // One row by camera role
-                CameraParam {
-                    cameraRoleText : qsTr("Alarme :")
-                    cameraRoleItem : cameraManager.camAlarm()
-                }
-                CameraParam {
-                    cameraRoleText : qsTr("Capteur 1 :")
-                    cameraRoleItem : cameraManager.camSensor1()
-                }
-                CameraParam {
-                    cameraRoleText : qsTr("Capteur 2 :")
-                    cameraRoleItem : cameraManager.camSensor2()
-                }
-                CameraParam {
-                    cameraRoleText : qsTr("Capteur 3 :")
-                    cameraRoleItem : cameraManager.camSensor3()
-                }
-                CameraParam {
-                    cameraRoleText : qsTr("Capteur 4 :")
-                    cameraRoleItem : cameraManager.camSensor4()
-                }
-                CameraParam {
-                    cameraRoleText : qsTr("Avant :")
-                    cameraRoleItem : cameraManager.camFront()
-                }
-                CameraParam {
-                    cameraRoleText : qsTr("Arrière :")
-                    cameraRoleItem : cameraManager.camRear()
-                }
-            }
-            Rectangle {
-                // Vertical orange bar
-                Layout.preferredWidth: 3
-                Layout.preferredHeight: idRwCam.height
-                width : 3
-                color: Design.colFromSection
-            }
-
-            ColumnLayout {
-                RowLayout {
-                    id: idRwCamPreview
-                    Layout.fillWidth: true
-
-                    Rectangle {
-                        id: idFrameCamPreview
-                        border.color: Design.colFrameBorder
-                        border.width: 1
-                        Layout.preferredHeight: 200
-                        Layout.preferredWidth: 420
-                        visible: true
-
-                        VideoOutput {
-                            id: idVideo
-                            objectName: "previewVideoOutput"
-                            anchors.fill: parent
-                            anchors.margins: 1
-
-                            Component.onCompleted: {
-                                cameraManager.setPreviewVideoSink(idVideo)
-                            }
-                        }
-
-                        Image {
-                            anchors.fill: parent
-                            anchors.margins: 1
-                            source: "qrc:///img/icons/no_camera.png"
-                            fillMode: Image.PreserveAspectFit
-                            visible: !idVideo.hasVideo && idCbSelectCameraPreview.currentIndex === 0
-                        }
-
-                        Component.onCompleted: {
-                            cameraManager.setPreviewVideoSink(idVideo)
-                        }
-
-                        Connections {
-                            target: cameraManager
-                            function onIsPreviewCameraIpChanged(isIp) {
-                                cameraManager.setPreviewVideoSink(idVideo)
-                            }
-                        }
-                    }
-
-                    Item {
-                        Layout.fillWidth: true
-                    }
-                }
-
-                RowLayout {
-                    Layout.maximumWidth: idFrameCamPreview.width
-                    Text {
-                        text: qsTr("Caméra : ")
-                        font.pixelSize: 14
-                    }
-
-                    ComboBox {
-                        id: idCbSelectCameraPreview
-                        model: modelCameraList
-                        Layout.fillWidth: true
-
-                        onActivated: {
-                            cameraManager.setPreviewCameraIndex(currentIndex)
-                        }
-                    }
-
-                }
-
-                Connections {
-                    target: cameraManager
-                    function onEvCameraListChanged(size) {
-                        if (size > 0 && cameraManager.getPreviewCameraIndex() === -1) {
-                            idCbSelectCameraPreview.currentIndex = 0
-                            cameraManager.setPreviewCameraIndex(0)
-                        }
-                    }
-                }
-
-            }
-            // -- SPACER
-            Item {
-                // Spacer
-                Layout.fillWidth: true
-            }
-
-            Connections {
-                target : cameraManager
-                function onPreviewCameraIndexChanged(p_index) {
-                    if( idCbSelectCameraPreview.currentIndex !== p_index ) {
-                        idCbSelectCameraPreview.currentIndex = p_index;
-                    }
-                }
-            }
-        }
-
-        ColumnLayout {
-            id: idP1Inclo
-            Layout.fillWidth: true
-            visible: currentVector.funcInertialSensor().isEnabled && currentVector.funcInertialSensor().hasReceivedMessage
-
-            FormSection {
-                text: qsTr("Inclinomètre")
-            }
-
-            RowLayout {
-                Layout.fillWidth: true
-                Button {
-                    icon.source: "qrc:///img/icons/on_ground.png"
-                    icon.width: 50
-                    icon.height: 50
-                    icon.color: "transparent"
-
-                    antialiasing: true
-                    enabled: currentVector.funcInertialSensor().paramLHorizontal == 1
-                    onClicked: currentVector.funcInertialSensor().paramLHorizontal = 0
-                    background: Rectangle {
-                        color: parent.enabled ? "white" : "#DDDDDD"
-                        border.color: Design.colButtonBorder
-                        radius: 10
-                    }
-                }
-                Button {
-                    icon.source: "qrc:///img/icons/on_wall.png"
-                    icon.width: 50
-                    icon.height: 50
-                    icon.color: "transparent"
-
-                    antialiasing: true
-                    enabled: currentVector.funcInertialSensor().paramLHorizontal == 0
-                    onClicked: currentVector.funcInertialSensor().paramLHorizontal = 1
-                    background: Rectangle {
-                        color: parent.enabled ? "white" : "#DDDDDD"
-                        border.color: Design.colButtonBorder
-                        radius: 10
-                    }
-                }
-            }
-        }
-*/
-
         Item {
             Layout.fillWidth: true
-            height: 30
+            height: 10
         }
 
         RowLayout{
@@ -406,8 +135,8 @@ Rectangle {
                 Rectangle {
                     color: "#D5DEE3"
                     Layout.fillWidth: true
-                    Layout.leftMargin: 20
-                    Layout.rightMargin: 20
+                    Layout.leftMargin: 5
+                    Layout.rightMargin: 5
                     Layout.preferredHeight: 40
                     border.width: 1
                     border.color: Design.colFrameBorder
@@ -431,8 +160,8 @@ Rectangle {
                 Rectangle {
                     color: "white"
                     Layout.fillWidth: true
-                    Layout.leftMargin: 20
-                    Layout.rightMargin: 20
+                    Layout.leftMargin: 5
+                    Layout.rightMargin: 5
                     height: 250
                     border.width: 1
                     border.color: Design.colFrameBorder
@@ -629,28 +358,6 @@ Rectangle {
                                 }
                             }
                         }
-
-                        /*
-                        TextField {
-                            text: examManager.structName
-                            font.family: Fonts.robotoCondensed
-                            selectByMouse: true
-                            color: "black"
-                            Layout.row: 0
-                            Layout.column: 1
-                            Layout.fillWidth: true
-                            Layout.preferredWidth: 220
-                            Layout.preferredHeight: 30
-                            onTextChanged: {examManager.structName = text}
-                            Keys.onReturnPressed: {
-                                console.log("Captured !")
-                            }
-                            background: Rectangle {
-                                color: "white"
-                                border.width: 2
-                                border.color: Design.colFrameBorder
-                            }
-                        }*/
 
                         Text {
                             text: qsTr("Port série de secours")
@@ -869,8 +576,8 @@ Rectangle {
                 Rectangle {
                     color: "#D5DEE3"
                     Layout.fillWidth: true
-                    Layout.leftMargin: 20
-                    Layout.rightMargin: 20
+                    Layout.leftMargin: 5
+                    Layout.rightMargin: 5
                     Layout.preferredHeight: 40
                     border.width: 1
                     border.color: Design.colFrameBorder
@@ -894,8 +601,8 @@ Rectangle {
                 Rectangle {
                     color: "white"
                     Layout.fillWidth: true
-                    Layout.leftMargin: 20
-                    Layout.rightMargin: 20
+                    Layout.leftMargin: 5
+                    Layout.rightMargin: 5
                     height: 250
                     border.width: 1
                     border.color: Design.colFrameBorder
@@ -1027,7 +734,7 @@ Rectangle {
 
         Item {
             Layout.fillWidth: true
-            height: 30
+            height: 10
         }
 
         ColumnLayout {
@@ -1037,24 +744,127 @@ Rectangle {
             Rectangle {
                 color: "#D5DEE3"
                 Layout.fillWidth: true
-                Layout.leftMargin: 20
-                Layout.rightMargin: 20
-                Layout.preferredHeight: 40
+                Layout.leftMargin: 5
+                Layout.rightMargin: 5
+                Layout.preferredHeight: 50
                 border.width: 1
                 border.color: Design.colFrameBorder
 
                 RowLayout {
-                    anchors.fill: parent
-                    spacing: 5
+                    id: certificatsMenu
+                    anchors.left: parent.left
+                    anchors.top: parent.top
+                    anchors.bottom: parent.bottom
+                    anchors.leftMargin: 10
+                    anchors.topMargin: 6
+                    anchors.bottomMargin: 6
+                    spacing: 8
 
-                    Text {
-                        text: qsTr("CERTIFICATS ET TRAÇABILITÉ")
-                        font.family: Fonts.robotoCondensed
-                        font.pixelSize: 12
-                        font.bold: Design.colFrameBorder
-                        color: Design.colMainInk
-                        Layout.fillWidth: true
-                        Layout.leftMargin: 5
+
+                    property string menuMode: "appareil"
+
+                    Button {
+                        id: btAppareilMenu
+                        Layout.fillHeight: true
+                        Layout.preferredWidth: 140
+
+                        contentItem: Text {
+                            text: qsTr("APPAREIL")
+                            font.family: Fonts.robotoCondensed
+                            font.pixelSize: 14
+                            color: certificatsMenu.menuMode === "appareil" ? "white" : "black"
+                            font.bold: true
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        background: Rectangle {
+                            color: certificatsMenu.menuMode === "appareil" ? "#0D2B38" : "white"
+                            border.color: Design.colBlackBorder
+                            border.width: 3
+                        }
+
+                        onClicked: {
+                            certificatsMenu.menuMode = "appareil"
+                        }
+                    }
+
+                    Button {
+                        id: btControlleurMenu
+                        Layout.fillHeight: true
+                        Layout.preferredWidth: 140
+
+                        contentItem: Text {
+                            text: qsTr("CONTROLLEUR")
+                            font.family: Fonts.robotoCondensed
+                            font.pixelSize: 14
+                            color: certificatsMenu.menuMode === "controlleur" ? "white" : "black"
+                            font.bold: true
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        background: Rectangle {
+                            color: certificatsMenu.menuMode === "controlleur" ? "#0D2B38" : "white"
+                            border.color: Design.colBlackBorder
+                            border.width: 3
+                        }
+
+                        onClicked: {
+                            certificatsMenu.menuMode = "controlleur"
+                        }
+                    }
+
+                    Button {
+                        id: btSuperviseurMenu
+                        Layout.fillHeight: true
+                        Layout.preferredWidth: 140
+
+                        contentItem: Text {
+                            text: qsTr("SUPERVISEUR")
+                            font.family: Fonts.robotoCondensed
+                            font.pixelSize: 14
+                            color: certificatsMenu.menuMode === "superviseur" ? "white" : "black"
+                            font.bold: true
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        background: Rectangle {
+                            color: certificatsMenu.menuMode === "superviseur" ? "#0D2B38" : "white"
+                            border.color: Design.colBlackBorder
+                            border.width: 3
+                        }
+
+                        onClicked: {
+                            certificatsMenu.menuMode = "superviseur"
+                        }
+                    }
+
+                    Button {
+                        id: btCapteurMenu
+                        Layout.fillHeight: true
+                        Layout.preferredWidth: 140
+
+                        contentItem: Text {
+                            text: qsTr("CAPTEUR")
+                            font.family: Fonts.robotoCondensed
+                            font.pixelSize: 14
+                            color: certificatsMenu.menuMode === "capteur" ? "white" : "black"
+                            font.bold: true
+                            horizontalAlignment: Text.AlignHCenter
+                            verticalAlignment: Text.AlignVCenter
+                        }
+
+                        background: Rectangle {
+                            color: certificatsMenu.menuMode === "capteur" ? "#0D2B38" : "white"
+                            border.color: Design.colBlackBorder
+                            border.width: 3
+                        }
+
+                        onClicked: {
+                            certificatsMenu.menuMode = "capteur"
+                        }
                     }
                 }
             }
@@ -1063,25 +873,31 @@ Rectangle {
                 id: rectCertificat
                 color: "white"
                 Layout.fillWidth: true
-                Layout.leftMargin: 20
-                Layout.rightMargin: 20
+                Layout.leftMargin: 5
+                Layout.rightMargin: 5
                 Layout.preferredHeight: 105
                 border.width: 1
                 border.color: Design.colFrameBorder
 
                 ColumnLayout {
+                    id: certificatColumn
                     anchors.fill: parent
                     anchors.margins: 15
-                    spacing: 15
+                    anchors.bottomMargin: 20
+                    // gap grid/warning comes from the grids' rowSpacing before their filler row
+                    spacing: 0
 
                     GridLayout {
                         Layout.fillWidth: true
+                        Layout.fillHeight: true
                         columns: 4
                         columnSpacing: 15
                         rowSpacing: 15
 
+                        visible: certificatsMenu.menuMode === "appareil"
+
                         Text {
-                            text: qsTr("Appareil UT · n° de série")
+                            text: qsTr("Appareil UT")
                             font.pixelSize: 14
                             font.family: Fonts.robotoCondensed
                             Layout.row: 0
@@ -1089,7 +905,7 @@ Rectangle {
                         }
 
                         TextField {
-                            text: examManager.equipmentNom + " · " + examManager.equipmentNumero
+                            text: examManager.equipmentNom
                             font.family: Fonts.robotoCondensed
                             selectByMouse: true
                             color: "black"
@@ -1109,7 +925,7 @@ Rectangle {
                         }
 
                         Text {
-                            text: qsTr("Nom du UT3 · Numéro du UT3")
+                            text: qsTr("Numéro de série")
                             font.family: Fonts.robotoCondensed
                             font.pixelSize: 14
                             Layout.row: 0
@@ -1117,7 +933,7 @@ Rectangle {
                         }
 
                         TextField {
-                            text: examManager.inspecteurNom + " · " + examManager.inspecteurNumero
+                            text: examManager.equipmentNumero
                             font.family: Fonts.robotoCondensed
                             selectByMouse: true
                             color: "black"
@@ -1137,7 +953,7 @@ Rectangle {
                         }
 
                         Text {
-                            text: qsTr("Certificat d'étalonnage sonde")
+                            text: qsTr("Date d'expiration du certificat")
                             font.family: Fonts.robotoCondensed
                             font.pixelSize: 14
                             Layout.row: 1
@@ -1174,13 +990,86 @@ Rectangle {
                                     }
                             }
                         }
+                        Item {
+                            Layout.row: 2
+                            Layout.column: 0
+                            Layout.columnSpan: 4
+                            Layout.fillHeight: true
+                        }
+
+                    }
+
+                    GridLayout {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        columns: 4
+                        columnSpacing: 15
+                        rowSpacing: 15
+
+                        visible: certificatsMenu.menuMode === "controlleur"
+
+                        Text {
+                            text: qsTr("Nom du UT3")
+                            font.pixelSize: 14
+                            font.family: Fonts.robotoCondensed
+                            Layout.row: 0
+                            Layout.column: 0
+                        }
+
+                        TextField {
+                            text: examManager.inspecteurNom
+                            font.family: Fonts.robotoCondensed
+                            selectByMouse: true
+                            color: "black"
+                            Layout.row: 0
+                            Layout.column: 1
+                            Layout.fillWidth: true
+                            Layout.preferredWidth: 220
+                            Layout.preferredHeight: 30
+                            Keys.onReturnPressed: {
+                                console.log("Captured !")
+                            }
+                            background: Rectangle {
+                                color: "white"
+                                border.width: 1
+                                border.color: Design.colFrameBorder
+                            }
+                        }
+
+                        Text {
+                            text: qsTr("Numéro du UT3")
+                            font.family: Fonts.robotoCondensed
+                            font.pixelSize: 14
+                            Layout.row: 0
+                            Layout.column: 2
+                        }
+
+                        TextField {
+                            text: examManager.inspecteurNumero
+                            font.family: Fonts.robotoCondensed
+                            selectByMouse: true
+                            color: "black"
+                            Layout.row: 0
+                            Layout.column: 3
+                            Layout.fillWidth: true
+                            Layout.preferredWidth: 220
+                            Layout.preferredHeight: 30
+                            Keys.onReturnPressed: {
+                                console.log("Captured !")
+                            }
+                            background: Rectangle {
+                                color: "white"
+                                border.width: 1
+                                border.color: Design.colFrameBorder
+                            }
+                        }
 
                         Text {
                             text: qsTr("Date d'expiration certificat UT3")
                             font.family: Fonts.robotoCondensed
                             font.pixelSize: 14
                             Layout.row: 1
-                            Layout.column: 2
+                            Layout.column: 0
                         }
 
                         TextField {
@@ -1189,7 +1078,7 @@ Rectangle {
                             selectByMouse: true
                             color: "black"
                             Layout.row: 1
-                            Layout.column: 3
+                            Layout.column: 1
                             Layout.fillWidth: true
                             Layout.preferredWidth: 220
                             Layout.preferredHeight: 30
@@ -1213,137 +1102,189 @@ Rectangle {
                                     }
                             }
                         }
+                        Item {
+                            Layout.row: 2
+                            Layout.column: 0
+                            Layout.columnSpan: 4
+                            Layout.fillHeight: true
+                        }
+
                     }
 
-                    Item {
-                        Layout.fillHeight: true
-                    }
-
-                    RowLayout {
+                    GridLayout {
                         Layout.fillWidth: true
-                        spacing: 10
+                        Layout.fillHeight: true
+                        columns: 4
+                        columnSpacing: 15
+                        rowSpacing: 15
 
-                        Rectangle {
-                            id: rectCertificatWarning
-                            readonly property int nbEchus: (examManager.dateValide ? 0 : 1)
-                                                           + (examManager.sondeDateValide ? 0 : 1)
-                                                           + (examManager.inspecteurValide ? 0 : 1)
-                            visible: nbEchus > 0
-                            color: "#F7E6E6"
-                            border.width: 3
-                            border.color: "#8E1B1B"
+                        visible: certificatsMenu.menuMode === "superviseur"
+
+                        Text {
+                            text: qsTr("Nom du superviseur")
+                            font.pixelSize: 14
+                            font.family: Fonts.robotoCondensed
+                            Layout.row: 0
+                            Layout.column: 0
+                        }
+
+                        TextField {
+                            text: examManager.supervisorName
+                            font.family: Fonts.robotoCondensed
+                            selectByMouse: true
+                            color: "black"
+                            Layout.row: 0
+                            Layout.column: 1
                             Layout.fillWidth: true
-                            Layout.preferredHeight: 100
-
-                            ColumnLayout{
-                                anchors.fill: parent
-                                anchors.leftMargin: 10
-                                Text {
-                                    text: rectCertificatWarning.nbEchus > 1
-                                          ? qsTr("%1 certificats échus").arg(rectCertificatWarning.nbEchus)
-                                          : qsTr("1 certificat échu")
-                                    font.family: Fonts.robotoCondensed
-                                    font.pixelSize: 18
-                                    font.bold: true
-                                    color: "#8E1B1B"
-                                }
-                                Text {
-                                    visible: !examManager.dateValide
-                                    text: qsTr("Certificat d'étalonnage de la sonde expiré")
-                                    font.family: Fonts.robotoCondensed
-                                    font.pixelSize: 14
-                                    font.bold: true
-                                    color: "#8E1B1B"
-                                }
-                                Text {
-                                    visible: !examManager.sondeDateValide
-                                    text: qsTr("Certificat d'étalonnage bloc expiré")
-                                    font.family: Fonts.robotoCondensed
-                                    font.pixelSize: 14
-                                    font.bold: true
-                                    color: "#8E1B1B"
-                                }
-                                Text {
-                                    visible: !examManager.inspecteurValide
-                                    text: qsTr("Certificat UT3 expiré")
-                                    font.family: Fonts.robotoCondensed
-                                    font.pixelSize: 14
-                                    font.bold: true
-                                    color: "#8E1B1B"
-                                }
-
+                            Layout.preferredWidth: 220
+                            Layout.preferredHeight: 30
+                            Keys.onReturnPressed: {
+                                console.log("Captured !")
+                            }
+                            background: Rectangle {
+                                color: "white"
+                                border.width: 1
+                                border.color: Design.colFrameBorder
                             }
                         }
 
-                        // Keeps the button on the right when the warning is hidden
-                        Item {
-                            visible: !rectCertificatWarning.visible
+                        Text {
+                            text: qsTr("Numéro du superviseur")
+                            font.family: Fonts.robotoCondensed
+                            font.pixelSize: 14
+                            Layout.row: 0
+                            Layout.column: 2
+                        }
+
+                        TextField {
+                            text: examManager.supervisorNumber
+                            font.family: Fonts.robotoCondensed
+                            selectByMouse: true
+                            color: "black"
+                            Layout.row: 0
+                            Layout.column: 3
                             Layout.fillWidth: true
+                            Layout.preferredWidth: 220
+                            Layout.preferredHeight: 30
+                            Keys.onReturnPressed: {
+                                console.log("Captured !")
+                            }
+                            background: Rectangle {
+                                color: "white"
+                                border.width: 1
+                                border.color: Design.colFrameBorder
+                            }
+                        }
+
+                        Text {
+                            text: qsTr("Date de contrôle")
+                            font.family: Fonts.robotoCondensed
+                            font.pixelSize: 14
+                            Layout.row: 1
+                            Layout.column: 0
+                        }
+
+                        TextField {
+                            text: examManager.supervisorDate
+                            font.family: Fonts.robotoCondensed
+                            selectByMouse: true
+                            color: "black"
+                            Layout.row: 1
+                            Layout.column: 1
+                            Layout.fillWidth: true
+                            Layout.preferredWidth: 220
+                            Layout.preferredHeight: 30
+                            Keys.onReturnPressed: {
+                                console.log("Captured !")
+                            }
+                            background: Rectangle {
+                                color: "white"
+                                border.width: 1
+                                border.color: Design.colFrameBorder
+                            }
+                        }
+                        Item {
+                            Layout.row: 2
+                            Layout.column: 0
+                            Layout.columnSpan: 4
+                            Layout.fillHeight: true
+                        }
+                    }
+
+                    GridLayout {
+                        Layout.fillWidth: true
+                        Layout.fillHeight: true
+                        columns: 4
+                        columnSpacing: 15
+                        rowSpacing: 15
+
+                        visible: certificatsMenu.menuMode === "capteur"
+
+                        Text {
+                            text: qsTr("Numéro de la sonde")
+                            font.pixelSize: 14
+                            font.family: Fonts.robotoCondensed
+                            Layout.row: 0
+                            Layout.column: 0
+                        }
+
+                        TextField {
+                            text: examManager.sondeNumero
+                            font.family: Fonts.robotoCondensed
+                            selectByMouse: true
+                            color: "black"
+                            Layout.row: 0
+                            Layout.column: 1
+                            Layout.fillWidth: true
+                            Layout.preferredWidth: 220
+                            Layout.preferredHeight: 30
+                            Keys.onReturnPressed: {
+                                console.log("Captured !")
+                            }
+                            background: Rectangle {
+                                color: "white"
+                                border.width: 1
+                                border.color: Design.colFrameBorder
+                            }
+                        }
+
+                        Text {
+                            text: qsTr("Nom du contrôleur")
+                            font.family: Fonts.robotoCondensed
+                            font.pixelSize: 14
+                            Layout.row: 0
+                            Layout.column: 2
+                        }
+
+                        TextField {
+                            text: examManager.controlleurNom
+                            font.family: Fonts.robotoCondensed
+                            selectByMouse: true
+                            color: "black"
+                            Layout.row: 0
+                            Layout.column: 3
+                            Layout.fillWidth: true
+                            Layout.preferredWidth: 220
+                            Layout.preferredHeight: 30
+                            Keys.onReturnPressed: {
+                                console.log("Captured !")
+                            }
+                            background: Rectangle {
+                                color: "white"
+                                border.width: 1
+                                border.color: Design.colFrameBorder
+                            }
+                        }
+                        Item {
+                            Layout.row: 1
+                            Layout.column: 0
+                            Layout.columnSpan: 4
+                            Layout.fillHeight: true
                         }
                     }
                 }
             }
         }
-
-
-//        ListView {
-//            id: idLinkList
-//            width: 200
-//            height: 250
-//            Layout.fillHeight: true
-//            Layout.fillWidth: true
-//            Layout.leftMargin: 40
-
-
-//            property var linkList : currentVector.getLinkManager().getLinkModel()
-//            model: linkList
-//            delegate: DeviceLinkConfig {
-
-//                idCbLinkType.currentIndex: link_type-1  // enum 0 = unknow
-//                idCbLinkType.visible: false // not available for now
-//                idCbLinkComPort.model: serial_port_list
-//                idCbLinkComPort.enabled: link_state === 0 /* disconnected */ || link_state === 3 /* disconnecting */ || link_state === 4 /* disconnected */
-//                idBtLinkConnect.text : link_state === 1 /*Connecting*/|| link_state === 2 /*Connected*/? qsTr("Déconnecter") : qsTr("Connecter")
-//                linkName : link_name
-//                linkState: link_state
-
-//                Connections {
-//                    target : idBtLinkConnect
-//                    function onPressed() {
-//                        if( link_state === 1 /*Connecting*/|| link_state === 2 /*Connected*/ ) {
-//                            currentVector.getLinkManager().disconnectLink(link_name);
-//                        } else {
-//                            currentVector.getLinkManager().setComPort(link_name, idCbLinkComPort.currentText);
-//                        }
-//                    }
-
-//                }
-
-//                Connections {
-//                    target : idCbLinkComPort
-//                    function onActivated() {
-//                        if( idCbLinkComPort.currentText !== currentVector.getLinkManager().getComPort(link_name) ) {
-//                            currentVector.getLinkManager().setComPort(link_name, idCbLinkComPort.currentText);
-//                        }
-//                    }
-//                }
-
-//                Connections {
-//                    target : idCbProduct
-//                    function onCurrentIndexChanged() {
-//                        if( currentVector.prodId !== idCbProduct.currentIndex+1 ) {
-//                            currentVector.prodId = idCbProduct.currentIndex+1; // combo doesn't start to "undef"
-//                        }
-//                    }
-//                }
-
-//                Component.onCompleted: {
-//                    idCbLinkComPort.currentIndex = idCbLinkComPort.find(serial_port);
-//                    idCbProduct.currentIndex = currentVector.prodId-1
-//                }
-
-//            }
-//        }
 
         // -- SPACER
         Item {
@@ -1355,7 +1296,7 @@ Rectangle {
         BannerBottomNavigate {
             id: idBannerBottom2
             idBtPrev.text : qsTr("PROJET")
-            idBtNext.text : qsTr("SUPERVISER")
+            idBtNext.text : qsTr("SCANNER")
 
             Connections {
                 target: idBannerBottom2.idBtPrev
@@ -1367,7 +1308,7 @@ Rectangle {
             Connections {
                 target: idBannerBottom2.idBtNext
                 function onClicked() {
-                    globalManager.guiPage = 2;
+                    globalManager.guiPage = 3;
                 }
             }
         }

@@ -3,7 +3,7 @@
     <DisplayName>DatascanV3</DisplayName>
     <Description>DatascanV3 Application</Description>
     <Version>3.0.1</Version>
-    <ReleaseDate>2026-10-19</ReleaseDate>
+    <ReleaseDate>2026-10-30</ReleaseDate>
     <ForcedInstallation>true</ForcedInstallation>
     <RequiresAdminRights>true</RequiresAdminRights>
     <Script>installscript.qs</Script>

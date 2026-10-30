@@ -443,6 +443,45 @@ void ExamManager::inspecteurDateCheck(const QString& p_date)
     }
 }
 
+QString ExamManager::supervisorName() const
+{
+    return m_supervisorName;
+}
+
+void ExamManager::setSupervisorName(const QString& p_value)
+{
+    if(p_value != m_supervisorName) {
+        m_supervisorName = p_value;
+        emit supervisorNameChanged(m_supervisorName);
+    }
+}
+
+QString ExamManager::supervisorNumber() const
+{
+    return m_supervisorNumber;
+}
+
+void ExamManager::setSupervisorNumber(const QString& p_value)
+{
+    if(p_value != m_supervisorNumber) {
+        m_supervisorNumber = p_value;
+        emit supervisorNumberChanged(m_supervisorNumber);
+    }
+}
+
+QString ExamManager::supervisorDate() const
+{
+    return m_supervisorDate;
+}
+
+void ExamManager::setSupervisorDate(const QString& p_value)
+{
+    if(p_value != m_supervisorDate) {
+        m_supervisorDate = p_value;
+        emit supervisorDateChanged(m_supervisorDate);
+    }
+}
+
 QString ExamManager::sondeNbVoies() const
 {
     return m_sondeNbVoies;
@@ -526,6 +565,19 @@ void ExamManager::sondeDateCheck(const QString& p_date)
 }
 
 // USer Name Control
+QString ExamManager::inputProfil() const
+{
+    return m_inputProfil;
+}
+
+void ExamManager::setInputProfil(const QString& p_value)
+{
+    if(m_inputProfil == p_value)
+        return;
+    m_inputProfil = p_value;
+    emit inputProfilChanged();
+}
+
 QString ExamManager::inputUserName() const
 {
     return m_inputUserName;
@@ -537,6 +589,32 @@ void ExamManager::setInputUserName(const QString& p_value)
         return;
     m_inputUserName = p_value;
     emit inputUserNameChanged();
+}
+
+QString ExamManager::inputUserPrenom() const
+{
+    return m_inputUserPrenom;
+}
+
+void ExamManager::setInputUserPrenom(const QString& p_value)
+{
+    if(m_inputUserPrenom == p_value)
+        return;
+    m_inputUserPrenom = p_value;
+    emit inputUserPrenomChanged();
+}
+
+QString ExamManager::inputCarteNumero() const
+{
+    return m_inputCarteNumero;
+}
+
+void ExamManager::setInputCarteNumero(const QString& p_value)
+{
+    if(m_inputCarteNumero == p_value)
+        return;
+    m_inputCarteNumero = p_value;
+    emit inputCarteNumeroChanged();
 }
 
 QString ExamManager::inputUSerPassword() const
@@ -567,10 +645,14 @@ void ExamManager::setInputValidCheck(bool value)
 
 void ExamManager::inputUserControl()
 {
-    QString name = inputUserName();
     QString password = inputUSerPassword();
 
-    setInputValidCheck(name == "Roboplanet" && password == "Roboplanet");
+    if(m_inputProfil == "operateur"){
+        setInputValidCheck(true);
+        return;
+    }else if(m_inputProfil == "administrateur"){
+        setInputValidCheck(password == "Roboplanet");
+    }
 }
 
 void ExamManager::setObjectType(const QString& p_value)          { m_objectType = p_value; }
@@ -743,6 +825,9 @@ bool ExamManager::importPlannerToml(const QString& p_filePath)
     setInspecteurNom(importer.inspectorNom());
     setInspecteurNumero(importer.inspectorNumero());
     setInspecteurDate(importer.inspectorDate());
+    setSupervisorName(importer.supervisorNom());
+    setSupervisorNumber(importer.supervisorNumero());
+    setSupervisorDate(importer.supervisorDate());
 
     // -- [object] block -> exam parameters
     setObjectType(importer.objectType());

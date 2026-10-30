@@ -105,13 +105,22 @@ Rectangle {
                             background: Rectangle {
                                 color: (idBtAScan1.pressed
                                         || ( scanManager.SelectedAScanIndex
-                                            === 0)) ? Design.colButtonSelectedBackground : idBtAScan1.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                                            === 0)) ? Design.colButtonBackground : idBtAScan1.hovered ? Design.colButtonHoveredBackground : "white"
                                 border.width: 1
                                 border.color: Design.colFrameBorder
                             }
 
-                            text: "1"
-
+                            contentItem: Text {
+                                text: "1"
+                                font.family: Fonts.robotoCondensed
+                                font.pointSize: 12
+                                font.bold: true
+                                color:  (idBtAScan1.pressed
+                                         || ( scanManager.SelectedAScanIndex
+                                             === 0)) ? "white" : "black"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
                             onPressed: {
                                 scanManager.SelectedAScanIndex = 0
                             }
@@ -125,12 +134,22 @@ Rectangle {
                             background: Rectangle {
                                 color: (idBtAScan2.pressed
                                         || ( scanManager.SelectedAScanIndex
-                                            === 1)) ? Design.colButtonSelectedBackground : idBtAScan2.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                                            === 1)) ? Design.colButtonBackground : idBtAScan2.hovered ? Design.colButtonHoveredBackground : "white"
                                 border.width: 1
                                 border.color: Design.colFrameBorder
                             }
 
-                            text: "2"
+                            contentItem: Text {
+                                text: "2"
+                                font.family: Fonts.robotoCondensed
+                                font.pointSize: 12
+                                font.bold: true
+                                color:  (idBtAScan2.pressed
+                                         || ( scanManager.SelectedAScanIndex
+                                             === 1)) ? "white" : "black"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
 
                             onPressed: {
                                 scanManager.SelectedAScanIndex = 1
@@ -145,12 +164,22 @@ Rectangle {
                             background: Rectangle {
                                 color: (idBtAScan3.pressed
                                         || ( scanManager.SelectedAScanIndex
-                                            === 2)) ? Design.colButtonSelectedBackground : idBtAScan3.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                                            === 2)) ? Design.colButtonBackground : idBtAScan3.hovered ? Design.colButtonHoveredBackground : "white"
                                 border.width: 1
                                 border.color: Design.colFrameBorder
                             }
 
-                            text: "3"
+                            contentItem: Text {
+                                text: "3"
+                                font.family: Fonts.robotoCondensed
+                                font.pointSize: 12
+                                font.bold: true
+                                color:  (idBtAScan3.pressed
+                                         || ( scanManager.SelectedAScanIndex
+                                             === 2)) ? "white" : "black"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
 
                             onPressed: {
                                 scanManager.SelectedAScanIndex = 2
@@ -165,13 +194,22 @@ Rectangle {
                             background: Rectangle {
                                 color: (idBtAScan4.pressed
                                         || ( scanManager.SelectedAScanIndex
-                                            === 3)) ? Design.colButtonSelectedBackground : idBtAScan4.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                                            === 3)) ? Design.colButtonBackground : idBtAScan4.hovered ? Design.colButtonHoveredBackground : "white"
                                 border.width: 1
                                 border.color: Design.colFrameBorder
                             }
 
-                            text: "4"
-
+                            contentItem: Text {
+                                text: "4"
+                                font.family: Fonts.robotoCondensed
+                                font.pointSize: 12
+                                font.bold: true
+                                color: (idBtAScan4.pressed
+                                        || ( scanManager.SelectedAScanIndex
+                                            === 3)) ? "white" : "black"
+                                horizontalAlignment: Text.AlignHCenter
+                                verticalAlignment: Text.AlignVCenter
+                            }
                             onPressed: {
                                 scanManager.SelectedAScanIndex = 3
                             }

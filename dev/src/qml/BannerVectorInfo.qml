@@ -141,9 +141,9 @@ Rectangle {
                     readonly property bool isRecording: examManager.examStep === 1
 
                     contentItem: Text {
-                        text: btScanStartPause.isRecording ? "PAUSE" : "PLAY"
+                        text: btScanStartPause.isRecording ? " ▌▌" : "▶"
                         font.family: Fonts.robotoCondensed
-                        font.pointSize: 12
+                        font.pointSize: btScanStartPause.isRecording ? 12 : 30
                         font.bold: true
                         color: "white"
                         horizontalAlignment: Text.AlignHCenter
@@ -216,33 +216,23 @@ Rectangle {
                     Layout.preferredWidth: 70
                     Layout.preferredHeight: idBannerVectorInfo.height - 15
 
-                    /*
-                    icon.source: enabled ? "qrc:///img/icons/iconOk.png" : "qrc:///img/icons/iconOkDisabledBright.png"
-                    icon.width: idBannerVectorInfo.height - 10
-                    icon.height: idBannerVectorInfo.height - 10
-                    icon.color: "transparent"
-
-                    antialiasing: true
-                    */
-
-                    contentItem: Text {
-                        text: "STOP"
-                        font.family: Fonts.robotoCondensed
-                        font.pointSize: 12
-                        font.bold: true
-                        color: "white"
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
+                    contentItem: Item {
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: 20
+                            height: 20
+                            color: "white"
+                        }
                     }
 
                     background: Rectangle {
-                        color: btScanStop.pressed ? Design.colButtonSelectedBackground : btScanStop.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
+                        color: btScanStop.pressed ? Design.colButtonSelectedBackground : btScanStop.hovered ? Qt.lighter(Design.colButtonBackground, 1.4) : Design.colButtonBackground
                         border.width: 3
                         border.color: Design.colButtonBorder
                     }
 
                     onPressed: {
-                        examManager.examStep = 3    // stop : export then back to stopped
+                        examManager.examStep = 3
                     }
 
                     ToolTip.delay: 500
@@ -251,19 +241,20 @@ Rectangle {
                     ToolTip.text: qsTr("Arrêter l'acquisition et générer le rapport BSCAN.");
                 }
 
+
+                /*
                 Button {
                     id: btVectorDirection
 
                     Layout.preferredWidth: idBannerVectorInfo.height - 15
                     Layout.preferredHeight: idBannerVectorInfo.height - 15
 
-                    /*
-                    icon.source: currentVector.funcPosition().paramLVectorDirX === 0 ? "qrc:///img/icons/altiscan_up_up.png" : "qrc:///img/icons/altiscan_up_down.png"
-                    icon.width: btVectorDirection.height
-                    icon.height: btVectorDirection.height
-                    icon.color: "transparent"
-                    padding: 1
-                    */
+                    // icon.source: currentVector.funcPosition().paramLVectorDirX === 0 ? "qrc:///img/icons/altiscan_up_up.png" : "qrc:///img/icons/altiscan_up_down.png"
+                    // icon.width: btVectorDirection.height
+                    // icon.height: btVectorDirection.height
+                    // icon.color: "transparent"
+                    // padding: 1
+
 
                     contentItem: Text {
                         text: qsTr("◉")
@@ -290,7 +281,7 @@ Rectangle {
                     ToolTip.timeout: 5000
                     ToolTip.visible: hovered
                     ToolTip.text: qsTr("Direction du porteur, permet d'inverser son sens de progression.");
-                }
+                }*/
 
                 // -------------------
                 // -- Position
@@ -507,7 +498,6 @@ Rectangle {
                         examManager.isMepAutoMode = !examManager.isMepAutoMode
                     }
                     font.pointSize: 12
-                    text: qsTr("Mode automatique")
                     palette.buttonText: "white"
                     background: Rectangle {
                         visible: currentVector.funcAScan0().hasReceivedMessage
@@ -978,7 +968,7 @@ Rectangle {
         }
         Rectangle {
             id: rectangleEnregistre
-            Layout.preferredWidth: 170
+            Layout.preferredWidth: 150
             Layout.preferredHeight: idBannerVectorInfo.height - 15
             Layout.alignment: Qt.AlignVCenter
             antialiasing: true
@@ -1003,7 +993,7 @@ Rectangle {
 
         Rectangle {
 
-            Layout.preferredWidth: 170
+            Layout.preferredWidth: 150
             Layout.preferredHeight: idBannerVectorInfo.height - 15
             Layout.alignment: Qt.AlignVCenter
             antialiasing: true
