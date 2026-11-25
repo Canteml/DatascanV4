@@ -1,15 +1,20 @@
 # Logiciel DATASCAN
 
-Versions V4.x.x du logiciel d'inspection DatascanV4. Le logiciel est développé par Roboplanet.
+Versions V4.x.x du logiciel présente dans la branche develop. Il s'agit d'un logiciel d'inspection non invasif, utilisant un capteur à ultrasons. 
+
+Le logiciel est développé par Roboplanet.
 
 Le logiciel prend en charge deux protocoles de communication :
 
 ## Environnement de compilation
 
-IDE                   Qt Creator 19.0.0
-Qt                    6.10.3
-Compilateur           MinGW 64 bits (kit *Desktop Qt 6.10.3 MinGW 64-bit*)
-Système de build      **qmake**, avec le fichier `dev/DatascanV4.pro`
+IDE : Qt Creator 19.0.0
+
+Qt : 6.10.3
+
+Compilateur : MinGW 64 bits (kit *Desktop Qt 6.10.3 MinGW 64-bit*)
+
+Système de build : **qmake**, avec le fichier `dev/DatascanV4.pro`
 
 Fichier 'dev/CMakeLists.txt' incomplet : il ne lie aucune des bibliothèques externes. Le projet doit être compilé avec qmake.
 
