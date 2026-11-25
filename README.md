@@ -6,10 +6,13 @@ Le logiciel prend en charge deux protocoles de communication :
 
 ## Environnement de compilation
 
-IDE                   Qt Creator 19.0.0
-Qt                    6.10.3
-Compilateur           MinGW 64 bits (kit *Desktop Qt 6.10.3 MinGW 64-bit*)
-Système de build      **qmake**, avec le fichier `dev/DatascanV4.pro`
+IDE : Qt Creator 19.0.0
+
+Qt : 6.10.3
+
+Compilateur : MinGW 64 bits (kit *Desktop Qt 6.10.3 MinGW 64-bit*)
+
+Système de build : **qmake**, avec le fichier `dev/DatascanV4.pro`
 
 Fichier 'dev/CMakeLists.txt' incomplet : il ne lie aucune des bibliothèques externes. Le projet doit être compilé avec qmake.
 
