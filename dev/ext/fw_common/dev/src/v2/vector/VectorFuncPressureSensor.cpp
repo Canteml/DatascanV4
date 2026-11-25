@@ -51,9 +51,7 @@ void VectorFuncPressureSensor::configureFunction(quint32 p_prodId)
     m_bIsWaterProduct = (ProtMsg::PROD_ROVER_IP68 == p_prodId); // Check if product is a water product
     emit depthTypeChanged(getDepthTypeStr());
 
-    //setParamDPressureB(0);        /// use saved value
     setParamLDepthValueM(0);
-    //setParamLPressureOffset(0);   /// use saved value
 
     onDeviceConnected();
 }
@@ -102,7 +100,6 @@ void VectorFuncPressureSensor::onLDepthValueMChanged()
     emit depthStrValueChanged(getDepthStrValue());
 }
 
-
 // -- Inherited from XmlProject
 bool VectorFuncPressureSensor::customLoadParam(QDomElement * p_pParent)
 {
@@ -139,7 +136,6 @@ bool VectorFuncPressureSensor::customSaveParam(QDomDocument * p_pDoc, QDomElemen
     bRet &= XML_WRITE_UNIQUE(m_paramLPressureOffset);
     return bRet;
 }
-
 
 void VectorFuncPressureSensor::onDeviceConnected()
 {

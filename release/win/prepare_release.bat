@@ -4,7 +4,7 @@ echo.
 
 rem variables to set function to user installation
 SET PATH_QT=C:\Qt\5.15.2
-SET APPLICATION_NAME=DatascanV3
+SET APPLICATION_NAME=DatascanV4
 
 echo Variables :
 echo PATH_QT = %PATH_QT%

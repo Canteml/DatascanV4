@@ -114,7 +114,6 @@ protected  :
     virtual void onDeviceConnected() override; ///< read device parameters when a device is just connected (called only for Ground Station)
 };
 
-// Sempre in fondo, dopo la chiusura della classe };
 Q_DECLARE_OPAQUE_POINTER(VectorFuncInertialSensor*)
 #ifndef METATYPE_VECTORFUNCXXX
 #define METATYPE_VECTORFUNCXXX

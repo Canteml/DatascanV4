@@ -93,17 +93,8 @@ Rectangle {
                         id: ibBtBannerTitleBG
                         color: examManager.examStep !== 0 /*stopped*/ ?
                                    Design.colGreen : "transparent" //btBannerTitle.pressed ? Design.colButtonSelectedBackground : btBannerTitle.hovered ? Design.colButtonHoveredBackground : Design.colButtonBackground
-                        //color: btBannerTitle.hovered ? "#9C9B9B" : "#FFFFFF"
 
-
-    //                    ColorAnimation on color{
-    //                        from:"#FFFFFFFF"
-    //                        to:"#F0FF0000"
-    //                        duration: 500
     //                        running:  examManager.examStep === 1 // recording measure
-    //                        loops : Animation.Infinite
-    //                        onRunningChanged: if(!running){ibBtBannerTitleBG.color = "#FFFFFFFF"} // reset
-    //                    }
                     }
 
                     onPressed: { globalManager.guiPage = globalManager.guiPage === 3 ? 2 : 3;}
@@ -124,18 +115,6 @@ Rectangle {
                     Layout.preferredWidth: 70
                     Layout.preferredHeight: idBannerVectorInfo.height - 15
 
-                    /*
-                    icon.source: examManager.examStep === 0 ? "qrc:///img/icons/btStart.png" :
-                                 examManager.examStep === 1 ? "qrc:///img/icons/btPause.png" :
-                                 examManager.examStep === 2 ? "qrc:///img/icons/btPause.png" :
-                                 "qrc:///img/icons/iconUndo.png"
-
-                    icon.width: idBannerVectorInfo.height - 15
-                    icon.height: idBannerVectorInfo.height - 15
-                    icon.color: "transparent"
-
-                    antialiasing: true
-                    */
 
                     // PLAY when stopped or paused, PAUSE while recording
                     readonly property bool isRecording: examManager.examStep === 1
@@ -241,59 +220,8 @@ Rectangle {
                     ToolTip.text: qsTr("Arrêter l'acquisition et générer le rapport BSCAN.");
                 }
 
-
-                /*
-                Button {
-                    id: btVectorDirection
-
-                    Layout.preferredWidth: idBannerVectorInfo.height - 15
-                    Layout.preferredHeight: idBannerVectorInfo.height - 15
-
-                    // icon.source: currentVector.funcPosition().paramLVectorDirX === 0 ? "qrc:///img/icons/altiscan_up_up.png" : "qrc:///img/icons/altiscan_up_down.png"
-                    // icon.width: btVectorDirection.height
-                    // icon.height: btVectorDirection.height
-                    // icon.color: "transparent"
-                    // padding: 1
-
-
-                    contentItem: Text {
-                        text: qsTr("◉")
-                        font.family: Fonts.robotoCondensed
-                        font.pointSize: 40
-                        font.bold: true
-                        color: "white"
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                    }
-
-                    background: Rectangle {
-                        color: Design.colButtonBackground
-                        border.width: 3
-                        border.color: Design.colButtonBorder
-                    }
-
-                    onPressed: {
-                        // switch direction
-                        currentVector.funcPosition().paramLVectorDirX = 1 - currentVector.funcPosition().paramLVectorDirX;
-                    }
-
-                    ToolTip.delay: 500
-                    ToolTip.timeout: 5000
-                    ToolTip.visible: hovered
-                    ToolTip.text: qsTr("Direction du porteur, permet d'inverser son sens de progression.");
-                }*/
-
                 // -------------------
                 // -- Position
-        //        Image {
-        //            id: icPosition
-        //            Layout.fillHeight: true
-        //            Layout.topMargin: 5
-        //            Layout.bottomMargin: 5
-        //            Layout.preferredWidth: 40
-        //            source: "qrc:///img/icons/iconPosition.png"
-        //            fillMode: Image.PreserveAspectFit
-        //        }
 
                 // Spacer: pushes the position next to the right-hand blocks and shrinks first when the window narrows
                 Item {
@@ -306,11 +234,9 @@ Rectangle {
                     Layout.rightMargin: 5
                     spacing: 2
 
-                    //Layout.fillHeight: true
                     TextInput {
                         id: lePosition
 
-                        //Layout.fillHeight: true
                         text: "12.34"
                         font.family: Fonts.robotoCondensed
                         font.pixelSize: 36
@@ -355,12 +281,10 @@ Rectangle {
 
                             visible: lePosition.focus | btPositionPlus.focus | btPositionMinus.focus
 
-
                             Button {
                                 id: btPositionPlus
                                 text: "+"
                                 font.pixelSize: 24
-                                //Layout.preferredWidth: lbPositionDim.width
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
 
@@ -378,7 +302,6 @@ Rectangle {
                                 id: btPositionMinus
                                 text: "-"
                                 font.pixelSize: 24
-                                //Layout.preferredWidth: lbPositionDim.width
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
 
@@ -393,67 +316,6 @@ Rectangle {
                         }
                     }
                 }
-
-                /*
-                ColumnLayout {
-                    visible: currentVector.funcPressureSensor0().isEnabled && currentVector.funcPressureSensor0().hasReceivedMessage
-                    Layout.fillHeight: true
-                    Layout.leftMargin: 20
-                    spacing: 0
-
-                    Text {
-                        text: currentVector.funcPressureSensor0().depthType
-                        font.family: Fonts.robotoCondensed
-                        font.pointSize: 12
-                    }
-
-                    Text {
-                        text: currentVector.funcPressureSensor0().depthStrValue
-                        font.family: Fonts.robotoCondensed
-                        font.pointSize: 30
-                    }
-                }
-
-                Rectangle {
-                    // seaparator
-                    // visible: currentVector.funcInertialSensor().isEnabled && currentVector.funcInertialSensor().hasReceivedMessage
-                    width: 5
-                    Layout.fillHeight: true
-                    color: "#9C9B9B"
-                    Layout.topMargin: 5
-                    Layout.bottomMargin: 5
-                }
-
-                RowLayout {
-                    // visible: currentVector.funcInertialSensor().isEnabled && currentVector.funcInertialSensor().hasReceivedMessage
-                    Layout.fillHeight: true
-                    Layout.leftMargin: 20
-                    spacing: 0
-
-                    Image {
-                        Layout.topMargin: 10
-                        Layout.bottomMargin: 10
-                        Layout.fillHeight: true
-                        rotation: currentVector.funcInertialSensor().paramLDirection
-                        source: "qrc:///img/icons/directionArrow.png"
-                        fillMode: Image.PreserveAspectFit
-                        antialiasing: true
-                    }
-
-                    Text {
-                        text: currentVector.funcInertialSensor().paramLDirection + "°"
-                        font.family: Fonts.robotoCondensed
-                        font.pointSize: 30
-                    }
-
-                }
-
-                Item {
-                    id: itSpacerHorizontal
-                    Layout.fillWidth: true
-                    Layout.fillHeight: true
-
-                }*/
 
             }
 
@@ -564,12 +426,10 @@ Rectangle {
 
                 RowLayout {
 
-                    //Layout.fillHeight: true
                     TextInput {
                         id: mepLePosition
                         Layout.minimumWidth: 120
 
-                        //Layout.fillHeight: true
                         text: "12.34"
                         font.family: "Helvetica"
                         font.pixelSize: 48
@@ -617,7 +477,6 @@ Rectangle {
                                 id: mepBtPositionPlus
                                 text: "+"
                                 font.pixelSize: 24
-                                //Layout.preferredWidth: lbPositionDim.width
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
 
@@ -635,7 +494,6 @@ Rectangle {
                                 id: mepBtPositionMinus
                                 text: "-"
                                 font.pixelSize: 24
-                                //Layout.preferredWidth: lbPositionDim.width
                                 Layout.fillWidth: true
                                 Layout.fillHeight: true
 
@@ -793,7 +651,6 @@ Rectangle {
 
                 }
 
-
                 Connections {
                     target : examPipeManager
                     function onEvClearCircular() {
@@ -862,7 +719,6 @@ Rectangle {
                 x:1
                 y:1
 
-                // source: idCameraAlarm
             }
 
             MouseArea {
@@ -906,9 +762,6 @@ Rectangle {
             Layout.topMargin: 5
             Layout.bottomMargin: 5           
 
-//            Layout.preferredWidth: idBannerVectorInfo.height
-//            Layout.preferredHeight: idBannerVectorInfo.height
-
             icon.source: joystickManager.isConnected ? "qrc:///img/icons/iconJoystickConnected.png" : "qrc:///img/icons/iconJoystickDisconnected.png"
             icon.width: idBannerVectorInfo.height
             icon.height: idBannerVectorInfo.height
@@ -942,8 +795,6 @@ Rectangle {
                     // Spacer
                 }
                 Image {
-                    //Layout.topMargin: 5
-                    //Layout.bottomMargin: 5
                     Layout.preferredWidth: 20
                     Layout.fillHeight: true
                     source: currentVector.funcBattery().paramDBatteryLvlP >= 90 ? "qrc:///img/icons/iconBat100.png" :
@@ -1107,7 +958,6 @@ Rectangle {
             ToolTip.visible: hovered
             ToolTip.text: qsTr("Arrêt d'urgence");
 
-
         }
     }
 
@@ -1177,7 +1027,7 @@ Rectangle {
 
     function updateLePosition() {
         idLePosition.text = currentVector.funcPosition().getBScanPosMeterWith2Decimals();
-        idMepLePosition.text = currentVector.funcPosition().getBScanPosMeterWith2Decimals();//(Math.round(currentVector.funcPosition().paramLBscanPosMmX/10)/100);
+        idMepLePosition.text = currentVector.funcPosition().getBScanPosMeterWith2Decimals();
     }
 
 }

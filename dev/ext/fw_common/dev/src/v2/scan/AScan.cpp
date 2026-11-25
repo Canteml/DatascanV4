@@ -10,7 +10,6 @@
 #
 # ==========================================================================*/
 
-
 // -- Internal includes
 #include "AScan.h"
 
@@ -21,7 +20,6 @@
 // ----------------------------------------------------------------------------
 // -- class AScanRawSample
 
-
 AScanRawSample::AScanRawSample() : XmlProject("AScanRawSample")
 {
 }
@@ -30,7 +28,9 @@ void AScanRawSample::copy(const AScanRawSample &p_value)
 {
     m_epocTimeMs = p_value.m_epocTimeMs;
     m_position = p_value.m_position;
-    memcpy(m_rawSamples, p_value.m_rawSamples, ASCAN_SAMPLE_SIZE);
+    m_sampleCount = p_value.m_sampleCount;
+    m_sampleFormat = p_value.m_sampleFormat;
+    memcpy(m_rawSamples, p_value.m_rawSamples, sizeof(m_rawSamples));
 }
 
 bool AScanRawSample::AScanRawSample::customLoadParam(QDomElement * p_pParent)
@@ -38,7 +38,16 @@ bool AScanRawSample::AScanRawSample::customLoadParam(QDomElement * p_pParent)
     bool bRet = true;
     QString sRawSample;
     bRet &= XML_READ_UNIQUE(QString, sRawSample);
-    memcpy(m_rawSamples, QByteArray::fromHex(sRawSample.toLatin1().data()).data(), ASCAN_SAMPLE_SIZE);
+    XML_READ_UNIQUE_DEFAULT(quint8, m_sampleFormat, 0);
+    const bool is14Bit = (SAMPLE_FORMAT_14BIT == m_sampleFormat);
+    const QByteArray baRaw = QByteArray::fromHex(sRawSample.toLatin1());
+    const qint32 available = is14Bit ? qint32(baRaw.size() / 2) : qint32(baRaw.size());
+    m_sampleCount = (ASCAN_SAMPLE_CAPACITY == available) ? qint32(ASCAN_SAMPLE_CAPACITY) : qint32(ASCAN_SAMPLE_SIZE);
+    memset(m_rawSamples, 0, sizeof(m_rawSamples));
+    const quint8 *bytes = reinterpret_cast<const quint8 *>(baRaw.constData());
+    for( qint32 i = 0; i < qMin(available, m_sampleCount); i++ ) {
+        m_rawSamples[i] = is14Bit ? qint16(quint16(bytes[2 * i]) | (quint16(bytes[2 * i + 1]) << 8)) : qint16(bytes[i]);
+    }
     bRet &= XML_READ_UNIQUE(qint64, m_epocTimeMs);
     QString sPosition;
     bRet &= XML_READ_UNIQUE(QString, sPosition);
@@ -51,16 +60,25 @@ bool AScanRawSample::customSaveParam(QDomDocument * p_pDoc, QDomElement * p_pPar
     bool bRet = true;
     QString sRawSample;
     QByteArray ba;
-    ba.setRawData((const char*)m_rawSamples, ASCAN_SAMPLE_SIZE);
+    const bool is14Bit = (SAMPLE_FORMAT_14BIT == m_sampleFormat);
+    ba.resize(is14Bit ? m_sampleCount * 2 : m_sampleCount);
+    for( qint32 i = 0; i < m_sampleCount; i++ ){
+        if(is14Bit){
+            ba[2 * i] = char(quint16(m_rawSamples[i]) & 0xFF);
+            ba[2 * i + 1] = char(quint16(m_rawSamples[i]) >> 8);
+        } else {
+            ba[i] = char(quint8(m_rawSamples[i]));
+        }
+    }
     QDataStream ds(&ba, QIODevice::WriteOnly);
     sRawSample = ba.toHex().data();
     bRet &= XML_WRITE_UNIQUE(sRawSample);
+    bRet &= XML_WRITE_UNIQUE(m_sampleFormat);
     bRet &= XML_WRITE_UNIQUE(m_epocTimeMs);
     QString sPosition = XmlHelper::QPointFToString(m_position);
     bRet &= XML_WRITE_UNIQUE(sPosition);
     return bRet;
 }
-
 
 // ----------------------------------------------------------------------------
 // -- class AScanEnhancedSample
@@ -79,15 +97,13 @@ void AScanEnhancedSample::copyParam(const AScanEnhancedSample &p_value)
 void AScanEnhancedSample::copy(const AScanEnhancedSample &p_value)
 {
     copyParam(p_value);
-    memcpy(m_enhancedSamples, p_value.m_enhancedSamples, ASCAN_SAMPLE_SIZE);
+    memcpy(m_enhancedSamples, p_value.m_enhancedSamples, sizeof(m_enhancedSamples));
 }
 
 bool AScanEnhancedSample::customLoadParam(QDomElement * p_pParent)
 {
     bool bRet = true;
     QString sEnhancedSample;
-    //bRet &= XML_READ_UNIQUE(QString, sEnhancedSample);
-    //memcpy(m_enhancedSamples, QByteArray::fromHex(sEnhancedSample.toLatin1().data()).data(), ASCAN_SAMPLE_SIZE);
     bRet &= XML_READ_UNIQUE(quint8, m_paramLLowPassFilter);
     bRet &= XML_READ_UNIQUE(quint8, m_paramDWaveType);
     return bRet;
@@ -98,10 +114,9 @@ bool AScanEnhancedSample::customSaveParam(QDomDocument * p_pDoc, QDomElement * p
     bool bRet = true;
     QString sEnhancedSample;
     QByteArray ba;
-    ba.setRawData((const char*)m_enhancedSamples, ASCAN_SAMPLE_SIZE);
+    ba.setRawData((const char*)m_enhancedSamples, sizeof(m_enhancedSamples));
     QDataStream ds(&ba, QIODevice::WriteOnly);
     sEnhancedSample = ba.toHex().data();
-    //bRet &= XML_WRITE_UNIQUE(sEnhancedSample);
     bRet &= XML_WRITE_UNIQUE(m_paramLLowPassFilter);
     bRet &= XML_WRITE_UNIQUE(m_paramDWaveType);
     return bRet;
@@ -122,6 +137,8 @@ qreal SensorSettings::getSampleFrequency() const
         rRet = 40000000;
     } else if( 2 == m_paramDSampleFreq ) {
         rRet = 20000000;
+    } else if( 3 == m_paramDSampleFreq ) {
+        rRet = 125000000;
     }
     return rRet;
 }
@@ -206,7 +223,6 @@ bool AScanGate::customSaveParam(QDomDocument * p_pDoc, QDomElement * p_pParent)
     return bRet;
 }
 
-
 // ----------------------------------------------------------------------------
 // -- class AScanMeasure
 
@@ -285,7 +301,7 @@ AScan::~AScan()
 
 void AScan::init()
 {
-    for(int i=0; i<AScanRawSample::ASCAN_SAMPLE_SIZE; i++) {
+    for(int i=0; i<AScanRawSample::ASCAN_SAMPLE_CAPACITY; i++) {
         m_ascanRawSample.m_rawSamples[i] = 0;
         m_ascanEnhancedSample.m_enhancedSamples[i] = 0;
     }
@@ -315,7 +331,6 @@ const AScanMeasure * AScan::getAScanMeasure() const
 {
     return &m_ascanMeasure;
 }
-
 
 void AScan::lock()
 {
@@ -348,12 +363,15 @@ quint32 AScan::mmToIndex(qreal p_posMm)
 {
     qreal d = m_sensorSettings.getSampleStepMM();
     qreal index = (p_posMm + m_ascanMeasure.m_paramLProbeDelayMm) / d;
-    if( index >= 0 && index < AScanRawSample::ASCAN_SAMPLE_SIZE ) {
+    const qint32 sampleCount = m_ascanRawSample.m_sampleCount;
+    if( index >= 0 && index < sampleCount ) {
         return index;
     }
-    fLogWarning(QString("position out of range : %1").arg(index));
-    if( index >= AScanRawSample::ASCAN_SAMPLE_SIZE ) {
-        return AScanRawSample::ASCAN_SAMPLE_SIZE-1;
+    if( 3 != m_sensorSettings.m_paramDSampleFreq) {
+        fLogWarning(QString("position out of range : %1").arg(index));
+    }
+    if( index >= sampleCount ) {
+        return sampleCount-1;
     }
     return 0;
 }

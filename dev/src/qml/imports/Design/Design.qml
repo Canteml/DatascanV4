@@ -6,7 +6,7 @@ QtObject {
 
     // Button Dark theme (Blue)
     readonly property color colButtonDarkText: "#FFFFFF"
-    readonly property color colButtonDarkSelectedBackground: "#C9C7C7"//"#9C9B9B"
+    readonly property color colButtonDarkSelectedBackground: "#16404F" //"#C9C7C7"//"#9C9B9B"
     readonly property color colButtonDarkSelectedText: "#000000" // "#FFFFFF"
     readonly property color colButtonDarkHoveredBackground: "#C9C7C7"
     readonly property color colButtonDarkHoveredText: "#FF8200"

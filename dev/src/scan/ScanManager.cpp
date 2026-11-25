@@ -32,7 +32,6 @@
 #include <QDateTime>
 #include <QElapsedTimer>
 
-
 ScanManager* ScanManager::m_pMyInstance = nullptr;
 
 ScanManager::ScanManager() : XmlSettingsLoggable("ScanManger")
@@ -90,7 +89,6 @@ ScanManager::~ScanManager()
     }
 }
 
-
 ScanManager *ScanManager::makeInstance()
 {
     if( nullptr != m_pMyInstance ) {
@@ -139,8 +137,6 @@ void ScanManager::initQmlObject(QObject * p_pQmlTopLevel)
     if( nullptr == m_pBScanGraphMain ) {
         fLogError("Fail to found m_pBScanGraphMain");
     } else {
-        connect(m_pBScanGraphMain, &BScanGraph::evViewXModeChanged, this, &ScanManager::onPrivateBScanViewXModeChanged);
-        connect(m_pBScanGraphMain, &BScanGraph::evViewYModeChanged, this, &ScanManager::onPrivateBScanViewYModeChanged);
         connect(m_pBScanGraphMain, &BScanGraph::evAxeXScaleMmChanged, this, &ScanManager::onPrivateBScanAxeXScaleMChanged);
         connect(m_pBScanGraphMain, &BScanGraph::evAxeYMinMmChanged, this, &ScanManager::onPrivateBScanAxeYMinMmChanged);
         connect(m_pBScanGraphMain, &BScanGraph::evAxeYMaxMmChanged, this, &ScanManager::onPrivateBScanAxeYMaxMmChanged);
@@ -166,8 +162,6 @@ void ScanManager::stop()
     }
     if( nullptr != m_pBScanGraphMain ) {
         m_pBScanGraphMain->stop();
-        disconnect(m_pBScanGraphMain, &BScanGraph::evViewXModeChanged, this, &ScanManager::onPrivateBScanViewXModeChanged);
-        disconnect(m_pBScanGraphMain, &BScanGraph::evViewYModeChanged, this, &ScanManager::onPrivateBScanViewYModeChanged);
         disconnect(m_pBScanGraphMain, &BScanGraph::evAxeXScaleMmChanged, this, &ScanManager::onPrivateBScanAxeXScaleMChanged);
         disconnect(m_pBScanGraphMain, &BScanGraph::evAxeYMinMmChanged, this, &ScanManager::onPrivateBScanAxeYMinMmChanged);
         disconnect(m_pBScanGraphMain, &BScanGraph::evAxeYMaxMmChanged, this, &ScanManager::onPrivateBScanAxeYMaxMmChanged);
@@ -234,17 +228,6 @@ void ScanManager::ascanSaveUserParams()
     pAscan->writeProjectToFile(QCoreApplication::applicationDirPath() + ASCAN_USER_PARAMS_FILE);
 }
 
-void ScanManager::ascanLoadUserParams()
-{
-    if( nullptr == m_pVector ) return;
-    VectorFuncAScan* pAscan = getSelectedFuncAScan();
-    if( nullptr == pAscan ) return;
-    const QString fileName = QCoreApplication::applicationDirPath() + ASCAN_USER_PARAMS_FILE;
-    if( !QFile::exists(fileName) ) return;  // nothing saved yet
-    pAscan->readProjectFromFile(fileName);
-    emit evSelectedFuncAScanChanged(pAscan);
-}
-
 void ScanManager::ascanResetDefaultParams()
 {
     if( nullptr == m_pVector ) return;
@@ -293,9 +276,7 @@ bool ScanManager::ascanSavePreset(const QString& p_name)
 
     if( !QDir().mkpath(QCoreApplication::applicationDirPath() + ASCAN_PRESETS_DIR) ) return false;
 
-    if( !pAScan->writeProjectToFile(fileName) ) return false;
-    emit evAScanPresetChanged();
-    return true;
+    return pAScan->writeProjectToFile(fileName);
 }
 
 bool ScanManager::ascanPresetExists(const QString& p_name) const
@@ -434,11 +415,6 @@ void ScanManager::bscanSaveUserParams()
     bscanWriteParamsToFile(QCoreApplication::applicationDirPath() + BSCAN_USER_PARAMS_FILE);
 }
 
-void ScanManager::bscanLoadUserParams()
-{
-    bscanReadParamsFromFile(QCoreApplication::applicationDirPath() + BSCAN_USER_PARAMS_FILE);
-}
-
 static const QString BSCAN_PRESET_DIR = "/bscan_presets";
 
 static QString bscanPresetFilePath(const QString& p_name)
@@ -456,9 +432,7 @@ bool ScanManager::bscanSavePreset(const QString& p_name)
 
     if(!QDir().mkpath(QCoreApplication::applicationDirPath() + BSCAN_PRESET_DIR)) return false;
 
-    if(!bscanWriteParamsToFile(fileName)) return false;
-    emit evBScanPresetChanged();
-    return true;
+    return bscanWriteParamsToFile(fileName);
 }
 
 bool ScanManager::bscanPresetExists(const QString& p_name) const
@@ -491,50 +465,7 @@ bool ScanManager::bscanLoadPreset(const QString& p_name)
     return true;
 }
 
-void ScanManager::bscanResetDefaultParams()
-{
-    setBScanAxeXScaleM(2);
-    setBScanAxeYMaxMm(10);
-    setBScanAxeYMinMm(0);
-    if( nullptr != m_pExamManager ) {
-        m_pExamManager->setZoneAutoHoleSizeMm(30);
-    }
-    if( nullptr != m_pEncoderController ) {
-        m_pEncoderController->resetCalibration();
-    }
-}
-
 // -- BSCAN
-
-qint32 ScanManager::getBScanViewXMode(void) const
-{
-    if( nullptr != m_pBScanGraphMain ) {
-        return m_pBScanGraphMain->getViewXMode();
-    }
-    return BScanGraph::VIEW_X_AUTO;
-}
-
-void ScanManager::setBScanViewXMode(quint32 p_value)
-{
-    if( nullptr != m_pBScanGraphMain ) {
-        m_pBScanGraphMain->setViewXMode(p_value);
-    }
-}
-
-qint32 ScanManager::getBScanViewYMode(void) const
-{
-    if( nullptr != m_pBScanGraphMain ) {
-        return m_pBScanGraphMain->getViewYMode();
-    }
-    return BScanGraph::VIEW_Y_AUTO;
-}
-
-void ScanManager::setBScanViewYMode(quint32 p_value)
-{
-    if( nullptr != m_pBScanGraphMain ) {
-        m_pBScanGraphMain->setViewYMode(p_value);
-    }
-}
 
 qreal ScanManager::getBScanAxeXScaleM(void) const
 {
@@ -635,21 +566,7 @@ void ScanManager::onNewAScanTreated(AScan * p_pAscan)
 void ScanManager::onVectorNbAScanEnabledChanged(qint32)
 {
 //    // clear ASCAN
-//    for(int i=0; i<VectorStd::NB_FUNC_ASCAN; i++) {
-//        delete m_pAScan[i];
-//        m_pAScan[i] = nullptr;
-//    }
     setSelectedAScanIndex(0);
-}
-
-void ScanManager::onPrivateBScanViewXModeChanged(qint32 p_value)
-{
-    emit evBScanViewXModeChanged(p_value);
-}
-
-void ScanManager::onPrivateBScanViewYModeChanged(qint32 p_value)
-{
-    emit evBScanViewYModeChanged(p_value);
 }
 
 void ScanManager::onPrivateBScanAxeXScaleMChanged(qreal p_value)
@@ -753,7 +670,6 @@ bool ScanManager::customSaveSettings(QDomDocument * /*p_pDoc*/, QDomElement * p_
     }
     return bRet;
 }
-
 
 void ScanManager::setPrivateSelectedAScanIndex(quint32 p_index)
 {

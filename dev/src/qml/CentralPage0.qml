@@ -6,11 +6,9 @@ import Design 1.0
 import Fonts 1.0
 import "rp_components"
 
-
 Rectangle {
     Layout.fillWidth: true
     Layout.fillHeight : true
-
 
     Dialog {
         id: userLoginWindow
@@ -138,6 +136,8 @@ Rectangle {
                 font.family: Fonts.robotoCondensed
                 selectByMouse: true
                 color: "black"
+                horizontalAlignment: Text.AlignHCenter
+                verticalAlignment: Text.AlignVCenter
                 Layout.row: 1
                 Layout.column: 1
                 Layout.fillWidth: true
@@ -310,12 +310,10 @@ Rectangle {
         anchors.fill: parent
         anchors.margins: 5
 
-
         Item {
             Layout.fillWidth: true
-            height: 30
+            height: 10
         }
-
 
         RowLayout{
             Layout.fillWidth: true
@@ -328,8 +326,8 @@ Rectangle {
                 Rectangle {
                     color: "#D5DEE3"
                     Layout.fillWidth: true
-                    Layout.leftMargin: 20
-                    Layout.rightMargin: 20
+                    Layout.leftMargin: 5
+                    Layout.rightMargin: 5
                     Layout.preferredHeight: 40
                     border.width: 1
                     border.color: Design.colFrameBorder
@@ -353,8 +351,8 @@ Rectangle {
                 Rectangle {
                     color: "white"
                     Layout.fillWidth: true
-                    Layout.leftMargin: 20
-                    Layout.rightMargin: 20
+                    Layout.leftMargin: 5
+                    Layout.rightMargin: 5
                     height: 90
                     border.width: 1
                     border.color: Design.colFrameBorder
@@ -446,8 +444,8 @@ Rectangle {
                 Rectangle {
                     color: "#D5DEE3"
                     Layout.fillWidth: true
-                    Layout.leftMargin: 20
-                    Layout.rightMargin: 20
+                    Layout.leftMargin: 5
+                    Layout.rightMargin: 5
                     Layout.preferredHeight: 40
                     border.width: 1
                     border.color: Design.colFrameBorder
@@ -471,12 +469,11 @@ Rectangle {
                 Rectangle {
                     color: "white"
                     Layout.fillWidth: true
-                    Layout.leftMargin: 20
-                    Layout.rightMargin: 20
+                    Layout.leftMargin: 5
+                    Layout.rightMargin: 5
                     height: 90
                     border.width: 1
                     border.color: Design.colFrameBorder
-
 
                     RowLayout{
                         spacing: 20
@@ -560,19 +557,18 @@ Rectangle {
 
         Item {
             Layout.fillWidth: true
-            height: 30
+            height: 10
         }
 
         ColumnLayout {
             Layout.fillWidth: true
             spacing: 0
 
-
             Rectangle {
                 color: "#D5DEE3"
                 Layout.fillWidth: true
-                Layout.leftMargin: 20
-                Layout.rightMargin: 20
+                Layout.leftMargin: 5
+                Layout.rightMargin: 5
                 Layout.preferredHeight: 40
                 border.width: 1
                 border.color: Design.colFrameBorder
@@ -596,8 +592,8 @@ Rectangle {
             Rectangle {
                 color: "white"
                 Layout.fillWidth: true
-                Layout.leftMargin: 20
-                Layout.rightMargin: 20
+                Layout.leftMargin: 5
+                Layout.rightMargin: 5
                 height: 200
                 border.width: 1
                 border.color: Design.colFrameBorder
@@ -760,374 +756,6 @@ Rectangle {
                 }
             }
         }
-
-
-        /*
-        RowLayout {
-            Layout.fillWidth: true
-            Layout.leftMargin: 15
-
-            Text {
-                text: qsTr("Activité :")
-                font.pixelSize: 14
-            }
-
-            Switch {
-                text: checked ? qsTr("En service") : qsTr("Hors service")
-                Layout.leftMargin: 10
-                font.pixelSize: 14
-                onCheckedChanged: {
-                    examManager.structureActive = checked
-                }
-                Component.onCompleted: {
-                    checked = examManager.structureActive
-                }
-            }
-        }
-
-        RowLayout {
-            Layout.fillWidth : true
-            Layout.leftMargin: 15
-
-            Button {
-                id: idBtCtl0
-                Layout.preferredHeight: 50
-                text: qsTr("CONTROLE\nBSCAN")
-                checked: examManager.controlType === 0
-                onClicked: {examManager.controlType = 0}
-                onCheckedChanged: {checked = (examManager.controlType === 0)}
-                Connections {
-                    target: examManager
-                    function onControlTypeChanged() {idBtCtl0.checked = (examManager.controlType === 0)}
-                }
-            }
-            Button {
-                id: idBtCtl1
-                Layout.preferredHeight: 50
-                text: qsTr("CONTROLE\nMEP")
-                checked: examManager.controlType === 1
-                onClicked: {examManager.controlType = 1}
-                onCheckedChanged: {checked = (examManager.controlType === 1)}
-                Connections {
-                    target: examManager
-                    function onControlTypeChanged() {idBtCtl1.checked = (examManager.controlType === 1)}
-                }
-            }
-            Button {
-                id: idBtCtl2
-                Layout.preferredHeight: 50
-                visible: products.hasPipeEnabled
-                text: qsTr("TUYAU\n4 POINTS")
-                checked: examManager.controlType === 2
-                onClicked: {examManager.controlType = 2}
-                onCheckedChanged: {checked = (examManager.controlType === 2)}
-                Connections {
-                    target: examManager
-                    function onControlTypeChanged() {idBtCtl2.checked = (examManager.controlType === 2)}
-                }
-            }
-        }
-
-        FormSection {
-            text: qsTr("Plan de contrôle")
-        }
-
-        StackLayout {
-            id: idSlCtl
-            currentIndex: examManager.controlType
-            Layout.fillWidth: true
-            Layout.leftMargin: 15
-
-            // -- PAGE GENERATRICE BSCAN
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-                RowLayout {
-                    Layout.fillWidth: true
-                    Text {
-                        text: qsTr("■  Nombre de génératrices :")
-                    }
-                    RpSpinBox {
-                        id: idSbNbGene
-                        from: 1
-                        to: 1000
-                        value: examManager.bscanNbGeneratrix
-                        onValueChanged: { examManager.bscanNbGeneratrix = idSbNbGene.value; }
-                    }
-
-                    Item {
-                        Layout.fillWidth: true
-                    }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    Layout.leftMargin: 40
-                    Text {
-                        text: qsTr("Intervalle (m) : ")
-                    }
-                    Text {
-                        text: examManager.bscanInterval.toFixed(2)
-                        font.bold: true
-                        Layout.minimumWidth: 40
-                    }
-
-                    GridLayout {
-                        columns: 4
-
-                        Text {
-                            text: qsTr("Périmètre (m) : ")
-                            Layout.leftMargin: 10
-                        }
-                        TextField {
-                            id: idTxtPerimeter
-                            Layout.preferredWidth: 80
-                            selectByMouse: true
-                            Layout.preferredHeight: 30
-                            validator: RegularExpressionValidator {
-                                regularExpression: /([0-9]+(\.[0-9]+))/
-                            }
-                            onTextEdited: {examManager.bscanPerimeter = parseFloat(idTxtPerimeter.text)}
-                            Connections {
-                                target : examManager
-                                function onBscanPerimeterChanged() {
-                                    if(!idTxtPerimeter.focus) {
-                                        idTxtPerimeter.text = examManager.bscanPerimeter.toFixed(2)
-                                    }
-                                }
-                            }
-                            Component.onCompleted: {
-                                idTxtPerimeter.text = examManager.bscanPerimeter.toFixed(2)
-                            }
-                        }
-
-                        Text {
-                            text: qsTr("Diametre (m) : ")
-                            Layout.leftMargin: 10
-                        }
-                        TextField {
-                            id: idTxtDiameter
-                            Layout.preferredWidth: 80
-                            selectByMouse: true
-                            Layout.preferredHeight: 30
-                            validator: RegularExpressionValidator {
-                                regularExpression: /([0-9]+(\.[0-9]+))/
-                            }
-                            onTextEdited: {examManager.bscanDiameter = parseFloat(idTxtDiameter.text)}
-                            Connections {
-                                target : examManager
-                                function onBscanDiameterChanged() {
-                                    if(!idTxtDiameter.focus) {
-                                        idTxtDiameter.text = examManager.bscanDiameter.toFixed(2)
-                                    }
-                                }
-                            }
-                            Component.onCompleted: {
-                                idTxtDiameter.text = examManager.bscanDiameter.toFixed(2)
-                            }
-                        }
-                    }
-                }
-            }
-
-            // -- PAGE GENERATRICE MEP
-
-            ColumnLayout {
-                Layout.fillWidth: true
-                Layout.fillHeight: true
-
-                RowLayout {
-                    Layout.fillWidth: true
-
-                    Text {
-                        text: qsTr("Découper en viroles :")
-                        font.pixelSize: 14
-                    }
-
-                    Switch {
-                        id: idEnableViroles
-                        text: checked ? qsTr("Oui") : qsTr("Non")
-                        Layout.leftMargin: 10
-                        font.pixelSize: 14
-                        onCheckedChanged: {
-                            examManager.virolesEnabled = checked
-                        }
-                        Component.onCompleted: {
-                            checked = examManager.virolesEnabled
-                        }
-                    }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    visible: examManager.virolesEnabled
-
-                    Text {
-                        text: qsTr("Nombre de mesures par virole :")
-                        Layout.leftMargin: 10
-                        font.pixelSize: 14
-                    }
-
-                    RpSpinBox {
-                        id: idPerVirole
-                        from: 1
-                        to: 1000
-                        value: examManager.measuresPerVirole
-                        onValueChanged: {
-                            examManager.measuresPerVirole = idPerVirole.value
-                        }
-                    }
-
-                    Text {
-                        text: qsTr("Nombre de viroles par génératrice :")
-                        Layout.leftMargin: 10
-                        font.pixelSize: 14
-                    }
-
-                    RpSpinBox {
-                        id: idNbViroles
-                        from: 1
-                        to: 1000
-                        Component.onCompleted: {
-                            idNbViroles.value = examManager.mepNbRow / examManager.measuresPerVirole
-                        }
-                        onVisibleChanged: {
-                            if(!idNbViroles.visible) return
-                            idNbViroles.value = examManager.mepNbRow / examManager.measuresPerVirole
-                        }
-                    }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    Text {
-                        text: qsTr("■  Nombre de génératrices :")+" "
-                    }
-                    RpSpinBox {
-                        id: idSbNbMesW
-                        from: 1
-                        to: 1000
-                        value: examManager.mepNbCol
-                        onValueChanged: { examManager.mepNbCol = idSbNbMesW.value; }
-                    }
-
-                    Item {
-                        Layout.fillWidth: true
-                    }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    Layout.leftMargin: 40
-
-                    Text {
-                        text: qsTr("Périmètre (m) : ")
-                        //Layout.leftMargin: 10
-                    }
-                    TextField {
-                        id: idTxtPerimeterMep
-                        Layout.preferredWidth: 80
-                        selectByMouse: true
-                        Layout.preferredHeight: 30
-                        onTextEdited: {examManager.mepPerimeter = parseFloat(idTxtPerimeterMep.text)}
-                        Connections {
-                            target : examManager
-                            function onMepPerimeterChanged() {
-                                if(!idTxtPerimeterMep.focus) {
-                                    idTxtPerimeterMep.text = examManager.mepPerimeter.toFixed(2)
-                                }
-                            }
-                        }
-                        Component.onCompleted: {
-                            idTxtPerimeterMep.text = examManager.mepPerimeter.toFixed(2)
-                        }
-                    }
-
-                    Text {
-                        text: qsTr("Diamètre (m) : ")
-                        Layout.leftMargin: 10
-                    }
-                    TextField {
-                        id: idTxtDiameterMep
-                        Layout.preferredWidth: 80
-                        selectByMouse: true
-                        Layout.preferredHeight: 30
-                        onTextEdited: {examManager.mepDiameter = parseFloat(idTxtDiameterMep.text)}
-                        Connections {
-                            target : examManager
-                            function onMepDiameterChanged() {
-                                if(!idTxtDiameterMep.focus) {
-                                    idTxtDiameterMep.text = examManager.mepDiameter.toFixed(2)
-                                }
-                            }
-                        }
-                        Component.onCompleted: {
-                            idTxtDiameterMep.text = examManager.mepDiameter.toFixed(2)
-                        }
-                    }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    Text {
-                        text: qsTr("■  Nombre de mesures par génératrice :")
-                    }
-                    RpSpinBox {
-                        id: idSbNbMesH
-                        enabled: !examManager.virolesEnabled
-                        from: 1
-                        to: 1000
-                        value: (!idNbViroles.visible) ? examManager.mepNbRow : examManager.measuresPerVirole * idNbViroles.value
-                        onValueChanged: {
-                            examManager.mepNbRow = idSbNbMesH.value
-                        }
-                    }
-
-                    Item {
-                        Layout.fillWidth: true
-                    }
-                }
-
-                RowLayout {
-                    Layout.fillWidth: true
-                    Layout.leftMargin: 40
-                    Text {
-                        text: qsTr("Intervalle Y (m) : ")
-                        Layout.minimumWidth: 105
-                    }
-
-                    Text {
-                        text: examManager.mepIntervalY.toFixed(2)
-                        font.bold: true
-                        Layout.minimumWidth: 40
-                    }
-
-                    Text {
-                        text: qsTr("Hauteur (m) : ")
-                        Layout.leftMargin: 10
-                    }
-                    TextField {
-                        id: idTxtHeightMep
-                        Layout.preferredWidth: 80
-                        selectByMouse: true
-                        Layout.preferredHeight: 30
-                        onTextEdited: {examManager.mepHeight = parseFloat(idTxtHeightMep.text)}
-                        Connections {
-                            target : examManager
-                            function onMepHeightChanged() {
-                                if(!idTxtHeightMep.focus) {
-                                    idTxtHeightMep.text = examManager.mepHeight.toFixed(2)
-                                }
-                            }
-                        }
-                        Component.onCompleted: {
-                            idTxtHeightMep.text = examManager.mepHeight.toFixed(2)
-                        }
-                    }
-                }
-            }
-        }*/
 
         Item {
             // Spacer

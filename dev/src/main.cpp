@@ -31,12 +31,11 @@ int main(int argc, char *argv[])
 
     CoreApp app;
 
-
-    // Check if there is no other Datascan V3 instance
+    // Check if there is no other Datascan V4 instance
     /* Creation of the shared memory zone identified by a character string
      *  We will use a GUID to have a unique identifier so that there is no possible conflict with other applications
      */
-    QSharedMemory sharedMemory("{18A43CCC-3F2B-4F4B-8247-4EEFA600A762}"); // see the App ino setup for the correct ID to use
+    QSharedMemory sharedMemory("{57984FCD-F978-4768-9D05-F898BC58D159}"); // see the App ino setup for the correct ID to use
     // Check when creating this memory zone if it exists
     if(false==sharedMemory.create(sizeof(int)))
     {
@@ -56,5 +55,4 @@ int main(int argc, char *argv[])
          return app.execUiQml(argc, argv);
     }
 
-    //return app.execUiQml_withSelectLanguage(argc, argv);
 }

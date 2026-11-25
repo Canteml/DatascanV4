@@ -101,14 +101,8 @@ VectorStd::~VectorStd()
 // -- Methods inherited from IntComMsg :
 void VectorStd::processReceivedMsg(ProtMsg* p_pMsg)
 {
-//    fLogInfo(QString("Received MSG : DEVICE_AD(%1) MSG_TYPE(%2) DEVICE_FUNC(%3) MSG_OBJ(%4)")
-//             .arg(p_pMsg->m_deviceAd)
-//             .arg(p_pMsg->m_msgType)
-//             .arg(p_pMsg->m_deviceFunc)
-//             .arg(p_pMsg->m_msgObj));
     if( m_mapFunctionsById.contains(p_pMsg->m_deviceFunc) ) {
         GenVectorFunc * pFunc = m_mapFunctionsById.value(p_pMsg->m_deviceFunc);
-        // pFunc->processReceivedMsg(p_pMsg);
         pFunc->pushMsg(p_pMsg);
     } else {
         fLogWarning(QString("Message not mapped : COMP(%1) MSG_TYPE(%2) MSG_GRP(%3) MSG_OBJ(%4)")
@@ -372,7 +366,6 @@ qint32 VectorStd::getFuncStateConnection() const
     return m_funcStateConnection;
 }
 
-
 void VectorStd::setListFunctionEnabled(const QList<quint32>& p_lFunc)
 {
     // Delete Devices and links
@@ -504,11 +497,15 @@ bool VectorStd::customSaveParam(QDomDocument * p_pDoc, QDomElement * p_pParent)
     return bRet;
 }
 
-
 // -- Behaviour
 
 void VectorStd::configureProduct(quint32 p_prodId, quint32 p_deviceAd)
 {
+    if( ProtMsg::PROD_RED_PITAYA == p_prodId ) {
+        setProdIdDeviceAdFuntions(p_prodId, p_deviceAd, QList<quint32>{ quint32(ProtMsg::DEVICE_FUNC_ASCAN_0) });
+        return;
+    }
+
     // enable "functions" if nedeed by a product
     QList<quint32> lFunc;
 

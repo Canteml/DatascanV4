@@ -34,8 +34,6 @@ struct ProtMsg;
 class ComDeviceManager : public QObject, public Loggable {
     Q_OBJECT
 
-    //Q_PROPERTY(quint32 state READ getState NOTIFY evStateChanged)
-
 public :
 
     ComDeviceManager(QObject *parent, IntComMsg * p_pIntComMsg);
@@ -51,8 +49,6 @@ public :
     void stopDeviceDiscover();  ///< used by MPC
     void addDevice(GenComLink* p_link, const VectorFuncGeneralAuth& p_param);   ///< used by MPC (called by LinkManager when a new connection has been authentified)
 
-    //void makeDeviceAndFuntions(const QString &p_deviceName, quint32 p_deviceAddress, const QList<quint32>& p_functions);  ///< configure the map of functions
-    //void makeDeviceAndFuntion(const QString &p_deviceName, quint32 p_deviceAddress, quint32 p_function);  ///< configure the map of functions
     void clearDeviceFunctions();
     void removeDevice(ComDevice* p_device);
     QList<quint32> getListFunctions(void) const;            ///< return a list of all functions implemented in the devices
@@ -65,12 +61,9 @@ public :
     void emergencyStop();
 
     // -- Behaviour
-    //quint32 getState() const;
     void resetComOnGeneralParamChanged();   ///<
 
     // -- Topo
-//    void makeNetworkTopology(quint32 p_topo);   ///< update links
-//    quint32 getNetworkTopoloty() const;
 
     bool mapFunctionToDevice(quint32 p_funcId, ComDevice *p_pDevice);
     bool unmapFunctionToDevice(quint32 p_funcId);
@@ -80,7 +73,6 @@ public :
 
 signals :
     // -- State of th Connection
-//    void evStateChanged(quint32);   ///< value in COM_FUNC_MANAGER_STATE
     void evDeviceListChanged(qint32 p_value);
 
 private slots :
@@ -97,7 +89,4 @@ private :
     ComLinkManager * m_pComLinkManager; ///< reference to the ComLinkManager of my IntComMsg
 
     // -- Behaviour
-//    quint32 m_state;    ///< value in COM_FUNC_MANAGER_STATE
-//    void updateState();
-//    void setState(quint32 p_value);
 };

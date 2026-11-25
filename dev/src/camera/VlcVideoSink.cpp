@@ -6,20 +6,9 @@
 #include <QThread>
 #include <QDebug>
 
-
 VlcVideoSink::VlcVideoSink(VlcMediaPlayer* player, QObject* parent)
     : QObject(parent), m_pPlayer(player)
 {
-    /*
-    // Recupera il puntatore nativo libvlc dal wrapper VLCQt
-    libvlc_media_player_t* nativePlayer = m_pPlayer->core();
-
-    libvlc_media_player_set_hwnd(nativePlayer, nullptr);
-
-    libvlc_video_set_callbacks(nativePlayer, onLock, onUnlock, onDisplay, this);
-    libvlc_video_set_format(nativePlayer, "RV32",
-                            m_width, m_height, m_width * 4);
-    */
 }
 
 void VlcVideoSink::initCallbacks()
@@ -38,17 +27,6 @@ VlcVideoSink::~VlcVideoSink()
 {
 
     m_destroying.storeRelease(1);
-    /*
-    // Rimuovi i callback PRIMA di stoppare
-    if (m_pPlayer) {
-        libvlc_media_player_t* nativePlayer = m_pPlayer->core();
-        if (nativePlayer) {
-            libvlc_video_set_callbacks(nativePlayer, nullptr, nullptr, nullptr, nullptr);
-        }
-        m_pPlayer->stop();
-    }
-    QThread::msleep(200);
-*/
     m_pSink = nullptr;
 }
 
@@ -104,43 +82,3 @@ void VlcVideoSink::onDisplay(void* opaque, void*)
     }, Qt::QueuedConnection);
 }
 
-/*
-
-void VlcVideoSink::onDisplay(void* opaque, void*)
-{
-    VlcVideoSink* self = static_cast<VlcVideoSink*>(opaque);
-    if (self->m_destroying.loadAcquire()) return;
-    if (!self->m_pSink) return;
-    static int frameCount = 0;
-    if (frameCount < 50) {  // aumenta il limite
-        frameCount++;
-        FILE* f = fopen("C:/ProgramData/Roboplanet/DatascanV3/conf/camera_test.txt", "a");
-        if (f) {
-            fprintf(f, "onDisplay frameCount=%d sink=%s topLevel=%s\n",
-                    frameCount,
-                    self->m_pSink ? "OK" : "NULL",
-                    // non possiamo accedere a m_pQmlTopLevel qui, ma possiamo verificare il sink
-                    self->m_pSink ? "set" : "not set");
-            fclose(f);
-        }
-    }
-
-    if (!self->m_pSink) return;
-
-    QMutexLocker locker(&self->m_mutex);
-
-    QVideoFrameFormat fmt(QSize(self->m_width, self->m_height),
-                          QVideoFrameFormat::Format_RGBX8888);
-    QVideoFrame frame(fmt);
-
-    if (frame.map(QVideoFrame::WriteOnly)) {
-        memcpy(frame.bits(0), self->m_frame.constBits(),
-               self->m_frame.sizeInBytes());
-        frame.unmap();
-    }
-
-    QMetaObject::invokeMethod(self->m_pSink, [self, frame]() {
-        self->m_pSink->setVideoFrame(frame);
-    }, Qt::QueuedConnection);
-}
-*/

@@ -8,13 +8,10 @@
         <file>CentralPage2.qml</file>
         <file>CentralPage4.qml</file>
         <file>BannerVectorInfo.qml</file>
-        <file>DeviceLinkConfig.qml</file>
-        <file>DeviceLinkConfigForm.ui.qml</file>
         <file>imports/Design/Design.qml</file>
         <file>imports/Design/qmldir</file>
         <file>imports/Fonts/Fonts.qml</file>
         <file>imports/Fonts/qmldir</file>
-        <file>P3/P3AscanCtrl.qml</file>
         <file>P3/P3SettingsBar.qml</file>
         <file>P3/P3TopAscan.qml</file>
         <file>P3/P3TopCam.qml</file>
@@ -25,16 +22,13 @@
         <file>P3/P3BottomSettingsMep.qml</file>
         <file>P3/P3BottomSensorsDisplay.qml</file>
         <file>P3/P3RepeatButton.qml</file>
-        <file>P3/P3BottomBScanCtrl.qml</file>
         <file>P3/P3BottomBScanView.qml</file>
         <file>P3/P3VectorIO.qml</file>
-        <file>P3/P3BottomVectorIO.qml</file>
         <file>rp_components/RpSpinBox.qml</file>
         <file>BannerBottomNavigate.qml</file>
         <file>rp_components/FormSection.qml</file>
         <file>P3/P3TopExportBscan.qml</file>
         <file>P3/P3BottomExportBscan.qml</file>
-        <file>rp_components/CameraParam.qml</file>
         <file>P3/P3BottomPipeCtrl.qml</file>
         <file>P3/P3BottomPipeView.qml</file>
         <file>rp_components/PipeSensor.qml</file>

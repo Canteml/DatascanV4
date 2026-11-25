@@ -4,6 +4,7 @@
 #include <v2/com/ComLinkUdpConfig.h>
 
 #include <QUdpSocket>
+#include <QMutex>
 
 #include <qqml.h>
 
@@ -20,6 +21,7 @@ protected:
 
 private:
    QByteArray m_baBufferedData;
+    mutable QMutex m_mBufferedData;
 
 };
 

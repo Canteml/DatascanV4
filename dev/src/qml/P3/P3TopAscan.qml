@@ -24,11 +24,6 @@ Rectangle {
 
                 anchors.fill : parent
 
-
-//                Layout.fillWidth: true
-//                Layout.fillHeight: true
-
-
                 // -------------------
                 // -- Top Banner
 
@@ -38,12 +33,6 @@ Rectangle {
                     Layout.maximumHeight: 70
                     Layout.leftMargin: 5
                     Layout.rightMargin: 5
-
-    //                Rectangle {
-    //                    width: 200
-    //                    height: 70
-    //                    color: "#002055"
-    //                }
 
                     Image {
                         id: idThickness
@@ -59,7 +48,6 @@ Rectangle {
                     Text {
                         id: leAScanThickness
                         Layout.minimumWidth: 120
-                        //Layout.fillHeight: true
                         text: "12.34"
                         font.family: "Helvetica"
                         font.pixelSize: 48
@@ -70,7 +58,6 @@ Rectangle {
 
                     Text {
                         id: leAScanThickness1E
-                        //Layout.minimumWidth: 120
                         Layout.fillHeight: true
                         Layout.bottomMargin: 12
                         text: " / 12.34"
@@ -125,7 +112,6 @@ Rectangle {
                                 scanManager.SelectedAScanIndex = 0
                             }
                         }
-
 
                         Button {
                             id: idBtAScan2

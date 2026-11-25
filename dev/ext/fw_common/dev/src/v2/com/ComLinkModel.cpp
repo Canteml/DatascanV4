@@ -18,8 +18,6 @@
 // -- Qt include
 #include <QSerialPortInfo>
 
-//ComLinkManager * ComLinkManager::m_pMyInstance = nullptr;
-
 ComLinkModel::ComLinkModel(ComLinkManager * parent, QList<GenComLink *> * p_plLink) : QAbstractListModel(parent), Loggable("ComLinkModel")
 {
     m_pComLinkManager = parent;
@@ -114,7 +112,7 @@ QHash<int, QByteArray> ComLinkModel::roleNames() const
 
 void ComLinkModel::addLink()
 {
-    beginInsertRows( QModelIndex(), 0, 0); //m_plLink->size()-1, m_plLink->size());
+    beginInsertRows( QModelIndex(), 0, 0);
     endInsertRows();
 }
 
@@ -123,7 +121,6 @@ void ComLinkModel::removeLink(int p_row)
     beginRemoveRows( QModelIndex(), p_row, p_row);
     endRemoveRows();
 }
-
 
 void ComLinkModel::resetModel()
 {

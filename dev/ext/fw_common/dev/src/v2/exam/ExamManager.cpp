@@ -297,7 +297,6 @@ void ExamManager::setExamOrigin(const QString& p_value)
     }
 }
 
-
 // -- Planner import (TOML) setters
 
 QString ExamManager::getEquipmentNom() const
@@ -1260,11 +1259,6 @@ void ExamManager::setMepIntervalY(qreal p_value)
 {
     if( m_mepIntervalY != p_value ) {
         m_mepIntervalY = p_value;
-        /*if(m_mepIntervalY != m_mepHeight/(m_mepNbRow - 1)) {
-            m_mepNbRow = (int) ceil((m_mepHeight / m_mepIntervalY) + 1);
-            m_mepIntervalY = m_mepHeight/(m_mepNbRow - 1);
-        }
-        emit evMepNbRowChanged(m_mepNbRow);*/
         emit evMepIntervalYChanged(m_mepIntervalY);
         emit evMepHeaderUpdated();
     }
@@ -1436,12 +1430,6 @@ void ExamManager::setSelectedBScanGeneratrix(quint32 p_value)
         } else {
 // FOR NOW, do not change location, juste reset current ...
 //            // unselect last location
-//            if( nullptr != m_pSelectedLocation1d ) {
-//                m_pSelectedLocation1d->setRecord(false);
-//            }
-//            m_selectedBScanGeneratrix = p_value;
-//            m_pSelectedLocation1d = m_lLocation1d.at(p_value);
-//            m_pSelectedLocation1d->setRecord(true);
             // --
             m_selectedBScanGeneratrix = p_value;
             selectCurrentGeneratrix();
@@ -1797,7 +1785,6 @@ void ExamManager::setIsMepAutoMode(bool p_bIsAutomatic)
         VectorFuncPosition *funcPos = VectorManager::getInstance()->getVectorStd()->funcPosition();
         if(m_isMepAutoMode) {
             qreal currentPos = ( (m_mepNbRow - 1) - m_currentMepRow ) * m_mepIntervalY /*+ m_mepIntervalY/2.0*/;
-            //currentPos += funcPos->getParamLVectorDirX() * m_mepIntervalY;
             funcPos->setParamLBscanPosMmX(currentPos * 1000);
             m_waitForMepAScan = true;
             connect(funcPos, &VectorFuncPosition::paramLBscanPosMmXChanged, this, &ExamManager::onNewPosition);
@@ -1866,6 +1853,4 @@ void ExamManager::setMepZoom(qreal p_rZoom)
         emit evMepZoomChanged(m_mepZoom);
     }
 }
-
-
 

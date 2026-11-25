@@ -13,6 +13,7 @@
 // -- Internal includes
 #include <v2/com/GenComLink.h>
 #include <v2/prot/ProtMsg.h>
+#include <v2/prot/ProtD4.h>
 #include <v2/com/IntComMsg.h>
 
 // -- Qt includes
@@ -98,6 +99,10 @@ GenComLink::GenComLink(IntComMsg* p_pIntComMsg) : XmlSettingsLoggable("GenComLin
    connect(m_timHeartbeatTimeout, &QTimer::timeout, this, &GenComLink::onHeartbeatTimeout, Qt::QueuedConnection);
    m_timHeartbeatTimeout->moveToThread(m_pThread);
 
+   m_timProtoRetry = new QTimer();
+   connect(m_timProtoRetry, &QTimer::timeout, this, &GenComLink::onProtoRetry, Qt::QueuedConnection);
+   m_timProtoRetry->moveToThread(m_pThread);
+
    connect(this, &GenComLink::evReceivedAlertMsg, m_pIntComMsg, &IntComMsg::setAlert, Qt::QueuedConnection);
 }
 
@@ -105,7 +110,6 @@ GenComLink::~GenComLink()
 {  
    fLogDebug1(" GenComLink ");
 }
-
 
 void GenComLink::startConnection()
 {
@@ -148,9 +152,6 @@ void GenComLink::stopConnection()
          setLinkState(LINK_STATE_DISCONNECTING);
 
       }
-      //        } else {
-      //            setLinkState(LINK_STATE_DISCONNECTED);
-      //        }
       emit evRequestStopConnection();
    }
 }
@@ -197,18 +198,22 @@ ComLinkUdpCli *GenComLink::getLinkUdpCli()
 
 void GenComLink::sendMsg(ProtMsg *p_msg)
 {
-   if( BUFFER_SIZE_MSG_MAX > m_bufferWriteMsg.size() ) {
-      m_mBufferWriteMsg->lock();
-      m_bufferWriteMsg.append(p_msg);
-      m_mBufferWriteMsg->unlock();
-      if( !m_isWriting ) {
-         m_isWriting = true;
-         emit evSendMsg();
-      }
-   } else {
-      delete p_msg;
-      fLogWarning("Msg buffer write full !!");
-   }
+    if( isProtocolD4() && !ProtD4::toWire(p_msg)) {
+        delete p_msg;
+        return;
+    }
+    if( BUFFER_SIZE_MSG_MAX > m_bufferWriteMsg.size() ) {
+        m_mBufferWriteMsg->lock();
+        m_bufferWriteMsg.append(p_msg);
+        m_mBufferWriteMsg->unlock();
+        if( !m_isWriting ) {
+            m_isWriting = true;
+            emit evSendMsg();
+        }
+    } else {
+        delete p_msg;
+        fLogWarning("Msg buffer write full !!");
+    }
 }
 
 ProtMsg *GenComLink::takeMsg()
@@ -280,7 +285,6 @@ quint32 GenComLink::getCurrentCommand() const
    return m_connectionCommand;
 }
 
-
 void GenComLink::onRequestStartConnection()
 {
    if( nullptr != m_pInterface ) {
@@ -300,16 +304,11 @@ void GenComLink::onRequestStartConnection()
          bool isOpen = false;
 
          if( nullptr != m_pInterface ) {
-            isOpen = tryOpen(); //m_pInterface->isOpen();   // some interface can already be opened (TCP server with connnected client)
+            isOpen = tryOpen();
          }
          m_mInterface->unlock();
 
-         //            if( !isOpen ) {
-         //                isOpen = m_pInterface->open(QIODevice::ReadWrite);
-         //            }
-
          if( !isOpen ) {
-            //                linkError("Fail to open link");
             // auto retry
             m_bHasBeenConnected = false;
             retry = true;
@@ -324,9 +323,7 @@ void GenComLink::onRequestStartConnection()
 
          }
 
-
          if( retry ) {
-            //removeLink();
             m_timAutoConnect->start(AUTO_CONNECT_DELAY);
          }
       } else {
@@ -349,7 +346,6 @@ void GenComLink::onRequestStopConnection()
    // -- kill interface
 
    if( nullptr != m_pInterface ) {
-      //if( LINK_STATE_CONNECTING == m_linkState || LINK_STATE_CONNECTED == m_linkState || LINK_STATE_ERROR == m_linkState /*|| CONNECTION_COMMAND_RESTART == m_connectionCommand*/) {
       // stop timer for auto connection
       removeLink();
    }
@@ -357,23 +353,11 @@ void GenComLink::onRequestStopConnection()
    if( m_connectionCommand == CONNECTION_COMMAND_RESTART ) {
       startConnection();
    }
-   //            if( m_connectionCommand == CONNECTION_COMMAND_RESTART ) {
    //                // start new connection
    ////                setLinkState(LINK_STATE_CONNECTING);
    ////                emit evRequestStartConnection();
-   //                startConnection();
-   //            } /*else if( m_connectionCommand == CONNECTION_COMMAND_STOP ) {
    //                // The command has been treated
-   //                m_connectionCommand = CONNECTION_COMMAND_IDLE;
-   //            }*/
-   //}
-   //    } else {
-   //        fLogWarning("m_pInterface is NULL");
-   //    }
 
-   //    if( m_autoConnect ) {
-   //        m_timAutoConnect->start(AUTO_CONNECT_DELAY);
-   //    }
 }
 
 void GenComLink::onRequestRestartConnection()
@@ -386,8 +370,6 @@ void GenComLink::onRequestRestartConnection()
    } else if( LINK_STATE_DISCONNECTING == m_linkState || LINK_STATE_DISCONNECTED == m_linkState || LINK_STATE_ERROR == m_linkState ) {
       // We are not connected, request a start
       startConnection();
-      //setLinkState(LINK_STATE_CONNECTING);
-      //emit evRequestStartConnection();
    } else {
       fLogWarning("Nothing to do to restart.");
    }
@@ -425,13 +407,63 @@ void GenComLink::onReceivedAuthReqMsg(ProtMsg *pMsg)
 void GenComLink::onReceivedAuthAnsMsg(ProtMsg * pMsg)
 {
    // We are MPC
+   if( isAuthentified() || m_d4WaitingFunctions ) {
+       delete pMsg;
+       return;
+   }
    stopRequestTimeout();
-   // auth OK ?
-   bool bOk = checkAuth((qint8*)pMsg->m_payload);
+   m_timProtoRetry->stop();
+
+   bool bOk = false;
+   switch( pMsg->m_len ){
+   case ProtMsg::ANS_AUTH_LEN_LEGACY:
+       bOk = checkAuth((qint8*)pMsg->m_payload) && decodeAuthAnsLegacy(pMsg);
+       break;
+   case ProtMsg::ANS_AUTH_LEN_D4:
+       bOk = ProtD4::verifyAuthAnswer(m_auth, pMsg->m_payload) && decodeAuthAnsD4(pMsg);
+       break;
+   default:
+      fLogError(QString("C_GENERAL_ANS_AUTH : unknown protocol (LEN = %1, expected %2 or %3)")
+                .arg(pMsg->m_len).arg(ProtMsg::ANS_AUTH_LEN_LEGACY).arg(ProtMsg::ANS_AUTH_LEN_D4));
+      bOk = false;
+      break;
+   }
+
    m_bHasBeenConnected = bOk;
    if( !bOk ) {
-      linkError("Bad authentification !");
+      linkError("Unsupported authentification answer !");
    } else {
+      fLogInfo(QString("Protocol detected : %1 (generation %2), product %3")
+               .arg(ProtMsg::protocolName(m_funcGeneral.m_protocolVersion))
+               .arg(m_funcGeneral.m_protocolGeneration)
+               .arg(m_funcGeneral.m_paramDProdId));
+       if( isProtocolD4() ) {
+           m_d4WaitingFunctions = true;
+           startHeartbeatGenerator();
+           startHeartbeatTimeout();
+           onHeartbeatGenerator();
+           sendRequestFunc();
+           m_timProtoRetry->start(ProtMsg::D4_RETRY_MS);
+       } else {
+           setLinkState(LINK_STATE_AUTHENTIFIED);
+       }
+   }
+   delete pMsg;
+}
+
+quint8 GenComLink::getProtocolVersion() const
+{
+   return m_funcGeneral.m_protocolVersion;
+}
+
+bool GenComLink::isProtocolD4() const
+{
+   return ProtMsg::PROTOCOL_D4 == m_funcGeneral.m_protocolVersion;
+}
+
+bool GenComLink::decodeAuthAnsLegacy(const ProtMsg *pMsg)
+{
+   {
       // decode device info
       qint32 offset = AUTH_DATA_SIZE;
       m_funcGeneral.m_paramDProdId = pMsg->m_payload[offset];
@@ -460,38 +492,78 @@ void GenComLink::onReceivedAuthAnsMsg(ProtMsg * pMsg)
       if( offset != pMsg->m_len ) {
          fLogError(QString("Offset = %1, payload len = %2").arg(offset).arg(pMsg->m_len));
       }
-      setLinkState(LINK_STATE_AUTHENTIFIED);
    }
-   delete pMsg;
+   m_funcGeneral.m_protocolVersion = ProtMsg::PROTOCOL_LEGACY;
+   m_funcGeneral.m_protocolGeneration = 0;
+   return true;
+}
+
+bool GenComLink::decodeAuthAnsD4(const ProtMsg *pMsg)
+{
+   const quint8 * p = pMsg->m_payload;
+
+   // -- PROTOCOL_KEY : family must be 0xD4 and the generation must be supported
+   const quint8 family = p[ProtMsg::ANS_AUTH_D4_OFS_PROTO_KEY];
+   const quint8 generation = p[ProtMsg::ANS_AUTH_D4_OFS_PROTO_KEY + 1];
+   if( ProtMsg::PROTOCOL_KEY_FAMILY_D4 != family || ProtMsg::PROTOCOL_KEY_GENERATION_D4 != generation ) {
+      fLogError(QString("C_GENERAL_ANS_AUTH D4 : unsupported PROTOCOL_KEY 0x%1 0x%2 (expected 0x%3 0x%4)")
+                .arg(family, 2, 16, QLatin1Char('0')).arg(generation, 2, 16, QLatin1Char('0'))
+                .arg(ProtMsg::PROTOCOL_KEY_FAMILY_D4, 2, 16, QLatin1Char('0'))
+                .arg(ProtMsg::PROTOCOL_KEY_GENERATION_D4, 2, 16, QLatin1Char('0')));
+      return false;
+   }
+
+   // null terminated strings, bounded to their field size
+   auto readCString = [p](int offset, int size) {
+      const char * s = reinterpret_cast<const char *>(p + offset);
+      return QString::fromLatin1(s, int(qstrnlen(s, size)));
+   };
+
+   m_funcGeneral.m_paramDProdId = p[ProtMsg::ANS_AUTH_D4_OFS_PROD_ID];
+   m_funcGeneral.m_paramDDeviceAd = p[ProtMsg::ANS_AUTH_D4_OFS_DEVICE_AD];
+   m_funcGeneral.m_paramDProdUid = readCString(ProtMsg::ANS_AUTH_D4_OFS_PROD_UID, ProtMsg::ANS_AUTH_D4_PROD_UID_SIZE);
+   m_funcGeneral.m_paramDVerHw = readCString(ProtMsg::ANS_AUTH_D4_OFS_VER_HW, ProtMsg::ANS_AUTH_D4_VER_SIZE);
+   m_funcGeneral.m_paramDVerSw = readCString(ProtMsg::ANS_AUTH_D4_OFS_VER_SW, ProtMsg::ANS_AUTH_D4_VER_SIZE);
+   memcpy(&m_funcGeneral.m_paramDDateBuild, &p[ProtMsg::ANS_AUTH_D4_OFS_DATE_BUILD], 8);
+   memcpy(&m_funcGeneral.m_paramDDateRev, &p[ProtMsg::ANS_AUTH_D4_OFS_DATE_REV], 8);
+
+   // In D4 the function list is NOT in the auth answer :
+   // it is requested afterwards with C_GENERAL_REQUEST_FUNC / C_GENERAL_ANS_FUNC
+   m_funcGeneral.m_lFunctions.clear();
+
+   m_funcGeneral.m_protocolVersion = ProtMsg::PROTOCOL_D4;
+   m_funcGeneral.m_protocolGeneration = generation;
+   return true;
 }
 
 void GenComLink::onStateChanged(quint32 state)
 {
    // -- post actions after state changed
-   if( state == LINK_STATE_CONNECTED ) {
-      if( m_funcGeneral.m_paramDDeviceAd == ProtMsg::DEVICE_AD_MPC ) {
-         // Send a authentification request
-         QThread::msleep(500);   ///< THEO request a time between the connection and the send of AuthRequest
-         sendAuthRequest();
-         // Start timeout for Auth.
-         startRequestTimeout();
-      }
-   }
+    if( state == LINK_STATE_CONNECTED ) {
+        if( m_funcGeneral.m_paramDDeviceAd == ProtMsg::DEVICE_AD_MPC ) {
+            // Send a authentification request
+            QThread::msleep(500);   ///< THEO request a time between the connection and the send of AuthRequest
+            sendAuthRequest();
+            if(LINK_UDP == getType()) {
+                m_authRetryCount = 0;
+                m_timProtoRetry->start(ProtMsg::D4_RETRY_MS);
+            }else{
+                // Start timeout for Auth.
+                startRequestTimeout();
+            }
+        }
+    }
 
-   if( state == LINK_STATE_AUTHENTIFIED ) {
-      //startHeartbeatGenerator();
-      startHeartbeatTimeout();
-   }
+    if( state == LINK_STATE_AUTHENTIFIED ) {
+        startHeartbeatTimeout();
+    }
 }
-
 
 void GenComLink::linkError(const QString & p_msg)
 {
    Q_UNUSED(p_msg)
-   //if(LINK_STATE_DISCONNECTED != m_linkState && LINK_STATE_ERROR != m_linkState) {
    emit evLinkError();
    connectionError();
-   //}
    fLogError(QString("Link error : %1").arg(p_msg)); // flood
 }
 
@@ -503,15 +575,57 @@ void GenComLink::onRequestTimeout()
 
 void GenComLink::onHeartbeatGenerator()
 {
-   // Send msg
-   if( nullptr != m_mInterface  && LINK_STATE_AUTHENTIFIED == m_linkState) {
-      ProtMsg * pMsg = new ProtMsg();
-      pMsg->m_deviceAd = m_funcGeneral.m_paramDDeviceAd;
-      pMsg->m_deviceFunc = ProtMsg::DEVICE_FUNC_GENERAL;
-      pMsg->m_msgType = ProtMsg::MSG_TYPE_EVENT;
-      pMsg->m_msgObj = ProtMsg::FUNC_GENERAL_EVENT_E_HEART_BEAT;
-      sendMsg(pMsg);
-   }
+    // Send msg
+    if( nullptr != m_mInterface && (LINK_STATE_AUTHENTIFIED == m_linkState || m_d4WaitingFunctions)) {
+        ProtMsg * pMsg = new ProtMsg();
+        pMsg->m_deviceAd = m_funcGeneral.m_paramDDeviceAd;
+        pMsg->m_deviceFunc = ProtMsg::DEVICE_FUNC_GENERAL;
+        pMsg->m_msgType = ProtMsg::MSG_TYPE_EVENT;
+        pMsg->m_msgObj = ProtMsg::FUNC_GENERAL_EVENT_E_HEART_BEAT;
+        sendMsg(pMsg);
+    }
+}
+
+void GenComLink::onProtoRetry()
+{
+    if( m_d4WaitingFunctions ) {
+        sendRequestFunc();
+    } else if( LINK_STATE_CONNECTED == m_linkState ) {
+        sendAuthRequestFrame();
+        if( ++m_authRetryCount >= AUTH_RETRY_BEFORE_RESET ) {
+            m_bHasBeenConnected = false;
+        }
+    } else {
+        m_timProtoRetry->stop();
+    }
+}
+
+void GenComLink::sendRequestFunc()
+{
+    ProtMsg * pMsg = new ProtMsg();
+    pMsg->m_deviceAd = m_funcGeneral.m_paramDDeviceAd;
+    pMsg->m_deviceFunc = ProtMsg::DEVICE_FUNC_GENERAL;
+    pMsg->m_msgType = ProtMsg::MSG_TYPE_CMD;
+    pMsg->m_msgObj = ProtMsg::FUNC_GENERAL_CMD_C_REQUEST_FUNC;
+    sendMsg(pMsg);
+}
+
+void GenComLink::processAnsFunc(const ProtMsg *pMsg)
+{
+    if( !m_d4WaitingFunctions ) {
+        return;
+    }
+    bool bOk = false;
+    const QList<quint32> functions = ProtD4::decodeFunctionList(pMsg->m_payload, pMsg->m_len, &bOk);
+    if( !bOk ) {
+        fLogError(QString("C_GENERAL_ANS_FUNC non valido (LEN = %1)").arg(pMsg->m_len));
+        return;
+    }
+    m_funcGeneral.m_lFunctions = functions;
+    m_d4WaitingFunctions = false;
+    m_timProtoRetry->stop();
+    fLogInfo(QString("D4 : %1 funzioni disponibili").arg(functions.size()));
+    setLinkState(LINK_STATE_AUTHENTIFIED);
 }
 
 void GenComLink::onHeartbeatTimeout()
@@ -524,19 +638,13 @@ void GenComLink::connectionError()
    setLinkState(LINK_STATE_ERROR);
    removeLink();
    if( CONNECTION_COMMAND_STOP != m_connectionCommand ) {
-      //m_timAutoConnect->start(AUTO_CONNECT_DELAY);
-      //        if()
-      //        restartConnection();
-      //          removeLink();
       m_timAutoConnect->start(AUTO_CONNECT_DELAY);
    }
 }
 
-
 void GenComLink::setLinkState(quint32 p_state)
 {
    if( m_linkState != p_state ) {
-      //fLogInfo(QString("State : %1 => %2").arg(m_linkState).arg(p_state));
       if( m_linkState == LINK_STATE_CONNECTED && p_state != LINK_STATE_AUTHENTIFIED) {
          fLogInfo(QString("CONNECTION LOST : %1").arg(getConfigHelp()));
       } else if( p_state == LINK_STATE_CONNECTED ) {
@@ -553,34 +661,38 @@ void GenComLink::setLinkState(quint32 p_state)
 
 void GenComLink::removeLink()
 {
-   stopRequestTimeout();
-   stopHeartbeatGenerator();
-   stopHeartbeatTimeout();
+    if( m_timProtoRetry->isActive() ) {
+        m_timProtoRetry->stop();
+    }
+    m_d4WaitingFunctions = false;
+    stopRequestTimeout();
+    stopHeartbeatGenerator();
+    stopHeartbeatTimeout();
 
-   // get mutex to be sure nobody is using buffer while deleting
-   m_mInterface->lock();
-   // close interface
-   if( nullptr != m_pInterface ) {
-      m_pInterface->close();
-      m_pInterface->deleteLater();
-      m_pInterface = nullptr;
-   }
-   // delete buffers
-   m_bufferRead.clear();
-   m_mInterface->unlock();
+    // get mutex to be sure nobody is using buffer while deleting
+    m_mInterface->lock();
+    // close interface
+    if( nullptr != m_pInterface ) {
+        m_pInterface->close();
+        m_pInterface->deleteLater();
+        m_pInterface = nullptr;
+    }
+    // delete buffers
+    m_bufferRead.clear();
+    m_mInterface->unlock();
 
-   m_mBufferReadMsg->lock();
-   while(m_bufferReadMsg.size()) {
-      delete m_bufferReadMsg.takeLast();
-   }
-   m_mBufferReadMsg->unlock();
+    m_mBufferReadMsg->lock();
+    while(m_bufferReadMsg.size()) {
+        delete m_bufferReadMsg.takeLast();
+    }
+    m_mBufferReadMsg->unlock();
 
-   m_mBufferWriteMsg->lock();
-   while(m_bufferWriteMsg.size()) {
-      delete m_bufferWriteMsg.takeLast();
-   }
-   m_mBufferWriteMsg->unlock();
-   m_isWriting = false;
+    m_mBufferWriteMsg->lock();
+    while(m_bufferWriteMsg.size()) {
+        delete m_bufferWriteMsg.takeLast();
+    }
+    m_mBufferWriteMsg->unlock();
+    m_isWriting = false;
 }
 
 void GenComLink::deleteLink()
@@ -603,8 +715,6 @@ void GenComLink::deleteLink()
 
    delete m_pThread;
    m_pThread = nullptr;
-
-
 
 }
 
@@ -674,13 +784,14 @@ void GenComLink::onReadData()
 
             // check the header is correct :
             bool bOk = true;
-            if( m_pNewMsg->m_len > ProtMsg::COM_PAYLOAD_SIZE ) {
+            const qint32 maxPayload = isProtocolD4() ? qint32(ProtMsg::COM_PAYLOAD_SIZE) : qint32(ProtMsg::COM_PAYLOAD_SIZE_LEGACY);
+            if( m_pNewMsg->m_len > maxPayload ) {
                fLogError(QString("MSG ERR : bad len (%1)").arg(m_pNewMsg->m_len));
                bOk = false;
             } else if( m_pNewMsg->m_msgType >= ProtMsg::MSG_TYPE_END_ENUM) {
                fLogError(QString("MSG ERR : bad msg type (%1)").arg(m_pNewMsg->m_msgType));
                bOk = false;
-            } else if( m_pNewMsg->m_deviceFunc >= ProtMsg::DEVICE_FUNC_END_ENUM) {
+            } else if( !isProtocolD4() && m_pNewMsg->m_deviceFunc >= ProtMsg::DEVICE_FUNC_END_ENUM) {
                fLogError(QString("MSG ERR : bad msg funcId (%1)").arg(m_pNewMsg->m_deviceFunc));
                bOk = false;
             }
@@ -700,92 +811,111 @@ void GenComLink::onReadData()
          if( m_bufferRead.size() >= m_pNewMsg->m_len ) {
             // Payload can be decoded
             if( m_pNewMsg->m_len ) {
-               memcpy( m_pNewMsg->m_payload, m_bufferRead.data(), m_pNewMsg->m_len);
-               m_bufferRead.remove(0,m_pNewMsg->m_len);
+                memcpy( m_pNewMsg->m_payload, m_bufferRead.data(), m_pNewMsg->m_len);
+                m_bufferRead.remove(0,m_pNewMsg->m_len);
+            }
+
+            if( isProtocolD4() ) {
+                const bool isAuthAnswer = ProtMsg::DEVICE_FUNC_GENERAL == m_pNewMsg->m_deviceFunc
+                                          && ProtMsg::MSG_TYPE_CMD == m_pNewMsg->m_msgType
+                                          && ProtMsg::FUNC_GENERAL_CMD_C_ANS_AUTH == m_pNewMsg->m_msgObj;
+                bool accepted = (isAuthAnswer || m_pNewMsg->m_deviceAd == quint8(m_funcGeneral.m_paramDDeviceAd))
+                                && ProtD4::fromWire(m_pNewMsg);
+                if( accepted && m_pNewMsg->m_deviceFunc >= ProtMsg::DEVICE_FUNC_ASCAN_0
+                    && m_pNewMsg->m_deviceFunc <= ProtMsg::DEVICE_FUNC_ASCAN_3 ) {
+                    accepted = m_funcGeneral.m_lFunctions.contains(quint32(m_pNewMsg->m_deviceFunc));
+                }
+                if( !accepted ) {
+                    delete m_pNewMsg;
+                    m_pNewMsg = nullptr;
+                    m_msgDecodeStep = MSG_DECODE_STEP_MAGIC_NUMBER;
+                    continue;
+                }
             }
 
             // special cases (low level) :
-            //fLogDebug1(QString("Recieved : LEN(%1) AD(%2) TYPE(%3) FUNC(%4) OBJ(%5)").arg(m_pNewMsg->m_len).arg(m_pNewMsg->m_deviceAd).arg(m_pNewMsg->m_msgType).arg(m_pNewMsg->m_deviceFunc).arg(m_pNewMsg->m_msgObj));
             bool msgTreated = false;
 
             if( ProtMsg::DEVICE_FUNC_GENERAL == m_pNewMsg->m_deviceFunc ) {
-               if( ProtMsg::MSG_TYPE_CMD == m_pNewMsg->m_msgType &&
-                   ProtMsg::FUNC_GENERAL_CMD_C_REQ_AUTH == m_pNewMsg->m_msgObj ) {
-                  emit evReceivedAuthReqMsg(m_pNewMsg);
-                  msgTreated = true;
-               } else if( ProtMsg::MSG_TYPE_CMD == m_pNewMsg->m_msgType &&
-                          ProtMsg::FUNC_GENERAL_CMD_C_ANS_AUTH == m_pNewMsg->m_msgObj ) {
-                  emit evReceivedAuthAnsMsg(m_pNewMsg);
-                  msgTreated = true;
-               } else if( ProtMsg::MSG_TYPE_EVENT == m_pNewMsg->m_msgType &&
-                          ProtMsg::FUNC_GENERAL_EVENT_E_HEART_BEAT == m_pNewMsg->m_msgObj ) {
-                  startHeartbeatTimeout();    // restart heartbeat timer
-                  delete m_pNewMsg;
-                  msgTreated = true;
-               } else if( ProtMsg::MSG_TYPE_EVENT == m_pNewMsg->m_msgType &&
-                          ProtMsg::FUNC_GENERAL_EVENT_E_LOG == m_pNewMsg->m_msgObj ) {
-                  quint8 logLevel = m_pNewMsg->m_payload[0];
-                  QString logMsg = QByteArray((char*)&(m_pNewMsg->m_payload[1]),m_pNewMsg->m_len-1);
-                  fLogInfo(QString("LOG FROM %1 : [%2] - %3").arg(getName()).arg(logLevel).arg(logMsg));
-                  delete m_pNewMsg;
-                  msgTreated = true;
-               } else if ( ProtMsg::MSG_TYPE_EVENT == m_pNewMsg->m_msgType &&
-                           ProtMsg::FUNC_GENERAL_EVENT_E_ERROR == m_pNewMsg->m_msgObj ) {
-                  quint32 logLevel;
-                  memcpy(&logLevel, &m_pNewMsg->m_payload[0], 4);
-                  QString logMsg = QByteArray((char*)&(m_pNewMsg->m_payload[1]),m_pNewMsg->m_len-4);
-                  fLogError(QString("ERROR FROM %1 : [%2] - %3").arg(getName()).arg(logLevel).arg(logMsg));
-                  delete m_pNewMsg;
-                  msgTreated = true;
-               } else if ( ProtMsg::MSG_TYPE_EVENT == m_pNewMsg->m_msgType &&
-                           ProtMsg::FUNC_GENERAL_EVENT_E_ALERT_MESSAGE == m_pNewMsg->m_msgObj ) {
-                  quint8 alertLevel = m_pNewMsg->m_payload[0];
-                  QString alertMsg = QByteArray((char*) &(m_pNewMsg->m_payload[1]), m_pNewMsg->m_len-1);
-                  if(alertLevel > 2) {
-                     fLogError(QString("ERROR : ALERT LEVEL OUT OF RANGE ! [%1]").arg(alertLevel));
-                  } else {
-                     emit evReceivedAlertMsg(alertLevel, alertMsg);
-                  }
-                  delete m_pNewMsg;
-                  msgTreated = true;
-               }
+                if( ProtMsg::MSG_TYPE_CMD == m_pNewMsg->m_msgType &&
+                    ProtMsg::FUNC_GENERAL_CMD_C_REQ_AUTH == m_pNewMsg->m_msgObj ) {
+                    emit evReceivedAuthReqMsg(m_pNewMsg);
+                    msgTreated = true;
+                } else if( ProtMsg::MSG_TYPE_CMD == m_pNewMsg->m_msgType &&
+                           ProtMsg::FUNC_GENERAL_CMD_C_ANS_AUTH == m_pNewMsg->m_msgObj ) {
+                    emit evReceivedAuthAnsMsg(m_pNewMsg);
+                    msgTreated = true;
+                } else if( isProtocolD4() && ProtMsg::MSG_TYPE_CMD == m_pNewMsg->m_msgType &&
+                            ProtMsg::FUNC_GENERAL_CMD_C_ANS_FUNC == m_pNewMsg->m_msgObj ) {
+                    processAnsFunc(m_pNewMsg);
+                    delete m_pNewMsg;
+                    msgTreated = true;
+                } else if( ProtMsg::MSG_TYPE_EVENT == m_pNewMsg->m_msgType &&
+                           ProtMsg::FUNC_GENERAL_EVENT_E_HEART_BEAT == m_pNewMsg->m_msgObj ) {
+                    startHeartbeatTimeout();    // restart heartbeat timer
+                    delete m_pNewMsg;
+                    msgTreated = true;
+                } else if( ProtMsg::MSG_TYPE_EVENT == m_pNewMsg->m_msgType &&
+                           ProtMsg::FUNC_GENERAL_EVENT_E_LOG == m_pNewMsg->m_msgObj ) {
+                    quint8 logLevel = m_pNewMsg->m_payload[0];
+                    QString logMsg = QByteArray((char*)&(m_pNewMsg->m_payload[1]),m_pNewMsg->m_len-1);
+                    fLogInfo(QString("LOG FROM %1 : [%2] - %3").arg(getName()).arg(logLevel).arg(logMsg));
+                    delete m_pNewMsg;
+                    msgTreated = true;
+                } else if ( ProtMsg::MSG_TYPE_EVENT == m_pNewMsg->m_msgType &&
+                            ProtMsg::FUNC_GENERAL_EVENT_E_ERROR == m_pNewMsg->m_msgObj ) {
+                    quint32 logLevel;
+                    memcpy(&logLevel, &m_pNewMsg->m_payload[0], 4);
+                    QString logMsg = QByteArray((char*)&(m_pNewMsg->m_payload[1]),m_pNewMsg->m_len-4);
+                    fLogError(QString("ERROR FROM %1 : [%2] - %3").arg(getName()).arg(logLevel).arg(logMsg));
+                    delete m_pNewMsg;
+                    msgTreated = true;
+                } else if ( ProtMsg::MSG_TYPE_EVENT == m_pNewMsg->m_msgType &&
+                            ProtMsg::FUNC_GENERAL_EVENT_E_ALERT_MESSAGE == m_pNewMsg->m_msgObj ) {
+                    quint8 alertLevel = m_pNewMsg->m_payload[0];
+                    const char * alertText = reinterpret_cast<const char *>(&m_pNewMsg->m_payload[1]);
+                    const int alertMax = qMax(0, int(m_pNewMsg->m_len) - 1);
+                    QString alertMsg = QString::fromLatin1(alertText, int(qstrnlen(alertText, uint(alertMax))));
+                    if(alertLevel > 2) {
+                        fLogError(QString("ERROR : ALERT LEVEL OUT OF RANGE ! [%1]").arg(alertLevel));
+                    } else {
+                        emit evReceivedAlertMsg(alertLevel, alertMsg);
+                    }
+                    delete m_pNewMsg;
+                    msgTreated = true;
+                }
             }
 
-
             if( !msgTreated ){
-               if( isAuthentified() ) {
-                  m_mBufferReadMsg->lock();
-                  if( BUFFER_SIZE_MSG_MAX > m_bufferWriteMsg.size() ) {
-                     m_bufferReadMsg.append(m_pNewMsg);
-                     startHeartbeatTimeout();    // restart heartbeat timer
-                     emit evReceivedNewMsg();
-                  } else {
-                     delete m_pNewMsg;
-                     fLogWarning("Msg buffer read full !!");
-                  }
-                  m_mBufferReadMsg->unlock();
-               } else {
-                  fLogInfo(QString("Link not authenified, message deleted (Type %1, Func %2, Obj %3).")
-                           .arg(m_pNewMsg->m_msgType).arg(m_pNewMsg->m_deviceFunc).arg(m_pNewMsg->m_msgObj));
-                  delete m_pNewMsg;
-               }
+                if( isAuthentified() ) {
+                    m_mBufferReadMsg->lock();
+                    if( BUFFER_SIZE_MSG_MAX > m_bufferReadMsg.size() ) {
+                        m_bufferReadMsg.append(m_pNewMsg);
+                        if( !isProtocolD4() ) {
+                            startHeartbeatTimeout();    // restart heartbeat timer
+                        }
+                        emit evReceivedNewMsg();
+                    } else {
+                        delete m_pNewMsg;
+                        fLogWarning("Msg buffer read full !!");
+                    }
+                    m_mBufferReadMsg->unlock();
+                } else {
+                    fLogInfo(QString("Link not authenified, message deleted (Type %1, Func %2, Obj %3).")
+                            .arg(m_pNewMsg->m_msgType).arg(m_pNewMsg->m_deviceFunc).arg(m_pNewMsg->m_msgObj));
+                    delete m_pNewMsg;
+                }
             }
             m_pNewMsg = nullptr;
 
             // ready to decode a new message
             m_msgDecodeStep = MSG_DECODE_STEP_MAGIC_NUMBER;
-         } else {
-            // not enought data to decode the payload
-            continueDecode = false;
-         }
-      }
-   }
-
-   //    m_mInterface->lock();
-   //    if( nullptr != m_pInterface && m_pInterface->bytesAvailable() ) {
-   //        emit evContinueDecodeMsg();
-   //    }
-   //    m_mInterface->unlock();
+            } else {
+                // not enought data to decode the payload
+                continueDecode = false;
+            }
+        }
+    }
 }
 
 void GenComLink::onSendMsg()
@@ -815,23 +945,6 @@ void GenComLink::onSendMsg()
       memcpy(&m_buffSend[8], pMsg->m_payload, pMsg->m_len);
 
       // DEBUG
-      //        if( 1 == pMsg->m_len ) {
-      //            fLogDebug1(QString("send : AD(%1) TYPE(%2) FUNC(%3) OBJ(%4) LEN(%5) DATA[0] : %6")
-      //                       .arg(pMsg->m_deviceAd)
-      //                       .arg(pMsg->m_msgType)
-      //                       .arg(pMsg->m_deviceFunc)
-      //                       .arg(pMsg->m_msgObj)
-      //                       .arg(pMsg->m_len)
-      //                       .arg((qint32)pMsg->m_payload[0]));
-      //        } else {
-      //            fLogDebug1(QString("send : AD(%1) TYPE(%2) FUNC(%3) OBJ(%4) LEN(%5)")
-      //                       .arg(pMsg->m_deviceAd)
-      //                       .arg(pMsg->m_msgType)
-      //                       .arg(pMsg->m_deviceFunc)
-      //                       .arg(pMsg->m_msgObj)
-      //                       .arg(pMsg->m_len));
-      //        }
-
 
       // always connected ?
       m_mInterface->lock();
@@ -871,7 +984,6 @@ void GenComLink::onSendMsg2()
 
    if(m_PktSizeCmd != 0)
    {
-     //this->send(aPktCmd[m_PktHeadCmd]);
 
      m_PktHeadCmd = (m_PktHeadCmd+1) % 1024;
 
@@ -881,15 +993,12 @@ void GenComLink::onSendMsg2()
    {
      if(m_PktSize != 0)
      {
-         //this->send(aPkt[m_PktHead]);
 
          m_PktHead = (m_PktHead+1) % 1024;
 
          m_PktSize--;
      }
    }
-
-
 
 }
 
@@ -932,7 +1041,11 @@ void GenComLink::sendAuthRequest()
    m_auth[23] = m_auth[12] * m_auth[0] + 99;
    m_auth[27] = m_auth[10] - m_auth[20] - 56;
    m_auth[31] = m_auth[28] * m_auth[13] + 12;
+   sendAuthRequestFrame();
+}
 
+void GenComLink::sendAuthRequestFrame()
+{
    ProtMsg * pMsg = new ProtMsg();
    pMsg->m_deviceAd = m_funcGeneral.m_paramDDeviceAd;
    pMsg->m_deviceFunc = ProtMsg::DEVICE_FUNC_GENERAL;
@@ -976,7 +1089,6 @@ bool GenComLink::generateAuthAnswer(const qint8* p_authIn, qint8* p_authAns) con
 
    return bRet;
 }
-
 
 bool GenComLink::sendAuthAnswer(const qint8* p_authIn)
 {
@@ -1049,7 +1161,6 @@ bool GenComLink::sendAuthAnswer(const qint8* p_authIn)
    return bRet;
 }
 
-
 bool GenComLink::checkAuth(const qint8 *p_answer) const
 {
    qint8 answerExpected[AUTH_DATA_SIZE];
@@ -1086,7 +1197,7 @@ void GenComLink::stopRequestTimeout()
 void GenComLink::startHeartbeatGenerator()
 {
    stopHeartbeatGenerator();
-   m_timHeartbeatGenerator->start(getLinkTypeHeartBeatDelay());
+   m_timHeartbeatGenerator->start(isProtocolD4() ? int(ProtMsg::D4_HEARTBEAT_DELAY_MS) : getLinkTypeHeartBeatDelay());
 }
 
 void GenComLink::stopHeartbeatGenerator()
@@ -1099,7 +1210,7 @@ void GenComLink::stopHeartbeatGenerator()
 void GenComLink::startHeartbeatTimeout()
 {
    stopHeartbeatTimeout();
-   m_timHeartbeatTimeout->start(getLinkTypeTimeout());
+   m_timHeartbeatTimeout->start(isProtocolD4() ? int(ProtMsg::D4_TIMEOUT_MS) : getLinkTypeTimeout());
 }
 
 void GenComLink::stopHeartbeatTimeout()

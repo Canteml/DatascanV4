@@ -15,7 +15,6 @@
 // Internal includes
 #include <coreUi/CoreUiQml.h>
 #include "SoftwareLicenceChecker.h"
-class StatisticApp;
 class VectorManager;
 class VectorStd;
 class ScanManager;
@@ -64,7 +63,6 @@ private :
     bool useOpenGlRender() const override;
 
     // managers
-    StatisticApp * m_pStatisticApp;
     VectorManager * m_pVectorManager;
     VectorStd * m_pVectorStd;
 

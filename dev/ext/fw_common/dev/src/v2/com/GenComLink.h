@@ -121,6 +121,9 @@ public :
     const VectorFuncGeneralAuth &getFuncGeneral() const;
     void setFuncGeneral(const VectorFuncGeneralAuth& p_funcGeneral);
 
+    quint8 getProtocolVersion() const;  ///< value in ProtMsg::PROTOCOL_VERSION, detected from C_GENERAL_ANS_AUTH
+    bool isProtocolD4() const;
+
     quint32 getLinkState() const;
     quint32 getCurrentCommand() const;
 
@@ -186,6 +189,7 @@ protected slots :
     void onRequestTimeout();
     void onHeartbeatGenerator();
     void onHeartbeatTimeout();
+    void onProtoRetry();
 
 private :
     // -- constants
@@ -193,6 +197,7 @@ private :
     static const qint32 BUFFER_SIZE_MSG_MAX = 1000;
     static const qint32 AUTO_CONNECT_DELAY = 300;//500
     static const qint32 AUTH_DATA_SIZE = 32;
+    static const qint32 AUTH_RETRY_BEFORE_RESET = 6;
 
 protected :    
     // -- Inherited behaviour
@@ -214,6 +219,11 @@ protected :
     bool generateAuthAnswer(const qint8 *p_authIn, qint8 *p_authAns) const; ///< Called by Device & simu to generate ans answer
     bool sendAuthAnswer(const qint8 *p_authIn);     ///< Called by Device & simu to generate ans answer
     bool checkAuth(const qint8 *p_answer) const;    ///< Called by MPC to check answer od Device & simu
+    bool decodeAuthAnsLegacy(const ProtMsg *p_msg); ///< Called by MPC : decode a C_GENERAL_ANS_AUTH of the legacy protocol (LEN 110)
+    bool decodeAuthAnsD4(const ProtMsg *p_msg);     ///< Called by MPC : decode a C_GENERAL_ANS_AUTH of the protocol D4 (LEN 92)
+    void sendAuthRequestFrame();                    ///< Sent the key r
+    void sendRequestFunc();                         ///< Called by Device : sent a C_GENERAL_REQUEST_FUNC. (protocol D4, LEN 92)
+    void processAnsFunc(const ProtMsg *p_msg);      ///< Called by MPC : decode a C_GENERAL_ANS_FUNC. (protocol D4, LEN 92)
 
     // -- Timers
     void startRequestTimeout();
@@ -252,6 +262,9 @@ protected :
     QTimer * m_timRequestTimeout;       ///< Timeout for MPC Requests
     QTimer* m_timHeartbeatGenerator;    ///< Send automatically Heartbeat when device is authentified
     QTimer* m_timHeartbeatTimeout;      ///< Error if no heartbeat received
+    QTimer* m_timProtoRetry;            ///< Request timeout
+    bool m_d4WaitingFunctions = false;  ///< waiting for C_GENERAL_ANS_FUNC
+    qint32 m_authRetryCount = 0;
 
     QTimer* m_timSendUdpPacket;
 
@@ -259,9 +272,6 @@ protected :
     bool m_isAuthentified;
 
     bool m_bHasBeenConnected = false;
-
-   //DatascanPacket aPkt[1024];
-   //DatascanPacket aPktCmd[1024];
 
    quint8 m_PktHead = 0;
    quint8 m_PktTail = 0;

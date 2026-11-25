@@ -20,6 +20,7 @@
 #include <v2/com/IntComMsg.h>
 #include <v2/com/ComLinkTcpServer.h>
 #include <v2/com/ComLinkUdpServer.h>
+#include <v2/prot/ProtD4.h>
 
 // -- Qt include
 #include <QSerialPortInfo>
@@ -48,7 +49,6 @@ ComLinkManager::ComLinkManager(IntComMsg *p_pIntComMsg) : QObject(p_pIntComMsg),
 
     m_pComLinkModel = new ComLinkModel(this, &m_lLink);
 
-
     // Force first resresh
     onRefreshComPortList();
 
@@ -69,7 +69,6 @@ ComLinkManager::~ComLinkManager()
     m_tRefreshProtCom->stop();
     delete m_tRefreshProtCom;
     m_tRefreshProtCom = nullptr;
-    //m_pMyInstance = nullptr;
     deleteLinks();
     delete m_pComLinkModel;
     m_pComLinkModel = nullptr;
@@ -91,21 +90,6 @@ GenComLink * ComLinkManager::addSerial(quint32 p_port, quint32 p_bauds, const QS
 }
 
 //GenComLink * ComLinkManager::addSerialIfNeed(quint32 p_port, quint32 p_bauds, const QString &p_name)
-//{
-//    bool bFound = false;
-//    GenComLink * pRet = nullptr;
-//    for(auto i : qAsConst(m_lLink)) {
-//        if( i->getName() == p_name ) {
-//            bFound = true;
-//            pRet = i;
-//            break;
-//        }
-//    }
-//    if( !bFound ) {
-//        pRet = addSerial(p_port, p_bauds, p_name);
-//    }
-//    return pRet;
-//}
 
 // -- Behaviour
 
@@ -188,6 +172,16 @@ void ComLinkManager::startDiscover()
             m_lDiscoverLinkTcp.append(pCli);
             tryConnectTcpCli(pCli);
         }
+    }
+    // Protocol D4
+    {
+        ComLinkUdpCli* pUdp = new ComLinkUdpCli(m_pIntComMsg);
+        ComLinkUdpConfig udpConf;
+        udpConf.setHostAddress(ProtD4::DEFAULT_DEVICE_IP);
+        pUdp->setLinkUdpConfig(&udpConf);
+        pUdp->setReceptionServer(m_pUdpServer);
+        m_lDiscoverLinkTcp.append(pUdp);
+        tryConnectUdpCli(pUdp);
     }
 
     // start timer
@@ -282,7 +276,6 @@ void ComLinkManager::keepLinks(const QList<GenComLink *> &p_lLinks)
     }
 }
 
-
 // -- QML
 QAbstractListModel *ComLinkManager::getLinkModel() const
 {
@@ -293,9 +286,7 @@ void ComLinkManager::disconnectLink(const QString &p_linkName)
 {
     GenComLink * l = findLinkFromName(p_linkName);
     if( nullptr != l ) {
-        //if( l->isConnected() ) {
             l->stopConnection();
-        //}
     }
 }
 
@@ -398,8 +389,6 @@ bool ComLinkManager::customSaveParam(QDomDocument * p_pDoc, QDomElement * p_pPar
         bRet &= i->saveSettings(&lTag);
     }
 
-    //bRet &= m_pComLinkTcpServer->saveSettings(p_pParent);
-
     bRet &= XML_WRITE_UNIQUE(m_tcpDiscoverIpBase);
 
     return bRet;
@@ -449,7 +438,6 @@ QStringList ComLinkManager::getAuthentifiedLinkNames() const
     }
     return names;
 }
-
 
 void ComLinkManager::onLinkStateChanged(GenComLink* p_link, quint32 p_old, qint32 p_new)
 {

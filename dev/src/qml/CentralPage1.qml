@@ -199,7 +199,8 @@ Rectangle {
                                 { text: qsTr("ROVER IP68"),  prodId: 4 },
                                 //{ text: qsTr("ROVER CLEANER"), prodId: 5 },
                                 { text: qsTr("PANDA Vol.3"), prodId: 7 },
-                                { text: qsTr("MULTISCAN"),   prodId: 8 }
+                                { text: qsTr("MULTISCAN"),   prodId: 8 },
+                                { text: qsTr("RED PITAYA"),  prodId: 9 }
                             ]
                             textRole: "text"
                             valueRole: "prodId"

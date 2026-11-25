@@ -43,13 +43,9 @@ class VlcVideoSink;
 class CameraManager : public QObject, public XmlSettingsLoggable
 {
     Q_OBJECT
-    Q_PROPERTY(qint32 previewCameraIndex READ getPreviewCameraIndex NOTIFY previewCameraIndexChanged)
-    Q_PROPERTY(qint32 mainCameraIndex READ getMainCameraIndex NOTIFY mainCameraIndexChanged)
     Q_PROPERTY(bool selectMainCameraAuto READ getMainCameraSelectAuto NOTIFY selectMainCameraAutoChanged)
-    Q_PROPERTY(bool mainCameraIsAlarm READ getMainCameraIsAlarm NOTIFY mainCameraIsAlarmChanged)
     Q_PROPERTY(bool isPreviewCameraIp READ isPreviewCameraIp NOTIFY isPreviewCameraIpChanged)
     Q_PROPERTY(bool isMainCameraIp READ isMainCameraIp NOTIFY isMainCameraIpChanged)
-    //Q_PROPERTY(VlcQmlSource* previewCameraSource READ getPreviewCameraSource WRITE VCameraSource NOTIFY previewCameraSourceChanged)
 
     Q_INVOKABLE void setPreviewVlcSink(QObject* sink);
 public:
@@ -64,19 +60,12 @@ public:
 
     // -- Roles
     Q_INVOKABLE CameraRole* camAlarm();
-    Q_INVOKABLE CameraRole* camSensor1();
-    Q_INVOKABLE CameraRole* camSensor2();
-    Q_INVOKABLE CameraRole* camSensor3();
-    Q_INVOKABLE CameraRole* camSensor4();
     Q_INVOKABLE CameraRole* camFront();
     Q_INVOKABLE CameraRole* camRear();
 
     // -- Cameras
-    Q_INVOKABLE qint32 getPreviewCameraIndex() const;
     Q_INVOKABLE qint32 getMainCameraIndex() const;
     Q_INVOKABLE QString getMainCameraId() const;
-    bool getMainCameraIsAlarm() const;
-    Q_INVOKABLE void assignPreviewAs(qint32 p_role);
     Q_INVOKABLE void assignCameraToRole(qint32 p_role, qint32 p_cameraIndex);    ///< p_cameraIndex = -1 to un-assign
     bool getMainCameraSelectAuto() const;
     void setMainCameraSelectAuto(bool p_value);
@@ -99,19 +88,14 @@ public:
     Q_INVOKABLE void openMainIpMedia();
     Q_INVOKABLE void openPreviewIpMedia();
 
-    Q_INVOKABLE void connectPreviewSink(QObject* videoOutput);
     Q_INVOKABLE void connectMainSink(QObject* videoOutput);
-
-    Q_INVOKABLE QObject* getPreviewCameraSource() const;
 
     Q_INVOKABLE void connectMainIpSink(QObject* videoOutput);
 
 signals :
     // -- Properties
-    void previewCameraIndexChanged(qint32 p_index);
     void mainCameraIndexChanged(qint32 p_index);
     void selectMainCameraAutoChanged(bool);
-    void mainCameraIsAlarmChanged(bool);
 
     // --
     void evCameraListChanged(qint32 p_value);   ///< number of items in the list
@@ -142,9 +126,6 @@ protected :
     virtual bool customApplySettings() override;
     virtual bool customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pParent) override;
 
-    // -- Properties
-    void setMainCameraIsAlarm(bool p_value);
-
 private:
     CameraManager();
     static CameraManager* m_pMyInstance;
@@ -171,7 +152,6 @@ private:
     qint32 m_indexPreviewCamera;
     qint32 m_roleMainCamera;
     bool m_selectMainCameraAuto;          ///< function to the product, user can select le main camera or not
-    bool m_mainCameraIsAlarm;
 
     // -- Managers
     VectorStd* m_pVectorStd;
@@ -189,9 +169,6 @@ private:
     QMediaCaptureSession* m_pSessionPreview = nullptr;
 
     QVideoSink* m_pPreviewQVideoSink = nullptr;
-
-    VlcVideoSink* m_pMainVlcSink = nullptr;
-    VlcVideoSink* m_pPreviewVlcSink = nullptr;
 
     void startUsbPreview(QVideoSink* sink = nullptr);
     void startMainUsbCamera();

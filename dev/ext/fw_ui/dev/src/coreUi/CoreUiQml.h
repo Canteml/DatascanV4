@@ -108,14 +108,3 @@ protected :
     QRect m_settWinGeometry;
 };
 
-// ----------------------------------------------------------------------------
-// -- Class KeyCatcher
-
-class KeyCatcher : public QObject
-{
-    Q_OBJECT
-public :
-    KeyCatcher();
-
-
-};

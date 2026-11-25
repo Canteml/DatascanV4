@@ -70,7 +70,6 @@ ComDeviceManager * IntComMsg::getDeviceManager() const
     return m_pComDeviceManager;
 }
 
-
 // Interface with devices :
 void IntComMsg::sendMsg(ProtMsg* p_pMsg, bool p_isEcho)
 {
@@ -122,7 +121,6 @@ bool IntComMsg::isPanelControl() const
 {
     return (ProtMsg::DEVICE_AD_MPC == m_funcGeneral.m_paramDDeviceAd) || (ProtMsg::DEVICE_AD_SECONDARY_CONTROL_PANEL < m_funcGeneral.m_paramDDeviceAd);
 }
-
 
 bool IntComMsg::isMpc() const
 {
@@ -223,43 +221,14 @@ bool IntComMsg::customSaveParam(QDomDocument * p_pDoc, QDomElement * p_pParent)
 {
     bool bRet = true;
     m_funcGeneral.saveParam(p_pDoc, p_pParent);
-    //m_pComLinkManager->saveParam(p_pDoc, p_pParent);
     return bRet;
 }
 
-
 //bool IntComMsg::customLoadSettings(QDomElement * p_pParent)
-//{
-//    bool bRet = true;
-//    bRet &= XML_READ_UNIQUE_DEFAULT(quint32, m_funcGeneral.m_paramDProdId, ProtMsg::PROD_UNDEF);
-//    bRet &= XML_READ_UNIQUE_DEFAULT(quint32, m_funcGeneral.m_paramDDeviceAd, ProtMsg::DEVICE_AD_MPC);
-//    bRet &= m_pComLinkManager->loadSettings(p_pParent);
-
-//    return bRet;
-//}
 
 //bool IntComMsg::customLoadDefaultSettings()
-//{
-//    bool bRet = true;
-
-//    return bRet;
-//}
 
 //bool IntComMsg::customApplySettings()
-//{
-//    bool bRet = true;
-
-//    configureProduct(m_funcGeneral.m_paramDProdId, m_funcGeneral.m_paramDDeviceAd);
-
-//    return bRet;
-//}
 
 //bool IntComMsg::customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pParent)
-//{
-//    bool bRet = true;
-//    bRet &= XML_WRITE_UNIQUE(m_funcGeneral.m_paramDProdId);
-//    bRet &= XML_WRITE_UNIQUE(m_funcGeneral.m_paramDDeviceAd);
-//    bRet &= m_pComLinkManager->saveSettings(p_pParent);
-//    return bRet;
-//}
 

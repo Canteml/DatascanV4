@@ -36,7 +36,6 @@ public :
 
     quint16 getPortNumber() const;
 
-//    virtual void setLinkTcpConfig(ComLinkTcpConfig * p_conf) override;
     virtual QString getConfigHelp() const override;  ///< return a string with the link configuration (COM1, 9600 bauds ...)
 
     bool startServer(quint16 p_port);
@@ -44,7 +43,6 @@ public :
 
 public slots :
     virtual quint32 getType() const override;           ///< value in LINK_TYPE
-    //virtual ComLinkTcpServer * getLinkTcpCli() override;
 
 protected slots :
     void onTcpSocketCliDisconnected();

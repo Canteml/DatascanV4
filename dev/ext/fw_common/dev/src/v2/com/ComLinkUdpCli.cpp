@@ -39,10 +39,16 @@ void ComLinkUdpCli::setLinkUdpConfig(ComLinkUdpConfig* p_conf)
 
 void ComLinkUdpCli::receivedRawData(QByteArray p_baData)
 {
-   if(nullptr == m_pUdpSocket) {
-      return;
-   }
-   m_pUdpSocket->bufferData(p_baData);
+    if(nullptr == m_pUdpSocket) {
+        return;
+    }
+    if( isProtocolD4() && p_baData.size()>= ProtMsg::COM_HEADER_SIZE
+        && quint8(p_baData.at(4)) == ProtMsg::MSG_TYPE_EVENT
+        && quint8(p_baData.at(5)) == ProtMsg::DEVICE_FUNC_ASCAN_0
+        && p_baData.size() != ProtMsg::COM_MSG_SIZE ) {
+        return;
+    }
+    m_pUdpSocket->bufferData(p_baData);
 }
 
 void ComLinkUdpCli::setReceptionServer(ComLinkUdpServer* p_pServer)
@@ -123,19 +129,24 @@ QIODevice* ComLinkUdpCli::makeInterface()
 
 void BufferedReadUdpSocket::bufferData(QByteArray& p_baData)
 {
-   m_baBufferedData.append(p_baData);
-   emit readyRead();
+    {
+        QMutexLocker locker(&m_mBufferedData);
+        m_baBufferedData.append(p_baData);
+    }
+    emit readyRead();
 }
 
 qint64 BufferedReadUdpSocket::bytesAvailable() const
 {
-   return m_baBufferedData.size() + QIODevice::bytesAvailable();
+    QMutexLocker locker(&m_mBufferedData);
+    return m_baBufferedData.size() + QIODevice::bytesAvailable();
 }
 
 qint64 BufferedReadUdpSocket::readData(char* data, qint64 maxSize)
 {
-   qint64 toCopy = qMin(maxSize, bytesAvailable());
-   memcpy(data, m_baBufferedData.data(), toCopy);
-   m_baBufferedData.remove(0, toCopy);
-   return toCopy;
+    QMutexLocker locker(&m_mBufferedData);
+    qint64 toCopy = qMin(maxSize, qint64(m_baBufferedData.size()));
+    memcpy(data, m_baBufferedData.data(), toCopy);
+    m_baBufferedData.remove(0, toCopy);
+    return toCopy;
 }

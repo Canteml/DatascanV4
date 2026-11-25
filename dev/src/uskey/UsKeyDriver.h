@@ -63,9 +63,6 @@ public:
     bool load(const QString& dllPath = "ap_int_usb");
     bool isLoaded() const;
 
-    // Kills ExeUSB2X86.exe then respawns it via RunExeX32.
-    // Call this before a hot-plug reconnect to ensure the helper is alive.
-    void restartHelper();
 
     // -- Initialization
     bool initUsb(int deviceNum);
@@ -102,11 +99,6 @@ public:
     // waveType: 0=full rectified  1=negative  2=positive
     bool getAscan(int deviceNum, int dataType, int nbSamples, int waveType,
                   QVector<unsigned short>& outData);
-
-    // Returns measures for gate 1 and gate 2 (alarm, amplitude, distance)
-    bool getMeasures(int deviceNum,
-                     short* alarm1, short* amplitude1, short* distance1,
-                     short* alarm2, short* amplitude2, short* distance2);
 
 signals:
     void evError(const QString& msg);

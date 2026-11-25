@@ -29,15 +29,12 @@ class JKQTPGeoLine;
 #include <QtQuick>
 #include <QThread>
 
-class BScanWorker;
-
 /**
  * @brief The BScanGraph class
  *
  */
 class BScanGraph : public QQuickPaintedItem, public XmlSettingsLoggable
 {
-    friend BScanWorker;
     Q_OBJECT
 public:
     BScanGraph(QQuickItem *parent = 0);
@@ -51,7 +48,6 @@ public:
 
     void initAfterItemAdded();
     void processLastSurface();
-    void processZoom();
 
     // -- Properties
 
@@ -75,9 +71,6 @@ public:
     void pushTimeMeasure(qint64 p_epochMs, qreal p_measureMe, qreal p_measure1e);
 
     // -- Actions
-
-//    void axeXScaleIn();
-//    void axeXScaleOut();
 
     void clearBScan();
     void showLocationFull(Location1d* p_location);   ///< show the whole BSCAN of a location (used by export view). nullptr => clear
@@ -109,8 +102,6 @@ public:
 
 signals :
     void evPrivateNeedRefresh();
-    void evViewXModeChanged(qint32);
-    void evViewYModeChanged(qint32);
     void evAxeXScaleMmChanged(qreal);
     void evAxeYMinMmChanged(qreal);
     void evAxeYMaxMmChanged(qreal);
@@ -145,8 +136,6 @@ private slots :
     void onPositionChanged(qreal);
     void onUpdateLocationZone(Location1d* p_location);
 
-    void onBScanReplotted();
-
     void onMeasureDisplayChanged(quint32);///< emited by ExamManager : 1 Echo / Multi Echo
     void onExamStepChanged(quint32);
 
@@ -158,7 +147,6 @@ private :
     void deleteZones();
     void processTimeBuffer();
 
-    volatile bool m_updateRequested;
     volatile bool m_updateInProgress;
 
     QTimer * m_timeRefresh;
@@ -205,8 +193,6 @@ private :
     QVector<qreal> m_time1e;
 
     qreal m_axeXUserMinM;   ///< used if VIEW_X_MODE = VIEW_X_USER, completed by m_axeXScaleM
-    qreal m_axeYUserMinM;   ///< used if VIEW_Y_MODE = VIEW_Y_USER
-    qreal m_axeYUserMaxM;
 
     // Range of data
     qreal m_surfaceXMinMm;
@@ -225,46 +211,8 @@ private :
     volatile bool m_drawFlagScaleY;          ///< m_axeYMinMm or m_axeYMaxMm have been changed
     volatile bool m_drawFlagTime;
 
-
     // -- Render
-//    BScanWorker * m_pBScanWorker;
-//    QImage m_buffer;
 };
 
-
-/**
- * @brief The BScanWorker class
- *
- * This class just draw the plot in a separated thread.
- * There is an QPaintDevice conflict that sometimes does the application crash.
- * The class JKQTPlotter inherits of QWidget. This is a bad idea to paint QWidget device in a separated thread.
- * The solution is to use a QImage as buffer to render the draw without use of QWidget.
- * Everything works fine, but the application crash (Interrupt signal : 11) only when GDB not activated ...
- */
-
-//class BScanWorker : public QObject, public Loggable
-//{
-//    Q_OBJECT
-//public :
-//    BScanWorker(BScanGraph * p_parent);
-//    ~BScanWorker();
-
-//    void requestUpdate();
-//    void signalPaintDone();
-//    void start();
-//    void stop();
-
-//signals :
-
-//    void evRequestUpdate();
-//    void evUpdateDone();
-
-//private slots :
-//    void onProcessUpdate();
-
-//private :
-//    BScanGraph * m_pParent;
-//    volatile bool m_requestUpdate;
-//    volatile bool m_processing;
-//    QThread * m_pThread;
-//};
+// NOTE: do not render JKQTPlotter in a separate thread: it inherits QWidget and
+// painting that device off the GUI thread caused crashes (signal 11).

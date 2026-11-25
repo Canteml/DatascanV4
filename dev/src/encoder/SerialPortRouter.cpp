@@ -39,7 +39,7 @@ SerialPortRouter::SerialPortRouter(VectorStd* vectorStd,
     , m_encoder(encoder)
     , m_timRetry(this)
 {
-    QSettings settings("Roboplanet", "DatascanV3");
+    QSettings settings("Roboplanet", "DatascanV4");
     m_portName = settings.value(SETTINGS_KEY_BACKUP_PORT, QString()).toString();
 
     m_timRetry.setInterval(RETRY_PERIOD_MS);
@@ -55,7 +55,7 @@ void SerialPortRouter::setPortName(const QString& value)
         return;
 
     m_portName = value;
-    QSettings settings("Roboplanet", "DatascanV3");
+    QSettings settings("Roboplanet", "DatascanV4");
     settings.setValue(SETTINGS_KEY_BACKUP_PORT, m_portName);
     Logger::logInfo(QString("[SerialPortRouter] backup serial port set to '%1'").arg(m_portName));
     emit portNameChanged(m_portName);

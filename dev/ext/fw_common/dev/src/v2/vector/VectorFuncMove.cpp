@@ -16,6 +16,7 @@
 #include <v2/prot/ProtMsg.h>
 
 // -- Qt includes
+#include <QCoreApplication>
 
 const qreal VectorFuncMove::MOVE_KEY_FACTOR = 0.5;
 const quint32 VectorFuncMove::NO_MOVEMENT_UPDATE_MS_INTERVAL = 25;
@@ -41,6 +42,11 @@ VectorFuncMove::VectorFuncMove(VectorStd *p_pVectorStd) : GenVectorFunc("VectorF
     m_manualMode = true;
 
     m_tNoMovementUpdate->start();
+
+    connect(qApp, &QCoreApplication::aboutToQuit, this, [this]() {
+        stopMove();
+        onNoMovementUpdate();
+    });
 }
 
 VectorFuncMove::~VectorFuncMove()
@@ -92,20 +98,7 @@ void VectorFuncMove::setJoyXY(qint8 p_x, qint8 p_y)
         emit evLocalJoyXY(p_x, p_y);
 
 // PATCH : Do not manage CMD ANSWER because of no answers sometimes from vector
-//        if( !m_tCmdAnsTimeout->isActive() ) {
-//            m_tCmdAnsTimeout->start(ProtMsg::TIMEOUT_MS);
-        //processPendingCmd();
-//        }
 
-        /*
-        if(m_pendingJoyX == 0 && m_pendingJoyY == 0) {
-            m_tNoMovementUpdate->start();
-        } else {
-            if(m_tNoMovementUpdate->isActive()) {
-                m_tNoMovementUpdate->stop();
-            }
-        }
-        */
     }
 }
 
@@ -156,8 +149,6 @@ void VectorFuncMove::onCmdAnsTimeout()
 
 void VectorFuncMove::onNoMovementUpdate()
 {
-    //if(m_pendingJoyX != 0 || m_pendingJoyY != 0) return;
-    //m_pendingCmd = MOVE_CMD_JOY_X_Y;
    if(m_manualMode == true)
    {
       m_pendingCmd = MOVE_CMD_JOY_X_Y;
@@ -310,7 +301,6 @@ void VectorFuncMove::stopMove()
     moveKeyUpdate();
 }
 
-
 void VectorFuncMove::moveStopX()
 {
     m_moveKeyDir = (m_moveKeyDir & 0b1100);
@@ -361,7 +351,6 @@ bool VectorFuncMove::customSaveParam(QDomDocument *, QDomElement *)
 
     return bRet;
 }
-
 
 void VectorFuncMove::onDeviceConnected()
 {

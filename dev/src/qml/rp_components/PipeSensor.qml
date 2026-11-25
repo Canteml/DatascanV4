@@ -4,23 +4,17 @@ import QtQuick.Controls 2.15
 import QtQuick.Layouts 1.11
 import Design 1.0
 
-
 Rectangle {
     id: idRectPipeSensor
     Layout.fillWidth: true;
     Layout.fillHeight: true;
 
-
     property var sensorNumber;
-    //property alias sensorNumber : idRectPipeSensor.sensorNumber;
 
     property var sensorAngle;
-    //property alias sensorAngle : idRectPipeSensor.sensorAngle;
 
     property var selectShorcut1;
-    //property alias selectShorcut1 : idRectPipeSensor.selectShorcut1;
     property var selectShorcut2;
-    //property alias selectShorcut2 : idRectPipeSensor.selectShorcut2;
 
     border.width: 0
     color: Design.colBackgroundDark

@@ -18,7 +18,6 @@
 #include <QDateTime>
 #include <QMutex>
 
-
 // ----------------------------------------------------------------------------
 // -- Class StatCounter
 
@@ -104,7 +103,6 @@ bool StatCounter::customSaveParam(QDomDocument * p_pDoc, QDomElement * p_pParent
     bRet &= XML_WRITE_UNIQUE(m_dataTotal);
     return bRet;
 }
-
 
 // ----------------------------------------------------------------------------
 // -- Class StatTime
@@ -218,7 +216,6 @@ quint32 StatTime::getType(void) const
     return STAT_TIME;
 }
 
-
 void StatTime::setTimerEnabled(bool p_enabled)
 {
     m_timerEnabled = p_enabled;
@@ -250,7 +247,6 @@ void StatTime::incrementTimer()
 
 // ----------------------------------------------------------------------------
 // -- Class StatisticManager
-
 
 // -- Singleton
 StatisticManager::StatisticManager() : Loggable("StatisticManager"), XmlSettings("StatisticManager")
@@ -296,7 +292,6 @@ void StatisticManager::stopManager()
     }
 }
 
-
 // -- Data
 const QList<StatCounter *> StatisticManager::getStats(void) const
 {
@@ -325,7 +320,6 @@ quint32 StatisticManager::getDaysSinceLastResetDate() const
     qint64 nbDays = abs(deltaMs / (24*60*60*1000));
     return (quint32)nbDays;
 }
-
 
 // -- SLOTS
 
@@ -357,8 +351,6 @@ void StatisticManager::onUpdateStatTime(void)
     }
 }
 
-
-
 // -- Behaviour
 void StatisticManager::addStat(StatCounter * p_pStat)
 {
@@ -381,7 +373,6 @@ void StatisticManager::deleteStats()
     m_lStats.clear();
 }
 
-
 // -- XmlSettings
 bool StatisticManager::customLoadSettings(QDomElement * p_pParent)
 {
@@ -403,26 +394,12 @@ bool StatisticManager::customLoadSettings(QDomElement * p_pParent)
             QDomElement se = s.toElement();
             if( se.nodeName() == "StatCount" ) {
                 // New Stat ! => witch type ?
-//                StatCounter * sc = nullptr;
-//                int seType = se.firstChildElement("m_type").text().toInt();
-//                if( seType == StatCounter::STAT_EVENT ) {
-//                    sc = new StatEvent();
-//                    bRet &= sc->customLoadParam(&se);
-//                } else if( seType == StatCounter::STAT_TIME ) {
-//                    sc = new StatTime();
-//                    bRet &= sc->customLoadParam(&se);
-//                }
 
-//                if( nullptr == sc ) {
-//                    fLogError(QString("unknow type : %1").arg(seType));
-//                    bRet = false;
-//                } else {
                     if( iL < m_lStats.size() ) {
                         // add to the list
                         m_lStats.at(iL)->customLoadParam(&se);
                         iL++;
                     }
-//                }
             }
             s = s.nextSiblingElement();
 
@@ -460,8 +437,6 @@ bool StatisticManager::customSaveSettings(QDomDocument * p_pDoc, QDomElement * p
 
     // set param
     bRet &= XML_WRITE_UNIQUE(m_lastReset);
-
-
 
     // -- statistics
     m_mStats->lock();

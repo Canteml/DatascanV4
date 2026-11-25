@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(APP VERSION 3.0.1 LANGUAGES CXX)
+project(APP VERSION 4.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -31,12 +31,6 @@ file(GLOB_RECURSE FW_UI
 )
 target_sources(APP PRIVATE ${FW_UI})
 
-# --- Forms (.ui) ---
-qt_add_forms(FORMS_SOURCES
-    ${CMAKE_SOURCE_DIR}/ext/fw_ui/dev/src/window/WinLog.ui
-)
-target_sources(APP PRIVATE ${FORMS_SOURCES])
-
 # --- Resources (.qrc) ---
 qt_add_resources(RES_SOURCES
     src/res/translations.qrc
@@ -44,4 +38,4 @@ qt_add_resources(RES_SOURCES
 target_sources(APP PRIVATE ${RES_SOURCES])
 
 # --- Defines ---
-target_compile_definitions(APP PRIVATE APP_VERSION="rev_3.0.1-FR")
+target_compile_definitions(APP PRIVATE APP_VERSION="rev_4.0.0-FR")

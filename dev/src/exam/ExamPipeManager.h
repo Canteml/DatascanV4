@@ -80,7 +80,6 @@ signals :
     void currentSensorNumberChanged(qint32 p_value);
 
     // -- Event
-    void evPrepareNextAcquisition();
     void evSensorThickessChanged(qint32 p_sensorNumber, QString p_sensorThickness);
     void evSensorPictureChanged(qint32 p_sensorNumber, QString p_sensorPictureFile);
     void evClearCircular();

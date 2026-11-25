@@ -73,8 +73,6 @@ private slots :
 private :
     GlobalManager();
 
-    void treatGuiPageSetup();
-
     // -- Properties
     quint32 m_guiPage; //    project : 0 / prepare : 1 / sueprvise : 2 / scan : 3 / licence : 4 / help : 5
 

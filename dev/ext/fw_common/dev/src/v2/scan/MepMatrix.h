@@ -10,11 +10,6 @@ typedef struct MatrixSize {
     quint32 columns;
 } MatrixSize;
 
-/*typedef struct MatrixIndex {
-    quint16 row;
-    quint16 column;
-} MatrixIndex;*/
-
 class AScan;
 
 class MepMatrix : public QObject, public Loggable

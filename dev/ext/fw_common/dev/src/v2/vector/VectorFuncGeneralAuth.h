@@ -42,6 +42,10 @@ public :
     qint64 m_paramDDateRev;     ///< Date de révision de l’appareil. [8 bytes] : epoch time en secondes (int64)
     QList<quint32> m_lFunctions;            ///< functions managed by the device. Discovered in case of MPC, set in case of simu
 
+    // -- Protocol (discovered by the MPC from C_GENERAL_ANS_AUTH, not saved)
+    quint8 m_protocolVersion;       ///< value in ProtMsg::PROTOCOL_VERSION
+    quint8 m_protocolGeneration;    ///< PROTOCOL_KEY[1] in protocol D4, 0 otherwise
+
     QString m_alerts[3];
 
 protected :

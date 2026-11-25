@@ -272,6 +272,7 @@ Rectangle {
                         font.family: Fonts.robotoCondensed
                         font.pixelSize: 14
                         font.bold: true
+                        color: "black"
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
                         readOnly: true
@@ -413,7 +414,9 @@ Rectangle {
                         id: idNewLicenceKey
                         selectByMouse: true
                         text: ""
+                        color: "black"
                         font.family: Fonts.robotoCondensed
+                        verticalAlignment: Text.AlignVCenter
                         Layout.preferredHeight: 40
                         Layout.preferredWidth: 1270
                         font.pixelSize: 14

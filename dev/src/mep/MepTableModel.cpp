@@ -24,12 +24,12 @@ MepTableModel::~MepTableModel()
 
 int MepTableModel::rowCount(const QModelIndex &) const
 {
-    return m_u32NbRow; //m_examManager->getMepNbRow();
+    return m_u32NbRow;
 }
 
 int MepTableModel::columnCount(const QModelIndex &) const
 {
-    return m_u32NbCol; //m_examManager->getMepNbCol();
+    return m_u32NbCol;
 }
 
 QVariant MepTableModel::data(const QModelIndex &index, int role) const
@@ -52,12 +52,10 @@ QVariant MepTableModel::headerData(int p_i32Section, Qt::Orientation p_eOrientat
     }
     if(Qt::Vertical == p_eOrientation) {
         qreal begin = abs((m_examManager->getMepHeight() - (p_i32Section) * m_examManager->getMepIntervalY()));
-        //qreal end = begin + m_examManager->getMepIntervalY();
         return  QString::number(m_examManager->getMepNbRow() - p_i32Section)
                 //+ QString(" | ") + QString::number(begin, 'f', 1) + QString("m")// + QString(" → ") +
                             /*QString::number(end, 'f', 1) + QString("m")*/;
     }
-    //return QVariant(p_i32Section + 1);
     return QVariant(MepTableModel::getColumnLabel(p_i32Section));
 }
 
@@ -96,8 +94,6 @@ void MepTableModel::onLayoutChanged()
     m_u32NbRow = m_examManager->getMepNbRow();
     m_u32NbCol = m_examManager->getMepNbCol();
     endResetModel();
-    // emit dataChanged(index(0,0), index(m_u32NbRow-1, m_u32NbCol-1));
-    // emit layoutChanged();
 }
 
 void MepTableModel::onDataChanged()

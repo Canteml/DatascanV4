@@ -24,11 +24,8 @@
 #include <log/Logger.h>
 #include <core/Core.h>
 
-
-
 // ----------------------------------------------------------------------------
 // -- Class logMessage
-
 
 logMessage::logMessage(quint32 p_level, const QString & p_message, const QString & p_header)
 {
@@ -87,7 +84,6 @@ void RedirectQtMessage(QtMsgType type, const QMessageLogContext &context, const 
 
     switch (type) {
     case QtDebugMsg:
-        //fprintf(stderr, "Debug: %s (%s:%u, %s)\n", localMsg.constData(), context.file, context.line, context.function);
         Logger::logDebug1(QString("%1 : %2").arg(loc).arg(msg));
         break;
     case QtInfoMsg:
@@ -119,7 +115,6 @@ bool Logger::m_isFinished = false;
 quint32 Logger::m_countLogLost = 0;
 
 int Logger::MAX_LIST_LOG_SIZE = 10000;
-
 
 // -- Logger definitions
 Logger::Logger() : XmlSettings("Logger")
@@ -195,7 +190,6 @@ Logger::~Logger()
     m_isFinished = true;
     m_pMyInstance = nullptr;
 }
-
 
 // -- state chart
 bool Logger::initLogger()
@@ -316,7 +310,6 @@ void Logger::logDebug2(const QString & p_message)
     Logger::getInstance()->addLog(new logMessage(logMessage::LOG_LEVEL_DEBUG2, p_message));
 }
 
-
 // -- Behaviour
 const QStringList &Logger::getFatalErrors()
 {
@@ -365,7 +358,6 @@ bool Logger::isRunning()
 bool Logger::customLoadSettings(QDomElement * p_pParent)
 {
     bool bRet = true;
-    //bRet &= XmlHelper::xmlReadUniqueParameter<bool>(p_pParent, m_logFile, "m_logFile"); //XML_READ_UNIQUE(bool, m_logFile);
     bRet &= XML_READ_UNIQUE(bool, m_logFile);
     bRet &= XML_READ_UNIQUE(quint32, m_maxFileLines);
     bRet &= XML_READ_UNIQUE(quint32, m_verbosity);

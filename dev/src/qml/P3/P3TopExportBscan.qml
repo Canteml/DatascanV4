@@ -46,7 +46,6 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
 
-
                 // SPACER horizontal
                 Item {
                     Layout.fillWidth: true
@@ -83,7 +82,6 @@ ColumnLayout {
                         examManager.examStep = 0; // STOPPED
                     }
                 }
-
 
                 // SPACER horizontal
                 Item {
@@ -214,7 +212,6 @@ ColumnLayout {
                         } else {
                             idTxtFileNameErrorMsg.text = ""
                         }
-                        //btOk.enabled = ( 1 !== err );
                     }
 
                 }
@@ -287,7 +284,6 @@ ColumnLayout {
                     Layout.fillWidth: true
                 }
             }
-
 
             RowLayout {
                 Layout.fillWidth: true
@@ -440,7 +436,6 @@ ColumnLayout {
             RowLayout {
                 Layout.fillWidth: true
 
-
                 // SPACER horizontal
                 Item {
                     Layout.fillWidth: true
@@ -487,7 +482,6 @@ ColumnLayout {
                         horizontalAlignment: Text.AlignHCenter
                     }
                 }
-
 
                 // SPACER horizontal
                 Item {

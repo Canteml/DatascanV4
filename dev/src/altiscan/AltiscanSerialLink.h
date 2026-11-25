@@ -53,7 +53,6 @@
 // cable is unplugged while running) closes the port and starts a 500ms
 // retry timer (same interval as the legacy vecLink::AUTO_CONNECT_DELAY)
 // that keeps trying to reopen the same port until it succeeds - no app
-// restart needed. This only applies after a successful connection is lost;
 // it does not retry an initial open() failure (see open()'s own doc).
 
 class AltiscanSerialLink : public QObject
@@ -68,13 +67,11 @@ public:
     bool isOpen() const;
 
     void setCoefStepToMm(qreal mmPerPulse);
-    qreal coefStepToMm() const { return m_coefStepToMm; }
     void setOdometry(qreal wheelDiameterMm, quint32 coderResolution);
 
     void setJoystick(qint8 x, qint8 y);
 
 signals:
-    void evPositionRaw(qint32 pulses);
     void evPositionMm(qreal mm);
 
     void evPressureRaw(quint16 milliBar);

@@ -23,6 +23,8 @@ VectorFuncGeneralAuth::VectorFuncGeneralAuth() : XmlProject("VectorFuncGeneralAu
     m_paramDVerSw = "0.0-DevSw";
     m_paramDDateBuild = QDateTime::currentSecsSinceEpoch();
     m_paramDDateRev = QDateTime::currentSecsSinceEpoch();
+    m_protocolVersion = 0;      // ProtMsg::PROTOCOL_UNKNOWN
+    m_protocolGeneration = 0;
 
     for(int i = 0 ; i < 3 ; i++) {
         m_alerts[i] = QString();
@@ -73,6 +75,8 @@ bool VectorFuncGeneralAuth::customLoadDefaultParam()
     m_paramDVerSw = "0.0-DevSw";
     m_paramDDateBuild = QDateTime::currentSecsSinceEpoch();
     m_paramDDateRev = QDateTime::currentSecsSinceEpoch();
+    m_protocolVersion = 0;      // ProtMsg::PROTOCOL_UNKNOWN
+    m_protocolGeneration = 0;
     return bRet;
 }
 

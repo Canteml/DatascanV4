@@ -15,8 +15,6 @@ Rectangle {
         anchors.topMargin: 5
 
         RowLayout {
-//            Layout.fillWidth: true;
-//            Layout.preferredHeight: 28
             spacing: 5
             Layout.leftMargin: 5
 
@@ -55,7 +53,6 @@ Rectangle {
 
             MessageDialog {
                 id: idMsdExamModified
-                //icon: Std.StandardIcon.Warning
                 title: qsTr("Examen non sauvegardé !")
                 text: qsTr("Des données n'ont pas été enregistrées.\nVoulez-vous quand même démarrer un nouvel examen ?")
                 buttons: MessageDialog.Yes | MessageDialog.No
@@ -110,7 +107,6 @@ Rectangle {
 
         MessageDialog {
             id: idMsgError
-            //icon: Std.StandardIcon.Critical
             title: qsTr("Erreur")
             text: qsTr("L'examen n'a pas pu être sauvegardé :\n" + idFdExamExport.retExport )
             buttons: MessageDialog.Ok

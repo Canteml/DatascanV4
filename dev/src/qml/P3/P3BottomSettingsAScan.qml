@@ -893,6 +893,7 @@ Rectangle {
 
                                         Button {
                                             id: idBtFrequence20Mhz
+                                            enabled: !scanManager.SelectedFuncAScan.isD4Source
                                             Layout.preferredWidth: 49
                                             Layout.preferredHeight: 25
 
@@ -919,6 +920,7 @@ Rectangle {
 
                                         Button {
                                             id: idBtFrequence40Mhz
+                                            enabled: !scanManager.SelectedFuncAScan.isD4Source
                                             Layout.preferredWidth: 49
                                             Layout.preferredHeight: 25
 
@@ -945,6 +947,7 @@ Rectangle {
 
                                         Button {
                                             id: idBtFrequence80Mhz
+                                            enabled: !scanManager.SelectedFuncAScan.isD4Source
                                             Layout.preferredWidth: 49
                                             Layout.preferredHeight: 25
 

@@ -22,7 +22,6 @@
 
 #define FREQ_REFRESH_ASCAN_ON_IHM  20
 
-
 AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSettingsLoggable("AScanGraph")
 { 
     setAcceptHoverEvents(true);
@@ -54,28 +53,17 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_dsAScan = m_pPlotAScan->getDatastore();
 
     // allocate / init
-    //QVector<double> xAscan, yAscan;
-    for(int i=0; i<AScanRawSample::ASCAN_SAMPLE_SIZE/4; i++) {
-//        double vy = 0;
-//        double vx = i;
-//        xAscan<<vx;
-//        yAscan<<vy;
+    for(int i=0; i<AScanRawSample::ASCAN_SAMPLE_CAPACITY; i++) {
         m_pAScanXData[i] = i;
         m_pAScanYData[i] = 0;
 
     }
 
-//    m_columnX=m_dsAScan->addCopiedColumn(xAscan, "x");
-//    m_columnY=m_dsAScan->addCopiedColumn(yAscan, "y");
-
-    m_columnX=m_dsAScan->addColumn(m_pAScanXData, AScanRawSample::ASCAN_SAMPLE_SIZE/4, "x");
-    m_columnY=m_dsAScan->addColumn(m_pAScanYData, AScanRawSample::ASCAN_SAMPLE_SIZE/4, "y");
+    m_columnX=m_dsAScan->addColumn(m_pAScanXData, AScanRawSample::ASCAN_SAMPLE_CAPACITY/4, "x");
+    m_columnY=m_dsAScan->addColumn(m_pAScanYData, AScanRawSample::ASCAN_SAMPLE_CAPACITY/4, "y");
     // RF mode: full resolution columns on the same arrays (a 5 MHz carrier needs all samples to look smooth)
-    m_columnXRF=m_dsAScan->addColumn(m_pAScanXData, AScanRawSample::ASCAN_SAMPLE_SIZE, "xRF");
-    m_columnYRF=m_dsAScan->addColumn(m_pAScanYData, AScanRawSample::ASCAN_SAMPLE_SIZE, "yRF");
-
-//    m_pAScanXData = m_dsAScan->getColumnPointer(m_columnX);
-//    m_pAScanYData = m_dsAScan->getColumnPointer(m_columnY);
+    m_columnXRF=m_dsAScan->addColumn(m_pAScanXData, AScanRawSample::ASCAN_SAMPLE_CAPACITY, "xRF");
+    m_columnYRF=m_dsAScan->addColumn(m_pAScanYData, AScanRawSample::ASCAN_SAMPLE_CAPACITY, "yRF");
 
     // -- Graphic items
     m_pZeroLine = new JKQTPGeoLine(m_pPlotAScan, 0, 0, 0, 100);
@@ -87,7 +75,7 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_graphAScan->setYColumn(m_columnY);
     m_graphAScan->setSymbolType(JKQTPNoSymbol);
     m_graphAScan->setColor("#202020");
-    m_graphAScan->setLineWidth(0.8); //(1.2);
+    m_graphAScan->setLineWidth(0.8);
     m_pPlotAScan->addGraph(m_graphAScan);
 
     m_graphAScanRF=new JKQTPXYLineGraph(m_pPlotAScan);
@@ -105,18 +93,14 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_pPlotAScan->setToolbarEnabled(false);
     m_pPlotAScan->clearAllRegisteredMouseDragActions();
     m_pPlotAScan->setShowZeroAxes(false, false); // hide 0 axis for X and Y (white..)
-    //m_pPlotAScan->getXAxis()->setShowZeroAxis(false);
     m_pPlotAScan->setContextMenuMode(jkqtpcmmSpecialContextMenu);
     m_pPlotAScan->getXAxis()->setDrawGrid(false);
     m_pPlotAScan->getYAxis()->setDrawGrid(false);    
-    //m_pPlotAScan->getXAxis()->setMinTicks(10);
     m_pPlotAScan->getXAxis()->setAutoAxisSpacing(false);
     m_pPlotAScan->getXAxis()->setUserTickSpacing(10);
 
     m_pPlotAScan->getXAxis()->setLineWidth(1);
     m_pPlotAScan->getYAxis()->setLineWidth(1);
-//    m_pPlotAScan->getXAxis()->setAxisLabel("Distance (mm)");
-//    m_pPlotAScan->getYAxis()->setAxisLabel("Amplitude (%)");
     m_pPlotAScan->getXAxis()->setDrawMode2(JKQTPCADrawMode(JKQTPCADMnone));
     m_pPlotAScan->getYAxis()->setDrawMode2(JKQTPCADrawMode(JKQTPCADMnone));
 
@@ -126,10 +110,6 @@ AScanGraph::AScanGraph(QQuickItem *parent) : QQuickPaintedItem(parent), XmlSetti
     m_pPlotAScan->getPlotter()->setUseAntiAliasingForText(true);
 
     // scale
-    //m_pPlotAScan->setAbsoluteY(0,100);
-    //onDigitilizingDepthChanged();
-    //m_pPlotAScan->setAbsoluteX(-1000,1000); // X visible area
-    //m_pPlotAScan->getXAxis()->setRange(0,20);
     m_pPlotAScan->zoom(0, 100, 0, 100);
     m_pPlotAScan->getPlotter()->setBackgroundColor(QColor(255,255,255));
     m_pPlotAScan->getPlotter()->setPlotBorder(-15,10,10,-5);
@@ -150,22 +130,7 @@ void AScanGraph::setAutoGainParams(bool enabled, qint16 threshold, quint16 noise
     m_autoGainThreshold = threshold;
     m_noiseGateStart    = noiseStart;
     m_noiseGateWidth    = noiseWidth;
-    if(!enabled){
-        m_lastValidScaleFactor = 1.0;
-    }
 
-    /*
-    // Update noise gate visual line
-    qreal x1 = static_cast<qreal>(noiseStart);
-    qreal x2 = static_cast<qreal>(noiseStart + noiseWidth);
-    qreal y  = static_cast<qreal>(threshold);
-    m_pNoiseGateLine->setX1(x1);
-    m_pNoiseGateLine->setY1(y);
-    m_pNoiseGateLine->setX2(x2);
-    m_pNoiseGateLine->setY2(y);
-    m_pNoiseGateLine->setVisible(enabled);
-    m_pPlotAScan->requestUpdate();
-*/
 }
 
 void AScanGraph::setMeasureGate(qreal startMm, qreal widthMm)
@@ -180,7 +145,7 @@ int AScanGraph::mmToDisplayIndex(qreal mm, AScan* pAScan, int p_decim) const
     if (stepMm <= 0.0) return 0;
     qreal probeDelayMm = pAScan->getAScanMeasure()->m_paramLProbeDelayMm;
     int idx = qRound((mm + probeDelayMm) / (stepMm * p_decim));
-    return qBound(0, idx, AScanRawSample::ASCAN_SAMPLE_SIZE / p_decim - 1);
+    return qBound(0, idx, pAScan->getAScanRawSample()->m_sampleCount / p_decim - 1);
 }
 
 AScanGraph::~AScanGraph()
@@ -227,13 +192,12 @@ void AScanGraph::updateAScan(AScan * p_pAScan)
             // Draw a ASCAN with 4000 points use lot of CPU.
             // Reduce to 1000 points (/4), except in RF mode: averaging 4 samples
             // leaves only 4 points per period of a 5 MHz carrier (80 MHz) => angular curve.
-            // In RF mode with LISSAGE active (> 5) the curve is drawn at full resolution;
             // the progressive smoothing is then done by the RF low-pass filter (AScanWorker)
             static const int RF_LISSAGE_DISPLAY_FULL = 5;   ///< above: 4000 points
             const bool isRF = (wt == 3);
             const bool fullRes = isRF && p_pAScan->getAScanEnhancedSample()->m_paramLLowPassFilter > RF_LISSAGE_DISPLAY_FULL;
             const int decim = fullRes ? 1 : 4;
-            const int N = AScanRawSample::ASCAN_SAMPLE_SIZE / decim;
+            const int N = p_pAScan->getAScanRawSample()->m_sampleCount / decim;
             m_graphAScan->setVisible(!fullRes);
             m_graphAScanRF->setVisible(fullRes);
             // Anti-aliasing costs CPU: only when the RF curve is drawn at higher resolution
@@ -245,7 +209,7 @@ void AScanGraph::updateAScan(AScan * p_pAScan)
                 m_pAScanXData[i] = x;
                 qreal ymoy = 0;
                 for(int j=is; j<is+decim; j++) {
-                    ymoy += p_pAScan->getAScanEnhancedSample()->m_enhancedSamples[j];
+                    ymoy += p_pAScan->getAScanEnhancedSample()->m_enhancedSamples[j] / qreal(AScanEnhancedSample::ENHANCED_SCALE);
                 }
                 if (isRF) {
                     m_pAScanYData[i] = (ymoy/decim - 127.0) / std::numeric_limits<quint8>::max() * 100.0; // RF: centrato su 0, range -50..+50
@@ -314,8 +278,15 @@ void AScanGraph::updateAScan(AScan * p_pAScan)
                 }
             }
 
+            // Le colonne hanno lunghezza fissa : i punti in eccesso ripetono l'ultimo campione
+            const int columnSize = AScanRawSample::ASCAN_SAMPLE_CAPACITY / decim;
+            for(int i=N; i<columnSize; i++) {
+                m_pAScanXData[i] = m_pAScanXData[N-1];
+                m_pAScanYData[i] = m_pAScanYData[N-1];
+            }
+
         } else {
-            for(int i=0; i<AScanRawSample::ASCAN_SAMPLE_SIZE; i++) {
+            for(int i=0; i<AScanRawSample::ASCAN_SAMPLE_CAPACITY; i++) {
                 m_pAScanYData[i] = 0;
             }
         }
@@ -398,7 +369,6 @@ void AScanGraph::zoomOut()
     needRefresh(true);
 }
 
-
 void AScanGraph::computeTickSpacing()
 {
     qreal d = m_AxeXMax - m_AxeXMin;
@@ -424,7 +394,6 @@ void AScanGraph::routeMouseEvents(QMouseEvent *event)
 void AScanGraph::needRefresh(bool p_force)
 {
 
-
     qint64 curEpoc = QDateTime::currentMSecsSinceEpoch();
     // timer active => already an update programmed
     if( !m_timeRefresh->isActive() || p_force) {
@@ -432,7 +401,6 @@ void AScanGraph::needRefresh(bool p_force)
         if( (dTime >= (1000/FREQ_REFRESH_ASCAN_ON_IHM) || p_force) && !m_updateInProgress ) {
             m_updateInProgress = true;
             m_lastUpdateEpoc = curEpoc;
-            //update();
             if(  nullptr != m_pAScanGraphWorker ) {
                 m_pAScanGraphWorker->requestUpdate();
             }
@@ -455,7 +423,6 @@ void AScanGraph::draw()
     t.scale(magnification, magnification);
     m_pPlotAScan->getPlotter()->draw(t, QRect(0,0,width(), height()));
 }
-
 
 void AScanGraph::mousePressEvent( QMouseEvent* event )
 {
@@ -584,7 +551,6 @@ void AScanGraph::onThreadFinished()
 void AScanGraph::onUpdateWidgetSize()
 {
     // update replot time to get a delay
-    //m_lastUpdateEpoc = QDateTime::currentMSecsSinceEpoch();
     needRefresh(false);
 }
 
@@ -637,7 +603,6 @@ void AScanGraph::onPlotMouseClicked(double x, double y, Qt::KeyboardModifiers, Q
     }
 }
 
-
 // ----------------------------
 
 AScanGraphWorker::AScanGraphWorker(AScanGraph * p_parent) : Loggable("AScanGraphWorker")
@@ -652,7 +617,6 @@ AScanGraphWorker::AScanGraphWorker(AScanGraph * p_parent) : Loggable("AScanGraph
     // object on every tick label, and the GUI thread modifies the plot concurrently)
     // => "Cannot create children for a parent that is in a different thread" + SIGSEGV.
     // The queued connection below keeps the update asynchronous, on the GUI thread (as BScanGraph).
-//    this->moveToThread(m_pThread);
 
     connect(this, &AScanGraphWorker::evRequestUpdate, this, &AScanGraphWorker::onProcessUpdate, Qt::QueuedConnection);
 }

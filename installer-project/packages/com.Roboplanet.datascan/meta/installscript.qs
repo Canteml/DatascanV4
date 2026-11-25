@@ -35,22 +35,22 @@ Component.prototype.createOperations = function()
     component.addElevatedOperation("Execute", "{0,1}", "powershell", "-NoProfile", "-Command",
         "Remove-Item -LiteralPath '" + redist + "' -Recurse -Force -ErrorAction SilentlyContinue");
 
-    var exe = "@TargetDir@/bin/DatascanV3.exe";
+    var exe = "@TargetDir@/bin/DatascanV4.exe";
 
     component.addOperation("CreateShortcut", exe,
-        "@StartMenuDir@/DatascanV3.lnk",
+        "@StartMenuDir@/DatascanV4.lnk",
         "workingDirectory=@TargetDir@",
         "iconPath=" + exe, "iconId=0",
-        "description=DatascanV3");
+        "description=DatascanV4");
 
-    component.addOperation("CreateShortcut", "@TargetDir@/DatascanV3_Uninstall.exe",
-        "@StartMenuDir@/Disinstalla DatascanV3.lnk",
+    component.addOperation("CreateShortcut", "@TargetDir@/DatascanV4_Uninstall.exe",
+        "@StartMenuDir@/Disinstalla DatascanV4.lnk",
         "workingDirectory=@TargetDir@",
-        "description=Disinstalla DatascanV3");
+        "description=Disinstalla DatascanV4");
 
     component.addOperation("CreateShortcut", exe,
-        "@DesktopDir@/DatascanV3.lnk",
+        "@DesktopDir@/DatascanV4.lnk",
         "workingDirectory=@TargetDir@",
         "iconPath=" + exe, "iconId=0",
-        "description=DatascanV3");
+        "description=DatascanV4");
 }

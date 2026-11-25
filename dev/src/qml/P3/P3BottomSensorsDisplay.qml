@@ -18,7 +18,6 @@ Rectangle {
         anchors.fill: parent
         spacing: 0
 
-
         Rectangle {
             color: Design.colButtonDarkBackground
             Layout.fillWidth: true
@@ -152,13 +151,11 @@ Rectangle {
                 Text {
                     text: qsTr("Reserve d'eau scan (%) : ")
                     Layout.row: 3
-                    //visible: currentVector.funcPump().isEnabled
                     visible: false
                     font.pointSize: 12
                 }
 
                 Rectangle {
-                    //visible: currentVector.funcPump().isEnabled
                     visible: false
                     border.color: "#E5E5E5"
                     border.width: 1
@@ -180,7 +177,6 @@ Rectangle {
 
                 Rectangle {
                     id: idPumpColorIndicator
-                    //visible: currentVector.funcPump().isEnabled
                     visible: false
                     color: currentVector.funcPump().hasReceivedMessage ?
                                 currentVector.funcPump().paramDTankLevel > 15 ?
@@ -193,7 +189,6 @@ Rectangle {
 
                 Button {
                     id: idPumpTankButton
-                    //visible: currentVector.funcPump().isEnabled
                     visible: false
                     enabled: currentVector.funcPump().hasReceivedMessage
                     text: "↑"
@@ -220,13 +215,11 @@ Rectangle {
                 Text {
                     text: qsTr("Reserve d'eau brossage (%) : ")
                     Layout.row: 4
-                    //visible: currentVector.funcCleaning().isEnabled
                     visible: false
                     font.pointSize: 12
                 }
 
                 Rectangle {
-                    //visible: currentVector.funcCleaning().isEnabled
                     visible: false
                     border.color: "#E5E5E5"
                     border.width: 1
@@ -248,7 +241,6 @@ Rectangle {
 
                 Rectangle {
                     id: idCleaningColorIndicator
-                    //visible: currentVector.funcCleaning().isEnabled
                     visible: false
                     color: currentVector.funcCleaning().hasReceivedMessage ?
                                 currentVector.funcCleaning().paramDTankLevel > 15 ?
@@ -261,7 +253,6 @@ Rectangle {
 
                 Button {
                     id: idCleaningTankButton
-                    //visible: currentVector.funcCleaning().isEnabled
                     visible: false
                     text: "↑"
                     font.pointSize: 14

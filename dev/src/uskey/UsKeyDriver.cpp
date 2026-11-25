@@ -96,13 +96,6 @@ long UsKeyDriver::call(int deviceNum, const char* cmd,
     return ret;
 }
 
-void UsKeyDriver::restartHelper()
-{
-    if (!m_fn) return;
-    call(0, "KillExeX32");
-    call(0, "RunExeX32");
-}
-
 // ----------------------------------------------------------------------------
 // -- Initialization
 
@@ -222,18 +215,4 @@ bool UsKeyDriver::getAscan(int deviceNum, int dataType, int nbSamples, int waveT
 
     outData.resize(static_cast<int>(len));
     return ret == 0;
-}
-
-bool UsKeyDriver::getMeasures(int deviceNum,
-                               short* alarm1, short* amplitude1, short* distance1,
-                               short* alarm2, short* amplitude2, short* distance2)
-{
-    long len = 0;
-    return call(
-        deviceNum, "measures",
-        0, 0, 0, 0, 0, 0,
-        alarm1, amplitude1, distance1,
-        alarm2, amplitude2, distance2,
-        nullptr, &len
-    ) == 0;
 }

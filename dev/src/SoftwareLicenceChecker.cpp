@@ -4,8 +4,6 @@
 #include <QFile>
 #include <QMessageBox>
 
-//#include <QDebug>
-
 #include <iostream>
 using namespace std;
 #include <QSysInfo>
@@ -57,7 +55,6 @@ bool bIsValid = true;
 bool bHasWarning = false;
 qint32 i32LicenceRemainingDays = QDate::currentDate().daysTo(m_dLicenceExpiration);
 qint32 i32ApplicationRemainingDays = QDate::currentDate().daysTo(m_dApplicationExpiration);
-
 
     switch(m_LicenceState) {
         case LICENCE_NONE:
@@ -137,8 +134,6 @@ void SoftwareLicenceChecker::updateLicenceFile()
         u8TmpMSB = (uint8_t) ((m_au8Lic_soft_Crypted[u8Idx]>>4)&0x0F);
         u8TmpLSB = (uint8_t) ((m_au8Lic_soft_Crypted[u8Idx]>>0)&0x0F);
 
-
-
         if( 0x0A<= u8TmpMSB)
         {
             if(0x0A == u8TmpMSB)  licenceFile.write("A");
@@ -150,7 +145,6 @@ void SoftwareLicenceChecker::updateLicenceFile()
         }
         else
         {
-            //std::cout << (char)(u8TmpMSB+'0');
             qstrTemp = QChar((u8TmpMSB+'0'));
             licenceFile.write(qstrTemp.toLocal8Bit() );
         }
@@ -165,7 +159,6 @@ void SoftwareLicenceChecker::updateLicenceFile()
         }
         else
         {
-            //std::cout << (char)(u8TmpLSB+'0');
             qstrTemp = QChar((u8TmpLSB+'0'));
             licenceFile.write(qstrTemp.toLocal8Bit() );
         }
@@ -215,7 +208,6 @@ uint8_t u8DataBinaryBuild;
 QString strTemp;
 bool    bIsOk;
 
-
 uint8_t au8AdminSID_BinaryFormat[20];
 uint8_t au8DummyData[7];
 uint8_t au8Lic_EndDate[8];
@@ -228,18 +220,13 @@ uint64_t u64CRC=0;
 uint8_t au8MaskAlea[8];
 uint8_t au8Lic_soft_notCrypted[88];
 
-
 int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
-
-
 
     //Check if there is a licence file
     if(m_strLicence.isEmpty()) {
         m_dLicenceExpiration = QDate::currentDate();
         return LICENCE_NONE;
     }
-
-
 
     // Traitements avec m_strLicence ------------------------------------------------------------
     u8LicenceFile_length= m_strLicence.length();
@@ -382,11 +369,8 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
         return LICENCE_INVALID;
     }
 
-
     strTmp= QString("%1").arg(u64CRC_ref , 2, 10);
-    //qDebug("CRC64_ref: %s",  strTmp.toLocal8Bit().constData());
     strTmp= QString("%1").arg(u64CRC_compute , 2, 10);
-    //qDebug("CRC64_compute: %s",  strTmp.toLocal8Bit().constData());
 
     //Check the application id
     u8AppSelected = au8Licence_decrypted[35];
@@ -406,10 +390,8 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
         system_output = process_system.readAllStandardOutput();
         cout << "SID : "  << system_output.toLocal8Bit().constData() << endl;
 
-
         //Extract the line Administrator sid line and convert the data into qbyte array ------------------------------------------------------------------------
         qastr_listeSID = system_output.split("\r");
-        //cout << qastr_listeSID[2].toLocal8Bit().constData() ;
         qba_AdminSID_notClean=qastr_listeSID[2].toLocal8Bit();
 
         //Copy the result of the process system SID on a au8Array and find the start idx of the SID number -----------------------------------------------------
@@ -417,16 +399,13 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
         for(u8Idx=0; u8Idx<qba_AdminSID_notClean.length();u8Idx++ )
         {
             au8AdminSID_notClean[u8Idx] = (uint8_t) qba_AdminSID_notClean[u8Idx];
-            //qDebug("Idx %d :%d : %c ", (int)u8Idx, (int)au8AdminSID_notClean[u8Idx], (char) au8AdminSID_notClean[u8Idx]);
             if('S' == au8AdminSID_notClean[u8Idx] )
             {
                 u8IdxStart = u8Idx;
-                //qDebug("Idx Start %d ", u8Idx);
             }
         }
 
         //Extract the SID number on the ascii Table
-        //qDebug("Idx Start %d ", u8IdxStart);
         u8Idx_AsciiCompressed=0;
         for(u8Idx=u8IdxStart; u8Idx<qba_AdminSID_notClean.length();u8Idx++ )
         {
@@ -441,10 +420,7 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
                     au8AdminSID_AsciiCompressed[u8Idx_AsciiCompressed]= au8AdminSID_notClean[u8Idx];
                 }
 
-
-                // qDebug("Idx %d :%d : %c "   , (int)u8Idx_AsciiCompressed
                 //                            , (int)au8AdminSID_AsciiCompressed[u8Idx_AsciiCompressed]
-                //                            , (char) au8AdminSID_AsciiCompressed[u8Idx_AsciiCompressed]);
 
                 u8Idx_AsciiCompressed++;
 
@@ -464,16 +440,8 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
         }
 
         //Print the  au8AdminSID_AsciiCompressed value      
-        //cout << "ADMIN SID ASCII COMPRESSED : \t" ;
-
-        //for(u8Idx=0 ; u8Idx<40;u8Idx++ )
-        //{
-        //     cout << (char) au8AdminSID_AsciiCompressed[u8Idx];
-        //}
-
 
         //Build ADMIN SID IN BINARY FORMAT
-        //cout <<endl << "ADMIN SID IN BINARY FORMAT : \t" ;
         u8Idx_AsciiCompressed=0;
         u8Idx_BinaryFormat =0;
 
@@ -500,10 +468,6 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
 
             u8DataBinaryBuild = u8TmpMSB<<4 | u8TmpLSB;
             au8AdminSID_BinaryFormat[u8Idx_BinaryFormat] =  u8DataBinaryBuild;
-
-            //strTemp= QString("%1.").arg(u8DataBinaryBuild , 2, 16);
-            //cout <<  strTemp.toLocal8Bit().constData() ;
-
 
             u8Idx_BinaryFormat++;
         }
@@ -551,9 +515,6 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
                                             + (uint16_t)((au8Licence_decrypted[70])*10)
                                             + (uint16_t)((au8Licence_decrypted[71]));
 
-
-
-
     if((0> s16Extract_EndDateLic_dd                 || 31< s16Extract_EndDateLic_dd) ||
        (0> s16Extract_EndDateLic_mm                 || 12< s16Extract_EndDateLic_mm) ||
        (2023> s16Extract_EndDateLic_aaaa            || 2100< s16Extract_EndDateLic_aaaa)||
@@ -582,21 +543,7 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
     qDebug("[LICENCE] >> Read current date          :  %d:%d:%d",s16Get_DateCurrent_dd,s16Get_DateCurrent_mm, s16Get_DateCurrent_aaaa);
     qDebug("[LICENCE] >> Read First Creation date   :  %d:%d:%d",s16Extract_FirstCreationDateLic_dd,s16Extract_FirstCreationDateLic_mm, s16Extract_FirstCreationDateLic_aaaa);
 
-
     //Expiration date ------------------------------------------------------------
-
-    //s16Extract_EndDateApp_aaaa  = 2023;
-    //s16Extract_EndDateApp_mm    = 05;
-    //s16Extract_EndDateApp_dd    = 01;
-
-    //s16Extract_EndDateLic_aaaa  = 2024;
-    //s16Extract_EndDateLic_mm    = 05;
-    //s16Extract_EndDateLic_dd    = 01;
-
-    //s16Extract_DateLastRunApp_aaaa  = 2023;
-    //s16Extract_DateLastRunApp_mm    = 03;
-    //s16Extract_DateLastRunApp_dd    = 23;
-
 
     m_dLicenceExpiration.setDate(s16Extract_EndDateLic_aaaa, s16Extract_EndDateLic_mm, s16Extract_EndDateLic_dd);
     m_dApplicationExpiration.setDate(s16Extract_EndDateApp_aaaa, s16Extract_EndDateApp_mm, s16Extract_EndDateApp_dd);
@@ -608,7 +555,6 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
     qint32 i32ApplicationRemainingDays = QDate::currentDate().daysTo(m_dApplicationExpiration);
     qint32 i32IntervalLastConnexionDays = QDate::currentDate().daysTo(m_dApplicationlastLaunch);
 
-    //qDebug("Number of day elapsed since the last run :  %d",i32IntervalLastConnexionDays)
     //Check the coherance with the last date and current date connexion
     if(i32IntervalLastConnexionDays > 0) {
         m_u8CodeError = 0x07;
@@ -618,13 +564,11 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
     // Rebuild the licence file --------------------------------------------------
 
     //GENERATE DUMMY DATA
-    //cout <<endl << "GENERATE DUMMY DATA : \t" ;
     for(u8Idx = 0; u8Idx <7; u8Idx++)
     {
         au8DummyData[u8Idx]= (uint8_t)( QRandomGenerator::global()->generate());
 
         strTemp= QString("%1.").arg(au8DummyData[u8Idx] , 2, 16);
-        //cout <<  strTemp.toLocal8Bit().constData() ;
     }
 
     //DATE FIN LICENCE
@@ -645,15 +589,11 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
     //            << (char)(au8Lic_EndDate[4]+'0')
     //            << (char)(au8Lic_EndDate[5]+'0')
     //            << (char)(au8Lic_EndDate[6]+'0')
-    //            << (char)(au8Lic_EndDate[7]+'0') ;
 
     //APPLICATION TYPE
-    //cout <<endl << "TYPE OF APPLICATION : \t" ;
     u8AppType = APP_DATASCAN_SELECTED;
-    //std::cout   << (char)(u8AppType+'0') ;
 
     //DATE LAST CONNECTION
-    //cout <<endl << "DATE LAST CONNECTION : \t" ;
     if(i32IntervalLastConnexionDays > 0)
     {
         au8App_LastConnection[0] = (uint8_t) (s16Extract_DateLastRunApp_dd/10);
@@ -684,10 +624,8 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
     //            << (char)(au8App_LastConnection[4]+'0')
     //            << (char)(au8App_LastConnection[5]+'0')
     //            << (char)(au8App_LastConnection[6]+'0')
-    //            << (char)(au8App_LastConnection[7]+'0') ;
 
     //DATE FIN APPLICATION
-    //cout <<endl << "DATE END APPLICATION : \t" ;
     //17:05:2024
     au8App_EndDate[0] = au8Licence_decrypted[44];
     au8App_EndDate[1] = au8Licence_decrypted[45];
@@ -705,21 +643,16 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
     //            << (char)(au8App_EndDate[4]+'0')
     //            << (char)(au8App_EndDate[5]+'0')
     //            << (char)(au8App_EndDate[6]+'0')
-    //            << (char)(au8App_EndDate[7]+'0') ;
 
     //ADMIN SID COPY
-    //cout <<endl << "ADMIN SID COPY : \t\t" ;
     for(u8Idx = 0; u8Idx <12; u8Idx++)
     {
         au8AdminSID_BinaryFormat_Copy[u8Idx]= au8AdminSID_BinaryFormat[u8Idx];
 
         strTemp= QString("%1.").arg(au8AdminSID_BinaryFormat_Copy[u8Idx] , 2, 16);
-        //std::cout <<  strTemp.toLocal8Bit().constData() ;
     }
 
-
     //DATE FIRST LICENCE CREATION
-    //cout <<endl << "DATE END APPLICATION : \t" ;
     //17:05:2024
     au8App_CreationDateFirstLicence[0] = au8Licence_decrypted[64];
     au8App_CreationDateFirstLicence[1] = au8Licence_decrypted[65];
@@ -740,7 +673,6 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
     //            << (char)(au8App_CreationDateFirstLicence[7]+'0') ;
 
     //CRC64   -------------------------------------------------------------------------------------
-    //cout <<endl << "CRC64 : \t\t\t" ;
     for(u8Idx = 0; u8Idx <20; u8Idx++)
     {
         u64CRC = u64CRC + (uint64_t)(au8AdminSID_BinaryFormat[u8Idx]);
@@ -775,18 +707,14 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
         u64CRC = u64CRC + (uint64_t)(au8App_CreationDateFirstLicence[u8Idx]);
     }
 
-
     strTemp= QString("%1").arg(u64CRC , 2, 10);
-    //cout <<  strTemp.toLocal8Bit().constData() ;
 
     //MASK ALEA
-    //cout <<endl << "GENERATE MASK ALEA : \t" ;
     for(u8Idx = 0; u8Idx <8; u8Idx++)
     {
         au8MaskAlea[u8Idx]= (uint8_t)( QRandomGenerator::global()->generate());
 
         strTemp= QString("%1.").arg(au8MaskAlea[u8Idx] , 2, 16);
-        //cout <<  strTemp.toLocal8Bit().constData() ;
     }
     //Build Licence Buffer not crypted ---------------------------------------------------------------
     //cout <<endl << "GENERATE LICENCE APP KEY : \t" ;
@@ -851,11 +779,9 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
 
     strTemp= QString("%1").arg(u8IdxLic , 2, 10);
 
-    //cout <<endl;
     for(u8Idx=0; u8Idx< 88;u8Idx++)
     {
         strTemp= QString("%1.").arg(au8Lic_soft_notCrypted[u8Idx] , 1, 16);
-        //std::cout <<  strTemp.toLocal8Bit().constData() ;
     }
 
     //Build Licence Buffer crypted with the SID
@@ -877,15 +803,12 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
         m_au8Lic_soft_Crypted[u8Idx]= au8Lic_soft_notCrypted[u8Idx];
     }
 
-
     //PRINT Licence Buffer crypted with the SID and seperator
     u8IdxModulo=0;
     for(u8Idx=0; u8Idx< 88;u8Idx++)
     {
         u8TmpMSB = (uint8_t) ((m_au8Lic_soft_Crypted[u8Idx]>>4)&0x0F);
         u8TmpLSB = (uint8_t) ((m_au8Lic_soft_Crypted[u8Idx]>>0)&0x0F);
-
-
 
         if( 0x0A<= u8TmpMSB)
         {
@@ -898,7 +821,6 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
         }
         else
         {
-            //std::cout << (char)(u8TmpMSB+'0');
         }
         if( 0x0A<= u8TmpLSB)
         {
@@ -911,12 +833,10 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
         }
         else
         {
-            //std::cout << (char)(u8TmpLSB+'0');
         }
 
         if(2<=u8IdxModulo)
         {
-            //std::cout << '-';
             u8IdxModulo=0;
         }
         else
@@ -925,12 +845,8 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
         }
     }
 
-
-
-
     // Automatic -----------------------------------------------------------------
     this->updateLicenceFile();
-
 
     if(i32ApplicationRemainingDays <= 0) {
         return APP_DEPRECATED;
@@ -945,8 +861,6 @@ int16_t s16Get_DateCurrent_dd,s16Get_DateCurrent_mm,s16Get_DateCurrent_aaaa;
         return APP_SOON_DEPRECATED;
     }
 
-
     return LICENCE_OK;
 }
-
 

@@ -10,65 +10,11 @@ Rectangle {
 
     Rectangle {
         border.color: Design.colButtonBorder
-        //color: "transparent"
         color: Design.colBackgroundDark
         anchors.fill: parent
     }
 
     // -- Camera
-    /*
-    Camera {
-        id: idCameraMain
-        objectName: "cameraMain"
-
-        Component.onCompleted: {
-            idCameraMain.stop()
-        }
-
-        imageCapture {
-            onImageSaved : {
-                cameraManager.signalMainCameraCaptureSaved(path)
-            }
-        }
-    }
-
-    Connections {
-        target : cameraManager
-        function onMainCameraIndexChanged() {
-            if( cameraManager.getMainCameraIndex() !== -1 ) {
-                idMainVideo.visible = true;
-                idCameraMain.deviceId = cameraManager.getMainCameraId()
-                if( globalManager.guiPage !== 1 && !cameraManager.isMainCameraIp ) { // page Config
-                    idCameraMain.start()
-                }
-            } else {
-                idMainVideo.visible = false;
-            }
-        }
-    }
-
-    Connections {
-        target : cameraManager
-        function onEvMainCameraReady() {
-            if( cameraManager.getMainCameraIndex() !== -1  ) {
-                idMainVideo.visible = true;
-                idCameraMain.deviceId = cameraManager.getMainCameraId()
-                if( globalManager.guiPage !== 1 && !cameraManager.isMainCameraIp ) { // page Config
-                    idCameraMain.start()
-                }
-            } else {
-                idMainVideo.visible = false;
-            }
-        }
-    }
-
-    Connections {
-        target : cameraManager
-        function onEvRequestMainCameraCapture(p_fileName) {
-            idCameraMain.imageCapture.captureToLocation(p_fileName)
-        }
-    }*/
-
 
     Connections {
         target: cameraManager

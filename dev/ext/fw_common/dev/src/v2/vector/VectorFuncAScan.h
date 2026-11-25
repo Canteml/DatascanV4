@@ -36,7 +36,6 @@ class VectorFuncAScan : public GenVectorFunc {
     FUNC_PARAM_PRE(m_ascan.getSensorSettings()->m_param, DSampleFreq, quint8, 1, FUNC_ASCAN_PARAM_D_SAMPLE_FREQ, 0)
     FUNC_PARAM_PRE(m_ascan.getSensorSettings()->m_param, DPulseWidth, quint16, 2, FUNC_ASCAN_PARAM_D_PULSE_WIDTH, 0)
 
-
     FUNC_PARAM_PRE(m_ascan.getSensorSettings()->m_param, LCelerity, quint32, 4, FUNC_ASCAN_PARAM_L_CELERITY, 5940)
     FUNC_PARAM_PRE(m_ascan.getAScanMeasure()->m_param, LProbeDelayMm, qreal, 8, FUNC_ASCAN_PARAM_L_PROBE_DELAY, 0)
 
@@ -67,14 +66,19 @@ class VectorFuncAScan : public GenVectorFunc {
     // Option Auto Sync Porte : la porte 2 se cale automatiquement sur le 2e echo de la porte 1
     Q_PROPERTY(bool paramDAutoSyncGates READ paramDAutoSyncGates WRITE setParamDAutoSyncGates NOTIFY paramDAutoSyncGatesChanged)
 
+    // Protocol Source parameter
+    Q_PROPERTY(bool isD4Source READ isD4Source NOTIFY isD4SourceChanged)
+
 public :
 
     enum ASCAN_SAMPLE_FREQUENCY {
         SAMPLE_FREQUENCY_80MHZ,
         SAMPLE_FREQUENCY_40MHZ,
-        SAMPLE_FREQUENCY_20MHZ
+        SAMPLE_FREQUENCY_20MHZ,
+        SAMPLE_FREQUENCY_125MHZ
     };
 
+    bool isD4Source() const { return m_isD4Source; }
     bool paramDAutoGain() const { return m_autoGainEnabled; }
     void setParamDAutoGain(bool value) {
         if(m_autoGainEnabled == value)
@@ -158,8 +162,6 @@ public :
     // -- PARAM
 
     void sendAScanRawSample(AScanRawSample *p_pAScan);
-//    bool isPendingAScan() const;    ///< return true if the list m_lAScanToTreat is not empty.
-//    AScan* takeAScan(void);         ///< return the oldest AScan (AScan is no more stored).
 
     virtual void processReceivedMsg(ProtMsg* p_pMsg) override;
     virtual void configureFunction(quint32 p_prodId) override;
@@ -188,6 +190,7 @@ signals :
     void paramDGate0OptionChanged(quint8 value);
     void paramDGate1OptionChanged(quint8 value);
     void paramDAutoSyncGatesChanged(bool value);
+    void isD4SourceChanged(bool value);
 
 protected  :
     // -- Inherited from XmlProject
@@ -201,6 +204,9 @@ protected  :
 
 private :
     void resetAScanPart();
+    void updateD4Source();
+    void sendD4Enable(bool p_enable);
+    void processD4Sample(const ProtMsg *p_pMsg);
     void syncGate1OnSecondEcho(AScan *p_pAScan); ///< "Auto Sync Porte" : center Gate 1 on the 2nd echo found in Gate 0
 
     static constexpr qreal AUTO_SYNC_GATE_HYSTERESIS_MM = 0.1; ///< minimal shift before moving Gate 1 (avoids jitter and device msg flood)
@@ -216,6 +222,7 @@ private :
     quint32 m_AScanRxPart;
 
     bool m_localSourceActive = false;   ///< see setLocalSourceActive()
+    bool m_isD4Source = false;
     quint32 m_ignoredMsgCount = 0;      ///< v2 messages ignored while m_localSourceActive (log only)
 
     bool m_autoGainEnabled = false;
@@ -227,9 +234,6 @@ private :
 
     quint8 m_filterMode = 0;
     quint8 m_waveType   = 0;
-
-    //QList<AScan *> m_lAScanToTreat;
-    //mutable QMutex m_mAScanToTreat;
 
     AScanWorker * m_pAScanWorker;
     bool m_clearPipe;   ///< if true, we have clean pending ASCAN. remove next ASCAN to be sure

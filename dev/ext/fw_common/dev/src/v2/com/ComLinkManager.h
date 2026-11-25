@@ -56,7 +56,6 @@ public :
     // -- Direct link instantiation
     // Serial Link
     GenComLink *addSerial(quint32 p_port, quint32 p_bauds, const QString & p_name);
-//    GenComLink *addSerialIfNeed(quint32 p_port, quint32 p_bauds, const QString & p_name);
 
     // -- Behaviour
     void deleteLinks();
@@ -133,7 +132,6 @@ private :
     ComLinkTcpConfig m_tcpServeurConfig;
     QList<GenComLink*> m_lDiscoverLinkTcp;    
     QList<ComLinkSerial*> m_lDiscoverLinkSerial;
-
 
     // -- Properties
     QStringList m_comPortList;

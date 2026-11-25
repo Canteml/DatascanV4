@@ -10,7 +10,6 @@
 #
 # ==========================================================================*/
 
-
 // -- Internal includes
 #include "AScanWorker.h"
 #include <v2/vector/VectorFuncAScan.h>
@@ -147,6 +146,41 @@ qreal dSinc(double x)
     }
 }
 
+namespace {
+
+class InputLevels {
+public:
+    explicit InputLevels(AScan *p_pAScan)
+        : m_samples(p_pAScan->getAScanRawSample()->m_rawSamples),
+        m_is14Bit(AScanRawSample::SAMPLE_FORMAT_14BIT == p_pAScan->getAScanRawSample()->m_sampleFormat),
+        m_waveType(p_pAScan->getAScanEnhancedSample()->m_paramDWaveType),
+        m_scale(qPow(10.0, p_pAScan->getSensorSettings()->m_paramDGain / 20.0) * 127.0 / 8192.0) {}
+
+    bool is14Bit() const { return m_is14Bit; }
+
+    qreal at(int p_index) const {
+        const qint32 sample = m_samples[p_index];
+        if( !m_is14Bit ) return sample;
+        if((1 == m_waveType && sample > 0) || (2 == m_waveType && sample < 0) ) return 127.0;
+        return 127.0 + sample * m_scale;
+    }
+
+    quint16 toEnhanced(qreal p_level) const {
+        if(m_is14Bit ) {
+            return quint16(qBound(0, qRound(p_level * AScanEnhancedSample::ENHANCED_SCALE),
+                                  255 * int(AScanEnhancedSample::ENHANCED_SCALE)));
+        }
+        return quint16(quint8(p_level)) * AScanEnhancedSample::ENHANCED_SCALE;
+    }
+
+private:
+    const qint16 *m_samples;
+    bool m_is14Bit;
+    quint8 m_waveType;
+    qreal m_scale;
+};
+}
+
 void AScanWorker::computeEnhancedAScan()
 {
     // -- Function imported from project <<DATASCAN 4.x>> (AScanFilter.cpp)
@@ -154,15 +188,16 @@ void AScanWorker::computeEnhancedAScan()
     static const qreal frequenceCoupure = 800000;
 
     // data
-    quint8 *entree = m_pAScanTreated->getAScanRawSample()->m_rawSamples;
-    quint8 *sortie = m_pAScanTreated->getAScanEnhancedSample()->m_enhancedSamples;
+    const InputLevels entree(m_pAScanTreated);
+    quint16 *sortie = m_pAScanTreated->getAScanEnhancedSample()->m_enhancedSamples;
+
+    const int sampleCount = m_pAScanTreated->getAScanRawSample()->m_sampleCount;
 
     // RF mode: bipolar smoothing, no rectification
     if (m_pAScanTreated->getAScanEnhancedSample()->m_paramDWaveType == 3) {
         computeEnhancedAScanRF();
         return;
     }
-
 
     // Samples already rectified by the hardware (US-Key A-scan mode): no software rectification
     const bool hwRect = m_pAScanTreated->getAScanEnhancedSample()->m_hwRectified;
@@ -182,29 +217,26 @@ void AScanWorker::computeEnhancedAScan()
 
         double somme = 0;
 
-        for(int i=0;i<AScanRawSample::ASCAN_SAMPLE_SIZE-attenuation_locale-1;i++)
+        for(int i=0;i<sampleCount-attenuation_locale-1;i++)
         {
             somme = 0.;
             for(int j=0;j<attenuation_locale-1;j++)
             {                
-                qreal entre = hwRect ? entree[j+i] : (abs(entree[j+i]-127)*2);
+                qreal entre = hwRect ? entree.at(j+i) : (qAbs(entree.at(j+i)-127.0)*2);
                 somme += ((coeff[attenuation_locale-j]) * entre*10);
             }
 
-//                if( somme > 1000 ) {
-//                    fLogInfo(QString("somme [%1] = %2").arg(i).arg(somme));
-//                }
-            sortie[i]=qMin((qreal)255,somme);
+            sortie[i]=entree.toEnhanced(qMin((qreal)255,somme));
 
         }
-        for(int i=AScanRawSample::ASCAN_SAMPLE_SIZE-attenuation_locale-1;i<AScanRawSample::ASCAN_SAMPLE_SIZE;i++)
+        for(int i=sampleCount-attenuation_locale-1;i<sampleCount;i++)
         {
             sortie[i]=0;
         }
     }else {
-        for(int i=0;i<AScanRawSample::ASCAN_SAMPLE_SIZE;i++)
+        for(int i=0;i<sampleCount;i++)
         {
-            sortie[i]=hwRect ? entree[i] : qMin(255,(abs(entree[i]-127)*2));
+            sortie[i]=entree.toEnhanced(hwRect ? entree.at(i) : qMin(255.0,(qAbs(entree.at(i)-127.0)*2)));
         }
     }
 }
@@ -247,16 +279,17 @@ QVector<qreal> AScanWorker::computeRFCoefficients(int p_lissage, qreal p_sampFre
     return h;
 }
 
-
 void AScanWorker::computeEnhancedAScanRF()
 {
-    quint8 *entree = m_pAScanTreated->getAScanRawSample()->m_rawSamples;
-    quint8 *sortie = m_pAScanTreated->getAScanEnhancedSample()->m_enhancedSamples;
-    const int size = AScanRawSample::ASCAN_SAMPLE_SIZE;
+    const InputLevels entree(m_pAScanTreated);
+    quint16 *sortie = m_pAScanTreated->getAScanEnhancedSample()->m_enhancedSamples;
+    const int size = m_pAScanTreated->getAScanRawSample()->m_sampleCount;
     const int lissage = m_pAScanTreated->getAScanEnhancedSample()->m_paramLLowPassFilter;
 
     if( lissage <= 5 ) {
-        memcpy(sortie, entree, size);
+        for(int k = 0; k < size; k++) {
+            sortie[k] = entree.toEnhanced(entree.at(k));
+        }
         return;
     }
 
@@ -267,40 +300,35 @@ void AScanWorker::computeEnhancedAScanRF()
         qreal y = 0.;
         for( int m = 0; m < h.size(); m++ ) {
             int idx = qBound(0, k + m - M, size - 1);
-            y += h[m] * (entree[idx] - 127.);
+            y += h[m] * (entree.at(idx) - 127.);
         }
-        sortie[k] = static_cast<quint8>(qBound(0, qRound(127. + y), 255));
+        sortie[k] = entree.is14Bit() ? entree.toEnhanced(127. + y) : entree.toEnhanced(qBound(0, qRound(127. + y), 255));
     }
 }
 
 void AScanWorker::computeMeasures()
 {
     // for now, just put value
-//    m_pAScanTreated->getAScanMeasure()->m_thicknessMmMultiEcho = m_pAScanTreated->getAScanRawSample()->m_rawSamples[0]/10;
-//    m_pAScanTreated->getAScanMeasure()->m_thicknessMmMultiEcho = m_pAScanTreated->getAScanMeasure()->m_thicknessMmMultiEcho *1.1;
-//    m_pAScanTreated->getAScanMeasure()->m_thicknessMm1Echo= m_pAScanTreated->getAScanRawSample()->m_rawSamples[0]/11;
-
-
 
     // -- Function imported from project <<DATASCAN 4.x>> (calculmesure.cpp : cherchePics)
 
-    static const qreal distanceMiniEntrePic=50;
+    const qreal distanceMiniEntrePic = (m_pAScanTreated->getSensorSettings()->getSampleFrequency() > 100000000.0) ? 78.0 : 50.0;
     static const qint32 precisionMesure = 0;
     qreal niveauBruit =0.;
 
     qint32 debut1Pic = m_pAScanTreated->mmToIndex(m_pAScanTreated->getAScanMeasure()->m_paramGates0->m_paramLStart);
     qint32 fin1Pic = m_pAScanTreated->mmToIndex(m_pAScanTreated->getAScanMeasure()->m_paramGates0->m_paramLStart+m_pAScanTreated->getAScanMeasure()->m_paramGates0->m_paramLWidth);
     // m_paramLHeight is in % => x2.55 to convert to ASCAN scale (8 bit : 0..255)
-    qreal seuil1Pic = m_pAScanTreated->getAScanMeasure()->m_paramGates0->m_paramLHeight*2.55;
+    qreal seuil1Pic = m_pAScanTreated->getAScanMeasure()->m_paramGates0->m_paramLHeight*2.55 * AScanEnhancedSample::ENHANCED_SCALE;
 
     qint32 debutSignal = m_pAScanTreated->mmToIndex(m_pAScanTreated->getAScanMeasure()->m_paramGates1->m_paramLStart);
     qint32 finSignal = m_pAScanTreated->mmToIndex(m_pAScanTreated->getAScanMeasure()->m_paramGates1->m_paramLStart+m_pAScanTreated->getAScanMeasure()->m_paramGates1->m_paramLWidth);
     // m_paramLHeight is in % => x2.55 to convert to ASCAN scale (8 bit : 0..255)
-    qreal seuilBruit = m_pAScanTreated->getAScanMeasure()->m_paramGates1->m_paramLHeight*2.55;
+    qreal seuilBruit = m_pAScanTreated->getAScanMeasure()->m_paramGates1->m_paramLHeight*2.55 * AScanEnhancedSample::ENHANCED_SCALE;
 
     QList<quint32> & listePics = m_pAScanTreated->getAScanMeasure()->m_listPicsIndex;
 
-    quint8 *signal = m_pAScanTreated->getAScanEnhancedSample()->m_enhancedSamples;
+    const quint16 *signal = m_pAScanTreated->getAScanEnhancedSample()->m_enhancedSamples;
 
     //On estime que le bruit est le même partout sur le signal donc on recherche celui-ci au début de l'acquisition (juste après le pic d'émission du capteur) jusqu'à la porte du premier pic
     //On définit le bruit comme le maximum observé sur cette portion du signal.
@@ -321,11 +349,11 @@ void AScanWorker::computeMeasures()
 
     qreal height0   = m_pAScanTreated->getAScanMeasure()->m_paramGates0->m_paramLHeight;
     bool  rfGate0Positive = (height0 >= 0.0);
-    qreal rfThreshold0 = qBound(0.0, height0 * 2.55 + 127.0, 255.0);
+    qreal rfThreshold0 = qBound(0.0, height0 * 2.55 + 127.0, 255.0) * AScanEnhancedSample::ENHANCED_SCALE;
 
     qreal height1   = m_pAScanTreated->getAScanMeasure()->m_paramGates1->m_paramLHeight;
     bool  rfGate1Positive = (height1 >= 0.0);
-    qreal rfThreshold1 = qBound(0.0, height1 * 2.55 + 127.0, 255.0);
+    qreal rfThreshold1 = qBound(0.0, height1 * 2.55 + 127.0, 255.0) * AScanEnhancedSample::ENHANCED_SCALE;
 
     // -- Gate 0: search first echo according to option
     // 0 = Premier maximum, 1 = Maximum absolu, 2 = Front Montant, 3 = Custom Roboplanet
@@ -366,7 +394,7 @@ void AScanWorker::computeMeasures()
             }
         } else {
             // RF negative peak: local minimum below rfThreshold0
-            indexPremierEchoValue = 255;
+            indexPremierEchoValue = 255 * AScanEnhancedSample::ENHANCED_SCALE;
             if (optGate0 == 3) {
                 // Custom Roboplanet: lowest sample below rfThreshold0 in the whole gate
                 for (int i = debut1Pic; i < fin1Pic; i++) {
@@ -472,7 +500,7 @@ void AScanWorker::computeMeasures()
             const bool  rfNegative = isRF && !rfGate1Positive;
             const qreal threshold  = isRF ? rfThreshold1 : seuilBruit;
             int index2ndEcho = 0;
-            int index2ndEchoValue = rfNegative ? 255 : 0;
+            int index2ndEchoValue = rfNegative ? 255 * AScanEnhancedSample::ENHANCED_SCALE : 0;
             for (int i = qMax<int>(debutSignal, listePics.at(0)); i < finSignal - 1; i++) {
                 if (rfNegative ? (signal[i] < threshold && signal[i] < index2ndEchoValue)
                                : (signal[i] > threshold && signal[i] > index2ndEchoValue)) {
@@ -598,7 +626,6 @@ void AScanWorker::computeMeasures()
 
     // -- Function imported from project <<DATASCAN 4.x>> (calculmesure.cpp : calculDistance)
 
-
     qint32 compteurPics = listePics.size();
     if (compteurPics > 2 )
     {
@@ -633,7 +660,6 @@ void AScanWorker::computeMeasures()
             }
         }
     }
-
 
     QList<unsigned short int> listeDistance;
 

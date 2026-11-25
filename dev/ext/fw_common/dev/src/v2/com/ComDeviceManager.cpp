@@ -24,12 +24,10 @@
 ComDeviceManager::ComDeviceManager(QObject *parent, IntComMsg * p_pIntComMsg) : QObject(parent), Loggable("ComDeviceManager")
 {
     m_mMapFunction = new QMutex();
-    //m_state = FUNC_MANAGER_STATE_NOT_CONFIGURED;
 
     m_pIntComMsg = p_pIntComMsg;
     m_pComLinkManager = p_pIntComMsg->getLinkManager();
 
-    //connect(m_pIntComMsg, &IntComMsg::prodIdChanged, this, &ComCopmponentManager::)
     connect(m_pComLinkManager, SIGNAL(evNewLinkAuthentified(GenComLink*)), this, SLOT(onNewLinkAuthentified(GenComLink*)));
     connect(m_pComLinkManager, SIGNAL(evLinkDisconnected(GenComLink*)), this, SLOT(onLinkDisconnected(GenComLink*)));
 }
@@ -63,7 +61,6 @@ ComDevice* ComDeviceManager::makeDeviceSerial(quint32 p_port, quint32 p_bauds)
         pDevice = new ComDevice(m_pIntComMsg, pLink, param);
         // declare this device for the associated functions
         for(auto i : qAsConst(param.m_lFunctions) ) {
-            //m_mapFunctionMapped.insert(i, pDevice);
             if( !m_mapFunctionMapped.contains(i) ) {
                 m_mapFunctionMapped.insert(i ,pDevice);
             } else {
@@ -80,7 +77,6 @@ ComDevice* ComDeviceManager::makeDeviceSerial(quint32 p_port, quint32 p_bauds)
 bool ComDeviceManager::startDeviceTcpServer(quint32 p_port)
 {
     // the TCP Server is used
-    //const VectorFuncGeneralAuth& param = m_pIntComMsg->getFuncGeneralParam();
     if( m_pIntComMsg->getDeviceAd() == ProtMsg::DEVICE_AD_MPC ) {
         fLogError("MPC can't make a device by this way");
     } else {
@@ -108,35 +104,12 @@ void ComDeviceManager::stopDeviceDiscover()
     m_pComLinkManager->stopDiscover();
 }
 
-
 //void ComDeviceManager::makeDeviceAndFuntions(const QString & p_deviceName, quint32 p_deviceAddress, const QList<quint32> &p_functions)
-//{
-//    m_mMapFunction->lock();
 //    ComDevice* pDevice = new ComDevice(m_pIntComMsg, m_pIntComMsg->getProdId(), p_deviceAddress);   // TODO : should not be done here, but in device discovery process, after the link response to "WHO_ARE_YOU"
-//    pDevice->setDeviceName(p_deviceName);
-//    pDevice->setParamDDeviceAd(p_deviceAddress);
-//    pDevice->addFunctions(p_functions);
-//    for(auto i : qAsConst(p_functions) ) {
-//        m_mapFunctionMapped.insert(i, pDevice);
-//    }
-//    m_listDevice.append(pDevice);
-//    m_mMapFunction->unlock();
 
 //    // Find if there is a Device with the same name that the links :
-//    for(auto i : qAsConst(m_listDevice)) {
-//        GenComLink* pLink = m_pComLinkManager->getLinkName(i->getDeviceName());
-//        if( nullptr != pLink ) {
-//            fLogInfo(QString("Map link %1 (%2) with Device Ad(%3).").arg(pLink->getName()).arg(pLink->getConfigHelp()).arg(i->getParamDDeviceAd()));
-//            i->setLink(pLink);
-//        }
-//    }
-//    //updateState();
-//}
 
 //void ComDeviceManager::makeDeviceAndFuntion(const QString & p_deviceName, quint32 p_deviceAddress, quint32 p_function)
-//{
-//    makeDeviceAndFuntions(p_deviceName, p_deviceAddress, QList<quint32>()<<p_function);
-//}
 
 void ComDeviceManager::clearDeviceFunctions()
 {
@@ -149,14 +122,12 @@ void ComDeviceManager::clearDeviceFunctions()
     m_mMapFunction->unlock();
     m_pComLinkManager->deleteLinks();
     emit evDeviceListChanged(m_listDevice.size());
-    //updateState();
 }
 
 void ComDeviceManager::removeDevice(ComDevice *p_device)
 {
     m_mMapFunction->lock();
     m_listDevice.removeAll(p_device);
-    //p_device->getLink()->setMappedDevice(nullptr);
     // unmap functions associated to this device
     bool bRemove = true;
     while(bRemove) {
@@ -196,7 +167,6 @@ ComDevice * ComDeviceManager::getDevice(quint32 p_function)
     m_mMapFunction->unlock();
     return retComp;
 }
-
 
 // -- Communicate with Device
 void ComDeviceManager::sendMsg(ProtMsg * p_pMsg, bool p_isEcho)
@@ -322,7 +292,6 @@ void ComDeviceManager::onNewLinkAuthentified(GenComLink * p_pLink)
 
     // declare this device for the associated functions
     for(auto i : qAsConst(funcGen.m_lFunctions) ) {
-        //m_mapFunctionMapped.insert(i, pDevice);
         if( !m_mapFunctionMapped.contains(i) ) {
             m_mapFunctionMapped.insert(i ,pDevice);
         } else {
@@ -342,26 +311,7 @@ void ComDeviceManager::onNewLinkAuthentified(GenComLink * p_pLink)
 //    // - afer a link disconnection or a loose of heart beat, delete a CompDiscovered (and remove it from the map)
 
 //    // For now : map directly the new link to the first map item.
-//    if( m_mapFunctionMapped.isEmpty() ) {
-//        fLogError("Map empty !");
-//    } else {
-//        ComDevice * pComp = nullptr;
 //        // Find if there is a Device with the same name that the link :
-//        for(auto i : qAsConst(m_listDevice)) {
-//            if( p_pLink->getName() == i->getDeviceName() ) {
-//                pComp = i;
-//                break;
-//            }
-//        }
-//        if( nullptr != pComp ) {
-//            fLogInfo(QString("Map link %1 (%2) with Device Ad(%3).").arg(p_pLink->getName()).arg(p_pLink->getConfigHelp()).arg(pComp->getParamDDeviceAd()));
-//            pComp->setLink(p_pLink);
-//            //updateState();
-//        } else {
-//            fLogInfo(QString("No device found for the link %1 (%2)").arg(p_pLink->getName()).arg(p_pLink->getConfigHelp()));
-//        }
-//    }
-//    emit evDeviceListChanged();
 }
 
 void ComDeviceManager::onLinkDisconnected(GenComLink * m_pLink)
@@ -380,37 +330,9 @@ void ComDeviceManager::onLinkDisconnected(GenComLink * m_pLink)
     }
 
     emit evDeviceListChanged(m_listDevice.size());
-    //updateState();
 }
 
 //void ComDeviceManager::updateState()
-//{
-//    if( m_listDevice.isEmpty() ) {
-//        setState(FUNC_MANAGER_STATE_NOT_CONFIGURED);
-//    } else {
-//        qint32 nbConnected = 0;
-//        for(auto i : qAsConst(m_listDevice)) {
-//            if( i->getComState() == ComDevice::COM_LINKED_CONNECTED ) {
-//                nbConnected++;
-//            }
-//        }
-
-//        if( 0 == nbConnected ) {
-//            setState(FUNC_MANAGER_STATE_DISCONNECTED);
-//        } else if( nbConnected == m_listDevice.size() ) {
-//            setState(FUNC_MANAGER_STATE_CONNECTED);
-//        } else {
-//            setState(FUNC_MANAGER_STATE_PARTIALY_CONNECTED);
-//        }
-//    }
-//}
 
 // -- Beheviour
 //void ComDeviceManager::setState(quint32 p_value)
-//{
-//    if( p_value != m_state ) {
-//        fLogDebug1(QString("New State : %1 => %2").arg(m_state).arg(p_value));
-//        m_state = p_value;
-//        emit evStateChanged(p_value);
-//    }
-//}

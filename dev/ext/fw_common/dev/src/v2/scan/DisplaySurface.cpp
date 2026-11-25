@@ -10,14 +10,12 @@ DisplaySurface::DisplaySurface(Location1d* p_pLocation1d)
     setLogName("DisplaySurface");
 }
 
-
 qint32 DisplaySurface::pushAScan(AScan* p_pAScan)
 {
     qreal pos = p_pAScan->getAScanRawSample()->m_position.x();
     qint32 posIndex = ( pos - m_surfaceStartMm + m_resolutionMm/2) / m_resolutionMm;
-    qint32 posIndexLeft = posIndex - 1; //( pos - m_surfaceStartMm - m_resolutionMm/2 ) / m_resolutionMm;
+    qint32 posIndexLeft = posIndex - 1;
     qint32 posIndexRight = posIndex + 1;
-    //fLogDebug1(QString("pos = %1 / index = %2 / start = %3 ").arg(pos).arg(posIndex).arg(m_surfaceStartMm));
 
     // -- Adjust size of arrays
     // first ASCAN ?
@@ -48,7 +46,6 @@ qint32 DisplaySurface::pushAScan(AScan* p_pAScan)
                 m_aPositionM.append((m_surfaceStartMm + (m_nbCell) * m_resolutionMm)/1000);
                 m_nbCell++;
             }
-            //fLogDebug1(QString("cellToAppend = %1 / m_nbCell = %2").arg(cellToAppend).arg(m_nbCell));
             if( abs(pos - m_aPositionM[m_nbCell-1]*1000 ) >  m_resolutionMm ) {
                 fLogWarning(QString("Last position array is %1 but appened position is %2.").arg(m_aPositionM[m_nbCell-1]*1000).arg(p_pAScan->getAScanRawSample()->m_position.x()));
             }
@@ -63,7 +60,6 @@ qint32 DisplaySurface::pushAScan(AScan* p_pAScan)
                 m_aPositionM.insert(0, (m_surfaceStartMm-(i+1) * m_resolutionMm)/1000);
                 m_nbCell++;
             }
-            //fLogDebug1(QString("cellToInsert = %1 / m_nbCell = %2").arg(cellToInsert).arg(m_nbCell));
             // cell position must be a multiple of 'resolution'
             m_surfaceStartMm = m_aPositionM[0]*1000;
             // updtate index

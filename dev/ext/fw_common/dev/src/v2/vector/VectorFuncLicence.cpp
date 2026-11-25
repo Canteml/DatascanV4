@@ -14,6 +14,7 @@
 #include <v2/vector/VectorFuncLicence.h>
 #include <v2/vector/VectorStd.h>
 #include <v2/prot/ProtMsg.h>
+#include <v2/com/GenComLink.h>
 
 // -- Qt includes
 #include <QDateTime>
@@ -33,7 +34,14 @@ VectorFuncLicence::~VectorFuncLicence()
 void VectorFuncLicence::processReceivedMsg(ProtMsg *p_pMsg)
 {
     //DECODE_MSG_PARAM(DStatusLicenceP, quint8, 1, FUNC_LICENCE_PARAM_D_STATUS_LICENCE_P)
-    setParamDStatusLicenceP(100, true);
+    if( nullptr != m_pComLink && m_pComLink->isProtocolD4() ) {
+        if( ProtMsg::MSG_TYPE_PARAM_VALUE == p_pMsg->m_msgType
+            && ProtMsg::FUNC_LICENCE_PARAM_D_STATUS_LICENCE_P == p_pMsg->m_msgObj ) {
+            setParamDStatusLicenceP(p_pMsg->m_payload[0], true);
+        }
+    } else {
+        setParamDStatusLicenceP(100, true);
+    }
     if(ProtMsg::MSG_TYPE_PARAM_SET == p_pMsg->m_msgType || ProtMsg::MSG_TYPE_PARAM_VALUE == p_pMsg->m_msgType) {
         if(ProtMsg::FUNC_LICENCE_PARAM_D_LICENCE_KEY_EQUIPMENT == p_pMsg->m_msgObj) {
             m_keyEquipment = QString().fromLatin1((char*)p_pMsg->m_payload, p_pMsg->m_len);
@@ -56,12 +64,15 @@ void VectorFuncLicence::configureFunction(quint32 p_prodId)
 
 void VectorFuncLicence::configureNewLicence(QString p_licenceKey)
 {
+    const QByteArray key = p_licenceKey.toLatin1();
+    if( key.size() != LICENCE_KEY_LENGTH ) {
+        fLogError(QString("Chiave di licenza rifiutata : %1 caratteri invece di %2").arg(key.size()).arg(LICENCE_KEY_LENGTH));
+        return;
+    }
     ProtMsg *msgNewLicence = newMsgCmd(ProtMsg::FUNC_LICENCE_CMD_D_NEW_LICENCE);
-    char* au8Payload = p_licenceKey.toLatin1().data();
     msgNewLicence->m_len = LICENCE_KEY_LENGTH;
-    memcpy(msgNewLicence->m_payload, au8Payload, LICENCE_KEY_LENGTH);
+    memcpy(msgNewLicence->m_payload, key.constData(), LICENCE_KEY_LENGTH);
     sendMsg(msgNewLicence);
-    delete msgNewLicence;
 }
 
 void VectorFuncLicence::askForKeyEquipment()

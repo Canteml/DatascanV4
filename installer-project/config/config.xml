@@ -1,16 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Installer>
-    <Name>DatascanV3</Name>
-    <Version>3.0.1</Version>
-    <Title>DatascanV3</Title>
+    <Name>DatascanV4</Name>
+    <Version>4.0.0</Version>
+    <Title>DatascanV4</Title>
     <Publisher>Roboplanet</Publisher>
     <ProductUrl>http://www.roboplanet.fr</ProductUrl>
 
-    <!-- Layout atteso dall'app: <TargetDir>/bin/DatascanV3.exe + <TargetDir>/res
+    <!-- Layout atteso dall'app: <TargetDir>/bin/DatascanV4.exe + <TargetDir>/res
          (Core::coreInitApp usa applicationDirPath()/.. come radice) -->
-    <TargetDir>@ApplicationsDirX64@/Roboplanet/DatascanV3</TargetDir>
-    <AdminTargetDir>@ApplicationsDirX64@/Roboplanet/DatascanV3</AdminTargetDir>
-    <StartMenuDir>DatascanV3</StartMenuDir>
+    <TargetDir>@ApplicationsDirX64@/Roboplanet/DatascanV4</TargetDir>
+    <AdminTargetDir>@ApplicationsDirX64@/Roboplanet/DatascanV4</AdminTargetDir>
+    <StartMenuDir>DatascanV4</StartMenuDir>
 
     <!-- application.ico / application.png / banner.bmp vengono copiati qui da build_installer.ps1 -->
     <InstallerApplicationIcon>application</InstallerApplicationIcon>
@@ -20,11 +20,11 @@
     <WizardDefaultWidth>640</WizardDefaultWidth>
     <WizardDefaultHeight>480</WizardDefaultHeight>
 
-    <MaintenanceToolName>DatascanV3_Uninstall</MaintenanceToolName>
+    <MaintenanceToolName>DatascanV4_Uninstall</MaintenanceToolName>
     <RemoveTargetDir>true</RemoveTargetDir>
     <AllowSpaceInPath>true</AllowSpaceInPath>
     <AllowNonAsciiCharacters>true</AllowNonAsciiCharacters>
 
-    <RunProgram>@TargetDir@/bin/DatascanV3.exe</RunProgram>
-    <RunProgramDescription>Avvia DatascanV3</RunProgramDescription>
+    <RunProgram>@TargetDir@/bin/DatascanV4.exe</RunProgram>
+    <RunProgramDescription>Avvia DatascanV4</RunProgramDescription>
 </Installer>

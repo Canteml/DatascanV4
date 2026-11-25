@@ -1,11 +1,11 @@
 <#
-    Genera l'installer Windows di DatascanV3 con Qt Installer Framework.
+    Genera l'installer Windows di DatascanV4 con Qt Installer Framework.
 
     1. (opzionale, -Build) compila la release con mingw32-make
     2. ricrea packages/<pkg>/data con il layout di distribuzione:
-           bin/  DatascanV3.exe + DLL Qt (windeployqt) + librerie terze + UsKey + EquipmentFile.txt
+           bin/  DatascanV4.exe + DLL Qt (windeployqt) + librerie terze + UsKey + EquipmentFile.txt
            res/  img, languages, templates, qml
-    3. lancia binarycreator -> Output/DatascanV3_<versione>_Setup.exe
+    3. lancia binarycreator -> Output/DatascanV4_<versione>_Setup.exe
 
     Uso:  powershell -ExecutionPolicy Bypass -File build_installer.ps1 [-Build] [-Version 3.0.1]
           (oppure doppio clic su crea_installer.bat)
@@ -35,7 +35,7 @@ $Release = "$BuildDir\build\release"
 $Config  = "$PSScriptRoot\config"
 $Data    = "$PSScriptRoot\packages\com.Roboplanet.datascan\data"
 $Output  = "$PSScriptRoot\Output"
-$Exe     = "DatascanV3.exe"
+$Exe     = "DatascanV4.exe"
 
 function Step($msg) { Write-Host "`n==> $msg" -ForegroundColor Cyan }
 function Fail($msg) { Write-Host "ERRORE: $msg" -ForegroundColor Red; exit 1 }
@@ -75,7 +75,7 @@ if ($Build) {
     try {
         # qmake solo per una build dir nuova: non sovrascrive quella configurata da Qt Creator
         if (-not (Test-Path "Makefile.Release")) {
-            & "$QtDir\bin\qmake.exe" "$Dev\DatascanV3.pro" -spec win32-g++ "CONFIG+=release"
+            & "$QtDir\bin\qmake.exe" "$Dev\DatascanV4.pro" -spec win32-g++ "CONFIG+=release"
             if ($LASTEXITCODE) { Fail "qmake fallito" }
         }
         & "$MingwDir\bin\mingw32-make.exe" -f Makefile.Release -j $env:NUMBER_OF_PROCESSORS
@@ -183,7 +183,7 @@ Copy-Required "$Root\release\win\res\banner.bmp" $Config
 
 Step "binarycreator"
 New-Item -ItemType Directory $Output -Force | Out-Null
-$Setup = "$Output\DatascanV3_${Version}_Setup.exe"
+$Setup = "$Output\DatascanV4_${Version}_Setup.exe"
 & "$IfwDir\bin\binarycreator.exe" --offline-only -c "$Config\config.xml" -p "$PSScriptRoot\packages" $Setup
 if ($LASTEXITCODE) { Fail "binarycreator fallito" }
 

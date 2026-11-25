@@ -69,9 +69,7 @@ public:
 
     Q_INVOKABLE void setCalibration(qreal zeroMm, qreal realMm, qreal estimatedMm);
     Q_INVOKABLE void calibrateNow(qreal realMm, qreal estimatedMm);
-    Q_INVOKABLE void resetCalibration();
 
-    bool  isCalibrated()  const { return m_calibrated; }
     qreal zeroMm()        const { return m_zeroMm; }
     qreal scaleFactor()   const { return m_scaleFactor; }
 
@@ -134,7 +132,6 @@ private:
     qreal          m_lastRawMm     = 0.0;
 
     // Calibration state
-    bool   m_calibrated             = false;
     qreal  m_zeroMm                 = 0.0;
     qreal  m_scaleFactor            = 1.0;
     qreal  m_calibrationRealMm      = 100.0;

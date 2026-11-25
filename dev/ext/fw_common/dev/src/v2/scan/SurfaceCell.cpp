@@ -30,9 +30,6 @@ SurfaceCell::SurfaceCell(Location1d* p_pLocation1d) :Loggable("SurfaceCell")
 SurfaceCell::~SurfaceCell()
 {
     m_pAScanReference = nullptr;
-//    while( m_lAScan.size()>0 ) {
-//        m_pLocation1d->deleteStoredAScan(m_lAScan.takeFirst());
-//    }
 }
 
 bool SurfaceCell::pushAScan(AScan* p_pAScan)
@@ -70,18 +67,6 @@ bool SurfaceCell::pushAScan(AScan* p_pAScan)
     }
 
     // -- ALGO MINIMAL : keep AScan with minimal measure
-//    if( nullptr == m_pAScanReference ) {
-//        m_pAScanReference = p_pAScan;
-//    } else {
-//        qreal minMes = qMin(p_pAScan->getAScanMeasure()->m_thicknessMm1Echo, p_pAScan->getAScanMeasure()->m_thicknessMmMultiEcho);
-//        qreal minMesRef = qMin(m_pAScanReference->getAScanMeasure()->m_thicknessMm1Echo, m_pAScanReference->getAScanMeasure()->m_thicknessMmMultiEcho);
-//        if( minMes != 0 && minMes < minMesRef ) {
-//            m_pLocation1d->deleteStoredAScan(m_pAScanReference);
-//            m_pAScanReference = p_pAScan;
-//        } else {
-//            bKeeptAScan = false;
-//        }
-//    }
 
     unlockData();
     return bKeeptAScan;

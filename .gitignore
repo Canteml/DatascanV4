@@ -1,6 +1,6 @@
 dev/.qtc_clangd
 dev/lib/vlcqt/bin/plugins/plugins.dat
-build-DatascanV3-*
+build-DatascanV4-*
 dev/build/
 
 # Vendor library source clones (built locally, not part of this repo's history)
@@ -33,16 +33,16 @@ dev/CMakeCache.txt
 dev/CMakeFiles/
 dev/compile_commands.json
 dev/.qtcreator/
-dev/DatascanV3_resource.rc
-dev/datascanv3.qmltypes
-dev/datascanv3_metatypes.json
-dev/datascanv3_qmltyperegistrations.cpp
+dev/DatascanV4_resource.rc
+dev/datascanv4.qmltypes
+dev/datascanv4_metatypes.json
+dev/datascanv4_qmltyperegistrations.cpp
 dev/src_qml_qml_qmlcache.qrc
 dev/Makefile
 dev/Makefile.Debug
 dev/Makefile.Release
-dev/object_script.DatascanV3.Debug
-dev/object_script.DatascanV3.Release
+dev/object_script.DatascanV4.Debug
+dev/object_script.DatascanV4.Release
 dev/*.pro.user
 dev/*.pro.user.*
 dbg/
@@ -57,3 +57,4 @@ dev/src/qml/xcopy
 
 # Editor/IDE backups
 *.bak
+dev/ext/fw_common/dev/src/v2/prot/ProtD4Key.h

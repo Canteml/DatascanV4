@@ -19,13 +19,21 @@
 #include <v2/com/GenComLink.h>
 #include <v2/scan/AScanWorker.h>
 #include <v2/vector/VectorFuncPosition.h>
-
+#include <v2/prot/ProtD4.h>
 
 // -- Qt includes
 #include <QDateTime>
+#include <QtMath>
 
 // ----------------------------------------------------------------------------
 // -- VectorFuncAScan
+
+static void copy8BitSamples(qint16 *p_dst, const quint8 *p_src, int p_count)
+{
+    for(int i = 0; i < p_count; i++){
+        p_dst[i] = p_src[i];
+    }
+}
 
 VectorFuncAScan::VectorFuncAScan(VectorStd *p_pVectorStd, quint32 p_instance) : GenVectorFunc(QString("VectorFuncAScan%1").arg(p_instance), p_pVectorStd, ProtMsg::DEVICE_FUNC_ASCAN_0 + p_instance)
 {
@@ -50,36 +58,25 @@ void VectorFuncAScan::sendAScanRawSample(AScanRawSample *p_pAScan)
     // send msg to device
     ProtMsg * pMsg = newMsgEvent(ProtMsg::FUNC_ASCAN_EVENT_D_SAMPLE);
     pMsg->m_len = AScanRawSample::ASCAN_SAMPLE_SIZE;
-    memcpy(pMsg->m_payload, p_pAScan->m_rawSamples, pMsg->m_len);
+    for(int i = 0; i < pMsg->m_len; i++){
+        pMsg->m_payload[i] = quint8(p_pAScan->m_rawSamples[i]);
+    }
     delete p_pAScan;
     sendMsg(pMsg);
 }
 
 //bool VectorFuncAScan::isPendingAScan() const
-//{
-//    bool bRet = false;
-//    m_mAScanToTreat.lock();
-//    bRet = m_lAScanToTreat.size();
-//    m_mAScanToTreat.unlock();
-//    return bRet;
-//}
 
 //AScan* VectorFuncAScan::takeAScan(void)
-//{
-//    AScan * pRet = nullptr;
-//    m_mAScanToTreat.lock();
-//    if( m_lAScanToTreat.size() ) {
-//        pRet = m_lAScanToTreat.takeFirst(); // take oldest ascan (first added)
-//    }
-//    m_mAScanToTreat.unlock();
-//    return pRet;
-//}
 
 void VectorFuncAScan::setLocalSourceActive(bool p_value)
 {
     if( m_localSourceActive != p_value ) {
         m_localSourceActive = p_value;
         m_ignoredMsgCount = 0;
+        if( m_isD4Source ) {
+            sendD4Enable(!p_value);
+        }
         fLogInfo(QString("AScan local source (US-Key) %1 : AScan params/samples from v2 devices are %2")
                  .arg(p_value ? "active" : "inactive", p_value ? "ignored" : "accepted"));
     }
@@ -109,12 +106,14 @@ void VectorFuncAScan::processReceivedMsg(ProtMsg *p_pMsg)
         DECODE_MSG_PARAM_PRE(m_ascan.getAScanMeasure()->m_param, LProbeDelayMm, qreal, 8, FUNC_ASCAN_PARAM_L_PROBE_DELAY);
     } else if(ProtMsg::MSG_TYPE_EVENT == p_pMsg->m_msgType) {
         if( static_cast<quint16>(ProtMsg::FUNC_ASCAN_EVENT_D_SAMPLE) == p_pMsg->m_msgObj ) {
-            if( AScanRawSample::ASCAN_SAMPLE_SIZE == p_pMsg->m_len ) {
+            if( ProtMsg::D4_ASCAN_PAYLOAD_SIZE == p_pMsg->m_len ) {
+                processD4Sample(p_pMsg);
+            } else if( AScanRawSample::ASCAN_SAMPLE_SIZE == p_pMsg->m_len ) {
                 AScan* pAScan = new AScan();
                 // -- Copy params of actual ASCAN
                 pAScan->copyParam(m_ascan);
                 // copy sample
-                memcpy(pAScan->getAScanRawSample()->m_rawSamples, p_pMsg->m_payload, p_pMsg->m_len);
+                copy8BitSamples(pAScan->getAScanRawSample()->m_rawSamples, p_pMsg->m_payload, p_pMsg->m_len);
                 pAScan->getAScanRawSample()->m_epocTimeMs = QDateTime::currentMSecsSinceEpoch();
                 pAScan->getAScanRawSample()->m_position.setX(m_pVectorStd->funcPosition()->getParamLBscanPosMmX());
 
@@ -138,7 +137,7 @@ void VectorFuncAScan::processReceivedMsg(ProtMsg *p_pMsg)
                         // -- Copy params of actual ASCAN
                         m_pAScanRx->copyParam(m_ascan);
                         // copy sample
-                        memcpy(m_pAScanRx->getAScanRawSample()->m_rawSamples, p_pMsg->m_payload, p_pMsg->m_len);
+                        copy8BitSamples(m_pAScanRx->getAScanRawSample()->m_rawSamples, p_pMsg->m_payload, p_pMsg->m_len);
                         m_pAScanRx->getAScanRawSample()->m_epocTimeMs = QDateTime::currentMSecsSinceEpoch();
                         m_pAScanRx->getAScanRawSample()->m_position.setX(m_pVectorStd->funcPosition()->getParamLBscanPosMmX());
 
@@ -158,7 +157,7 @@ void VectorFuncAScan::processReceivedMsg(ProtMsg *p_pMsg)
                     resetAScanPart();
                 } else {
                     // Copy sample
-                    memcpy(&m_pAScanRx->getAScanRawSample()->m_rawSamples[1000], p_pMsg->m_payload, p_pMsg->m_len);
+                    copy8BitSamples(&m_pAScanRx->getAScanRawSample()->m_rawSamples[1000], p_pMsg->m_payload, p_pMsg->m_len);
                     // Continue
                     m_AScanRxPart = 2;
                 }
@@ -170,7 +169,7 @@ void VectorFuncAScan::processReceivedMsg(ProtMsg *p_pMsg)
                     resetAScanPart();
                 } else {
                     // copy sample
-                    memcpy(&m_pAScanRx->getAScanRawSample()->m_rawSamples[2000], p_pMsg->m_payload, p_pMsg->m_len);
+                    copy8BitSamples(&m_pAScanRx->getAScanRawSample()->m_rawSamples[2000], p_pMsg->m_payload, p_pMsg->m_len);
                     // Continue
                     m_AScanRxPart = 3;
                 }
@@ -182,7 +181,7 @@ void VectorFuncAScan::processReceivedMsg(ProtMsg *p_pMsg)
                     resetAScanPart();
                 } else {
                     // copy sample
-                    memcpy(&m_pAScanRx->getAScanRawSample()->m_rawSamples[3000], p_pMsg->m_payload, p_pMsg->m_len);
+                    copy8BitSamples(&m_pAScanRx->getAScanRawSample()->m_rawSamples[3000], p_pMsg->m_payload, p_pMsg->m_len);
                     // -- send the new sample to the Worker
                     m_pAScanWorker->pushAScanToTreat(m_pAScanRx);
                     // Continue
@@ -209,14 +208,13 @@ void VectorFuncAScan::clearAScan()
     connect(m_pAScanWorker, &AScanWorker::evAScanTreated, this, &VectorFuncAScan::onAScanTreated, Qt::QueuedConnection);
 }
 
-
 void VectorFuncAScan::injectRawSamples(const quint8* samples, qint64 timestampMs)
 {
     AScan* pAScan = new AScan();
     pAScan->copyParam(m_ascan);
     // US-Key : redressée/negative/positive are acquired in A-scan mode (already rectified), RF in HF mode
     pAScan->getAScanEnhancedSample()->m_hwRectified = (pAScan->getAScanEnhancedSample()->m_paramDWaveType != 3);
-    memcpy(pAScan->getAScanRawSample()->m_rawSamples, samples, AScanRawSample::ASCAN_SAMPLE_SIZE);
+    copy8BitSamples(pAScan->getAScanRawSample()->m_rawSamples, samples, AScanRawSample::ASCAN_SAMPLE_SIZE);
     pAScan->getAScanRawSample()->m_epocTimeMs = timestampMs;
     pAScan->getAScanRawSample()->m_position   = QPointF(m_pVectorStd->funcPosition()->getParamLBscanPosMmX(), 0);
     m_pAScanWorker->pushAScanToTreat(pAScan);
@@ -239,6 +237,42 @@ void VectorFuncAScan::syncGate1OnSecondEcho(AScan *p_pAScan)
     if( qAbs(start - getParamLGate1Start()) >= AUTO_SYNC_GATE_HYSTERESIS_MM ) {
         setParamLGate1Start(start);
     }
+}
+
+void VectorFuncAScan::updateD4Source()
+{
+    const bool isD4 = (nullptr != m_pComLink) && m_pComLink->isProtocolD4();
+    if( isD4 != m_isD4Source ) {
+        m_isD4Source = isD4;
+        emit isD4SourceChanged(isD4);
+    }
+}
+
+void VectorFuncAScan::sendD4Enable(bool p_enable)
+{
+    ProtMsg * pMsg = newMsgCmd(ProtMsg::FUNC_ASCAN_CMD_C_ENABLE);
+    pMsg->m_len = 1;
+    pMsg->m_payload[0] = p_enable ? 0x01 : 0x00;
+    sendMsg(pMsg);
+}
+
+void VectorFuncAScan::processD4Sample(const ProtMsg *p_pMsg)
+{
+    AScan* pAScan = new AScan();
+    pAScan->copyParam(m_ascan);
+    pAScan->getSensorSettings()->m_paramDSampleFreq = SAMPLE_FREQUENCY_125MHZ;
+    pAScan->getAScanEnhancedSample()->m_hwRectified = false;
+
+    qint16 *out = pAScan->getAScanRawSample()->m_rawSamples;
+    pAScan->getAScanRawSample()->m_sampleCount = AScanRawSample::ASCAN_SAMPLE_CAPACITY;
+    pAScan->getAScanRawSample()->m_sampleFormat = AScanRawSample::SAMPLE_FORMAT_14BIT;
+    for( int k = 0; k < AScanRawSample::ASCAN_SAMPLE_CAPACITY; k++ ) {
+        out[k] = qint16(ProtD4::decodeSample(&p_pMsg->m_payload[2 * k]));
+    }
+
+    pAScan->getAScanRawSample()->m_epocTimeMs = QDateTime::currentMSecsSinceEpoch();
+    pAScan->getAScanRawSample()->m_position = QPointF(m_pVectorStd->funcPosition()->getParamLBscanPosMmX(), 0);
+    m_pAScanWorker->pushAScanToTreat(pAScan);
 }
 
 void VectorFuncAScan::resetAScanPart()
@@ -316,9 +350,18 @@ bool VectorFuncAScan::customSaveParam(QDomDocument * p_pDoc, QDomElement * p_pPa
     return bRet;
 }
 
-
 void VectorFuncAScan::onDeviceConnected()
 {
+
+    updateD4Source();
+    if(m_isD4Source) {
+        if(m_pVectorStd->isMpc() && !m_localSourceActive) {
+            sendD4Enable(true);
+        }
+        resetAScanPart();
+        return;
+    }
+
     // request Params (not when the local device is the AScan source : the answers would overwrite its params)
     if( m_pVectorStd->isMpc() && !m_localSourceActive ) {
         sendMsg(newMsgParam(ProtMsg::MSG_TYPE_PARAM_GET, ProtMsg::FUNC_ASCAN_PARAM_D_GAIN));

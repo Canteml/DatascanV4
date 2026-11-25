@@ -52,11 +52,6 @@ QString IpCamera::ipAddress() const
 QString IpCamera::rtspAddress() const
 {
 
-    /*
-    return QString("rtsp://") + QString("admin:R0b0planet@") + m_sAddress + ":" + QString::number(RTSP_PORT)
-                + QString("/Streaming/Channels/102/?transportmode=multicast");
-
-    */
     return QString("rtsp://") + QString("admin:R0b0planet@") + m_sAddress
            + QString("/onvif/live");
 

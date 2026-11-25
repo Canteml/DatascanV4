@@ -25,7 +25,6 @@ class VectorFuncAScan;
 #include <jkqtplotter/graphs/jkqtpimage.h>
 #include <jkqtplotter/graphs/jkqtpgeometric.h>
 
-
 class JkGate : public QObject, public Loggable {
     Q_OBJECT
 
@@ -34,31 +33,20 @@ public :
 
     void setAScan(VectorFuncAScan * p_pAScan);
 
-    void setLine(const QLineF & p_value);
-    void setLineY(qreal y);//setLine(qreal x1, qreal y1, qreal x2, qreal y2);
+    void setLineY(qreal y);
     void setGate(qreal p_start, qreal p_width, qreal p_height);
     void setP1(const QPointF & p_value);
     void setP2(const QPointF & p_value);
-    QLineF getLine(void);
     qreal getGateStart() const;
     qreal getGateWidth() const;
     qreal getGateHeight() const;
-
-    qreal getCurrentOffsetGate1() const;
-    void setCurrentOffsetGate1(qreal p_value);
-    void refreshXPositionOffset();
-
-    void setMargin(qreal p_value);
-    qreal getMargin() const;
 
     void mouseMoveEvent(const QPointF & p_position);
     void mouseClickEvent(const QPointF & p_position);
     void mouseReleaseEvent(const QPointF &p_position);
 
-    bool getIsHovered();
     bool getIsClicked();
 
-    bool getIsVisible() const;
     void setIsVisible(bool p_value);
 
     void setNoiseGateThreshold(qreal value);
@@ -68,8 +56,6 @@ public :
     qreal distMarkerEnd(const QPointF &p) const;
 
 signals:
-    void evIsHoveredChanged();
-    void evIsClicked();
     void evGateChanged();
 
 private slots :
@@ -90,7 +76,6 @@ private :
     QBrush m_brushNotHovered;
     QBrush m_brushHovered;
 
-
     MyJkQtPlotter *m_pPlot;
     VectorFuncAScan* m_pAScan;
 
@@ -109,7 +94,6 @@ private :
 
     qreal m_P1X; ///< value computed from testia gate, without consideration of SynchroGate1
     qreal m_P2X; ///< value computed from testia gate, without consideration of SynchroGate1
-
 
     quint32 m_elementHovered; // 0 = nothing, 1 = line, 2 = begin marker, 3 = end marker
 };

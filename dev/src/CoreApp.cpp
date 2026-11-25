@@ -69,7 +69,6 @@
 
 CoreApp::CoreApp() : CoreUiQml("CoreApp")
 {
-    m_pStatisticApp = nullptr;
     m_pVectorManager = nullptr;
     m_pVectorStd = nullptr;
     m_pScanManager = nullptr;
@@ -83,7 +82,6 @@ CoreApp::CoreApp() : CoreUiQml("CoreApp")
     m_pUsKeyController = nullptr;
 }
 
-
 CoreApp::~CoreApp()
 {
 
@@ -91,7 +89,7 @@ CoreApp::~CoreApp()
 
 QString CoreApp::getApplicationName() const
 {
-    return "DatascanV3";
+    return "DatascanV4";
 }
 
 QString CoreApp::getVersion() const
@@ -193,8 +191,7 @@ bool CoreApp::startApp()
             s_previousHandler(type, ctx, msg);
         }
 
-        static QFile logFile("C:/ProgramData/Roboplanet/DatascanV3/conf/qml_debug.txt");
-        // if (!logFile.isOpen()) logFile.open(QIODevice::Append | QIODevice::Text);
+        static QFile logFile("C:/ProgramData/Roboplanet/DatascanV4/conf/qml_debug.txt");
         if (!logFile.isOpen()) {
             if (!logFile.open(QIODevice::Append | QIODevice::Text)) {
                 return;
@@ -218,10 +215,6 @@ bool CoreApp::startApp()
     QLoggingCategory::setFilterRules("qml.debug=true");
     bRet &= CoreUiQml::startApp();
 
-    // -- Updates statistics :
-//    StatisticApp::incAppStart();
-//    StatisticApp::startAppExecution();
-
     if(1 == m_pProductLimiter->getEnabledProductsNames().size()) {
         QQmlProperty(m_pQmlTopLevel, "title").write(getWindowTitle() + m_pProductLimiter->getEnabledProductsNames().first());
     }
@@ -231,7 +224,6 @@ bool CoreApp::startApp()
 
 void CoreApp::stopApp()
 {
-//    StatisticApp::stopAppExecution();
     m_pUsKeyController->deactivate();
     m_pAltiscanController->deactivate();
     m_pEncoderController->deactivate();
@@ -244,7 +236,6 @@ void CoreApp::stopApp()
     CoreUiQml::stopApp();
 
     // -- stop my managers
-
 
 }
 
@@ -306,8 +297,6 @@ void CoreApp::deleteApp()
         delete m_pProductLimiter;
     m_pProductLimiter = nullptr;
 
-
-
     // -- core delete
     CoreUiQml::deleteApp();
 }
@@ -351,12 +340,8 @@ bool CoreApp::initQmlType()
     qRegisterMetaType<ProductLimiter*>("ProductLimiter*");
 
     // -- declare C++ components instanciated from QML
-    // exemple : qmlRegisterType<AScan>("ascan", 1, 0, "AScanItem");
     qmlRegisterType<AScanGraph>("AScanGraph", 1, 0, "AScanGraph");
     qmlRegisterType<BScanGraph>("BScanGraph", 1, 0, "BScanGraph");
-
-    //qRegisterMetaType<VlcMediaPlayer*>("MediaPlayer*");
-    //VlcQml::registerTypes();
 
     qmlRegisterType<VlcQmlVideoSink>("Camera", 1, 0, "VlcQmlVideoSink");
 
@@ -445,10 +430,6 @@ bool CoreApp::useOpenGlRender() const
 bool CoreApp::eventFilter(QObject * p_object, QEvent * p_event)
 {
     if( QEvent::KeyPress == p_event->type() ) {
-//        QKeyEvent * kpe = (QKeyEvent *)p_event;
-//        if( Qt::Key_Space == kpe->key() ) {
-//            m_pVectorManager->getVectorStd()->emergencyStop();
-//        }
     }
     return CoreUiQml::eventFilter(p_object, p_event);
 }

@@ -15,8 +15,4 @@ public slots:
 
     Q_INVOKABLE QString startExport(const QString &p_fileName);
 
-signals:
-
-    void evExportFinished();
-
 };

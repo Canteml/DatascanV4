@@ -42,7 +42,7 @@ namespace {
 EncoderController::EncoderController(QObject* parent)
     : QObject(parent)
 {
-    QSettings settings("Roboplanet", "DatascanV3");
+    QSettings settings("Roboplanet", "DatascanV4");
     m_baudRate    = settings.value(SETTINGS_KEY_BAUD_RATE, m_baudRate).toInt();
     m_bscanSource = settings.value(SETTINGS_KEY_BSCAN_SOURCE, VectorFuncPosition::BSCAN_SOURCE_ALL).toString();
 }
@@ -67,7 +67,7 @@ void EncoderController::setBScanSource(const QString& value)
         return;
 
     m_bscanSource = value;
-    QSettings settings("Roboplanet", "DatascanV3");
+    QSettings settings("Roboplanet", "DatascanV4");
     settings.setValue(SETTINGS_KEY_BSCAN_SOURCE, m_bscanSource);
     if (m_positionVector && m_positionVector->funcPosition())
         m_positionVector->funcPosition()->setBScanSource(m_bscanSource);
@@ -80,7 +80,7 @@ void EncoderController::setBaudRate(qint32 value)
         return;
 
     m_baudRate = value;
-    QSettings settings("Roboplanet", "DatascanV3");
+    QSettings settings("Roboplanet", "DatascanV4");
     settings.setValue(SETTINGS_KEY_BAUD_RATE, m_baudRate);
     Logger::logInfo(QString("[EncoderController] baud rate set to %1").arg(m_baudRate));
     emit baudRateChanged(m_baudRate);
@@ -194,7 +194,6 @@ void EncoderController::setCalibration(qreal zeroMm, qreal realMm, qreal estimat
 {
     m_zeroMm      = zeroMm;
     m_scaleFactor = (qAbs(estimatedMm) > 1e-9) ? realMm / estimatedMm : 1.0;
-    m_calibrated  = true;
     setCalibrationRealMm(realMm);
     setCalibrationEstimatedMm(estimatedMm);
     Logger::logInfo(QString("[EncoderController] calibration set: zero=%1 mm  real=%2 mm  estimated=%3 mm  scale=%4")
@@ -209,16 +208,6 @@ void EncoderController::calibrateNow(qreal realMm, qreal estimatedMm)
     setCalibrationRealMm(realMm);
     setCalibrationEstimatedMm(estimatedMm);
     setCalibration(m_lastRawMm, realMm, estimatedMm);
-}
-
-void EncoderController::resetCalibration()
-{
-    m_zeroMm      = 0.0;
-    m_scaleFactor = 1.0;
-    m_calibrated  = false;
-    setCalibrationRealMm(100.0);
-    setCalibrationEstimatedMm(100.0);
-    Logger::logInfo("[EncoderController] calibration reset (identity)");
 }
 
 qreal EncoderController::calibratedPosition(qreal rawMm) const
@@ -272,7 +261,7 @@ void EncoderController::setWheelDiameterMm(qreal value)
         return;
 
     m_wheelDiameterMm = value;
-    QSettings settings("Roboplanet", "DatascanV3");
+    QSettings settings("Roboplanet", "DatascanV4");
     settings.setValue(odometryKey(SETTINGS_KEY_WHEEL_DIAMETER), m_wheelDiameterMm);
     emit wheelDiameterMmChanged(m_wheelDiameterMm);
     applyOdometry();
@@ -285,7 +274,7 @@ void EncoderController::setCoderResolution(qint32 value)
         return;
 
     m_coderResolution = value;
-    QSettings settings("Roboplanet", "DatascanV3");
+    QSettings settings("Roboplanet", "DatascanV4");
     settings.setValue(odometryKey(SETTINGS_KEY_CODER_RESOLUTION), m_coderResolution);
     emit coderResolutionChanged(m_coderResolution);
     applyOdometry();
@@ -297,7 +286,7 @@ void EncoderController::setEncoderReverse(bool value)
         return;
 
     m_encoderReverse = value;
-    QSettings settings("Roboplanet","DatascanV3");
+    QSettings settings("Roboplanet","DatascanV4");
     settings.setValue(odometryKey(SETTINGS_KEY_ENCODER_REVERSE), m_encoderReverse);
     emit encoderReverseChanged(m_encoderReverse);
 }
@@ -305,7 +294,7 @@ void EncoderController::setEncoderReverse(bool value)
 void EncoderController::loadOdometry()
 {
     const bool utPole = isUtPoleProfile();
-    QSettings settings("Roboplanet", "DatascanV3");
+    QSettings settings("Roboplanet", "DatascanV4");
     const qreal diameter = settings.value(odometryKey(SETTINGS_KEY_WHEEL_DIAMETER),
                                           utPole ? UTPOLE_DEFAULT_WHEEL_DIAMETER_MM
                                                  : ALTISCAN_DEFAULT_WHEEL_DIAMETER_MM).toDouble();

@@ -18,13 +18,8 @@ isEmpty(BASEDIR_FW_UI) {
 
 QT       += core gui quick qml xml
 
-SOURCES += $$PWD/coreUi/CoreUiQml.cpp  \
-           $$PWD/window/WinLog.cpp
+SOURCES += $$PWD/coreUi/CoreUiQml.cpp
 
-HEADERS += $$PWD/coreUi/CoreUiQml.h  \
-           $$PWD/window/WinLog.h
+HEADERS += $$PWD/coreUi/CoreUiQml.h
 
 INCLUDEPATH += $${BASEDIR_FW_UI}
-
-FORMS += \
-           $$PWD/window/WinLog.ui

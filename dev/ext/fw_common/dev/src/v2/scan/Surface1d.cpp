@@ -63,7 +63,6 @@ qint32 Surface1d::pushAScan(AScan* p_pAScan)
     qreal pos = p_pAScan->getAScanRawSample()->m_position.x();
     qint32 posIndex = ( pos - m_surfaceStartMm ) / m_resolutionMm;
     qint32 posIndexLeft = posIndex - 1;
-    //fLogDebug1(QString("pos = %1 / index = %2 / start = %3 ").arg(pos).arg(posIndex).arg(m_surfaceStartMm));
 
     // -- Adjust size of arrays
     // first ASCAN ?
@@ -90,7 +89,6 @@ qint32 Surface1d::pushAScan(AScan* p_pAScan)
                 m_aPositionM.insert(0, (m_surfaceStartMm-(i+1) * m_resolutionMm)/1000);
                 m_nbCell++;
             }
-            //fLogDebug1(QString("cellToInsert = %1 / m_nbCell = %2").arg(cellToInsert).arg(m_nbCell));
             // cell position must be a multiple of 'resolution'
             m_surfaceStartMm = m_aPositionM[0]*1000;
             // updtate index
@@ -107,7 +105,6 @@ qint32 Surface1d::pushAScan(AScan* p_pAScan)
                 m_aPositionM.append((m_surfaceStartMm + (m_nbCell) * m_resolutionMm)/1000);
                 m_nbCell++;
             }
-            //fLogDebug1(QString("cellToAppend = %1 / m_nbCell = %2").arg(cellToAppend).arg(m_nbCell));
             if( abs(pos - m_aPositionM[m_nbCell-1]*1000 ) >  m_resolutionMm ) {
                 fLogWarning(QString("Last position array is %1 but appened position is %2.").arg(m_aPositionM[m_nbCell-1]*1000).arg(p_pAScan->getAScanRawSample()->m_position.x()));
             }
@@ -187,30 +184,10 @@ qreal Surface1d::indexToPosition(qint32 p_index)
 }
 
 //void Surface1d::setMeasureToDisplay(qint32 p_value)
-//{
-//    if( m_measureType != p_value ) {
 //        // update measure :
-//        m_measureType = p_value;
-//        for(quint32 i=0; i<m_nbCell; i++) {
-//            SurfaceCell * pCell = m_aCell[i];
-//            if( nullptr != pCell->getAScanReference() ) {
-//                if( MEASURE_ME == m_measureType ) {
-//                    m_aMeasure[i] = pCell->getAScanReference()->getAScanMeasure()->m_thicknessMmMultiEcho;
-//                } else {
-//                    m_aMeasure[i] = pCell->getAScanReference()->getAScanMeasure()->m_thicknessMm1Echo;
-//                }
-//            }
-//        }
-//        emit evSurfaceChanged();
-//    }
-//}
 
 //qint32 Surface1d::getMeasureToDisplay()
-//{
-//    return m_measureType;
-//}
 
-//void Surface1d::setResolution(qreal p_value);
 qreal Surface1d::getResolution()
 {
     return m_resolutionMm;
@@ -226,12 +203,10 @@ qreal Surface1d::getSurfaceStartMm() const
     return m_surfaceStartMm;
 }
 
-
 quint32 Surface1d::getNbCell(void) const
 {
     return m_nbCell;
 }
-
 
 qreal Surface1d::getSurfaceEnd(void) const
 {

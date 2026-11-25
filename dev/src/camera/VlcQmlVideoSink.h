@@ -11,7 +11,6 @@ public:
     explicit VlcQmlVideoSink(QObject* parent = nullptr);
     void setVideoSink(QObject* sink);      // solo dichiarazione, niente corpo
     QVideoSink* videoSink() const { return m_sink; }
-    void presentFrame(const QVideoFrame& frame);
 
 private:
     QVideoSink* m_sink = nullptr;

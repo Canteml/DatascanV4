@@ -26,7 +26,8 @@ const QString ProtMsg::PROD_NAME[PROD_MAX_ID] = {"UNDEF",
                                                  "ROVER CLEANER",
                                                  "ALTISCAN",
                                                  "PANDA VOL3",
-                                                 "MultiScan"};
+                                                 "MultiScan",
+                                                 "Red Pitaya"};
 
 ProtMsg::ProtMsg()
 {
@@ -50,6 +51,15 @@ bool ProtMsg::isParamDevice() const
 bool ProtMsg::isParamLogical() const
 {
     return (m_msgObj & 0b10000000);
+}
+
+QString ProtMsg::protocolName(quint8 p_protocol)
+{
+    switch( p_protocol ) {
+    case PROTOCOL_LEGACY:   return "Datascan legacy";
+    case PROTOCOL_D4:       return "DatascanV4 D4";
+    default:                return "UNKNOWN";
+    }
 }
 
 QString ProtMsg::prodName(quint8 p_prodId)

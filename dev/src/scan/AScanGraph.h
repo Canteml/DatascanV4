@@ -98,8 +98,8 @@ private :
     size_t m_columnY;
     size_t m_columnXRF;   ///< same arrays as m_columnX/Y, full length
     size_t m_columnYRF;
-    qreal m_pAScanXData[AScanRawSample::ASCAN_SAMPLE_SIZE];
-    qreal m_pAScanYData[AScanRawSample::ASCAN_SAMPLE_SIZE];
+    qreal m_pAScanXData[AScanRawSample::ASCAN_SAMPLE_CAPACITY];
+    qreal m_pAScanYData[AScanRawSample::ASCAN_SAMPLE_CAPACITY];
 
     volatile bool m_updateInProgress;
 
@@ -120,7 +120,6 @@ private :
     qint16  m_autoGainThreshold     = 5;
     quint16 m_noiseGateStart        = 0;
     quint16 m_noiseGateWidth        = 10;
-    qreal   m_lastValidScaleFactor  = 1.0;
 
     // -- Measurement gate (Gate 0, in mm — same units as X axis)
     qreal m_measureGateStart = 100.0;
@@ -153,8 +152,6 @@ public :
     void signalPaintDone();
     void start();
     void stop();
-    bool isBufferReady() const;
-    QImage * getOldBuffer();
 
 signals :
 

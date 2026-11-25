@@ -30,10 +30,6 @@ public:
 
     void requestUpdate();
 
-    // -- properties
-    bool getMouseEnabled() const;
-    void setMouseEnabled(bool p_value);
-
     bool getMouseUsedByItem() const;
     void setMouseUsedByItem(bool p_used);///< should be called by items (like "Gates") to say that mouse event are catched
 
@@ -49,14 +45,10 @@ protected :
 
     virtual void resizeEvent(QResizeEvent *event) override;
 
-private :
-    qint32 minTimeBetweenUpdate() const;
-
 signals :
     void evRequestUpdate();
 
 private :
     // -- Properties
-    bool m_mouseEnabled;    ///< if false : any mouse action is ignored (mouse enabled by default)
     bool m_mouseUsedByItem;       ///< if mouse is not used by any item, Graph can manage event (move in graph ..)
 };

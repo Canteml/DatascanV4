@@ -1,12 +1,12 @@
-#define MyAppName "DatascanV3"
-#define MyAppVersion "rev_3.0.1-ALTISCANV2-FR"
+#define MyAppName "DatascanV4"
+#define MyAppVersion "rev_4.0.0-ALTISCANV2-FR"
 #define MyAppPublisher "Roboplanet"
 #define MyAppURL "http://www.roboplanet.fr"
-#define MyAppExeName "DatascanV3.exe"
+#define MyAppExeName "DatascanV4.exe"
  
 [Setup]
 PrivilegesRequired=admin
-AppId={{18A43CCC-3F2B-4F4B-8247-4EEFA600A762}
+AppId={{57984FCD-F978-4768-9D05-F898BC58D159}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}

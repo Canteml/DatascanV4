@@ -348,11 +348,6 @@ void UsKeyManager::stopAcquisition(bool waitForThread)
     m_thread = nullptr;
 }
 
-bool UsKeyManager::isAcquiring() const
-{
-    return m_thread && m_thread->isRunning();
-}
-
 // ----------------------------------------------------------------------------
 // -- Parameter writes
 

@@ -53,13 +53,8 @@ bool CameraVideo::isIpCamera() const
 }
 
 //QString CameraVideo::capture(const QString& p_prefix)
-//{
 //    QString fileName = QString("%1/%2 %3").arg(ExamManager::getInstance()->getExportFolder())
 //                                .arg(p_prefix)
-//                                .arg(QDateTime::currentDateTime().toString("yyyy-MM-dd HH-mm-ss.zzz"));
-//    m_pCapture->capture(fileName);
-//    return fileName;
-//}
 
 // ----------------------------------------------------------------------------
 // -- CameraRole
@@ -130,7 +125,6 @@ bool CameraRole::getIsReady() const
 {
     return m_isReady;
 }
-
 
 qint32 CameraRole::getRole() const
 {

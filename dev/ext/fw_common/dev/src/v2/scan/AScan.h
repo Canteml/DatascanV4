@@ -28,8 +28,15 @@ class AScanRawSample : public XmlProject {
 public :
     AScanRawSample();
 
-    static const qint32 ASCAN_SAMPLE_SIZE = 4000;
-    quint8 m_rawSamples[ASCAN_SAMPLE_SIZE];
+    static const qint32 ASCAN_SAMPLE_SIZE = 4000;       ///< legacy e US-Key
+    static const qint32 ASCAN_SAMPLE_CAPACITY = 4096;   ///< massimo (D4)
+    enum SAMPLE_FORMAT {
+        SAMPLE_FORMAT_8BIT = 0,                         ///< legacy
+        SAMPLE_FORMAT_14BIT = 1                         ///< D4
+    };
+    qint16 m_rawSamples[ASCAN_SAMPLE_CAPACITY];
+    quint8 m_sampleFormat = SAMPLE_FORMAT_8BIT;
+    qint32 m_sampleCount = ASCAN_SAMPLE_SIZE;           ///< campioni validi in questo A-Scan
     qint64 m_epocTimeMs = 0;
     QPointF m_position  = QPointF(0,0); ///< BScan use only X
 
@@ -48,8 +55,8 @@ class AScanEnhancedSample : public XmlProject {
 public :
     AScanEnhancedSample();
 
-    static const qint32 ASCAN_SAMPLE_SIZE = 4000;
-    quint8 m_enhancedSamples[ASCAN_SAMPLE_SIZE];
+    static const quint16 ENHANCED_SCALE = 64;
+    quint16 m_enhancedSamples[AScanRawSample::ASCAN_SAMPLE_CAPACITY];
     quint8 m_paramLLowPassFilter = 0;
     quint8 m_paramDWaveType      = 0;
     bool   m_hwRectified         = false;   ///< true = samples already rectified by the US-Key (A-scan mode)
@@ -72,7 +79,7 @@ public :
 
     quint8 m_paramDGain         = 0;
     quint16 m_paramDPulseWidth  = 0;    ///< 18 to 1600
-    quint8 m_paramDSampleFreq   = 0;    ///< ProtMsg::FUNC_ASCAN_PARAM_D_SAMPLE_FREQ : 0 = 80 MHz, 1 = 40 MHz, 2 = 20 MHz
+    quint8 m_paramDSampleFreq   = 0;    ///< ProtMsg::FUNC_ASCAN_PARAM_D_SAMPLE_FREQ : 0 = 80 MHz, 1 = 40 MHz, 2 = 20 MHz, 3 = 125 MHz
     quint8 m_paramDUtElement    = 0;
     quint8 m_paramDVoltage      = 0;
     quint32 m_paramLCelerity = 5940;

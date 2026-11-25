@@ -19,11 +19,6 @@ Item {
 //    property alias rowVectorInfo: rowVectorInfo
 //    property alias rowBanner: rowBanner
 //    property alias colBtPage: colBtPage
-//    property alias btCentralPage0: btCentralPage0
-//    property alias btCentralPage1: btCentralPage1
-//    property alias btCentralPage2: btCentralPage2
-//    property alias btCentralPage3: btCentralPage3
-//    property alias btCentralPage4: btCentralPage4
 //    property alias itCentralView: itCentralView
 //    property alias colMainLayout: colMainLayout
 
@@ -99,6 +94,7 @@ Item {
                     Layout.preferredHeight: 60
                     text: qsTr("PROJET")
                     font.pointSize: 12
+                    font.bold: slCentral.currentIndex === 0
                     background: Rectangle {
                         color: Design.colButtonDarkBackground
                     }
@@ -107,7 +103,7 @@ Item {
                         font: btCentralPage0.font
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
-                        color: btCentralPage0.hovered ? Design.colButtonDarkHoveredText : slCentral.currentIndex === 0 ? Design.colButtonDarkSelectedText : Design.colButtonDarkText
+                        color: btCentralPage0.hovered ? Design.colButtonDarkHoveredText : Design.colButtonDarkText // slCentral.currentIndex === 0 ? Design.colButtonDarkSelectedText :
                     }
 
                     onPressed: {globalManager.guiPage = page0_project; displayMenu = false;}
@@ -119,6 +115,7 @@ Item {
                     Layout.preferredHeight: 60
                     text: qsTr("PREPARER")
                     font.pointSize: 12
+                    font.bold: slCentral.currentIndex === 1
                     background: Rectangle {
                         color: Design.colButtonDarkBackground
                     }
@@ -127,38 +124,18 @@ Item {
                         font: btCentralPage1.font
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
-                        color: btCentralPage1.hovered ? Design.colButtonDarkHoveredText : slCentral.currentIndex === 1 ? Design.colButtonDarkSelectedText : Design.colButtonDarkText
+                        color: btCentralPage1.hovered ? Design.colButtonDarkHoveredText : Design.colButtonDarkText // slCentral.currentIndex === 1 ? Design.colButtonDarkSelectedText :
                     }
 
                     onPressed: {globalManager.guiPage = page1_prepare; displayMenu = false;}
                 }
-
-                /*
-                Button {
-                    id: btCentralPage2
-                    Layout.preferredWidth: 140
-                    Layout.preferredHeight: 60
-                    text: qsTr("SUPERVISER")
-                    font.pointSize: 12
-                    background: Rectangle {
-                        color: Design.colButtonDarkBackground
-                    }
-                    contentItem: Text {
-                        text: btCentralPage2.text
-                        font: btCentralPage2.font
-                        horizontalAlignment: Text.AlignHCenter
-                        verticalAlignment: Text.AlignVCenter
-                        color: btCentralPage2.hovered ? Design.colButtonDarkHoveredText : slCentral.currentIndex === 2 ? Design.colButtonDarkSelectedText : Design.colButtonDarkText
-                    }
-
-                    onPressed: {globalManager.guiPage = page2_supervise; displayMenu = false;}
-                }*/
 
                 Button {
                     id: btCentralPage3
                     Layout.preferredWidth: 140
                     Layout.preferredHeight: 60
                     text: qsTr("SCANNER")
+                    font.bold: slCentral.currentIndex === 3
                     font.pointSize: 12
                     background: Rectangle {
                         color: Design.colButtonDarkBackground
@@ -168,7 +145,7 @@ Item {
                         font: btCentralPage3.font
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
-                        color: btCentralPage3.hovered ? Design.colButtonDarkHoveredText : slCentral.currentIndex === 3 ? Design.colButtonDarkSelectedText : Design.colButtonDarkText
+                        color: btCentralPage3.hovered ? Design.colButtonDarkHoveredText : Design.colButtonDarkText // slCentral.currentIndex === 3 ? Design.colButtonDarkSelectedText :
                     }
 
                     onPressed: {globalManager.guiPage = page3_scan; displayMenu = false;}
@@ -179,6 +156,7 @@ Item {
                     Layout.preferredWidth: 140
                     Layout.preferredHeight: 60
                     text: qsTr("EQUIP.LICENCE")
+                    font.bold: slCentral.currentIndex === 4
                     font.pointSize: 12
                     background: Rectangle {
                         color: Design.colButtonDarkBackground
@@ -188,7 +166,7 @@ Item {
                         font: btCentralPage4.font
                         horizontalAlignment: Text.AlignHCenter
                         verticalAlignment: Text.AlignVCenter
-                        color: btCentralPage4.hovered ? Design.colButtonDarkHoveredText : slCentral.currentIndex === 4 ? Design.colButtonDarkSelectedText : Design.colButtonDarkText
+                        color: btCentralPage4.hovered ? Design.colButtonDarkHoveredText : Design.colButtonDarkText // slCentral.currentIndex === 4 ? Design.colButtonDarkSelectedText :
                     }
 
                     onPressed: {globalManager.guiPage = page4_licence; displayMenu = false;}
@@ -209,7 +187,6 @@ Item {
 
         btCentralPage0.visible = displayMenu;
         btCentralPage1.visible = displayMenu;
-        //btCentralPage2.visible = displayMenu;
         btCentralPage3.visible = displayMenu;
         btCentralPage4.visible = displayMenu;
     }
@@ -249,7 +226,4 @@ Item {
         });
     }
 }
-
-
-
 

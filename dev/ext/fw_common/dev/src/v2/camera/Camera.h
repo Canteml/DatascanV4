@@ -19,8 +19,6 @@
 // -- Qt includes
 #include <QObject>
 
-
-
 // ----------------------------------------------------------------------------
 // -- CameraVideo
 
@@ -43,8 +41,6 @@ public:
     // -- Behaviour
     Q_INVOKABLE qint32 getCameraIndex() const;
     Q_INVOKABLE void setCameraIndex(qint32 p_index);
-
-    //virtual QString capture(const QString& p_prefix);  ///< return filename (auto generated in project directory)
 
     Q_INVOKABLE bool isIpCamera() const;
 
@@ -82,8 +78,6 @@ public:
     qint32 getCameraIndex() const;
     CameraVideo *getCameraVideo() const;
     void setCamera(CameraVideo* p_camera);
-
-
 
     void setIsEnabled(bool p_value);
     bool getIsEnabled() const;

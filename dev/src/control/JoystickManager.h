@@ -46,10 +46,6 @@ public:
 
     ~JoystickManager();
 
-    qreal getAxeX() const;
-    qreal getAxeY() const;
-    bool getButtonPressed() const;
-
     bool start();
     void stop();
 
@@ -58,9 +54,6 @@ public slots:
     void update();
 
 signals:
-    void evAxeX(qreal);
-    void evAxeY(qreal);
-    void evButtonPressed();
     void isConnectedChanged(bool);
 
 private:
@@ -68,14 +61,12 @@ private:
     void setConnection(bool p_connected);
     void setAxeX(qreal);
     void setAxeY(qreal);
-    void setButtonPressed(bool);
     qreal computeDeadRangeAxe(qreal);
 
     int m_idJoystick;
     bool m_isConnected;
     qreal m_axeX;
     qreal m_axeY;
-    bool m_button;
 
     static const int POLL_JOYSTICK;
     static const qreal AXE_DEAD_RANDE;

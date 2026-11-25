@@ -30,7 +30,6 @@
 
 #include <QDir>
 
-
 // -- Internal includes
 #include <coreUi/CoreUiQml.h>
 
@@ -68,16 +67,14 @@ CoreUiQml * CoreUiQml::getInstanceCoreUiQml()
 // -- Behaviour
 int CoreUiQml::execUiQml(int argc, char* argv[])
 {
-    m_pGuiApplication = new QApplication(argc, argv); //QGuiApplication(argc, argv);
+    m_pGuiApplication = new QApplication(argc, argv);
 
     return Core::exec(argc, argv);
 }
 
-
 int CoreUiQml::execUiQml_withSelectLanguage(int argc, char* argv[])
 {
-    m_pGuiApplication = new QApplication(argc, argv); //QGuiApplication(argc, argv);
-
+    m_pGuiApplication = new QApplication(argc, argv);
 
     //Language Selection
     QTranslator qTranslator;
@@ -104,10 +101,9 @@ int CoreUiQml::execUiQml_withSelectLanguage(int argc, char* argv[])
     return Core::exec(argc, argv);
 }
 
-
 int CoreUiQml::execUiQml_EnglishLanguage(int argc, char* argv[])
 {
-    m_pGuiApplication = new QApplication(argc, argv); //QGuiApplication(argc, argv);
+    m_pGuiApplication = new QApplication(argc, argv);
 
     //Language Selection
     QTranslator qTranslator;
@@ -118,14 +114,13 @@ int CoreUiQml::execUiQml_EnglishLanguage(int argc, char* argv[])
     }
     //Loading Translation on IHM
     m_pGuiApplication->installTranslator(&qTranslator);
-
 
     return Core::exec(argc, argv);
 }
 
 int CoreUiQml::execUiQml_EspanolLanguage(int argc, char* argv[])
 {
-    m_pGuiApplication = new QApplication(argc, argv); //QGuiApplication(argc, argv);
+    m_pGuiApplication = new QApplication(argc, argv);
 
     //Language Selection
     QTranslator qTranslator;
@@ -136,7 +131,6 @@ int CoreUiQml::execUiQml_EspanolLanguage(int argc, char* argv[])
     }
     //Loading Translation on IHM
     m_pGuiApplication->installTranslator(&qTranslator);
-
 
     return Core::exec(argc, argv);
 }
@@ -174,28 +168,6 @@ QString CoreUiQml::getDirAppQml()
     // Last resort: try relative to application dir (may still fail and be logged by caller)
     return m_dirApp + "/../res/qml";
 }
-
-/*
-QString CoreUiQml::getDirAppQml()
-{
-    if( isDevApp() ) {
-        // Percorso assoluto ai sorgenti QML
-        return QString("C:/Users/Win 11/Desktop/datascanV2.0.4/dev/src/qml");
-    } else {
-        return m_dirApp + "/res/qml";
-    }
-}
-
-
-QString CoreUiQml::getDirAppQml()
-{
-    if( isDevApp() ) {
-        return QString("%1/../../src/qml").arg(m_dirApp);
-    } else {
-        return m_dirApp+"/res/qml";
-    }
-}
-*/
 
 QString CoreUiQml::getWindowTitle() const
 {
@@ -242,7 +214,6 @@ bool CoreUiQml::initApp()
     // -- Add Types
     initQmlType();
 
-
     return true;
 }
 
@@ -279,16 +250,10 @@ bool CoreUiQml::startApp()
 void CoreUiQml::stopApp()
 {
     // read some window properties
-    //m_settWinVisibility = m_pMainView->visibility();
     if( nullptr != m_pMainView ) {
         m_settWinGeometry = m_pMainView->geometry();
         m_pMainView = nullptr;
     }
-
-    //    QByteArray ba;
-    //    QDataStream ds(&ba, QIODevice::WriteOnly);
-    //    ds<<m_pMainView->geometry();
-    //    m_settWinGeometry = ba.toHex().data();
 
     // -- delete Qml objects
     if( nullptr != m_pQmlApplicationEngine ) {
@@ -371,9 +336,6 @@ void CoreUiQml::onReloadQml()
         obj->deleteLater();
 
     }
-    //    m_pQmlApplicationEngine->loadData(QByteArray());
-    //    m_pQmlApplicationEngine->clearComponentCache();
-    //    m_pQmlApplicationEngine->load(m_mainQml);
 
     m_pQmlApplicationEngine->clearComponentCache();
     m_pQmlApplicationEngine->load(m_mainQmlUrl);
@@ -434,9 +396,3 @@ bool CoreUiQml::customSaveSettings(QDomDocument * p_pDoc, QDomElement * p_pParen
     return true;
 }
 
-// -- KeyCatcher
-
-KeyCatcher::KeyCatcher() : QObject()
-{
-    // empty
-}

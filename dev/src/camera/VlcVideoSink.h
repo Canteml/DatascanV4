@@ -30,7 +30,6 @@ private:
 
     VlcMediaPlayer* m_pPlayer = nullptr;
     QPointer<QVideoSink> m_pSink;
-    //QVideoSink*     m_pSink   = nullptr;
     QMutex          m_mutex;
     QImage          m_frame;
     const int       m_width  = 1280;

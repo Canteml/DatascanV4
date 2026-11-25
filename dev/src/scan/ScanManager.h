@@ -40,8 +40,6 @@ class ScanManager : public QObject, public XmlSettingsLoggable
     Q_PROPERTY(VectorFuncAScan* SelectedFuncAScan READ getSelectedFuncAScan NOTIFY evSelectedFuncAScanChanged)            
 
     // -- BSCAN
-    Q_PROPERTY(quint32 BScanViewXMode READ getBScanViewXMode WRITE setBScanViewXMode NOTIFY evBScanViewXModeChanged)
-    Q_PROPERTY(quint32 BScanViewYMode READ getBScanViewYMode WRITE setBScanViewYMode NOTIFY evBScanViewYModeChanged)
     Q_PROPERTY(qreal BScanAxeXScaleM READ getBScanAxeXScaleM WRITE setBScanAxeXScaleM NOTIFY evBScanAxeXScaleMChanged)
     Q_PROPERTY(qreal BScanAxeYMinMm READ getBScanAxeYMinMm WRITE setBScanAxeYMinMm NOTIFY evBScanAxeYMinMmChanged)
     Q_PROPERTY(qreal BScanAxeYMaxMm READ getBScanAxeYMaxMm WRITE setBScanAxeYMaxMm NOTIFY evBScanAxeYMaxMmChanged)
@@ -74,27 +72,16 @@ public :
     Q_INVOKABLE qreal getAScanThicknessMm1Echo();
 
     Q_INVOKABLE void ascanSaveUserParams();
-    Q_INVOKABLE void ascanLoadUserParams();
     Q_INVOKABLE bool ascanSavePreset(const QString& p_name);
     Q_INVOKABLE bool ascanPresetExists(const QString& p_name) const;
     Q_INVOKABLE void ascanResetDefaultParams();
     Q_INVOKABLE QStringList ascanListPresets() const;
     Q_INVOKABLE bool ascanLoadPreset(const QString& p_name);
     Q_INVOKABLE void bscanSaveUserParams();
-    Q_INVOKABLE void bscanLoadUserParams();
     Q_INVOKABLE bool bscanSavePreset(const QString& p_name);
     Q_INVOKABLE bool bscanPresetExists(const QString& p_name) const;
-    Q_INVOKABLE void bscanResetDefaultParams();
     Q_INVOKABLE QStringList bscanListPresets() const;
     Q_INVOKABLE bool bscanLoadPreset(const QString& p_name);
-
-//    // -- BSCAN
-
-    qint32 getBScanViewXMode(void) const;
-    void setBScanViewXMode(quint32 p_value);
-
-    qint32 getBScanViewYMode(void) const;
-    void setBScanViewYMode(quint32 p_value);
 
     qreal getBScanAxeXScaleM(void) const;
     void setBScanAxeXScaleM(qreal p_value);
@@ -118,15 +105,10 @@ signals :
     void evSelectedFuncAScanChanged(VectorFuncAScan*);
     void evUpdateAScan();
 
-    void evBScanViewXModeChanged(qint32);
-    void evBScanViewYModeChanged(qint32);
     void evBScanAxeXScaleMChanged(qreal);
     void evBScanAxeYMinMmChanged(qreal);
     void evBScanAxeYMaxMmChanged(qreal);
     void evBScanAxeXTypeChanged(qint32);
-
-    void evAScanPresetChanged();
-    void evBScanPresetChanged();
 
 private slots :
     void onNewAScanTreated(AScan*);
@@ -134,8 +116,6 @@ private slots :
     void onAutoGainParamsChanged();
     void onMeasureGateChanged();
 
-    void onPrivateBScanViewXModeChanged(qint32);
-    void onPrivateBScanViewYModeChanged(qint32);
     void onPrivateBScanAxeXScaleMChanged(qreal);
     void onPrivateBScanAxeYMinMmChanged(qreal);
     void onPrivateBScanAxeYMaxMmChanged(qreal);
@@ -156,7 +136,6 @@ private :
     ScanManager();
     static ScanManager* m_pMyInstance;
 
-    void onVectorProductChanged();    
     void setPrivateSelectedAScanIndex(quint32 p_index);
     void emitUpdateAScanTimed(bool p_force = false);
     void pushAutoGainParamsToGraph();

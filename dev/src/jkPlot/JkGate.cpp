@@ -14,7 +14,6 @@
 #include "JkGate.h"
 #include <v2/vector/VectorFuncAScan.h>
 
-
 bool JkGate::m_isGateClicked = false;
 const qreal JkGate::DEFAULT_MOUSE_MARGIN = 15;
 
@@ -114,10 +113,7 @@ void JkGate::setLineY(qreal y)
 void JkGate::setGate(qreal p_start, qreal p_width, qreal p_height)
 {
     if( !m_isClicked ) {
-//        if( m_pGate->getIndex() != 0 ) {
 //            // synchro on gate Interface => compute a "shift" from the start
-//            p_start = p_start + m_pTestiaDevice->getGate1Interface()->getStart();
-//        }
 
         QPointF p1, p2;
         if( m_pLine->getX1() < m_pLine->getX2() ) {
@@ -131,7 +127,6 @@ void JkGate::setGate(qreal p_start, qreal p_width, qreal p_height)
         m_P1X = p1.x();
         m_P2X = p2.x();
 
-
         m_pLine->setX1(m_P1X + m_offsetFromGate1);
         m_pLine->setY1(p1.y());
         m_pLine->setX2(m_P2X + m_offsetFromGate1);
@@ -142,16 +137,6 @@ void JkGate::setGate(qreal p_start, qreal p_width, qreal p_height)
 
         m_pMarkerEnd->setX(m_P2X + m_offsetFromGate1);
         m_pMarkerEnd->setY(p2.y());
-
-//        JKQTPGeoLine * l = new JKQTPGeoLine(m_pPlot, 0, 0, 10, 10);
-
-//        l->setX1(m_P1X + m_offsetFromGate1);
-//        l->setY1(p1.y());
-//        l->setX2(m_P2X + m_offsetFromGate1);
-//        l->setY2(p2.y());
-
-//        l->setStyle(m_brushHovered.color(), 1.5);
-//        m_pPlot->addGraph(l);
 
         onUpdatePlot();
         emit evGateChanged();
@@ -190,19 +175,10 @@ void JkGate::setP2(const QPointF &p_value)
     emit evGateChanged();
 }
 
-QLineF JkGate::getLine(void)
-{
-    return QLineF(m_P1X/*m_pLine->getX1()*/, m_pLine->getY1(), m_P2X/*m_pLine->getX2()*/, m_pLine->getY2());
-}
-
 qreal JkGate::getGateStart() const
 {
-    qreal v = qMin(m_P1X, m_P2X); //m_pLine->getX1(), m_pLine->getX2());
-//    if( m_pGate->getIndex() != 0 ) {
+    qreal v = qMin(m_P1X, m_P2X);
 //        // synchro on gate 0 => compute a "shift" from the start
-//        v = v - m_pTestiaDevice->getGate1Interface()->getStart();
-//    }
-    //qDebug()<<"getGateStart = "<<qMin(m_pLine->getX1(), m_pLine->getX2());
     // round 2 decimals
     v = static_cast<double>(static_cast<int>(v*100+0.5))/100.0;
     return v;
@@ -210,7 +186,6 @@ qreal JkGate::getGateStart() const
 
 qreal JkGate::getGateWidth() const
 {
-    //qDebug()<<"getGateWidth = "<<qAbs(m_pLine->getX1() - m_pLine->getX2());
     qreal v = qAbs(m_pLine->getX1() - m_pLine->getX2());
     // round 2 decimals
     v = static_cast<double>(static_cast<int>(v*100+0.5))/100.0;
@@ -225,54 +200,22 @@ qreal JkGate::getGateHeight() const
     return v;
 }
 
-qreal JkGate::getCurrentOffsetGate1() const
-{
-    return m_offsetFromGate1;
-}
-
-void JkGate::setCurrentOffsetGate1(qreal p_value)
-{
-    m_offsetFromGate1 = p_value;
-}
-
-void JkGate::refreshXPositionOffset()
-{
-    m_pLine->setX1(m_P1X + m_offsetFromGate1);
-    m_pLine->setX2(m_P2X + m_offsetFromGate1);
-    m_pMarkerBegin->setX(m_P1X + m_offsetFromGate1);
-    m_pMarkerEnd->setX(m_P2X + m_offsetFromGate1);
-}
-
-
-void JkGate::setMargin(qreal p_value)
-{
-    m_margin = p_value;
-}
-
 void JkGate::setNoiseGateThreshold(qreal value)
 {
     m_noiseGateThreshold = value;
     onUpdateGateFromModel();
 }
 
-qreal JkGate::getMargin() const
-{
-    return m_margin;
-}
-
 void JkGate::mouseMoveEvent(const QPointF &p_position)
 {
-//    if( ProcessManager::MODE_CALIB == m_pProcessManager->getMode() ||
-//        ProcessManager::MODE_SETTING == m_pProcessManager->getMode() ) {
         qreal dL = distLine(p_position);
         qreal dP1 = distMarkerBegin(p_position);
         qreal dP2 = distMarkerEnd(p_position);
         bool locked = isPositionLocked();
 
-
         if( m_isClicked ) {
             if( 1 == m_elementHovered ) {
-                setLineY(p_position.y());//m_pLine->getX1(), p_position.y(), m_pLine->getX2(), p_position.y());
+                setLineY(p_position.y());
             }
             if( 2 == m_elementHovered ) {
                 setP1(QPointF(p_position.x()-m_offsetFromGate1, m_pLine->getY1()));
@@ -301,8 +244,6 @@ void JkGate::mouseMoveEvent(const QPointF &p_position)
                 }
             }
         }
-    //}
-    //qDebug()<<"MOVE dL = "<<dL<<" / dP1 = "<<dP1<<" / dP2 = "<<dP2<<" / m_elementHovered = "<<m_elementHovered;
 }
 
 void JkGate::mouseClickEvent(const QPointF &p_position)
@@ -314,8 +255,6 @@ void JkGate::mouseClickEvent(const QPointF &p_position)
         qreal dP1 = distMarkerBegin(p_position);
         qreal dP2 = distMarkerEnd(p_position);
         bool locked = isPositionLocked();
-
-        //qDebug()<<"dL = "<<dL<<" / dP1 = "<<dP1<<" / dP2 = "<<dP2;
 
         if( !locked && dP1 < dP2  && dP1 < m_margin ) {
             m_elementHovered = 2;
@@ -355,19 +294,9 @@ void JkGate::mouseReleaseEvent(const QPointF &p_position)
     mouseMoveEvent(p_position);
 }
 
-bool JkGate::getIsHovered()
-{
-    return m_isHovered;
-}
-
 bool JkGate::getIsClicked()
 {
     return m_isClicked;
-}
-
-bool JkGate::getIsVisible() const
-{
-    return m_isVisible;
 }
 
 void JkGate::setIsVisible(bool p_value)

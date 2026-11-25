@@ -9,7 +9,6 @@ ColumnLayout {
     Layout.fillHeight: false
     Layout.fillWidth: true
     spacing: 0
-    //Layout.preferredHeight: 70
 
     Rectangle {
         id: idAlertLevel0

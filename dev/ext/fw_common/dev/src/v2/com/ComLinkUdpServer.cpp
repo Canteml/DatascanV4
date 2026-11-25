@@ -38,6 +38,7 @@ void ComLinkUdpServer::startServer()
 {
    m_pUdpServer = new QUdpSocket(this);
    m_pUdpServer->bind(ComLinkUdpConfig::UDP_PORT_DEFAULT);
+   m_pUdpServer->setSocketOption(QAbstractSocket::ReceiveBufferSizeSocketOption, 4 * 1024 * 1024);
    connect(m_pUdpServer, &QUdpSocket::readyRead, this, &ComLinkUdpServer::readData);
    qDebug() << "Listening udp...";
 }
@@ -49,7 +50,6 @@ void ComLinkUdpServer::readData()
       quint32 ipv4 = datagram.senderAddress().toIPv4Address();
       QString sender = QString("%4.%3.%2.%1").arg(ipv4 % 256).arg((ipv4 >> 8) % 256).arg((ipv4 >> 16) % 256).arg((ipv4 >> 24) % 256);
       quint32 port = datagram.senderPort();
-      //qDebug() << QString("Received %1 : %2").arg(sender).arg(port);
       if(ComLinkUdpConfig::UDP_PORT_DEFAULT != port) {
          continue;
       }

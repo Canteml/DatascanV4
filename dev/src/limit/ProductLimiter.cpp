@@ -15,16 +15,6 @@ ProductLimiter::ProductLimiter(QObject *p_pParent) : QObject(p_pParent)
 
 }
 
-bool ProductLimiter::isProductEnabled(ProtMsg::PROD_ID p_prodId)
-{
-    return m_aEnabledProducts.contains(p_prodId);
-}
-
-ProtMsg::PROD_ID ProductLimiter::getProductIdFromIndex(qint32 p_u32Index)
-{
-    return m_aEnabledProducts[p_u32Index];
-}
-
 QStringList ProductLimiter::getEnabledProductsNames()
 {
     QList<QString> productNames;
@@ -34,31 +24,14 @@ QStringList ProductLimiter::getEnabledProductsNames()
     return productNames;
 }
 
-void ProductLimiter::setProdIndex(qint32 p_u32Index)
-{
-    setProdId(static_cast<qint32>(getProductIdFromIndex(p_u32Index)));
-}
-
-qint32 ProductLimiter::getCurrentIndex()
-{
-    VectorStd* currentVector = VectorManager::getInstance()->getVectorStd();
-    ProtMsg::PROD_ID currentId = static_cast<ProtMsg::PROD_ID>(currentVector->getProdId());
-    return m_aEnabledProducts.indexOf(currentId);
-}
-
 void ProductLimiter::setProdId(qint32 p_s32ProdId)
 {
     if(p_s32ProdId <= ProtMsg::PROD_UNDEF || p_s32ProdId >= ProtMsg::PROD_MAX_ID) {
         return;
     }
-    bool hadPipe = isPipeEnabled();
     VectorStd* currentVector = VectorManager::getInstance()->getVectorStd();
     if(currentVector->getProdId() != p_s32ProdId) {
         currentVector->setProdIdDeviceAd(p_s32ProdId, 0);
-        bool hasPipe = isPipeEnabled();
-        if(hasPipe != hadPipe) {
-            emit pipeEnabledChanged(hasPipe);
-        }
     }
 }
 
@@ -66,13 +39,6 @@ qint32 ProductLimiter::getCurrentProdId()
 {
     VectorStd* currentVector = VectorManager::getInstance()->getVectorStd();
     return static_cast<qint32>(currentVector->getProdId());
-}
-
-bool ProductLimiter::isPipeEnabled()
-{
-    VectorStd* currentVector = VectorManager::getInstance()->getVectorStd();
-    ProtMsg::PROD_ID currentId = static_cast<ProtMsg::PROD_ID>(currentVector->getProdId());
-    return currentId == ProtMsg::PROD_PANDA_VOL3;
 }
 
 QString ProductLimiter::getEquipmentFilePath()
@@ -91,7 +57,6 @@ void ProductLimiter::loadLimitations()
         qWarning() << "Failed to open equipment file for reading";
         return;
     }
-    //equipmentFile.open(QIODevice::ReadOnly | QIODevice::Text);
     QByteArray content = equipmentFile.readAll();
     equipmentFile.close();
     int prodId = 1;
@@ -108,7 +73,6 @@ void ProductLimiter::loadLimitations()
         initDefaultEquipmentFile();
         m_aEnabledProducts.append(ProtMsg::PROD_UT_POLE);
     }
-    emit enabledProductsChanged(getEnabledProductsNames());
     VectorStd* currentVector = VectorManager::getInstance()->getVectorStd();
     ProtMsg::PROD_ID currentId = static_cast<ProtMsg::PROD_ID>(currentVector->getProdId());
     if(!m_aEnabledProducts.contains(currentId)) {
@@ -123,7 +87,6 @@ void ProductLimiter::initDefaultEquipmentFile()
         qWarning() << "Failed to open equipment file for writing";
         return;
     }
-    //equipmentFile.open(QIODevice::WriteOnly | QIODevice::Text);
     equipmentFile.write(DEFAULT_CONTENT);
     equipmentFile.close();
 }

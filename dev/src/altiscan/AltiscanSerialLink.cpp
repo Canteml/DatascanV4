@@ -310,7 +310,6 @@ void AltiscanSerialLink::handleFrame(quint8 cmd, const QByteArray& payload)
                             .arg(m_replyCount).arg(posInt).arg(mm, 0, 'f', 3));
         }
 
-        emit evPositionRaw(posInt);
         emit evPositionMm(mm);
 
     } else if (CMD_PRESSURE == cmd) {

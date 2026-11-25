@@ -16,7 +16,6 @@
 
 MyJkQtPlotter::MyJkQtPlotter() : Loggable("MyJkQtPlotter")
 {
-    m_mouseEnabled = true;
     m_mouseUsedByItem = false;
 }
 
@@ -28,17 +27,6 @@ MyJkQtPlotter::~MyJkQtPlotter()
 void MyJkQtPlotter::requestUpdate()
 {
     emit evRequestUpdate();
-}
-
-// -- properties
-bool MyJkQtPlotter::getMouseEnabled() const
-{
-    return m_mouseEnabled;
-}
-
-void MyJkQtPlotter::setMouseEnabled(bool p_value)
-{
-    m_mouseEnabled = p_value;
 }
 
 bool MyJkQtPlotter::getMouseUsedByItem() const
@@ -55,31 +43,22 @@ void MyJkQtPlotter::setMouseUsedByItem(bool p_used)
 // -- inherited from QWidget
 void MyJkQtPlotter::mouseDoubleClickEvent(QMouseEvent */*event*/)
 {
-    if( m_mouseEnabled ) {
-        // strange behaviour with double click
-        //JKQTPlotter::mouseDoubleClickEvent(event);
-    }
+    // double click intentionally ignored (strange behaviour in JKQTPlotter)
 }
 
 void MyJkQtPlotter::mouseMoveEvent(QMouseEvent *event)
 {
-    if( m_mouseEnabled ) {
-        JKQTPlotter::mouseMoveEvent(event);
-    }
+    JKQTPlotter::mouseMoveEvent(event);
 }
 
 void MyJkQtPlotter::mousePressEvent(QMouseEvent *event)
 {
-    if( m_mouseEnabled ) {
-        JKQTPlotter::mousePressEvent(event);
-    }
+    JKQTPlotter::mousePressEvent(event);
 }
 
 void MyJkQtPlotter::mouseReleaseEvent(QMouseEvent *event)
 {
-    if( m_mouseEnabled ) {
-        JKQTPlotter::mouseReleaseEvent(event);
-    }
+    JKQTPlotter::mouseReleaseEvent(event);
 }
 
 void MyJkQtPlotter::wheelEvent(QWheelEvent *)
@@ -96,10 +75,5 @@ void MyJkQtPlotter::resizeEvent(QResizeEvent *event)
 {
     JKQTPlotter::resizeEvent(event);
     emit evRequestUpdate(); // force update after change of size
-}
-
-qint32 MyJkQtPlotter::minTimeBetweenUpdate() const
-{
-    return 1000/60;
 }
 

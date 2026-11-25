@@ -86,7 +86,6 @@ void ExportCsv::onPrivateStartExport()
 
     VectorFuncAScan* pVectAScan = VectorManager::getInstance()->getVectorStd()->getFuncAScan(0);
 
-
     // -- Create file
 
     QFile file(m_fileName);
@@ -104,8 +103,6 @@ void ExportCsv::onPrivateStartExport()
         {
             flux<<"Position;Mesure;Mesure1;viroleDebut;viroleFin;viroleMax;viroleMin;viroleMax1E;viroleMin1E;viroleMoy;viroleMoy1E;viroleIndMin;viroleIndMin1E;viroleIndMax1E;viroleIndMax;Date;gain;isMarqueur;attenuation;célérité;déphasage;fréquenceEch;tension;largeur_puls;seuilBruit;debut_Sig;fin_Sig;deb1P;fin1P;seuil1P;Signal brut\n";
         }
-
-
 
         for(auto i : qAsConst(*pCell)) {
             AScan* pAScan = i->getAScanReference();
@@ -160,12 +157,12 @@ void ExportCsv::onPrivateStartExport()
                 }
                 flux<<QDateTime::fromMSecsSinceEpoch(pAScan->getAScanRawSample()->m_epocTimeMs).toString("dd.MM.yyyy hh:mm:ss.zzz")<<";";
 
-                flux<<pVectAScan->getParamDGain()<<";";
+                flux<<(AScanRawSample::SAMPLE_FORMAT_14BIT == pAScan->getAScanRawSample()->m_sampleFormat ? pAScan->getSensorSettings()->m_paramDGain : pVectAScan->getParamDGain())<<";";
                 flux<<false/*m->isMarqueur*/<<";";
                 flux<<pVectAScan->getParamLLowPassFilter()/*m->attenuation => Ordre du filtre*/<<";";
                 flux<<pVectAScan->getParamLCelerity()<<";";
                 flux<<pAScan->mmToIndex(pVectAScan->getParamLProbeDelayMm())/2<<";";
-                flux<<pVectAScan->getParamDSampleFreq()<<";";
+                flux<<(3 == pAScan->getSensorSettings()->m_paramDSampleFreq ? quint8(3) : pVectAScan->getParamDSampleFreq())<<";";
                 flux<<pVectAScan->getParamDVoltage()<<";";
                 flux<<pVectAScan->getParamDPulseWidth()<<";";
                 flux<</*m->seuilBruit*/pVectAScan->getParamLGate1Height()<<";";
@@ -176,8 +173,12 @@ void ExportCsv::onPrivateStartExport()
                 flux<</*m->seuil1Pic*/pVectAScan->getParamLGate0Height()<<";";
 
                 // convert US-SPI signal to US-KEY range
-                for(int j=0;j<AScanRawSample::ASCAN_SAMPLE_SIZE;j++)
+                for(int j=0;j<pAScan->getAScanRawSample()->m_sampleCount;j++)
                 {
+                    if( AScanRawSample::SAMPLE_FORMAT_14BIT == pAScan->getAScanRawSample()->m_sampleFormat ){
+                        flux<<pAScan->getAScanRawSample()->m_rawSamples[j]<<";";
+                        continue;
+                    }
                     qreal d = pAScan->getAScanRawSample()->m_rawSamples[j];
                     qreal uskeyData = 2048 + ((d-127)*10);
                     flux<<(unsigned short)(uskeyData)<<";";
@@ -186,7 +187,6 @@ void ExportCsv::onPrivateStartExport()
                 flux << i->getTemperatureStr() << ";";
                 flux << i->getHumidityStr() << ";";
 
-                //flux<<m->deepCm<<";"; // IP68
                 flux<<"\n";
             }
 
@@ -213,15 +213,6 @@ void ExportCsv::onPrivateStartExport()
         fLogError("Fail to create report file : " + m_fileName);
         bOk = false;
     }
-
-//    for(int i=0; i<= 100; i++) {
-//        emit evProgessChanged(i);
-//        QThread::msleep(20);
-//        if( m_requestCancel ) {
-//            bOk = false;
-//            break;
-//        }
-//    }
 
     if( !bOk ) {
          emit evProgessChanged(-1);

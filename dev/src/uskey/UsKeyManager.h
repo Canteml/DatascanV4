@@ -33,12 +33,10 @@ class QAbstractNativeEventFilter;
 //   - Continuous A-scan acquisition (via internal thread)
 //
 // Usage:
-//   UsKeyManager mgr;
 //   mgr.initialize();          // loads ap_int_usb.dll
 //   mgr.connectDevice(0);      // opens device 0
 //   mgr.setGain(20);
 //   mgr.startAcquisition();    // starts emitting evNewRawAScan
-//   connect(&mgr, &UsKeyManager::evNewRawAScan, ...);
 
 class UsKeyManager : public QObject
 {
@@ -61,7 +59,6 @@ public:
     // waveType:  0 = full rectified, 1 = negative, 2 = positive
     void startAcquisition(int nbSamples = 4000, int dataType = 0, int waveType = 0);
     void stopAcquisition(bool waitForThread = true);   ///< waitForThread=false: do not block on the DLL call in progress
-    bool isAcquiring() const;
 
     // -- Transmitter parameters
     void setPrf(double kHz);
@@ -131,7 +128,6 @@ private:
     // QMetaObject::invokeMethod — never a freshly spawned thread per call.
     // A minidump showed the vendor DLL (built on the LabVIEW runtime, lvrt.dll)
     // crashing with an access violation after we called it from a
-    // throwaway QThread::create() worker for every connect/probe attempt;
     // consolidating onto one long-lived thread avoids repeatedly handing the
     // runtime a new, short-lived thread identity to contend with.
     QThread*                  m_connectThread = nullptr;

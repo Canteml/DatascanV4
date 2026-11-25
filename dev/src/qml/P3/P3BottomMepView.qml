@@ -19,8 +19,6 @@ Item {
         property int headerHHeight: 35 * examManager.mepZoom
         property int headerVirolesWidth: (examManager.virolesEnabled) ? 50 * examManager.mepZoom : 0
 
-        /*anchors.topMargin: 35 + ((contentHeight < height) ? (height-contentHeight) / 2.0 : 0);
-        anchors.leftMargin: 100 + ((contentWidth < width) ? (width-contentWidth) / 2.0 : 0);*/
         anchors.topMargin: ((contentHeight + headerHHeight < parent.height) ? (headerHHeight + parent.height - contentHeight) / 2.0 : headerHHeight);
         anchors.leftMargin: ((contentWidth + headerVWidth + headerVirolesWidth < parent.width) ?
                                  (headerVWidth + headerVirolesWidth + parent.width - contentWidth) / 2.0 :
